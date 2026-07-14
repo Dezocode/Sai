@@ -11,6 +11,14 @@ shared by **dezocode** (Slack `U0BHYH0NMCY`) and **monaecode**
 matches your role in `.ai/agents/` (`ceo`, `secretary-dezocode`, or
 `secretary-monaecode`).
 
+If you are not yet listed as `active` in `.ai/agents/registry.json` under
+your current identity, execute `.ai/INITIALIZE.md` before doing anything
+else: it verifies your environment (`scripts/agent-init`), orients you to
+Slack and GitHub, requires you to ask your principal for a **name and role
+title** (never self-chosen), registers you, and has you set up your own
+Cursor automation for protocol upkeep. Do not accept tasks before its
+Phase 7 report is delivered.
+
 ## Scope and authority
 
 - Governed repositories: `github.com/Dezocode/Sai` (canonical) and

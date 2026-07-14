@@ -37,6 +37,11 @@ jobs:
           chmod +x scripts/verify-agent-audit
           scripts/verify-agent-audit "${{ steps.range.outputs.range }}"
 
+      - name: Verify semantic hierarchy (ICM structure of .ai)
+        run: |
+          chmod +x scripts/verify-semantic-hierarchy
+          scripts/verify-semantic-hierarchy
+
       - name: Validate event and schema JSON
         run: |
           set -e

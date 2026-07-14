@@ -15,6 +15,7 @@ a change means the checks below that apply to the files touched.
 | `*.yaml`, `*.yml` | parse with `python3 -c 'import yaml,sys;yaml.safe_load(open(sys.argv[1]))'` (or equivalent) |
 | Event/manifest payloads | validate against `.ai/shared/schemas/*.schema.json` |
 | Audit metadata | `scripts/verify-agent-audit <range>` |
+| `.ai/**` structure | `scripts/verify-semantic-hierarchy` |
 
 ## Rules
 

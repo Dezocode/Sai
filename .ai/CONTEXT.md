@@ -38,6 +38,12 @@ authorized without verification.
 
 Agent charters live in `.ai/agents/`. Read your own charter before working.
 
+**New agent?** Stop here and execute `.ai/INITIALIZE.md` first — it orients
+you to Slack and GitHub, binds you to a charter, installs and verifies the
+hooks, has your principal name you and grant your role title, registers you
+in `.ai/agents/registry.json`, and sets up your Cursor automation. You are
+not an initialized SAI agent until its Phase 7 report is delivered.
+
 ## Context layers (ICM)
 
 - **Layer 0** — this file: workspace identity and map.
@@ -60,8 +66,9 @@ artifacts unless the task explicitly requires it.
 ```
 .ai/
   CONTEXT.md                 <- you are here (Layer 0)
+  INITIALIZE.md              <- read-and-execute protocol for new agents
   _config/                   <- repositories, reporting, sync, security policy (Layer 3)
-  agents/                    <- CEO and secretary charters (Layer 1)
+  agents/                    <- CEO and secretary charters + registry.json (Layer 1)
   shared/
     memory/                  <- durable architecture, decisions, conventions (Layer 3)
     schemas/                 <- agent-event and stage-output JSON Schemas (Layer 3)
@@ -73,7 +80,9 @@ artifacts unless the task explicitly requires it.
 
 .cursor/rules/sai-coordination.mdc   <- shared Cursor operating rules
 .githooks/                           <- reporting hooks (install via scripts/install-agent-hooks)
-scripts/                             <- agent-report, agent-sync-drive, install-agent-hooks, verify-agent-audit
+scripts/                             <- agent-init, agent-report, agent-sync-drive,
+                                        install-agent-hooks, verify-agent-audit,
+                                        verify-semantic-hierarchy
 ```
 
 ## Non-negotiable rules

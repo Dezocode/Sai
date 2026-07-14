@@ -8,8 +8,9 @@
 | `README.md` | Product description |
 | `Team.md` | Team page (currently empty) |
 | `.ai/` | ICM agent workspace — see `.ai/CONTEXT.md` |
+| `.ai/INITIALIZE.md` | Read-and-execute initialization protocol for new agents |
 | `.ai/_config/` | Repository, reporting, sync, security policy |
-| `.ai/agents/` | CEO and secretary charters |
+| `.ai/agents/` | CEO and secretary charters + `registry.json` roster |
 | `.ai/shared/memory/` | Durable memory (this folder) |
 | `.ai/shared/schemas/` | JSON Schemas for events and stage outputs |
 | `.ai/shared/references/` | Git workflow, testing, release policy |
@@ -18,8 +19,8 @@
 | `.ai/audit/` | Audit trail documentation |
 | `.cursor/rules/` | Shared Cursor operating rules |
 | `.githooks/` | Reporting git hooks |
-| `scripts/` | agent-report, agent-sync-drive, install-agent-hooks, verify-agent-audit |
-| `.github/workflows/` | CI audit verification |
+| `scripts/` | agent-init, agent-report, agent-sync-drive, install-agent-hooks, verify-agent-audit, verify-semantic-hierarchy |
+| `.github/workflows/` | CI audit + semantic hierarchy verification |
 
 ## Remotes and fork topology
 

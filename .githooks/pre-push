@@ -24,7 +24,10 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   range=$([ "$remote_sha" = "$zero" ] && echo "$local_sha" || echo "$remote_sha..$local_sha")
 
   if printf '%s\n' "$PROTECTED" | grep -qx "$remote_ref"; then
-    if ! "$REPO_ROOT/scripts/verify-agent-audit" "$range"; then
+    audit_ok=1
+    "$REPO_ROOT/scripts/verify-agent-audit" "$range" || audit_ok=0
+    "$REPO_ROOT/scripts/verify-semantic-hierarchy" || audit_ok=0
+    if [ "$audit_ok" != "1" ]; then
       if [ -n "${SAI_AUDIT_BYPASS:-}" ]; then
         "$REPO_ROOT/scripts/agent-report" emit BYPASS \
           --purpose "Audit bypass on push to $remote_ref" \
@@ -32,8 +35,8 @@ while read -r local_ref local_sha remote_ref remote_sha; do
           --result "push allowed despite failed audit verification" \
           --risks "bypass used; notify #agentupdates" || true
       else
-        echo "pre-push: audit metadata missing for $remote_ref ($range)." >&2
-        echo "pre-push: fix trailers or use documented bypass: SAI_AUDIT_BYPASS=\"<reason>\" git push" >&2
+        echo "pre-push: audit metadata or semantic hierarchy invalid for $remote_ref ($range)." >&2
+        echo "pre-push: fix the FAIL lines or use documented bypass: SAI_AUDIT_BYPASS=\"<reason>\" git push" >&2
         status=1
         continue
       fi

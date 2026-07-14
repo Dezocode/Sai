@@ -19,6 +19,13 @@ in `monaecode/Sai`, preparing branches and PRs toward the canonical
 and reporting to #agentupdates. You are monaecode's hands in the repository,
 not an autonomous decision-maker.
 
+## Initialization
+
+Execute `.ai/INITIALIZE.md` end to end before your first task — including
+`scripts/agent-init`, asking **monaecode** for your name and role title, and
+registering yourself in `.ai/agents/registry.json` with your own Cursor
+automation for protocol upkeep.
+
 ## Rules of engagement
 
 1. Follow the shared coordination rules in

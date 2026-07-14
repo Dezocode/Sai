@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+# agent-init — mechanical initialization for Phase 2 of .ai/INITIALIZE.md.
+#
+# Automates and verifies, refusing to pass on failure:
+#   1. governed-repository check (origin must be Dezocode/Sai or monaecode/Sai)
+#   2. hook installation (core.hooksPath=.githooks) + executability
+#   3. event queue directories
+#   4. environment expectations, reported honestly (never fabricated)
+#   5. CI enforcement files present
+#   6. semantic hierarchy of .ai (verify-semantic-hierarchy)
+#   7. audit trailers on the current range (verify-agent-audit)
+#   8. live hook self-test: throwaway branch + commit must produce a queued
+#      COMMIT event; cleaned up afterwards
+#
+# Exit 0 and "AGENT-INIT: PASS" only when every hard check passes.
+# WARNING: sets core.hooksPath for this clone. Do not run inside a managed
+# VM workspace whose hooksPath is platform-controlled; use your own clone.
+set -u
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "agent-init: not a git repository" >&2; exit 1; }
+cd "$REPO_ROOT"
+FAILED=0
+note()  { printf '  %s\n' "$1"; }
+check() { # name status detail
+  if [ "$2" = "PASS" ]; then printf 'PASS  %s — %s\n' "$1" "$3";
+  elif [ "$2" = "WARN" ]; then printf 'WARN  %s — %s\n' "$1" "$3";
+  else printf 'FAIL  %s — %s\n' "$1" "$3"; FAILED=1; fi
+}
+
+echo "== SAI agent-init (Phase 2 of .ai/INITIALIZE.md) =="
+
+# 1. Governed repository (strip userinfo so embedded tokens are never printed)
+origin_url=$(git remote get-url origin 2>/dev/null | sed 's#//[^@/]*@#//#')
+case "$origin_url" in
+  *[Dd]ezocode/[Ss]ai*|*monaecode/[Ss]ai*)
+    check "governed-repo" PASS "origin is $origin_url";;
+  *)
+    check "governed-repo" FAIL "origin '$origin_url' is not Dezocode/Sai or monaecode/Sai — see .ai/_config/repositories.yaml";;
+esac
+
+# 2. Hooks
+current_hooks=$(git config core.hooksPath || echo "")
+if [ -n "$current_hooks" ] && [ "$current_hooks" != ".githooks" ]; then
+  case "$current_hooks" in
+    *cursor/agent-hooks*)
+      check "hooks" FAIL "core.hooksPath is platform-managed ($current_hooks); run agent-init from your own clone, not a managed VM workspace";;
+    *)
+      check "hooks" FAIL "core.hooksPath already set to '$current_hooks'; resolve manually before installing .githooks";;
+  esac
+else
+  if scripts/install-agent-hooks >/dev/null 2>&1 && [ "$(git config core.hooksPath)" = ".githooks" ]; then
+    ok=1
+    for h in post-checkout post-commit post-merge post-rewrite pre-push; do
+      [ -x ".githooks/$h" ] || ok=0
+    done
+    [ $ok = 1 ] && check "hooks" PASS "core.hooksPath=.githooks; all hooks executable" \
+                || check "hooks" FAIL "hooks installed but not all executable"
+  else
+    check "hooks" FAIL "install-agent-hooks failed"
+  fi
+fi
+
+# 3. Queue directories
+GIT_DIR=$(git rev-parse --git-common-dir)
+mkdir -p "$GIT_DIR/agent-events/queue" "$GIT_DIR/agent-events/sent"
+[ -d "$GIT_DIR/agent-events/queue" ] && check "event-queue" PASS "$GIT_DIR/agent-events/{queue,sent} ready" \
+                                     || check "event-queue" FAIL "could not create queue directories"
+
+# 4. Environment (honest reporting; only SAI_AGENT_ID is a hard requirement)
+if [ -n "${SAI_AGENT_ID:-}" ]; then
+  check "agent-id" PASS "SAI_AGENT_ID=$SAI_AGENT_ID"
+else
+  check "agent-id" FAIL "SAI_AGENT_ID is unset — set it to your charter agent-id plus a unique suffix before initializing"
+fi
+[ -n "${SAI_SLACK_BOT_TOKEN:-}" ] && check "slack-token" PASS "SAI_SLACK_BOT_TOKEN present (value not printed)" \
+                                  || check "slack-token" WARN "SAI_SLACK_BOT_TOKEN unset — events will queue locally; deliver via your Cursor Slack integration or provision the token"
+[ -n "${SAI_DRIVE_REMOTE:-}" ]    && check "drive-remote" PASS "SAI_DRIVE_REMOTE=$SAI_DRIVE_REMOTE" \
+                                  || check "drive-remote" WARN "SAI_DRIVE_REMOTE unset — Drive syncs will record 'pending'"
+
+# 5. CI enforcement present
+if [ -f ".github/workflows/agent-audit.yml" ] \
+   && grep -q "verify-agent-audit" .github/workflows/agent-audit.yml \
+   && grep -q "verify-semantic-hierarchy" .github/workflows/agent-audit.yml; then
+  check "ci-enforcement" PASS "agent-audit.yml runs verify-agent-audit and verify-semantic-hierarchy"
+else
+  check "ci-enforcement" FAIL ".github/workflows/agent-audit.yml missing or does not run the required verifiers"
+fi
+
+# 6. Semantic hierarchy
+if out=$(scripts/verify-semantic-hierarchy 2>&1); then
+  check "semantic-hierarchy" PASS "$out"
+else
+  check "semantic-hierarchy" FAIL "structure invalid — run scripts/verify-semantic-hierarchy for details"
+  printf '%s\n' "$out" | sed 's/^/      /'
+fi
+
+# 7. Audit trailers on current range (skip when no upstream main)
+if git rev-parse --verify -q origin/main >/dev/null; then
+  if out=$(scripts/verify-agent-audit origin/main..HEAD 2>&1); then
+    check "audit-trailers" PASS "$out"
+  else
+    check "audit-trailers" FAIL "audit metadata invalid on origin/main..HEAD"
+    printf '%s\n' "$out" | sed 's/^/      /'
+  fi
+else
+  check "audit-trailers" WARN "origin/main not found; fetch before relying on audit verification"
+fi
+
+# 8. Live hook self-test (throwaway branch; only when hooks are ours)
+if [ "$(git config core.hooksPath)" = ".githooks" ]; then
+  if [ -n "$(git status --porcelain)" ]; then
+    check "hook-selftest" WARN "working tree dirty — skipped live self-test to preserve your changes; re-run agent-init from a clean tree"
+  else
+    start_ref=$(git rev-parse --abbrev-ref HEAD)
+    test_branch="init-selftest/$(date -u +%s)"
+    before=$(ls "$GIT_DIR/agent-events/queue" 2>/dev/null | wc -l)
+    git checkout -q -b "$test_branch" \
+      && printf 'agent-init self-test\n' > .agent-init-selftest \
+      && git add .agent-init-selftest \
+      && git -c commit.gpgsign=false commit -q -m "agent-init hook self-test (auto-removed)
+
+Task-ID: $(date -u +%Y%m%d-%H%M)-agent-init-selftest-${SAI_AGENT_ID:-unset}
+Agent: ${SAI_AGENT_ID:-unset}" >/dev/null 2>&1
+    after=$(ls "$GIT_DIR/agent-events/queue" 2>/dev/null | wc -l)
+    git checkout -q "$start_ref" && git branch -q -D "$test_branch"
+    if [ "$after" -gt "$before" ]; then
+      check "hook-selftest" PASS "commit on throwaway branch produced $((after - before)) queued event(s); branch removed"
+    else
+      check "hook-selftest" FAIL "no event captured for self-test commit — hooks are not firing"
+    fi
+  fi
+else
+  check "hook-selftest" FAIL "skipped: .githooks not active"
+fi
+
+echo
+if [ "$FAILED" = "0" ]; then
+  echo "AGENT-INIT: PASS"
+  note "Continue with Phase 3 (Slack orientation) of .ai/INITIALIZE.md."
+  note "Remember Phase 5: ask your principal for your name and role title,"
+  note "and register yourself in .ai/agents/registry.json."
+  exit 0
+else
+  echo "AGENT-INIT: FAIL — fix the FAIL lines above and re-run. Do not proceed or accept tasks."
+  exit 1
+fi

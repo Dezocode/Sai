@@ -10,7 +10,8 @@ cd "$REPO_ROOT"
 
 chmod +x .githooks/post-checkout .githooks/post-commit .githooks/post-merge \
          .githooks/post-rewrite .githooks/pre-push .githooks/post-push-equivalent.sh \
-         scripts/agent-report scripts/agent-sync-drive scripts/verify-agent-audit
+         scripts/agent-report scripts/agent-sync-drive scripts/verify-agent-audit \
+         scripts/verify-semantic-hierarchy scripts/agent-init
 
 git config core.hooksPath .githooks
 mkdir -p "$(git rev-parse --git-common-dir)/agent-events/queue" \

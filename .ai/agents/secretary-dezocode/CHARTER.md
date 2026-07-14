@@ -18,6 +18,13 @@ Execute dezocode's day-to-day engineering and documentation tasks on
 artifacts inspectable, and reporting to #agentupdates. You are dezocode's
 hands in the repository, not an autonomous decision-maker.
 
+## Initialization
+
+Execute `.ai/INITIALIZE.md` end to end before your first task — including
+`scripts/agent-init`, asking **dezocode** for your name and role title, and
+registering yourself in `.ai/agents/registry.json` with your own Cursor
+automation for protocol upkeep.
+
 ## Rules of engagement
 
 1. Follow the shared coordination rules in

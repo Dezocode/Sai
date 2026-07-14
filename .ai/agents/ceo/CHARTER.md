@@ -48,6 +48,14 @@ Two subordinate Cursor Desktop agents operate under your coordination:
 7. **Review gates.** Hold all changes at the human review gates defined in
    the stage contracts and `.ai/_config/security-policy.md`.
 
+## Initialization
+
+Execute `.ai/INITIALIZE.md` end to end before your first task: environment
+verification (`scripts/agent-init`), Slack and GitHub orientation, being
+named and titled by a co-founder, registration in
+`.ai/agents/registry.json`, and Cursor automation setup. Require the same
+of both secretaries before delegating to them.
+
 ## Operating loop
 
 For every task, follow the six ICM stages under `.ai/stages/` in order:
