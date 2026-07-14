@@ -141,6 +141,16 @@ if os.path.exists(".ai/agents/registry.json"):
                 fail(f"registry agent[{i}]: charter path does not exist: {charter}")
             if a.get("status") not in ("active", "provisional", "retired", None):
                 fail(f"registry agent[{i}]: status must be active|provisional|retired")
+            auto = a.get("automation") or ""
+            if a.get("status") in ("active", "provisional"):
+                if not auto:
+                    fail(f"registry agent[{i}]: automation field required (real automation or 'delegated: <spec path>')")
+                elif auto.startswith("unavailable"):
+                    fail(f"registry agent[{i}]: automation 'unavailable' is not allowed — use scripts/agent-automation-spec and record 'delegated: <spec path>' (Phase 6 Path B)")
+                elif auto.startswith("delegated:"):
+                    spec = auto.split("delegated:", 1)[1].strip().split(" ")[0]
+                    if not os.path.exists(spec):
+                        fail(f"registry agent[{i}]: delegated automation spec does not exist: {spec}")
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
         fail(f".ai/agents/registry.json invalid JSON ({e})")
 

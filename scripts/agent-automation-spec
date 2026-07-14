@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# agent-automation-spec — generate a complete, ready-to-paste Cursor
+# automation specification for an SAI agent (Phase 6 of .ai/INITIALIZE.md).
+#
+# Used when the agent cannot create the automation itself (e.g. cloud VMs,
+# restricted environments). "Unavailable" is not an allowed end state: the
+# agent generates this spec, writes it to .ai/agents/automation-specs/,
+# delivers it to its principal via #agentupdates, and records
+# "delegated: <spec path>" in its registry entry until the principal
+# confirms the automation exists.
+#
+# Usage:
+#   agent-automation-spec --agent-id ID --agent-name NAME --principal HUMAN \
+#                         [--repo OWNER/REPO] [--branch BRANCH]
+#                         [--schedule "every weekday 09:00 America/Chicago"]
+#                         [--out PATH | --stdout]
+set -euo pipefail
+
+AGENT_ID="${SAI_AGENT_ID:-}"
+AGENT_NAME=""
+PRINCIPAL=""
+REPO="Dezocode/Sai"
+BRANCH="main"
+SCHEDULE="daily at 09:00 (principal's timezone)"
+OUT=""
+TO_STDOUT=0
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    --agent-id)   AGENT_ID=$2; shift 2;;
+    --agent-name) AGENT_NAME=$2; shift 2;;
+    --principal)  PRINCIPAL=$2; shift 2;;
+    --repo)       REPO=$2; shift 2;;
+    --branch)     BRANCH=$2; shift 2;;
+    --schedule)   SCHEDULE=$2; shift 2;;
+    --out)        OUT=$2; shift 2;;
+    --stdout)     TO_STDOUT=1; shift;;
+    *) echo "agent-automation-spec: unknown option $1" >&2; exit 2;;
+  esac
+done
+
+[ -n "$AGENT_ID" ]  || { echo "agent-automation-spec: --agent-id (or SAI_AGENT_ID) is required" >&2; exit 1; }
+[ -n "$PRINCIPAL" ] || { echo "agent-automation-spec: --principal is required" >&2; exit 1; }
+[ -n "$AGENT_NAME" ] || AGENT_NAME="(name pending Phase 5 grant)"
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+[ -n "$OUT" ] || OUT="$REPO_ROOT/.ai/agents/automation-specs/${AGENT_ID}.md"
+TODAY=$(date -u +%Y-%m-%d)
+
+SPEC=$(cat <<EOF
+# Cursor automation spec — ${AGENT_ID}
+
+> Generated ${TODAY} by \`scripts/agent-automation-spec\` for principal
+> **${PRINCIPAL}** because agent \`${AGENT_ID}\` cannot create Cursor
+> automations from its environment. Everything needed is below — create the
+> automation, then tell the agent (or update the registry yourself) so its
+> \`automation\` field can change from \`delegated:\` to the real name.
+
+## Where to create it
+
+Cursor Desktop → **Automations** (or https://cursor.com/automations) →
+**New Automation**, signed in as ${PRINCIPAL}.
+
+## Settings
+
+| Field | Value |
+|---|---|
+| Name | \`SAI ${AGENT_NAME} — protocol upkeep (${AGENT_ID})\` |
+| Owner | ${PRINCIPAL} |
+| Schedule | ${SCHEDULE} (at least daily is recommended) |
+| Repository | \`${REPO}\` |
+| Base branch | \`${BRANCH}\` |
+| Environment | any environment with repo access; Slack integration connected so reports reach #agentupdates (C0BH15HDN2Z) |
+| Secrets (optional) | \`SAI_SLACK_BOT_TOKEN\` to let git hooks deliver directly; without it the automation itself posts via the Slack integration |
+
+## Prompt (paste verbatim)
+
+\`\`\`
+You are the scheduled protocol-upkeep automation for SAI agent
+"${AGENT_NAME}" (agent-id ${AGENT_ID}), working under principal
+${PRINCIPAL} in the coordinated SAI development system.
+
+Context: read .ai/CONTEXT.md, then .ai/_config/reporting.yaml. You act
+under the same rules as every SAI agent (.cursor/rules/sai-coordination.mdc).
+Set SAI_AGENT_ID=${AGENT_ID}-automation for anything you run.
+
+Do, in order:
+1. git fetch origin ${BRANCH} and confirm you are on a clean checkout of
+   ${REPO}. If the repo is unreachable, post BLOCKED (step 5 format) and stop.
+2. Run scripts/agent-report flush. Report how many events delivered and how
+   many remain queued. Never reorder, drop, or fabricate deliveries.
+3. Run scripts/verify-agent-audit origin/${BRANCH}..HEAD and
+   scripts/verify-semantic-hierarchy. Capture exact output.
+4. Run scripts/agent-sync-drive. Report its status (pending/synced/failed/
+   diverged) honestly.
+5. Post one message to #agentupdates (channel C0BH15HDN2Z) using the
+   [SAI][VERIFY][<YYYYMMDD-HHMM>-protocol-upkeep-${AGENT_ID}] template from
+   .ai/_config/reporting.yaml, tagging ${PRINCIPAL}. If any check failed,
+   use [SAI][BLOCKED][...] instead and include the exact failing output.
+6. Make no code changes, no commits, no pushes, no merges, and never use
+   SAI_AUDIT_BYPASS. You are a reporter, not an editor. If you believe a
+   change is needed, say so in the report and stop.
+\`\`\`
+
+## After creating it
+
+1. Run it once manually and confirm a [SAI][VERIFY] message appears in
+   #agentupdates.
+2. Update \`.ai/agents/registry.json\`: set this agent's \`automation\` to
+   \`"SAI ${AGENT_NAME} — protocol upkeep (${AGENT_ID}); <schedule>; created <date>"\`
+   (any agent can make this edit on a branch with proper trailers if you
+   prefer not to).
+EOF
+)
+
+if [ "$TO_STDOUT" = "1" ]; then
+  printf '%s\n' "$SPEC"
+else
+  mkdir -p "$(dirname "$OUT")"
+  printf '%s\n' "$SPEC" > "$OUT"
+  echo "agent-automation-spec: wrote $OUT"
+  echo "Next: deliver it to $PRINCIPAL via #agentupdates and set your registry"
+  echo "entry's automation field to: delegated: ${OUT#"$REPO_ROOT"/}"
+fi

@@ -138,25 +138,60 @@ commit with your trailers, and include it in your next PR.
 ## Phase 6 — Cursor automation self-setup
 
 Every initialized agent maintains its own Cursor automation so that
-protocol upkeep does not depend on memory:
+protocol upkeep does not depend on memory. There are exactly two allowed
+outcomes of this phase: the automation **exists**, or a complete
+specification for it has been **delivered to your principal**. "Unavailable"
+is not an outcome.
 
-1. In Cursor (Desktop → Automations, or [cursor.com/automations](https://cursor.com/automations)),
-   create an automation owned by your principal, named
-   `SAI <your-name> — protocol upkeep`, scheduled (daily or on a cadence
-   your principal approves) with a prompt equivalent to:
-   > Open <your clone> of Dezocode/Sai (or monaecode/Sai per your charter).
-   > Run `scripts/agent-report flush`, `scripts/verify-agent-audit
-   > origin/main..HEAD`, and `scripts/verify-semantic-hierarchy`. Report
-   > results to #agentupdates as `[SAI][VERIFY][<task-id>]`; post BLOCKED
-   > with exact output on any failure. Never force-push, merge, or bypass
-   > review gates.
-2. Also enable the repository's Cursor rules (`.cursor/rules/` — the
-   `sai-coordination.mdc` rule applies always) and keep the git hooks
-   installed in every clone you create (`scripts/install-agent-hooks`).
-3. Record the automation's name and schedule in your registry entry
-   (`automation` field). If you cannot create automations from your
-   environment (e.g. cloud VMs), record `"automation": "unavailable:
-   <reason>"` and say so in Phase 7 — do not claim one exists.
+**Path A — you can create automations** (Cursor Desktop → Automations, or
+[cursor.com/automations](https://cursor.com/automations)):
+
+1. Generate your prompt and settings so they are exact, not improvised:
+   ```bash
+   scripts/agent-automation-spec --agent-id <your-agent-id> \
+     --agent-name "<your granted name>" --principal "<your principal>" \
+     --repo <owner/repo per your charter> --schedule "<approved cadence>" --stdout
+   ```
+2. Create the automation exactly as the spec says (name
+   `SAI <your-name> — protocol upkeep (<agent-id>)`, owner = your
+   principal, schedule approved by them, the prompt verbatim).
+3. Run it once manually; confirm its `[SAI][VERIFY]` message appears in
+   #agentupdates.
+4. Record name, schedule, and creation date in your registry entry's
+   `automation` field.
+
+**Path B — you cannot create automations** (cloud VM, restricted
+environment, missing permissions). Complete the delegated path in full:
+
+1. Generate the spec file:
+   ```bash
+   scripts/agent-automation-spec --agent-id <your-agent-id> \
+     --agent-name "<your granted name>" --principal "<your principal>" \
+     --repo <owner/repo per your charter> --schedule "<proposed cadence>"
+   ```
+   This writes `.ai/agents/automation-specs/<agent-id>.md` containing every
+   detail the principal needs: where to create it, every settings field
+   (name, owner, schedule, repository, branch, environment, optional
+   secrets), the full automation prompt to paste verbatim, and the
+   post-creation confirmation steps. Nothing is left for the principal to
+   figure out.
+2. Commit the spec with your trailers and include it in your PR.
+3. Deliver it: post the spec's **full prompt block and settings table** to
+   #agentupdates, tagging your principal, so it can be pasted into
+   Cursor → Automations without opening the repository.
+4. Set your registry entry to
+   `"automation": "delegated: .ai/agents/automation-specs/<agent-id>.md (awaiting creation by <principal>)"`.
+   The semantic verifier rejects `unavailable` and rejects `delegated:`
+   entries whose spec file does not exist.
+5. When your principal confirms creation and the first manual run has
+   posted its `[SAI][VERIFY]` message, update the registry field to the
+   real automation name, schedule, and creation date.
+
+On both paths: enable the repository's Cursor rules (`.cursor/rules/` —
+`sai-coordination.mdc` applies always) and keep the git hooks installed in
+every clone you create (`scripts/install-agent-hooks`). Say in Phase 7 which
+path you took — never claim an automation exists before its first confirmed
+run.
 
 ## Phase 7 — Initialization report (completes initialization)
 
