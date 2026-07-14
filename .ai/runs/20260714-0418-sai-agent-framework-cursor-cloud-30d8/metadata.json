@@ -7,7 +7,9 @@
   "base_sha": "34827e79ac74ac12fd7b2d4b19f71661f886f594",
   "branch": "cursor/sai-agent-framework-30d8",
   "worktree": "isolated cloud-agent VM workspace (non-synced)",
-  "status": "in-progress",
+  "status": "published-awaiting-review",
+  "pr_url": "https://github.com/Dezocode/Sai/pull/3",
+  "published_sha": "e747206ce047cbe298b50e7539774e3210799f05",
   "claimed_files": [
     ".ai/**",
     ".cursor/rules/sai-coordination.mdc",
