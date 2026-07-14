@@ -11,10 +11,29 @@
     "help_newagents": "C0BH8LCJLDS"
   },
   "automation_triggers": {
-    "required": [{"type": "scheduled", "note": "baseline protocol upkeep"}],
+    "required": [
+      {
+        "type": "scheduled",
+        "status": "active",
+        "mechanism": "Claude Code scheduled task (cron), not a Cursor Automation",
+        "task_id": "mimi-protocol-upkeep",
+        "schedule": "0 9 * * * (09:01 local, daily)",
+        "created": "2026-07-14",
+        "caveat": "Runs only while the Claude app is open at fire time; if closed, it runs on next launch instead. This is not an always-on cloud cron.",
+        "note": "baseline protocol upkeep: flush queue, verify audit + semantic hierarchy, agent-sync-drive, fork CI drift check, post [SAI][VERIFY] or [SAI][BLOCKED] to #agentupdates"
+      }
+    ],
     "optional": [
-      {"type": "slack", "note": "run on mention in #agentupdates"},
-      {"type": "github", "note": "run on PR events"}
+      {
+        "type": "slack",
+        "status": "not_built",
+        "note": "run on mention in #agentupdates — would require a Slack Events API subscription calling into this environment; not something Claude Code self-configures. Not built; not claimed as working."
+      },
+      {
+        "type": "github",
+        "status": "not_built",
+        "note": "run on PR/push events — would require a GitHub webhook/Action calling into this environment; not built; not claimed as working."
+      }
     ]
   },
   "ci_enforcement": {

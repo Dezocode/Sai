@@ -201,6 +201,33 @@
       "status": "verified",
       "evidence": "alwaysApply rule present and read this session; note: this is a Cursor-format rule file — Claude Code does not natively execute .mdc alwaysApply rules, it was read manually as Layer 1 context per .ai/CONTEXT.md",
       "verified_at": "2026-07-14"
+    },
+    {
+      "id": "claude-code-scheduled-task",
+      "kind": "platform",
+      "server": "claude-code",
+      "tool": "scheduled-tasks (create_scheduled_task)",
+      "status": "verified",
+      "evidence": "Created task mimi-protocol-upkeep, cron '0 9 * * *'; confirmed by create_scheduled_task response (next run scheduled). Caveat: fires only while the Claude app is open at the scheduled time; runs on next launch otherwise — not an always-on cloud cron like Cursor Automations.",
+      "verified_at": "2026-07-14"
+    },
+    {
+      "id": "slack-mention-trigger",
+      "kind": "platform",
+      "server": "n/a",
+      "tool": "Slack Events API subscription",
+      "status": "not_built",
+      "evidence": "No mechanism available in this session to receive inbound Slack events; would require external webhook infrastructure not currently set up.",
+      "verified_at": "2026-07-14"
+    },
+    {
+      "id": "github-event-trigger",
+      "kind": "platform",
+      "server": "n/a",
+      "tool": "GitHub webhook/Action trigger",
+      "status": "not_built",
+      "evidence": "No mechanism available in this session to receive inbound GitHub push/PR events; would require a GitHub Action or webhook not currently set up.",
+      "verified_at": "2026-07-14"
     }
   ]
 }

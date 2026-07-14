@@ -22,10 +22,10 @@
       "folder": ".ai/agents/mimi",
       "charter": ".ai/agents/_roles/portfolio-manager-monaecode/CHARTER.md",
       "principal": "monaecode (U0BGNS7F0T1)",
-      "status": "provisional",
+      "status": "active",
       "initialized": "2026-07-14",
-      "automation": "delegated: .ai/agents/mimi/automation/profile.md",
-      "notes": "Named Mimi, Portfolio Project Agent Manager by monaecode 2026-07-14. Runs as a Claude Code agent (not Cursor Desktop) — tools.json distinguishes Claude Code MCP connectors from the Cursor-specific entries used by ceo/dezo-sec agents. Composio slack/googledrive toolkit connections initiated but not active as of initialization; Drive index-integrity duties (#knowledgebase) are blocked until that connection is confirmed active."
+      "automation": "SAI Mimi — Portfolio Project Agent Manager (mimi); scheduled task 'mimi-protocol-upkeep' (Claude Code, cron 0 9 * * *, fires only while the app is open); created 2026-07-14; Slack-mention and GitHub-event triggers NOT built (would need external webhook infra) — see .ai/agents/mimi/tools.json",
+      "notes": "Named Mimi, Portfolio Project Agent Manager by monaecode 2026-07-14. Runs as a Claude Code agent (not Cursor Desktop) — tools.json distinguishes Claude Code MCP connectors from the Cursor-specific entries used by ceo/dezo-sec agents. Composio slack/googledrive toolkit connections initiated but not active as of initialization; Drive index-integrity duties (#knowledgebase) are blocked until that connection is confirmed active. Phase 9 report: see .ai/runs/20260714-2348-agent-initialization-mimi/."
     }
   ]
 }
