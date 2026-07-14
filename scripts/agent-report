@@ -32,6 +32,7 @@ mkdir -p "$QUEUE_DIR" "$SENT_DIR"
 
 SLACK_TOKEN="${SAI_SLACK_BOT_TOKEN:-}"
 SLACK_CHANNEL="${SAI_SLACK_CHANNEL:-C0BH15HDN2Z}"   # #agentupdates
+SLACK_API_URL="${SAI_SLACK_API_URL:-https://slack.com/api/chat.postMessage}"
 
 redact() {
   # Defense in depth: strip common secret shapes before anything is written.
@@ -163,7 +164,7 @@ lines = [
     f"Scope: {', '.join(d.get('scope', [])) or 'n/a'}",
     f"Result: {d['result']}",
     f"Verification: {d.get('verification','n/a')}",
-    f"Git: {d.get('commit_sha','')} {refs.get('push_range','')} {refs.get('pr_url','')}".rstrip() or "Git: n/a",
+    "Git: " + (" ".join(x for x in [d.get("commit_sha",""), refs.get("push_range",""), refs.get("pr_url","")] if x) or "n/a"),
     f"Drive: {d.get('drive_status','not-applicable')} {d.get('drive_checksum','')}".rstrip(),
     f"Risks/conflicts: {d.get('risks','none')}",
     f"Review gate/next action: {d.get('review_gate','n/a')}",
@@ -172,7 +173,7 @@ lines = [
 print("\n".join(lines))
 PY
 ) || return 1
-  response=$(curl -sS --max-time 15 -X POST "https://slack.com/api/chat.postMessage" \
+  response=$(curl -sS --max-time 15 -X POST "$SLACK_API_URL" \
     -H "Authorization: Bearer $SLACK_TOKEN" \
     -H "Content-Type: application/json; charset=utf-8" \
     --data "$(python3 -c 'import json,sys;print(json.dumps({"channel":sys.argv[1],"text":sys.stdin.read()}))' "$SLACK_CHANNEL" <<<"$text")") || return 1

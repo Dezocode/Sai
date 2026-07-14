@@ -22,7 +22,7 @@ reporting.
 | `.ai/shared/memory/*` + `decisions/0001-*` | Durable memory seeded with verified facts |
 | `.ai/shared/schemas/*.schema.json` | Event and stage-output JSON Schemas |
 | `.ai/shared/references/{git-workflow,testing,release-policy}.md` | Stable references |
-| `.ai/stages/01..06/CONTEXT.md` | Six stage contracts with inputs/process/outputs/verification/gates/rollback/provenance |
+| `.ai/stages/<NN_stage>/CONTEXT.md` | Six stage contracts with inputs/process/outputs/verification/gates/rollback/provenance |
 | `.ai/runs/README.md` + this run | Layer 4 conventions and first audit record |
 | `.ai/audit/README.md` | Audit trail documentation |
 | `.cursor/rules/sai-coordination.mdc` | Shared Cursor operating rules for both users' agents |
