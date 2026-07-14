@@ -1,0 +1,22 @@
+{
+  "task_id": "20260714-0514-automation-fallback-cursor-cloud-30d8",
+  "agent": "cursor-cloud-30d8",
+  "requester": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "base_branch": "cursor/sai-agent-framework-30d8",
+  "base_sha": "6570a418c8858e0590f636dd68c7dae3d0de7bf2",
+  "branch": "cursor/sai-agent-framework-30d8",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "status": "published-awaiting-review",
+  "plan_reference": "PLAN report delivered to #agentupdates before edits (message ts 1784006122.203829); scope and verification defined there",
+  "claimed_files": [
+    ".ai/INITIALIZE.md",
+    ".ai/agents/registry.json",
+    ".ai/agents/automation-specs/cursor-cloud-30d8.md",
+    ".ai/runs/20260714-0514-automation-fallback-cursor-cloud-30d8/**",
+    "scripts/agent-automation-spec",
+    "scripts/verify-semantic-hierarchy"
+  ],
+  "merge_target": "Dezocode/Sai:main (via existing PR #3)",
+  "mirroring": "Drive mirror still pending (no credentials in this environment)"
+}

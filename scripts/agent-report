@@ -1,0 +1,223 @@
+#!/usr/bin/env bash
+# agent-report — produce, queue, and deliver SAI agent events.
+#
+# Usage:
+#   agent-report emit <EVENT_TYPE> [--task-id ID] [--actor NAME]
+#                [--purpose TEXT] [--justification TEXT] [--result TEXT]
+#                [--verification TEXT] [--scope CSV] [--branch NAME]
+#                [--commit SHA] [--pr-url URL] [--push-range RANGE]
+#                [--drive-status STATUS] [--drive-checksum SUM]
+#                [--risks TEXT] [--review-gate TEXT] [--no-deliver]
+#   agent-report flush            # deliver queued events, oldest first
+#   agent-report push-confirm     # verify remote SHA after a push, emit PUSH
+#
+# Behavior (see .ai/audit/README.md):
+#   * Events are schema-valid JSON (.ai/shared/schemas/agent-event.schema.json).
+#   * Secrets are redacted before anything leaves the machine.
+#   * Every event is queued under .git/agent-events/queue/ first; successful
+#     deliveries move to .git/agent-events/sent/. Failures stay queued.
+#   * Delivery is idempotent by event_id and never reordered (flush is FIFO).
+#   * Never fabricates success: exit status and queue state tell the truth.
+#   * SAI_AGENT_REPORT_ACTIVE guards against recursive hook invocation.
+set -u
+
+[ "${SAI_AGENT_REPORT_ACTIVE:-}" = "1" ] && exit 0
+export SAI_AGENT_REPORT_ACTIVE=1
+
+GIT_DIR=$(git rev-parse --git-common-dir 2>/dev/null) || { echo "agent-report: not a git repository" >&2; exit 1; }
+REPO_ROOT=$(git rev-parse --show-toplevel)
+QUEUE_DIR="$GIT_DIR/agent-events/queue"
+SENT_DIR="$GIT_DIR/agent-events/sent"
+mkdir -p "$QUEUE_DIR" "$SENT_DIR"
+
+SLACK_TOKEN="${SAI_SLACK_BOT_TOKEN:-}"
+SLACK_CHANNEL="${SAI_SLACK_CHANNEL:-C0BH15HDN2Z}"   # #agentupdates
+SLACK_API_URL="${SAI_SLACK_API_URL:-https://slack.com/api/chat.postMessage}"
+
+redact() {
+  # Defense in depth: strip common secret shapes before anything is written.
+  sed -E \
+    -e 's/(xox[baprs]-)[A-Za-z0-9-]+/\1[REDACTED]/g' \
+    -e 's/(gh[pousr]_)[A-Za-z0-9]+/\1[REDACTED]/g' \
+    -e 's/(github_pat_)[A-Za-z0-9_]+/\1[REDACTED]/g' \
+    -e 's/(AKIA)[A-Z0-9]{16}/\1[REDACTED]/g' \
+    -e 's#(https://hooks\.slack\.com/services/)[A-Za-z0-9/]+#\1[REDACTED]#g' \
+    -e 's/([Aa][Pp][Ii][_-]?[Kk][Ee][Yy][[:space:]]*[:=][[:space:]]*)[^[:space:]]+/\1[REDACTED]/g' \
+    -e 's/([Tt][Oo][Kk][Ee][Nn][[:space:]]*[:=][[:space:]]*)[^[:space:]]+/\1[REDACTED]/g' \
+    -e 's/(-----BEGIN [A-Z ]*PRIVATE KEY-----).*/\1[REDACTED]/g'
+}
+
+infer_task_id() {
+  # Latest run directory, else a synthetic id.
+  local latest
+  latest=$(ls -1 "$REPO_ROOT/.ai/runs" 2>/dev/null | grep -E '^[0-9]{8}-[0-9]{4}-' | sort | tail -n1)
+  if [ -n "$latest" ]; then echo "$latest"; else date -u +"%Y%m%d-%H%M-adhoc-unknown"; fi
+}
+
+emit() {
+  local event_type=$1; shift
+  local task_id="" actor="${SAI_AGENT_ID:-unknown-agent}" purpose="" justification=""
+  local result="" verification="" scope="" branch="" commit="" pr_url="" push_range=""
+  local drive_status="not-applicable" drive_checksum="" risks="none" review_gate="" deliver=1
+
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --task-id) task_id=$2; shift 2;;
+      --actor) actor=$2; shift 2;;
+      --purpose) purpose=$2; shift 2;;
+      --justification) justification=$2; shift 2;;
+      --result) result=$2; shift 2;;
+      --verification) verification=$2; shift 2;;
+      --scope) scope=$2; shift 2;;
+      --branch) branch=$2; shift 2;;
+      --commit) commit=$2; shift 2;;
+      --pr-url) pr_url=$2; shift 2;;
+      --push-range) push_range=$2; shift 2;;
+      --drive-status) drive_status=$2; shift 2;;
+      --drive-checksum) drive_checksum=$2; shift 2;;
+      --risks) risks=$2; shift 2;;
+      --review-gate) review_gate=$2; shift 2;;
+      --no-deliver) deliver=0; shift;;
+      *) echo "agent-report: unknown option $1" >&2; return 2;;
+    esac
+  done
+
+  [ -n "$task_id" ] || task_id=$(infer_task_id)
+  [ -n "$branch" ] || branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+  local base_sha; base_sha=$(git rev-parse --short HEAD 2>/dev/null || echo "0000000")
+  local repository="${SAI_REPOSITORY:-Dezocode/Sai}"
+  local ts; ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  local event_id="${task_id}:$(date -u +%s%N)"
+  [ -n "$result" ] || result="see purpose"
+  [ -n "$purpose" ] || purpose="(unspecified)"
+
+  local payload
+  payload=$(EVENT_ID="$event_id" EVENT_TYPE="$event_type" TASK_ID="$task_id" \
+    ACTOR="$actor" REPOSITORY="$repository" BRANCH="$branch" BASE_SHA="$base_sha" \
+    COMMIT="$commit" TS="$ts" PURPOSE="$purpose" JUSTIFICATION="$justification" \
+    SCOPE="$scope" RESULT="$result" VERIFICATION="$verification" \
+    PR_URL="$pr_url" PUSH_RANGE="$push_range" DRIVE_STATUS="$drive_status" \
+    DRIVE_CHECKSUM="$drive_checksum" RISKS="$risks" REVIEW_GATE="$review_gate" \
+    python3 - <<'PY'
+import json, os
+e = os.environ
+doc = {
+    "event_id": e["EVENT_ID"],
+    "event_type": e["EVENT_TYPE"],
+    "task_id": e["TASK_ID"],
+    "actor": e["ACTOR"],
+    "repository": e["REPOSITORY"],
+    "branch": e["BRANCH"],
+    "base_sha": e["BASE_SHA"],
+    "timestamp": e["TS"],
+    "purpose": e["PURPOSE"],
+    "result": e["RESULT"],
+    "drive_status": e["DRIVE_STATUS"],
+    "risks": e["RISKS"],
+}
+if e["COMMIT"]: doc["commit_sha"] = e["COMMIT"]
+if e["JUSTIFICATION"]: doc["justification"] = e["JUSTIFICATION"]
+if e["SCOPE"]: doc["scope"] = [s.strip() for s in e["SCOPE"].split(",") if s.strip()]
+if e["VERIFICATION"]: doc["verification"] = e["VERIFICATION"]
+if e["REVIEW_GATE"]: doc["review_gate"] = e["REVIEW_GATE"]
+if e["DRIVE_CHECKSUM"]: doc["drive_checksum"] = e["DRIVE_CHECKSUM"]
+refs = {}
+if e["PR_URL"]: refs["pr_url"] = e["PR_URL"]
+if e["PUSH_RANGE"]: refs["push_range"] = e["PUSH_RANGE"]
+if refs: doc["git_refs"] = refs
+print(json.dumps(doc, indent=2))
+PY
+) || return 1
+  payload=$(printf '%s' "$payload" | redact)
+
+  local qfile="$QUEUE_DIR/$(date -u +%s%N)-${event_type}.json"
+  printf '%s\n' "$payload" > "$qfile"
+
+  # Mirror into the run's events.jsonl when the run directory exists.
+  local run_dir="$REPO_ROOT/.ai/runs/$task_id"
+  if [ -d "$run_dir" ]; then
+    printf '%s\n' "$payload" | python3 -c 'import json,sys;print(json.dumps(json.load(sys.stdin)))' >> "$run_dir/events.jsonl"
+  fi
+
+  echo "agent-report: queued $event_type event $event_id" >&2
+  [ "$deliver" = "1" ] && flush
+  return 0
+}
+
+deliver_one() {
+  # FIFO delivery of a single queued file to Slack. Returns non-zero on failure.
+  local f=$1
+  [ -n "$SLACK_TOKEN" ] || { echo "agent-report: SAI_SLACK_BOT_TOKEN unset; event kept in queue: $(basename "$f")" >&2; return 1; }
+  local text response ok
+  text=$(python3 - "$f" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+refs = d.get("git_refs", {})
+lines = [
+    f"[SAI][{d['event_type']}][{d['task_id']}]",
+    f"Actor: {d['actor']}",
+    f"Repository: {d['repository']}",
+    f"Branch/worktree: {d.get('branch','?')} {d.get('worktree','')}".rstrip(),
+    f"Base SHA: {d.get('base_sha','?')}",
+    f"Purpose: {d['purpose']}",
+    f"Justification: {d.get('justification','n/a')}",
+    f"Scope: {', '.join(d.get('scope', [])) or 'n/a'}",
+    f"Result: {d['result']}",
+    f"Verification: {d.get('verification','n/a')}",
+    "Git: " + (" ".join(x for x in [d.get("commit_sha",""), refs.get("push_range",""), refs.get("pr_url","")] if x) or "n/a"),
+    f"Drive: {d.get('drive_status','not-applicable')} {d.get('drive_checksum','')}".rstrip(),
+    f"Risks/conflicts: {d.get('risks','none')}",
+    f"Review gate/next action: {d.get('review_gate','n/a')}",
+    f"(event_id: {d['event_id']})",
+]
+print("\n".join(lines))
+PY
+) || return 1
+  response=$(curl -sS --max-time 15 -X POST "$SLACK_API_URL" \
+    -H "Authorization: Bearer $SLACK_TOKEN" \
+    -H "Content-Type: application/json; charset=utf-8" \
+    --data "$(python3 -c 'import json,sys;print(json.dumps({"channel":sys.argv[1],"text":sys.stdin.read()}))' "$SLACK_CHANNEL" <<<"$text")") || return 1
+  ok=$(printf '%s' "$response" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("ok"))' 2>/dev/null)
+  if [ "$ok" = "True" ]; then
+    mv "$f" "$SENT_DIR/$(basename "$f")"
+    return 0
+  fi
+  echo "agent-report: Slack delivery failed for $(basename "$f"): $(printf '%s' "$response" | redact)" >&2
+  return 1
+}
+
+flush() {
+  # Oldest first; stop at the first failure to preserve ordering.
+  local f
+  for f in $(ls -1 "$QUEUE_DIR" 2>/dev/null | sort); do
+    deliver_one "$QUEUE_DIR/$f" || return 1
+  done
+  return 0
+}
+
+push_confirm() {
+  # Git has no native post-push hook; call this after every push (or rely on
+  # CI) to confirm actual remote state before claiming success.
+  local remote=${1:-origin} branch head remote_sha
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  head=$(git rev-parse HEAD)
+  remote_sha=$(git ls-remote "$remote" "refs/heads/$branch" | cut -f1)
+  if [ "$remote_sha" = "$head" ]; then
+    emit PUSH --purpose "Confirm push of $branch to $remote" \
+      --result "remote SHA verified: $remote_sha" \
+      --verification "git ls-remote $remote refs/heads/$branch == local HEAD" \
+      --commit "$head" --push-range "$branch -> $remote/$branch"
+  else
+    emit BLOCKED --purpose "Push confirmation for $branch to $remote" \
+      --result "remote SHA mismatch: local=$head remote=${remote_sha:-absent}" \
+      --risks "remote state does not match local HEAD; do not claim push success"
+    return 1
+  fi
+}
+
+case "${1:-}" in
+  emit) shift; emit "$@";;
+  flush) flush;;
+  push-confirm) shift; push_confirm "$@";;
+  *) echo "usage: agent-report {emit <EVENT_TYPE> [options] | flush | push-confirm [remote]}" >&2; exit 2;;
+esac

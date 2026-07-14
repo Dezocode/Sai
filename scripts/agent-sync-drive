@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# agent-sync-drive — replicate verified GitHub state to the Google Drive
+# mirror per .ai/_config/sync-policy.md.
+#
+# Usage: agent-sync-drive [--remote <rclone-remote:path>] [--repo-key <owner-sai>]
+#
+# Requires an rclone remote (SAI_DRIVE_REMOTE, e.g. "gdrive:SAI"). When no
+# remote is configured, records the sync as `pending` and exits 0 so missing
+# Drive access never blocks Git work. Never claims success without a
+# verified upload + checksum.
+set -euo pipefail
+
+DRIVE_REMOTE="${SAI_DRIVE_REMOTE:-}"
+REPO_KEY="dezocode-sai"
+while [ $# -gt 0 ]; do
+  case $1 in
+    --remote) DRIVE_REMOTE=$2; shift 2;;
+    --repo-key) REPO_KEY=$2; shift 2;;
+    *) echo "agent-sync-drive: unknown option $1" >&2; exit 2;;
+  esac
+done
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+SHA=$(git rev-parse HEAD)
+SHORT_SHA=$(git rev-parse --short HEAD)
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+TS=$(date -u +"%Y%m%dT%H%M%SZ")
+
+report() { # status checksum
+  "$REPO_ROOT/scripts/agent-report" emit SYNC \
+    --purpose "Mirror $REPO_KEY@$SHORT_SHA ($BRANCH) to Drive" \
+    --result "$1" --drive-status "$1" --drive-checksum "${2:-}" \
+    --commit "$SHA" --no-deliver || true
+}
+
+# GitHub verification first: the mirrored commit must exist on the remote.
+if ! git branch -r --contains "$SHA" 2>/dev/null | grep -q .; then
+  echo "agent-sync-drive: HEAD $SHORT_SHA is not on any remote branch; push and verify before mirroring." >&2
+  report "failed" ""
+  exit 1
+fi
+
+if [ -z "$DRIVE_REMOTE" ]; then
+  echo "agent-sync-drive: SAI_DRIVE_REMOTE not configured; recording sync as pending." >&2
+  report "pending" ""
+  exit 0
+fi
+command -v rclone >/dev/null || { echo "agent-sync-drive: rclone not installed; recording pending." >&2; report "pending" ""; exit 0; }
+
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+
+# Immutable, timestamped bundle keyed by repo identity and SHA. Never
+# overwrites: the filename embeds timestamp + SHA.
+BUNDLE="$WORK/${REPO_KEY}-${TS}-${SHORT_SHA}.bundle"
+git bundle create "$BUNDLE" --all
+git bundle verify "$BUNDLE" >/dev/null
+CHECKSUM=$(sha256sum "$BUNDLE" | cut -d' ' -f1)
+
+DEST="$DRIVE_REMOTE/repositories/$REPO_KEY/bundles"
+rclone copy "$BUNDLE" "$DEST" --checksum
+
+# Verify integrity after upload; never claim atomic equality.
+REMOTE_SUM=$(rclone hashsum sha256 "$DEST/$(basename "$BUNDLE")" 2>/dev/null | cut -d' ' -f1 || true)
+if [ "$REMOTE_SUM" != "$CHECKSUM" ]; then
+  echo "agent-sync-drive: checksum mismatch after upload (local=$CHECKSUM remote=${REMOTE_SUM:-unreadable})." >&2
+  report "diverged" "$CHECKSUM"
+  exit 1
+fi
+
+# Mirror memory and audit records (read-only mirrors of committed state).
+rclone copy "$REPO_ROOT/.ai/shared/memory" "$DRIVE_REMOTE/repositories/$REPO_KEY/memory" --checksum
+rclone copy "$REPO_ROOT/.ai/audit"         "$DRIVE_REMOTE/repositories/$REPO_KEY/audit"  --checksum
+
+echo "$CHECKSUM  $(basename "$BUNDLE")" > "$WORK/checksum.txt"
+rclone copy "$WORK/checksum.txt" "$DRIVE_REMOTE/checksums/" --checksum
+
+report "synced" "$CHECKSUM"
+echo "agent-sync-drive: synced $REPO_KEY@$SHORT_SHA bundle sha256=$CHECKSUM -> $DEST"

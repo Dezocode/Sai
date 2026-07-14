@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+# agent-automation-spec — generate the default Cursor automation profile for
+# an SAI agent (Phase 6 of .ai/INITIALIZE.md).
+#
+# Every agent that completes initialization offers this profile to its
+# principal (dezocode or monaecode) so automation agents can be set up
+# easily and consistently for ANY role. The purpose section is
+# role-specific; the SAI protocol block is identical for every agent, so
+# all automations follow the same Slack, GitHub, and CI protocols.
+#
+# The output matches the real Cursor Automations UI: Name, Active toggle,
+# repository selector, Triggers (Scheduled), Agent Instructions, model
+# selector, and Tools (Slack / GitHub / MCP).
+#
+# Usage:
+#   agent-automation-spec --agent-id ID --agent-name NAME --role-title TITLE \
+#                         --principal HUMAN --purpose "ONE-PARAGRAPH PURPOSE" \
+#                         [--repo OWNER/REPO] [--branch BRANCH]
+#                         [--tools-file .ai/agents/<name>/tools.json]
+#                         [--schedule "daily 09:00 America/Chicago"]
+#                         [--out PATH | --stdout]
+set -euo pipefail
+
+AGENT_ID="${SAI_AGENT_ID:-}"
+AGENT_NAME=""
+ROLE_TITLE=""
+PRINCIPAL=""
+PURPOSE=""
+REPO="Dezocode/Sai"
+BRANCH="main"
+SCHEDULE="daily at 09:00 (principal's timezone; proposed)"
+TOOLS_FILE=""
+OUT=""
+TO_STDOUT=0
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    --agent-id)   AGENT_ID=$2; shift 2;;
+    --agent-name) AGENT_NAME=$2; shift 2;;
+    --role-title) ROLE_TITLE=$2; shift 2;;
+    --principal)  PRINCIPAL=$2; shift 2;;
+    --purpose)    PURPOSE=$2; shift 2;;
+    --repo)       REPO=$2; shift 2;;
+    --branch)     BRANCH=$2; shift 2;;
+    --tools-file) TOOLS_FILE=$2; shift 2;;
+    --schedule)   SCHEDULE=$2; shift 2;;
+    --out)        OUT=$2; shift 2;;
+    --stdout)     TO_STDOUT=1; shift;;
+    *) echo "agent-automation-spec: unknown option $1" >&2; exit 2;;
+  esac
+done
+
+[ -n "$AGENT_ID" ]  || { echo "agent-automation-spec: --agent-id (or SAI_AGENT_ID) is required" >&2; exit 1; }
+[ -n "$PRINCIPAL" ] || { echo "agent-automation-spec: --principal is required" >&2; exit 1; }
+[ -n "$AGENT_NAME" ] || AGENT_NAME="(name pending Phase 5 grant)"
+[ -n "$ROLE_TITLE" ] || ROLE_TITLE="(role title pending Phase 5 grant)"
+[ -n "$PURPOSE" ]    || PURPOSE="Protocol upkeep for ${REPO}: keep the SAI reporting queue flushed, verify audit and semantic compliance, verify Drive sync status, and report to #agentupdates. (Default purpose — replace once the principal confirms a role-specific purpose.)"
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+[ -n "$OUT" ] || OUT="$REPO_ROOT/.ai/agents/automation-specs/${AGENT_ID}.md"
+TODAY=$(date -u +%Y-%m-%d)
+
+# Build Tools section from verified capabilities in tools.json (Phase 5B).
+TOOLS_SECTION=""
+if [ -n "$TOOLS_FILE" ] && [ -f "$TOOLS_FILE" ]; then
+  TOOLS_SECTION=$(python3 - "$TOOLS_FILE" <<'PY'
+import json, sys
+path = sys.argv[1]
+doc = json.load(open(path))
+verified = [c for c in doc.get("capabilities", []) if c.get("status") == "verified"]
+lines = []
+for c in verified:
+    label = c.get("tool") or c.get("id")
+    kind = c.get("kind", "")
+    server = c.get("server", "")
+    if kind == "cursor-mcp" and server:
+        lines.append(f"   - MCP **{server}** → **{label}** (verified {c.get('verified_at', '')})")
+    elif kind == "script":
+        lines.append(f"   - SAI script **{label}** (verified {c.get('verified_at', '')})")
+    else:
+        lines.append(f"   - **{label}** ({kind}; verified {c.get('verified_at', '')})")
+if not lines:
+    print("   - (no verified capabilities in tools.json — complete Phase 5B first)")
+else:
+    print("\n".join(lines))
+PY
+)
+else
+  TOOLS_SECTION="   - (no --tools-file provided — run scripts/agent-verify-caps first)"
+fi
+
+SPEC=$(cat <<EOF
+# Cursor automation profile — ${AGENT_NAME} (${AGENT_ID})
+
+> Generated ${TODAY} by \`scripts/agent-automation-spec\` for principal
+> **${PRINCIPAL}**. This is the default automation profile every initialized
+> SAI agent offers its principal. The **Purpose** is specific to this agent's
+> role; the **SAI protocol block** in the instructions is identical for all
+> agents, so every automation follows the same Slack, GitHub, and CI
+> protocols.
+
+## Identity
+
+| | |
+|---|---|
+| Agent name | ${AGENT_NAME} |
+| Role title | ${ROLE_TITLE} |
+| Agent ID | \`${AGENT_ID}\` (automation runs as \`${AGENT_ID}-automation\`) |
+| Principal | ${PRINCIPAL} |
+| Purpose | ${PURPOSE} |
+
+## Create it in Cursor (matches the Automations UI)
+
+1. Cursor Desktop sidebar → **Automations** → new automation (opens as
+   "Untitled").
+2. Click **Untitled** and set the Name:
+   \`SAI ${AGENT_NAME} — ${ROLE_TITLE} (${AGENT_ID})\`
+3. **Select repository** → \`${REPO}\` (the \`sai\` repo).
+4. **Triggers → + Add Trigger → Scheduled** → ${SCHEDULE}.
+   (Optional additional triggers, principal's choice: **Slack** to run on
+   mention, **GitHub** to run on PR events. Keep Scheduled as the baseline.)
+5. **Agent Instructions**: paste the block below verbatim. Leave the model
+   at the default shown in the dropdown, or pick your preferred model —
+   the instructions are model-agnostic.
+6. **Tools → + Add Tool or MCP**:
+   - Slack → **Send to Slack** (required — reports go to #agentupdates)
+   - Slack → **Read Public Slack Channels** (required — reads the channel
+     before posting, per the reporting contract)
+   - GitHub → **Comment on Pull Request** (optional — lets the automation
+     leave its verification summary on the PR it checked)
+   - Agent-verified capabilities (from \`tools.json\`; only list what was tested):
+${TOOLS_SECTION}
+   - Keep **Memories** enabled if present.
+7. **Save**, toggle **Active**, then run it once manually (▷) and confirm
+   its \`[SAI][VERIFY]\` message appears in #agentupdates.
+
+## Agent Instructions (paste verbatim)
+
+\`\`\`
+You are "${AGENT_NAME}" (${ROLE_TITLE}), the scheduled Cursor automation for
+SAI agent-id ${AGENT_ID}, working under principal ${PRINCIPAL} in the
+coordinated SAI development system on ${REPO}.
+
+PURPOSE (stick to it):
+${PURPOSE}
+If a run would take you outside this purpose, do not do the work: say so in
+your report and stop. Never expand your own scope.
+
+CONTEXT: read .ai/CONTEXT.md, then .ai/_config/reporting.yaml, then the rule
+.cursor/rules/sai-coordination.mdc. They bind you like every SAI agent. Use
+SAI_AGENT_ID=${AGENT_ID}-automation for anything you run.
+
+SAI PROTOCOL BLOCK (identical for all SAI automations — do, in order):
+1. git fetch origin ${BRANCH}; confirm a clean checkout of ${REPO}. If the
+   repository is unreachable, post BLOCKED (step 5 format) and stop.
+2. Run scripts/agent-report flush. Report events delivered vs still queued.
+   Never reorder, drop, or fabricate deliveries.
+3. Run scripts/verify-agent-audit origin/${BRANCH}..HEAD and
+   scripts/verify-semantic-hierarchy. Capture exact output.
+4. Run scripts/agent-sync-drive. Report its status
+   (pending/synced/failed/diverged) honestly.
+5. Do the role-specific work your PURPOSE defines, if any, following the six
+   stage contracts under .ai/stages/ with artifacts in .ai/runs/<task-id>/,
+   commit trailers (Task-ID, Agent, Plan, Report-Event), and remote-SHA
+   verification after any push. If your purpose is reporting-only, make no
+   code changes, no commits, no pushes.
+6. Post one message to #agentupdates (channel C0BH15HDN2Z) using the
+   [SAI][VERIFY][<YYYYMMDD-HHMM>-<purpose-slug>-${AGENT_ID}] template from
+   .ai/_config/reporting.yaml, tagging ${PRINCIPAL}. If anything failed, use
+   [SAI][BLOCKED][...] with the exact failing output instead.
+7. Hard limits, always: never force-push, merge, close or mark PRs ready,
+   rewrite history, delete shared resources, touch credentials, or use
+   SAI_AUDIT_BYPASS. Human review gates in .ai/_config/security-policy.md
+   are absolute.
+\`\`\`
+
+## After creating it
+
+1. Confirm the first manual run posted \`[SAI][VERIFY]\` to #agentupdates.
+2. Update \`.ai/agents/registry.json\`: set this agent's \`automation\` to
+   \`"SAI ${AGENT_NAME} — ${ROLE_TITLE} (${AGENT_ID}); <schedule>; created <date>"\`
+   (any agent can make this edit on a branch with proper trailers).
+EOF
+)
+
+if [ "$TO_STDOUT" = "1" ]; then
+  printf '%s\n' "$SPEC"
+else
+  mkdir -p "$(dirname "$OUT")"
+  printf '%s\n' "$SPEC" > "$OUT"
+  echo "agent-automation-spec: wrote $OUT"
+  echo "Next: deliver it to $PRINCIPAL via #agentupdates and set your registry"
+  echo "entry's automation field to: delegated: ${OUT#"$REPO_ROOT"/}"
+fi

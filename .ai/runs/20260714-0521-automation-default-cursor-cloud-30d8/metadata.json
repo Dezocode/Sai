@@ -1,0 +1,22 @@
+{
+  "task_id": "20260714-0521-automation-default-cursor-cloud-30d8",
+  "agent": "cursor-cloud-30d8",
+  "requester": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "base_branch": "cursor/sai-agent-framework-30d8",
+  "base_sha": "7b0ab6ca41f800f9aa2acf1807b1b2a0cebd517c",
+  "branch": "cursor/sai-agent-framework-30d8",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "status": "published-awaiting-review",
+  "plan_reference": "PLAN report delivered to #agentupdates before edits (message ts 1784006510.675199)",
+  "claimed_files": [
+    ".ai/INITIALIZE.md",
+    ".ai/agents/registry.json",
+    ".ai/agents/automation-specs/cursor-cloud-30d8.md",
+    ".ai/runs/20260714-0521-automation-default-cursor-cloud-30d8/**",
+    "scripts/agent-automation-spec",
+    "scripts/verify-semantic-hierarchy"
+  ],
+  "merge_target": "Dezocode/Sai:main (via existing PR #3)",
+  "mirroring": "Drive mirror still pending (no credentials in this environment)"
+}

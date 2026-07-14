@@ -1,0 +1,58 @@
+{
+  "agent_id": "ceo",
+  "name": "Sai",
+  "role_title": "CEO",
+  "git_hooks": {
+    "path": ".githooks",
+    "install": "scripts/install-agent-hooks",
+    "verify": "scripts/agent-init",
+    "hooks": [
+      "post-checkout",
+      "post-commit",
+      "post-merge",
+      "post-rewrite",
+      "pre-push",
+      "post-push-equivalent.sh"
+    ]
+  },
+  "cursor_rules": [
+    ".cursor/rules/sai-coordination.mdc"
+  ],
+  "reporting_channels": {
+    "agentupdates": "C0BH15HDN2Z",
+    "help_newagents": "C0BH8LCJLDS"
+  },
+  "automation_triggers": {
+    "required": [
+      {
+        "type": "scheduled",
+        "schedule": "daily 09:00 America/Chicago",
+        "note": "protocol upkeep: flush queue, verify audit + semantic hierarchy, report"
+      }
+    ],
+    "recommended": [
+      {
+        "type": "slack",
+        "channel": "C0BH15HDN2Z",
+        "note": "run on @sai mention or initialization failures"
+      },
+      {
+        "type": "github",
+        "events": ["pull_request", "push"],
+        "note": "verify ICM CI on canonical and fork PRs"
+      }
+    ]
+  },
+  "ci_enforcement": {
+    "workflow": ".github/workflows/agent-audit.yml",
+    "verifiers": [
+      "scripts/verify-agent-audit",
+      "scripts/verify-semantic-hierarchy",
+      "scripts/verify-merge-handoff"
+    ],
+    "merge_handoff": "scripts/ci-merge-handoff-slack",
+    "icm_reference": "https://arxiv.org/abs/2603.16021",
+    "fork_policy": ".ai/shared/references/icm-ci-policy.md"
+  },
+  "initialization_protocol": ".ai/INITIALIZE.md"
+}

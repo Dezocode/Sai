@@ -1,0 +1,66 @@
+# Slack reporting contract for all SAI agents.
+
+slack:
+  workspace: sai-qbz5908.slack.com
+  channel: "#agentupdates"
+  channel_id: C0BH15HDN2Z
+  help_newagents_channel: "#help-newagents"
+  help_newagents_channel_id: C0BH8LCJLDS
+  notify:
+    - id: U0BHYH0NMCY   # dezocode
+    - id: U0BGNS7F0T1   # monaecode
+
+event_types:
+  - INTAKE
+  - PLAN
+  - WORKTREE
+  - CHANGE
+  - COMMIT
+  - PUSH
+  - PR
+  - VERIFY
+  - SYNC
+  - CONFLICT
+  - BLOCKED
+  - HANDOFF
+
+# Required message format (plain text, one field per line):
+message_template: |
+  [SAI][EVENT_TYPE][task-id]
+  Actor: <human/agent identity>
+  Repository: <owner/repo>
+  Branch/worktree: <branch and safe worktree identifier>
+  Base SHA: <short SHA>
+  Purpose: <what is being done>
+  Justification: <why this change is needed>
+  Scope: <files/components affected>
+  Result: <what changed or happened>
+  Verification: <commands and result>
+  Git: <commit, push range, and PR links>
+  Drive: <pending/synced/failed/diverged plus checksum>
+  Risks/conflicts: <none or explicit details>
+  Review gate/next action: <required action>
+
+rules:
+  post_plan_before_edits: true
+  batch_change_summaries_at_checkpoints: true
+  report_every_commit_and_push: true
+  report_worktree_lifecycle: true
+  report_failures: true            # failed tests, failed sync, conflicts
+  require_handoff_before_main_merge: true
+  merge_handoff_slack_channel_id: C0BH15HDN2Z
+  merge_handoff_ci_script: scripts/ci-merge-handoff-slack
+  merge_handoff_verify_script: scripts/verify-merge-handoff
+  include_links_and_shas: true
+  never_post: [secrets, tokens, webhooks, full sensitive diffs, private paths]
+  # Delivery must be idempotent: every event carries a unique event_id and
+  # duplicate deliveries of the same event_id are safe.
+  idempotent_event_ids: true
+  # If Slack is unavailable, append schema-valid JSON events to the durable
+  # queue and publish later WITHOUT reordering or dropping events. Never
+  # fabricate delivery success.
+  offline_queue_dir: .git/agent-events/queue
+  sent_dir: .git/agent-events/sent
+  # Delivery credentials live OUTSIDE the repository, e.g. in the
+  # SAI_SLACK_BOT_TOKEN environment variable or the Cursor Slack integration.
+  token_env_var: SAI_SLACK_BOT_TOKEN

@@ -1,0 +1,237 @@
+#!/usr/bin/env bash
+# verify-semantic-hierarchy — enforce the ICM (arXiv:2603.16021) semantic
+# hierarchy of the .ai workspace. Run locally, from pre-push, and in CI.
+#
+# Usage: verify-semantic-hierarchy [repo-root]
+#
+# Checks (structure, not content style):
+#   1. Layer files exist: .ai/CONTEXT.md, .ai/INITIALIZE.md, all six stage
+#      contracts, config, schemas, charters, Cursor rule, hooks, scripts.
+#   2. Stage folders are exactly the six numbered stages (order encodes the
+#      pipeline; strays break routing).
+#   3. Every run directory matches the task-id grammar and contains
+#      metadata.json (valid JSON, task_id matching the directory name);
+#      stage output dirs inside runs are limited to the six known stages
+#      and keep artifacts under output/.
+#   4. Stage ordering provenance: a run with 03_implement output has a plan
+#      (02_plan output or an explicit plan reference in metadata.json);
+#      a run with 06_publish_sync output also has 04_verify and 05_review.
+#   5. events.jsonl files are valid JSON-per-line with required fields and
+#      task_id consistent with their run.
+#   6. Registry (.ai/agents/registry.json) is valid and every charter
+#      folder it references exists.
+#   7. No obvious secrets inside .ai/ (defense in depth; hooks also redact).
+set -u
+
+ROOT=${1:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
+cd "$ROOT" || { echo "verify-semantic-hierarchy: cannot cd to $ROOT" >&2; exit 2; }
+
+python3 - <<'PY'
+import json, os, re, sys, glob
+
+fails = []
+def fail(msg): fails.append(msg)
+
+STAGES = ["01_intake", "02_plan", "03_implement", "04_verify", "05_review", "06_publish_sync"]
+TASK_ID = re.compile(r"^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$")
+
+# 1. Required layer files
+required = (
+    [".ai/CONTEXT.md", ".ai/INITIALIZE.md",
+     ".ai/_config/repositories.yaml", ".ai/_config/reporting.yaml",
+     ".ai/_config/sync-policy.md", ".ai/_config/security-policy.md",
+     ".ai/shared/references/icm-ci-policy.md",
+     ".ai/shared/schemas/stage-output.schema.json",
+     ".ai/agents/registry.json",
+     ".ai/runs/README.md", ".ai/audit/README.md",
+     ".cursor/rules/sai-coordination.mdc",
+     ".github/workflows/agent-audit.yml",
+     "scripts/agent-report", "scripts/agent-init",
+     "scripts/install-agent-hooks", "scripts/verify-agent-audit",
+     "scripts/verify-semantic-hierarchy", "scripts/agent-sync-drive",
+     "scripts/agent-scaffold", "scripts/agent-verify-caps",
+     "scripts/agent-automation-spec", "scripts/verify-merge-handoff",
+     "scripts/ci-merge-handoff-slack"]
+    + [f".ai/stages/{s}/CONTEXT.md" for s in STAGES]
+    + [".githooks/" + h for h in
+       ["post-checkout", "post-commit", "post-merge", "post-rewrite",
+        "pre-push", "post-push-equivalent.sh"]]
+)
+for p in required:
+    if not os.path.exists(p):
+        fail(f"missing required file: {p}")
+
+# 2. Stage folders are exactly the six known stages
+if os.path.isdir(".ai/stages"):
+    actual = sorted(d for d in os.listdir(".ai/stages") if os.path.isdir(f".ai/stages/{d}"))
+    if actual != STAGES:
+        fail(f".ai/stages must contain exactly {STAGES}, found {actual}")
+
+# 3 + 4 + 5. Runs
+if os.path.isdir(".ai/runs"):
+    for run in sorted(os.listdir(".ai/runs")):
+        path = f".ai/runs/{run}"
+        if not os.path.isdir(path):
+            if run != "README.md":
+                fail(f"unexpected file in .ai/runs: {run}")
+            continue
+        if not TASK_ID.match(run):
+            fail(f"run directory '{run}' does not match task-id grammar YYYYMMDD-HHMM-<purpose>-<agent-id>")
+            continue
+        meta_path = f"{path}/metadata.json"
+        meta = None
+        if not os.path.exists(meta_path):
+            fail(f"{run}: missing metadata.json")
+        else:
+            try:
+                meta = json.load(open(meta_path))
+                if meta.get("task_id") != run:
+                    fail(f"{run}: metadata.json task_id '{meta.get('task_id')}' != directory name")
+                for key in ("agent", "repository", "status"):
+                    if not meta.get(key):
+                        fail(f"{run}: metadata.json missing required field '{key}'")
+            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                fail(f"{run}: metadata.json invalid JSON ({e})")
+        present = set()
+        for entry in os.listdir(path):
+            full = f"{path}/{entry}"
+            if os.path.isdir(full):
+                if entry not in STAGES:
+                    fail(f"{run}: unknown stage directory '{entry}' (allowed: {STAGES})")
+                else:
+                    present.add(entry)
+                    inner = os.listdir(full)
+                    if inner != ["output"] and set(inner) - {"output"}:
+                        fail(f"{run}/{entry}: stage artifacts must live under output/, found {sorted(set(inner) - {'output'})}")
+            elif entry not in ("metadata.json", "events.jsonl", "handoff.md"):
+                fail(f"{run}: unexpected top-level file '{entry}' (allowed: metadata.json, events.jsonl, handoff.md, stage dirs)")
+        # stage-order provenance
+        has_plan = "02_plan" in present or (meta or {}).get("plan_reference")
+        if "03_implement" in present and not has_plan:
+            fail(f"{run}: has 03_implement output but no 02_plan output or metadata plan_reference")
+        if "06_publish_sync" in present:
+            for req in ("04_verify", "05_review"):
+                if req not in present:
+                    fail(f"{run}: has 06_publish_sync output but missing {req}")
+        # events.jsonl
+        ev = f"{path}/events.jsonl"
+        if os.path.exists(ev):
+            for i, line in enumerate(open(ev), 1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except json.JSONDecodeError as e:
+                    fail(f"{run}: events.jsonl line {i} invalid JSON ({e})")
+                    continue
+                for key in ("event_id", "event_type", "task_id", "actor", "timestamp"):
+                    if key not in d:
+                        fail(f"{run}: events.jsonl line {i} missing '{key}'")
+                if d.get("task_id") != run:
+                    fail(f"{run}: events.jsonl line {i} task_id '{d.get('task_id')}' != run")
+
+# 6. Registry
+if os.path.exists(".ai/agents/registry.json"):
+    try:
+        reg = json.load(open(".ai/agents/registry.json"))
+        agents = reg.get("agents", [])
+        seen_ids, seen_folders, seen_names = {}, {}, {}
+        ceo_active = 0
+        for i, a in enumerate(agents):
+            for key in ("agent_id", "charter", "principal", "status"):
+                if not a.get(key):
+                    fail(f"registry agent[{i}]: missing '{key}'")
+            charter = a.get("charter", "")
+            if charter and not os.path.exists(charter):
+                fail(f"registry agent[{i}]: charter path does not exist: {charter}")
+            if a.get("status") not in ("active", "provisional", "retired", None):
+                fail(f"registry agent[{i}]: status must be active|provisional|retired")
+            if a.get("status") == "active":
+                for key in ("name", "role_title", "purpose"):
+                    if not a.get(key):
+                        fail(f"registry agent[{i}]: active agents must have '{key}' (granted/confirmed by the principal in Phase 5)")
+            auto = a.get("automation") or ""
+            if a.get("status") in ("active", "provisional"):
+                if not auto:
+                    fail(f"registry agent[{i}]: automation field required (real automation or 'delegated: <spec path>')")
+                elif auto.startswith("unavailable"):
+                    fail(f"registry agent[{i}]: automation 'unavailable' is not allowed — use scripts/agent-automation-spec and record 'delegated: <spec path>' (Phase 6 Path B)")
+                elif auto.startswith("delegated:"):
+                    spec = auto.split("delegated:", 1)[1].strip().split(" ")[0]
+                    if not os.path.exists(spec):
+                        fail(f"registry agent[{i}]: delegated automation spec does not exist: {spec}")
+            # Agent folder (Phase 6): provisional agents use agent-id; active use granted name
+            folder = a.get("folder")
+            if a.get("status") in ("active", "provisional"):
+                if not folder:
+                    fail(f"registry agent[{i}]: missing 'folder' (e.g. .ai/agents/<name>/)")
+                elif not folder.startswith(".ai/agents/"):
+                    fail(f"registry agent[{i}]: folder must be under .ai/agents/: {folder}")
+                else:
+                    agent_dir = folder.rstrip("/")
+                    required_agent_files = [
+                        "AGENT.md", "skills.md", "tools.json", "hooks.json",
+                        "automation/profile.md",
+                    ]
+                    for af in required_agent_files:
+                        fp = f"{agent_dir}/{af}"
+                        if not os.path.exists(fp):
+                            fail(f"registry agent[{i}]: agent folder missing {af} at {fp}")
+                    # tools.json: verified entries must carry evidence
+                    try:
+                        tools = json.load(open(f"{agent_dir}/tools.json"))
+                        for j, cap in enumerate(tools.get("capabilities", [])):
+                            if cap.get("status") == "verified" and not cap.get("evidence"):
+                                fail(f"registry agent[{i}]: tools.json capability[{j}] marked verified without evidence")
+                        tf = tools.get("folder", "")
+                        if tf and tf != agent_dir:
+                            fail(f"registry agent[{i}]: tools.json folder '{tf}' != registry folder '{agent_dir}'")
+                    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                        fail(f"registry agent[{i}]: tools.json invalid JSON ({e})")
+                    try:
+                        json.load(open(f"{agent_dir}/hooks.json"))
+                    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                        fail(f"registry agent[{i}]: hooks.json invalid JSON ({e})")
+            # Uniqueness: no duplicate agent_id, folder, or active name
+            if a.get("status") != "retired":
+                aid = a.get("agent_id")
+                if aid in seen_ids:
+                    fail(f"registry: duplicate agent_id '{aid}' (agents {seen_ids[aid]} and {i})")
+                seen_ids[aid] = i
+                if folder:
+                    fd = folder.rstrip("/")
+                    if fd in seen_folders:
+                        fail(f"registry: duplicate folder '{fd}' (agents {seen_folders[fd]} and {i})")
+                    seen_folders[fd] = i
+                nm = a.get("name")
+                if nm and a.get("status") == "active":
+                    if nm in seen_names:
+                        fail(f"registry: duplicate active name '{nm}' (agents {seen_names[nm]} and {i})")
+                    seen_names[nm] = i
+                if a.get("status") == "active" and a.get("charter", "").endswith("_roles/ceo/CHARTER.md"):
+                    ceo_active += 1
+        if ceo_active > 1:
+            fail(f"registry: only one active CEO agent allowed, found {ceo_active}")
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        fail(f".ai/agents/registry.json invalid JSON ({e})")
+
+# 7. Secret patterns inside .ai (values, not variable names)
+secret_pat = re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[A-Z0-9]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----")
+for f in glob.glob(".ai/**/*", recursive=True):
+    if os.path.isfile(f):
+        try:
+            text = open(f, encoding="utf-8", errors="ignore").read()
+        except OSError:
+            continue
+        m = secret_pat.search(text)
+        if m:
+            fail(f"possible secret in {f}: pattern '{m.group()[:12]}...'")
+
+if fails:
+    for m in fails:
+        print(f"FAIL {m}", file=sys.stderr)
+    print(f"verify-semantic-hierarchy: FAILED ({len(fails)} problem(s))", file=sys.stderr)
+    sys.exit(1)
+print("verify-semantic-hierarchy: OK")
+PY

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Capture commit SHA, parent, author, changed paths, task ID, and the
+# justification reference (Plan trailer). Thin wrapper; never blocks git.
+[ "${SAI_AGENT_REPORT_ACTIVE:-}" = "1" ] && exit 0
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+sha=$(git rev-parse HEAD)
+parent=$(git rev-parse HEAD^ 2>/dev/null || echo "root")
+author=$(git log -1 --format='%an')
+subject=$(git log -1 --format='%s')
+paths=$(git diff-tree --no-commit-id --name-only -r HEAD | paste -sd, -)
+task=$(git log -1 --format=%B | sed -n 's/^Task-ID: *//p' | head -n1)
+plan=$(git log -1 --format=%B | sed -n 's/^Plan: *//p' | head -n1)
+"$REPO_ROOT/scripts/agent-report" emit COMMIT \
+  ${task:+--task-id "$task"} \
+  --purpose "$subject" \
+  --justification "${plan:-see commit body}" \
+  --result "commit $sha (parent ${parent:0:7}) by $author" \
+  --scope "$paths" --commit "$sha" \
+  || true
+exit 0

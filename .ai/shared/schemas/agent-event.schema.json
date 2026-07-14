@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/agent-event.schema.json",
+  "title": "SAI agent event",
+  "description": "One coordination/audit event emitted by an SAI agent. Events are queued as one JSON object per file under .git/agent-events/queue/ and mirrored to .ai/runs/<task-id>/events.jsonl (one object per line).",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "task_id",
+    "actor",
+    "repository",
+    "timestamp",
+    "purpose",
+    "result"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "Unique, stable ID for idempotent delivery (UUID or <task-id>:<seq>).",
+      "minLength": 8
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "INTAKE", "PLAN", "WORKTREE", "CHANGE", "COMMIT", "PUSH", "PR",
+        "VERIFY", "SYNC", "CONFLICT", "BLOCKED", "HANDOFF", "BYPASS"
+      ]
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$",
+      "description": "YYYYMMDD-HHMM-<issue-or-purpose>-<agent-id>"
+    },
+    "actor": {
+      "type": "string",
+      "description": "Human/agent identity, e.g. 'ceo', 'dezo-sec', 'monae-sec', or a cloud agent id."
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "branch": { "type": "string" },
+    "worktree": {
+      "type": "string",
+      "description": "Safe worktree identifier; never a private absolute path."
+    },
+    "base_sha": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+    "commit_sha": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "purpose": { "type": "string" },
+    "justification": { "type": "string" },
+    "scope": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Files/components affected."
+    },
+    "result": { "type": "string" },
+    "verification": {
+      "type": "string",
+      "description": "Commands run and their results; 'skipped: <reason>' when skipped."
+    },
+    "git_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commit_url": { "type": "string" },
+        "push_range": { "type": "string" },
+        "pr_url": { "type": "string" }
+      }
+    },
+    "drive_status": {
+      "type": "string",
+      "enum": ["pending", "synced", "failed", "diverged", "not-applicable"]
+    },
+    "drive_checksum": { "type": "string" },
+    "risks": { "type": "string" },
+    "review_gate": { "type": "string" },
+    "parent_event_id": { "type": "string" }
+  }
+}

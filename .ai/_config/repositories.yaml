@@ -1,0 +1,46 @@
+# Governed repositories for the SAI coordinated agent system.
+# Verified 2026-07-14 via GitHub API (gh repo view --json isFork,parent).
+# Re-verify before any sensitive action; do not trust this file alone.
+
+canonical:
+  owner: Dezocode
+  repo: Sai
+  url: https://github.com/Dezocode/Sai
+  default_branch: main
+  is_fork: false
+  suggested_remote_name: dezocode
+
+forks:
+  - owner: monaecode
+    repo: Sai
+    url: https://github.com/monaecode/Sai
+    default_branch: main
+    is_fork: true
+    parent: Dezocode/Sai
+    suggested_remote_name: monaecode
+
+policy:
+  # Scope includes verified resources of these repositories only: branches,
+  # commits, pull requests, issues, Actions, releases, packages, wikis,
+  # deployments, and discovered GitHub Pages sites.
+  # A path beneath a repository URL is NOT a DNS subdomain. Do not assume
+  # lookalike repositories, domains, or forks are authorized.
+  verify_before_acting: true
+  # Do not assume both default branches receive every commit. Each task must
+  # state: originating repository, review repository, merge target, mirroring
+  # requirement, and required permissions.
+  default_merge_target: Dezocode/Sai:main
+  # When identical history is required across the fork pair, preserve the same
+  # commit SHA (push/fetch/fast-forward). Never recreate equivalent changes as
+  # unrelated commits merely to make repositories appear synchronized.
+  mirror_by_sha: true
+  # If authorization is missing for a push target, report the exact blocker.
+  # Never silently substitute another repository or push target.
+  no_silent_substitution: true
+
+branch_naming:
+  # <agent>/<task-slug>; secretaries prefix with their principal.
+  ceo: "ceo/<task-slug>"
+  secretary_dezocode: "dezo/<task-slug>"
+  secretary_monaecode: "monae/<task-slug>"
+  cloud_agents: "cursor/<task-slug>-<run-suffix>"

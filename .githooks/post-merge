@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Report merge results. Thin wrapper; never blocks git.
+[ "${SAI_AGENT_REPORT_ACTIVE:-}" = "1" ] && exit 0
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+squash=$1
+"$REPO_ROOT/scripts/agent-report" emit COMMIT \
+  --purpose "Merge completed (squash=$squash)" \
+  --result "merged into $(git rev-parse --abbrev-ref HEAD) at $(git rev-parse --short HEAD)" \
+  --commit "$(git rev-parse HEAD)" \
+  || true
+exit 0

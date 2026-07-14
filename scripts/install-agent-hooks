@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# install-agent-hooks — bootstrap the SAI reporting hooks for this clone.
+# Run once per clone/worktree owner. Credentials stay outside the repo:
+# export SAI_SLACK_BOT_TOKEN, SAI_AGENT_ID, and (optionally) SAI_DRIVE_REMOTE
+# in your shell profile, never in tracked files.
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+chmod +x .githooks/post-checkout .githooks/post-commit .githooks/post-merge \
+         .githooks/post-rewrite .githooks/pre-push .githooks/post-push-equivalent.sh \
+         scripts/agent-report scripts/agent-sync-drive scripts/verify-agent-audit \
+         scripts/verify-semantic-hierarchy scripts/verify-merge-handoff \
+         scripts/ci-merge-handoff-slack scripts/agent-init scripts/agent-scaffold \
+         scripts/agent-verify-caps scripts/agent-automation-spec
+
+git config core.hooksPath .githooks
+mkdir -p "$(git rev-parse --git-common-dir)/agent-events/queue" \
+         "$(git rev-parse --git-common-dir)/agent-events/sent"
+
+echo "Installed SAI agent hooks (core.hooksPath=.githooks)."
+[ -n "${SAI_AGENT_ID:-}" ]         || echo "WARNING: SAI_AGENT_ID is unset (ceo | dezo-sec | monae-sec)." >&2
+[ -n "${SAI_SLACK_BOT_TOKEN:-}" ]  || echo "WARNING: SAI_SLACK_BOT_TOKEN is unset; events will queue locally until it is provided." >&2
+[ -n "${SAI_DRIVE_REMOTE:-}" ]     || echo "NOTE: SAI_DRIVE_REMOTE is unset; Drive syncs will be recorded as pending." >&2
