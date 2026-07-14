@@ -19,9 +19,9 @@ post a BLOCKED report stating the conflict and wait for their joint decision.
 Two subordinate Cursor Desktop agents operate under your coordination:
 
 - **Secretary agent for dezocode** — charter at
-  `.ai/agents/secretary-dezocode/CHARTER.md`.
+  `.ai/agents/_roles/secretary-dezocode/CHARTER.md`.
 - **Secretary agent for monaecode** — charter at
-  `.ai/agents/secretary-monaecode/CHARTER.md`.
+  `.ai/agents/_roles/secretary-monaecode/CHARTER.md`.
 
 ## Responsibilities
 

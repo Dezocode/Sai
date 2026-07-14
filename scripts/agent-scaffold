@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# agent-scaffold — create a named agent folder (Phase 6 of .ai/INITIALIZE.md).
+#
+# Usage:
+#   agent-scaffold --name NAME --agent-id ID --role-title TITLE \
+#                  --principal HUMAN --purpose TEXT --charter PATH
+#                  [--folder-name slug]   # defaults to slugified --name, or --agent-id if name pending
+set -euo pipefail
+
+NAME="" AGENT_ID="" ROLE_TITLE="" PRINCIPAL="" PURPOSE="" CHARTER=""
+FOLDER=""
+while [ $# -gt 0 ]; do
+  case $1 in
+    --name) NAME=$2; shift 2;;
+    --agent-id) AGENT_ID=$2; shift 2;;
+    --role-title) ROLE_TITLE=$2; shift 2;;
+    --principal) PRINCIPAL=$2; shift 2;;
+    --purpose) PURPOSE=$2; shift 2;;
+    --charter) CHARTER=$2; shift 2;;
+    --folder-name) FOLDER=$2; shift 2;;
+    *) echo "agent-scaffold: unknown option $1" >&2; exit 2;;
+  esac
+done
+
+[ -n "$AGENT_ID" ] && [ -n "$PRINCIPAL" ] && [ -n "$CHARTER" ] || {
+  echo "agent-scaffold: --agent-id, --principal, and --charter are required" >&2; exit 1; }
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+slugify() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g;s/--*/-/g;s/^-//;s/-$//'; }
+
+if [ -z "$FOLDER" ]; then
+  if printf '%s' "$NAME" | grep -q 'pending'; then
+    FOLDER="$AGENT_ID"
+  else
+    FOLDER=$(slugify "$NAME")
+  fi
+fi
+
+AGENT_DIR="$REPO_ROOT/.ai/agents/$FOLDER"
+mkdir -p "$AGENT_DIR/automation"
+TODAY=$(date -u +%Y-%m-%d)
+
+# AGENT.md — identity card; @agentname loads this first
+cat > "$AGENT_DIR/AGENT.md" <<EOF
+# ${NAME:-$AGENT_ID}
+
+| | |
+|---|---|
+| **Name** | ${NAME:-pending Phase 5 grant} |
+| **Role title** | ${ROLE_TITLE:-pending Phase 5 grant} |
+| **Agent ID** | \`${AGENT_ID}\` |
+| **Principal** | ${PRINCIPAL} |
+| **Charter** | \`${CHARTER}\` |
+| **Folder** | \`.ai/agents/${FOLDER}/\` |
+| **Initialized** | ${TODAY} |
+
+## Purpose and scope
+
+${PURPOSE:-(pending confirmation in Phase 5)}
+
+## Description
+
+SAI agent operating under the coordinated development system. This folder is
+the agent's complete profile: skills, verified tools, hooks/rules suite, and
+automation profile. Type **@${FOLDER}** in Cursor Desktop (or open
+\`https://github.com/Dezocode/Sai/tree/main/.ai/agents/${FOLDER}\` on mobile)
+to attach this profile to your session.
+
+## How to reach me from Slack
+
+- **#agentupdates** (\`C0BH15HDN2Z\`): mention my principal's Cursor agent with
+  \`@${FOLDER}: <request>\` — I report every action there.
+- **#help-newagents** (\`C0BH8LCJLDS\`): my introduction post lists skills and
+  how to invoke me.
+- Principal: ${PRINCIPAL}
+
+## Files in this folder
+
+| File | Role |
+|---|---|
+| \`AGENT.md\` | This identity card (load first) |
+| \`skills.md\` | Uniquely defined skills + codebase best practices |
+| \`tools.json\` | Verified Cursor tools, MCP servers, integrations |
+| \`hooks.json\` | Git hooks, Cursor rules, automation triggers |
+| \`automation/profile.md\` | Cursor Automations UI profile (paste-ready) |
+EOF
+
+# skills.md — template to fill from Phase 5A
+cat > "$AGENT_DIR/skills.md" <<EOF
+# Skills — ${NAME:-$AGENT_ID}
+
+> Fill from Phase 5A best-practice survey. Each skill: what it is, when to
+> use it, and the codebase evidence that backs it.
+
+## Core protocol skills (all SAI agents)
+
+- **ICM stage execution** — follow \`.ai/stages/01_intake\` through
+  \`06_publish_sync\`; artifacts in \`.ai/runs/<task-id>/\`.
+- **Slack reporting** — \`[SAI][EVENT_TYPE][task-id]\` format per
+  \`.ai/_config/reporting.yaml\`; queue via \`scripts/agent-report\` when
+  offline.
+- **Git audit discipline** — commit trailers; \`scripts/verify-agent-audit\`;
+  remote-SHA verification after every push.
+- **Semantic compliance** — \`scripts/verify-semantic-hierarchy\` before
+  protected pushes.
+
+## Role-specific skills
+
+<!-- Add skills unique to this agent's purpose after Phase 5A survey -->
+EOF
+
+# tools.json — fill verified entries in Phase 5B
+cat > "$AGENT_DIR/tools.json" <<EOF
+{
+  "agent_id": "${AGENT_ID}",
+  "folder": ".ai/agents/${FOLDER}",
+  "surveyed_at": "${TODAY}",
+  "environment": "pending — run scripts/agent-verify-caps or fill manually in Phase 5B",
+  "capabilities": []
+}
+EOF
+
+# hooks.json — this agent's hook/rule/trigger suite
+cat > "$AGENT_DIR/hooks.json" <<EOF
+{
+  "agent_id": "${AGENT_ID}",
+  "git_hooks": {
+    "path": ".githooks",
+    "install": "scripts/install-agent-hooks",
+    "hooks": ["post-checkout", "post-commit", "post-merge", "post-rewrite", "pre-push", "post-push-equivalent.sh"]
+  },
+  "cursor_rules": [".cursor/rules/sai-coordination.mdc"],
+  "reporting_channels": {
+    "agentupdates": "C0BH15HDN2Z",
+    "help_newagents": "C0BH8LCJLDS"
+  },
+  "automation_triggers": {
+    "required": [{"type": "scheduled", "note": "baseline protocol upkeep"}],
+    "optional": [
+      {"type": "slack", "note": "run on mention in #agentupdates"},
+      {"type": "github", "note": "run on PR events"}
+    ]
+  },
+  "ci_enforcement": ".github/workflows/agent-audit.yml"
+}
+EOF
+
+echo "agent-scaffold: created $AGENT_DIR"
+echo "  Next: fill skills.md and tools.json from Phase 5 survey;"
+echo "  run scripts/agent-automation-spec --out $AGENT_DIR/automation/profile.md"

@@ -16,6 +16,7 @@
 #   agent-automation-spec --agent-id ID --agent-name NAME --role-title TITLE \
 #                         --principal HUMAN --purpose "ONE-PARAGRAPH PURPOSE" \
 #                         [--repo OWNER/REPO] [--branch BRANCH]
+#                         [--tools-file .ai/agents/<name>/tools.json]
 #                         [--schedule "daily 09:00 America/Chicago"]
 #                         [--out PATH | --stdout]
 set -euo pipefail
@@ -28,6 +29,7 @@ PURPOSE=""
 REPO="Dezocode/Sai"
 BRANCH="main"
 SCHEDULE="daily at 09:00 (principal's timezone; proposed)"
+TOOLS_FILE=""
 OUT=""
 TO_STDOUT=0
 
@@ -40,6 +42,7 @@ while [ $# -gt 0 ]; do
     --purpose)    PURPOSE=$2; shift 2;;
     --repo)       REPO=$2; shift 2;;
     --branch)     BRANCH=$2; shift 2;;
+    --tools-file) TOOLS_FILE=$2; shift 2;;
     --schedule)   SCHEDULE=$2; shift 2;;
     --out)        OUT=$2; shift 2;;
     --stdout)     TO_STDOUT=1; shift;;
@@ -56,6 +59,35 @@ done
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 [ -n "$OUT" ] || OUT="$REPO_ROOT/.ai/agents/automation-specs/${AGENT_ID}.md"
 TODAY=$(date -u +%Y-%m-%d)
+
+# Build Tools section from verified capabilities in tools.json (Phase 5B).
+TOOLS_SECTION=""
+if [ -n "$TOOLS_FILE" ] && [ -f "$TOOLS_FILE" ]; then
+  TOOLS_SECTION=$(python3 - "$TOOLS_FILE" <<'PY'
+import json, sys
+path = sys.argv[1]
+doc = json.load(open(path))
+verified = [c for c in doc.get("capabilities", []) if c.get("status") == "verified"]
+lines = []
+for c in verified:
+    label = c.get("tool") or c.get("id")
+    kind = c.get("kind", "")
+    server = c.get("server", "")
+    if kind == "cursor-mcp" and server:
+        lines.append(f"   - MCP **{server}** → **{label}** (verified {c.get('verified_at', '')})")
+    elif kind == "script":
+        lines.append(f"   - SAI script **{label}** (verified {c.get('verified_at', '')})")
+    else:
+        lines.append(f"   - **{label}** ({kind}; verified {c.get('verified_at', '')})")
+if not lines:
+    print("   - (no verified capabilities in tools.json — complete Phase 5B first)")
+else:
+    print("\n".join(lines))
+PY
+)
+else
+  TOOLS_SECTION="   - (no --tools-file provided — run scripts/agent-verify-caps first)"
+fi
 
 SPEC=$(cat <<EOF
 # Cursor automation profile — ${AGENT_NAME} (${AGENT_ID})
@@ -96,6 +128,8 @@ SPEC=$(cat <<EOF
      before posting, per the reporting contract)
    - GitHub → **Comment on Pull Request** (optional — lets the automation
      leave its verification summary on the PR it checked)
+   - Agent-verified capabilities (from \`tools.json\`; only list what was tested):
+${TOOLS_SECTION}
    - Keep **Memories** enabled if present.
 7. **Save**, toggle **Active**, then run it once manually (▷) and confirm
    its \`[SAI][VERIFY]\` message appears in #agentupdates.

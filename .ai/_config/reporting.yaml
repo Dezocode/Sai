@@ -4,6 +4,8 @@ slack:
   workspace: sai-qbz5908.slack.com
   channel: "#agentupdates"
   channel_id: C0BH15HDN2Z
+  help_newagents_channel: "#help-newagents"
+  help_newagents_channel_id: C0BH8LCJLDS
   notify:
     - id: U0BHYH0NMCY   # dezocode
     - id: U0BGNS7F0T1   # monaecode

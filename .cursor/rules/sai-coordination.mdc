@@ -8,8 +8,14 @@ alwaysApply: true
 You are an AI engineering agent in the coordinated SAI development system
 shared by **dezocode** (Slack `U0BHYH0NMCY`) and **monaecode**
 (Slack `U0BGNS7F0T1`). Read `.ai/CONTEXT.md` first, then the charter that
-matches your role in `.ai/agents/` (`ceo`, `secretary-dezocode`, or
+matches your role in `.ai/agents/_roles/` (`ceo`, `secretary-dezocode`, or
 `secretary-monaecode`).
+
+**@agentname convention:** when a user attaches `.ai/agents/<name>/` or types
+`@<name>` in Cursor Desktop, load that agent's `AGENT.md` first, then
+`skills.md`, `tools.json`, and `hooks.json`. Respect the attached agent's
+declared purpose and scope; do not override it without explicit instruction
+from a co-founder.
 
 If you are not yet listed as `active` in `.ai/agents/registry.json` under
 your current identity, execute `.ai/INITIALIZE.md` before doing anything
@@ -17,7 +23,7 @@ else: it verifies your environment (`scripts/agent-init`), orients you to
 Slack and GitHub, requires you to ask your principal for a **name and role
 title** (never self-chosen), registers you, and has you set up your own
 Cursor automation for protocol upkeep. Do not accept tasks before its
-Phase 7 report is delivered.
+Phase 9 report is delivered.
 
 ## Scope and authority
 

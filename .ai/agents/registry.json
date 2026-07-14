@@ -1,17 +1,18 @@
 {
-  "$comment": "SAI agent registry. One entry per initialized agent (Phase 5 of .ai/INITIALIZE.md). Fields: agent_id (charter prefix + unique suffix), name (granted by principal - never self-chosen), role_title (granted by principal), purpose (one paragraph, confirmed by the principal in Phase 5 - the agent sticks to it), charter (repo-relative path), principal (human the agent works under), status (provisional until named, then active; retired when decommissioned), initialized (UTC date), automation (either the real Cursor automation name+schedule+creation date, or 'delegated: .ai/agents/automation-specs/<agent-id>.md (awaiting creation by <principal>)' - 'unavailable' is not allowed and the verifier rejects it; active agents must also have name, role_title, and purpose), notes.",
+  "$comment": "SAI agent registry. One entry per initialized agent (Phase 6 of .ai/INITIALIZE.md). Fields: agent_id (charter prefix + unique suffix), name (granted by principal - never self-chosen), role_title (granted by principal), purpose (one paragraph, confirmed by the principal in Phase 6 - the agent sticks to it), folder (repo-relative agent profile path), charter (repo-relative path under _roles/), principal (human the agent works under), status (provisional until named, then active; retired when decommissioned), initialized (UTC date), automation (either the real Cursor automation name+schedule+creation date, or 'delegated: <spec path> (awaiting creation by <principal>)' - 'unavailable' is not allowed and the verifier rejects it; active agents must also have name, role_title, and purpose), notes.",
   "agents": [
     {
       "agent_id": "cursor-cloud-30d8",
       "name": null,
       "role_title": null,
       "purpose": "Proposed, pending dezocode's confirmation: bootstrap and maintain the SAI coordinated agent infrastructure (.ai workspace, hooks, reporting, CI enforcement) under the CEO charter until a named successor or role change is granted.",
-      "charter": ".ai/agents/ceo/CHARTER.md",
+      "folder": ".ai/agents/cursor-cloud-30d8",
+      "charter": ".ai/agents/_roles/ceo/CHARTER.md",
       "principal": "dezocode (U0BHYH0NMCY)",
       "status": "provisional",
       "initialized": "2026-07-14",
-      "automation": "delegated: .ai/agents/automation-specs/cursor-cloud-30d8.md (awaiting creation by dezocode)",
-      "notes": "Bootstrap agent that built the framework (PR #3). Acting under the CEO charter until dezocode grants a name and role title per Phase 5; naming request posted in the initialization/handoff reports. Automation spec delivered to dezocode in #agentupdates."
+      "automation": "delegated: .ai/agents/cursor-cloud-30d8/automation/profile.md (awaiting creation by dezocode)",
+      "notes": "Bootstrap agent that built the framework (PR #3). Acting under the CEO charter until dezocode grants a name and role title per Phase 6; naming request posted in initialization/handoff reports."
     }
   ]
 }

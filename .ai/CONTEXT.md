@@ -36,7 +36,9 @@ authorized without verification.
 | Secretary agent (dezocode) | Cursor Desktop agent for dezocode | posts as agent |
 | Secretary agent (monaecode) | Cursor Desktop agent for monaecode | posts as agent |
 
-Agent charters live in `.ai/agents/`. Read your own charter before working.
+Agent charters live in `.ai/agents/_roles/`. Read your own charter before working.
+Registered agents have a named folder at `.ai/agents/<name>/` — type `@<name>` in
+Cursor to attach their full profile.
 
 **New agent?** Stop here and execute `.ai/INITIALIZE.md` first — it orients
 you to Slack and GitHub, binds you to a charter, installs and verifies the
@@ -47,8 +49,8 @@ not an initialized SAI agent until its Phase 7 report is delivered.
 ## Context layers (ICM)
 
 - **Layer 0** — this file: workspace identity and map.
-- **Layer 1** — task routing: `.ai/agents/*/CHARTER.md` plus
-  `.cursor/rules/sai-coordination.mdc`.
+- **Layer 1** — task routing: `.ai/agents/_roles/*/CHARTER.md`, named agent
+  folders `.ai/agents/<name>/`, plus `.cursor/rules/sai-coordination.mdc`.
 - **Layer 2** — stage contracts: `.ai/stages/NN_*/CONTEXT.md`. Each defines
   purpose, exact input paths, process, output paths, verification, review
   gate, rollback, and provenance requirements.
@@ -68,7 +70,7 @@ artifacts unless the task explicitly requires it.
   CONTEXT.md                 <- you are here (Layer 0)
   INITIALIZE.md              <- read-and-execute protocol for new agents
   _config/                   <- repositories, reporting, sync, security policy (Layer 3)
-  agents/                    <- CEO and secretary charters + registry.json (Layer 1)
+  agents/                    <- role charters (_roles/), registry, named agent folders (Layer 1)
   shared/
     memory/                  <- durable architecture, decisions, conventions (Layer 3)
     schemas/                 <- agent-event and stage-output JSON Schemas (Layer 3)

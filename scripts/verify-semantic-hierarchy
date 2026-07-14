@@ -48,7 +48,9 @@ required = (
      ".github/workflows/agent-audit.yml",
      "scripts/agent-report", "scripts/agent-init",
      "scripts/install-agent-hooks", "scripts/verify-agent-audit",
-     "scripts/verify-semantic-hierarchy", "scripts/agent-sync-drive"]
+     "scripts/verify-semantic-hierarchy", "scripts/agent-sync-drive",
+     "scripts/agent-scaffold", "scripts/agent-verify-caps",
+     "scripts/agent-automation-spec"]
     + [f".ai/stages/{s}/CONTEXT.md" for s in STAGES]
     + [".githooks/" + h for h in
        ["post-checkout", "post-commit", "post-merge", "post-rewrite",
@@ -155,6 +157,38 @@ if os.path.exists(".ai/agents/registry.json"):
                     spec = auto.split("delegated:", 1)[1].strip().split(" ")[0]
                     if not os.path.exists(spec):
                         fail(f"registry agent[{i}]: delegated automation spec does not exist: {spec}")
+            # Agent folder (Phase 6): provisional agents use agent-id; active use granted name
+            folder = a.get("folder")
+            if a.get("status") in ("active", "provisional"):
+                if not folder:
+                    fail(f"registry agent[{i}]: missing 'folder' (e.g. .ai/agents/<name>/)")
+                elif not folder.startswith(".ai/agents/"):
+                    fail(f"registry agent[{i}]: folder must be under .ai/agents/: {folder}")
+                else:
+                    agent_dir = folder.rstrip("/")
+                    required_agent_files = [
+                        "AGENT.md", "skills.md", "tools.json", "hooks.json",
+                        "automation/profile.md",
+                    ]
+                    for af in required_agent_files:
+                        fp = f"{agent_dir}/{af}"
+                        if not os.path.exists(fp):
+                            fail(f"registry agent[{i}]: agent folder missing {af} at {fp}")
+                    # tools.json: verified entries must carry evidence
+                    try:
+                        tools = json.load(open(f"{agent_dir}/tools.json"))
+                        for j, cap in enumerate(tools.get("capabilities", [])):
+                            if cap.get("status") == "verified" and not cap.get("evidence"):
+                                fail(f"registry agent[{i}]: tools.json capability[{j}] marked verified without evidence")
+                        tf = tools.get("folder", "")
+                        if tf and tf != agent_dir:
+                            fail(f"registry agent[{i}]: tools.json folder '{tf}' != registry folder '{agent_dir}'")
+                    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                        fail(f"registry agent[{i}]: tools.json invalid JSON ({e})")
+                    try:
+                        json.load(open(f"{agent_dir}/hooks.json"))
+                    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                        fail(f"registry agent[{i}]: hooks.json invalid JSON ({e})")
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
         fail(f".ai/agents/registry.json invalid JSON ({e})")
 
