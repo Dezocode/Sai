@@ -104,8 +104,9 @@ fi
 # 5. CI enforcement present
 if [ -f ".github/workflows/agent-audit.yml" ] \
    && grep -q "verify-agent-audit" .github/workflows/agent-audit.yml \
-   && grep -q "verify-semantic-hierarchy" .github/workflows/agent-audit.yml; then
-  check "ci-enforcement" PASS "agent-audit.yml runs verify-agent-audit and verify-semantic-hierarchy"
+   && grep -q "verify-semantic-hierarchy" .github/workflows/agent-audit.yml \
+   && grep -q "verify-merge-handoff" .github/workflows/agent-audit.yml; then
+  check "ci-enforcement" PASS "agent-audit.yml runs verify-agent-audit, verify-semantic-hierarchy, verify-merge-handoff"
 else
   check "ci-enforcement" FAIL ".github/workflows/agent-audit.yml missing or does not run the required verifiers"
 fi

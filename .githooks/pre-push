@@ -27,6 +27,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     audit_ok=1
     "$REPO_ROOT/scripts/verify-agent-audit" "$range" || audit_ok=0
     "$REPO_ROOT/scripts/verify-semantic-hierarchy" || audit_ok=0
+    "$REPO_ROOT/scripts/verify-merge-handoff" "$range" || audit_ok=0
     if [ "$audit_ok" != "1" ]; then
       if [ -n "${SAI_AUDIT_BYPASS:-}" ]; then
         "$REPO_ROOT/scripts/agent-report" emit BYPASS \

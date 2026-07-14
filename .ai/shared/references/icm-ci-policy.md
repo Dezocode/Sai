@@ -21,7 +21,13 @@ PRs targeting `main`:
 1. **`scripts/verify-agent-audit`** — commit trailers and audit metadata.
 2. **`scripts/verify-semantic-hierarchy`** — ICM layer structure of `.ai/`:
    stage contracts, run grammar, registry, agent folders, no secrets in `.ai/`.
-3. **JSON schema validation** — event and stage-output schemas; run metadata.
+3. **`scripts/verify-merge-handoff`** — every agent commit in the push
+   range maps to a task-id with `handoff.md` or a HANDOFF event; pushes to
+   `main` additionally require the tip commit's task-id to have handoff.
+4. **Merge HANDOFF to #agentupdates** — on every push to `main`, CI job
+   `merge-handoff-slack` runs `scripts/ci-merge-handoff-slack` (requires
+   `SAI_SLACK_BOT_TOKEN` GitHub secret; when absent, agents must post via
+   Cursor Slack MCP or `scripts/agent-report flush`).
 
 ## Fork parity
 
@@ -37,8 +43,8 @@ reports.
 
 ## Local enforcement (complements CI)
 
-- **`pre-push`** hook blocks protected-ref pushes without valid audit trailers
-  or semantic violations.
+- **`pre-push`** hook blocks protected-ref pushes without valid audit trailers,
+  semantic violations, or missing merge HANDOFF documentation.
 - **`scripts/agent-init`** verifies hooks, semantic hierarchy, and live hook
   self-test before an agent is considered initialized.
 

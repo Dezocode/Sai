@@ -40,7 +40,7 @@ required = (
     [".ai/CONTEXT.md", ".ai/INITIALIZE.md",
      ".ai/_config/repositories.yaml", ".ai/_config/reporting.yaml",
      ".ai/_config/sync-policy.md", ".ai/_config/security-policy.md",
-     ".ai/shared/schemas/agent-event.schema.json",
+     ".ai/shared/references/icm-ci-policy.md",
      ".ai/shared/schemas/stage-output.schema.json",
      ".ai/agents/registry.json",
      ".ai/runs/README.md", ".ai/audit/README.md",
@@ -50,7 +50,8 @@ required = (
      "scripts/install-agent-hooks", "scripts/verify-agent-audit",
      "scripts/verify-semantic-hierarchy", "scripts/agent-sync-drive",
      "scripts/agent-scaffold", "scripts/agent-verify-caps",
-     "scripts/agent-automation-spec"]
+     "scripts/agent-automation-spec", "scripts/verify-merge-handoff",
+     "scripts/ci-merge-handoff-slack"]
     + [f".ai/stages/{s}/CONTEXT.md" for s in STAGES]
     + [".githooks/" + h for h in
        ["post-checkout", "post-commit", "post-merge", "post-rewrite",

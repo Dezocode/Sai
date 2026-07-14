@@ -1,8 +1,7 @@
 name: agent-audit
 
-# Server-side verification of agent audit metadata. Git hooks are local and
-# bypassable; this workflow re-verifies commit/PR metadata and publishes a
-# push report that confirms actual remote state (Git has no post-push hook).
+# ICM CI enforcement (arXiv:2603.16021): audit trailers, semantic hierarchy,
+# merge HANDOFF documentation, and optional Slack merge report.
 on:
   push:
     branches: ["**"]
@@ -13,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  verify-audit-metadata:
+  icm-enforcement:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,19 +27,26 @@ jobs:
           elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ] && git cat-file -e "${{ github.event.before }}" 2>/dev/null; then
             echo "range=${{ github.event.before }}..${{ github.sha }}" >> "$GITHUB_OUTPUT"
           else
-            # New branch or shallow before-SHA: audit the most recent commits.
             echo "range=-n 20 ${{ github.sha }}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Verify agent audit metadata
+      - name: Install script permissions
         run: |
-          chmod +x scripts/verify-agent-audit
-          scripts/verify-agent-audit "${{ steps.range.outputs.range }}"
+          chmod +x scripts/verify-agent-audit scripts/verify-semantic-hierarchy \
+                   scripts/verify-merge-handoff scripts/ci-merge-handoff-slack
 
-      - name: Verify semantic hierarchy (ICM structure of .ai)
+      - name: Verify agent audit metadata
+        run: scripts/verify-agent-audit "${{ steps.range.outputs.range }}"
+
+      - name: Verify semantic hierarchy (ICM .ai structure)
+        run: scripts/verify-semantic-hierarchy
+
+      - name: Verify merge HANDOFF documentation
         run: |
-          chmod +x scripts/verify-semantic-hierarchy
-          scripts/verify-semantic-hierarchy
+          scripts/verify-merge-handoff "${{ steps.range.outputs.range }}"
+          if [ "${{ github.ref }}" = "refs/heads/main" ] && [ "${{ github.event_name }}" = "push" ]; then
+            scripts/verify-merge-handoff --main-tip
+          fi
 
       - name: Validate event and schema JSON
         run: |
@@ -54,14 +60,39 @@ jobs:
             echo "OK $f"
           done
 
-      - name: Server-side push report (remote state confirmation)
+      - name: Confirm ICM workflow files present
+        run: |
+          test -f .github/workflows/agent-audit.yml
+          test -f .ai/INITIALIZE.md
+          test -f .cursor/rules/sai-coordination.mdc
+          grep -q verify-merge-handoff .github/workflows/agent-audit.yml
+          grep -q verify-semantic-hierarchy .github/workflows/agent-audit.yml
+          echo "ICM CI files: OK"
+
+      - name: Server-side push confirmation
         if: github.event_name == 'push'
         run: |
           echo "Server-side confirmation: ref=${{ github.ref }} sha=${{ github.sha }} pusher=${{ github.actor }}"
-          echo "This CI run itself is evidence the remote received the push."
-          # Slack delivery from CI requires the SAI_SLACK_BOT_TOKEN secret;
-          # when configured, uncomment to publish the push report server-side:
-          # curl -sS -X POST https://slack.com/api/chat.postMessage \
-          #   -H "Authorization: Bearer ${{ secrets.SAI_SLACK_BOT_TOKEN }}" \
-          #   -H "Content-Type: application/json" \
-          #   --data "{\"channel\":\"C0BH15HDN2Z\",\"text\":\"[SAI][PUSH][ci] ref=${{ github.ref }} sha=${{ github.sha }} pusher=${{ github.actor }} run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+          echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+  merge-handoff-slack:
+    needs: icm-enforcement
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Post merge HANDOFF to #agentupdates
+        env:
+          SAI_SLACK_BOT_TOKEN: ${{ secrets.SAI_SLACK_BOT_TOKEN }}
+          SAI_AGENT_ID: ceo-automation
+          GITHUB_REF_NAME: main
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+        run: |
+          chmod +x scripts/agent-report scripts/ci-merge-handoff-slack
+          scripts/ci-merge-handoff-slack

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# ci-merge-handoff-slack — post [SAI][HANDOFF] merge report to #agentupdates from CI.
+# Requires SAI_SLACK_BOT_TOKEN GitHub secret. Exits 0 when token absent (verify
+# still enforced separately); exits non-zero only on delivery failure when token set.
+set -u
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+cd "$REPO_ROOT"
+
+SHA=$(git rev-parse --short HEAD)
+BRANCH=${GITHUB_REF_NAME:-$(git rev-parse --abbrev-ref HEAD)}
+REPO=${GITHUB_REPOSITORY:-Dezocode/Sai}
+ACTOR=${GITHUB_ACTOR:-ci}
+RUN_URL="${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-Dezocode/Sai}/actions/runs/${GITHUB_RUN_ID:-local}"
+
+# Infer merge task-id from tip commit or latest run with handoff
+TASK_ID=$(git log -1 --format=%B | sed -n 's/^Task-ID: *//p' | head -n1)
+if [ -z "$TASK_ID" ]; then
+  TASK_ID=$(ls -1 .ai/runs 2>/dev/null | grep -E '^[0-9]{8}-[0-9]{4}-' | sort | tail -n1)
+fi
+[ -n "$TASK_ID" ] || TASK_ID="$(date -u +%Y%m%d-%H%M)-merge-handoff-ci"
+
+export SAI_AGENT_ID="${SAI_AGENT_ID:-ceo-automation}"
+export SAI_REPOSITORY="$REPO"
+
+if [ -z "${SAI_SLACK_BOT_TOKEN:-}" ]; then
+  echo "ci-merge-handoff-slack: SAI_SLACK_BOT_TOKEN unset — merge HANDOFF must be posted via Cursor Slack MCP or agent-report flush"
+  echo "  Task-ID: $TASK_ID  SHA: $SHA  CI: $RUN_URL"
+  exit 0
+fi
+
+scripts/agent-report emit HANDOFF \
+  --task-id "$TASK_ID" \
+  --actor "Sai (CEO automation), agent-id ceo-automation" \
+  --purpose "Merge to $BRANCH — ICM CI enforcement active" \
+  --justification "Push to protected branch; verify-merge-handoff PASS" \
+  --result "Merged/ref updated at $SHA on $REPO" \
+  --verification "agent-audit CI green; verify-agent-audit, verify-semantic-hierarchy, verify-merge-handoff OK" \
+  --branch "$BRANCH" \
+  --commit "$(git rev-parse HEAD)" \
+  --review-gate "monaecode: sync fork by SHA and enable agent-audit.yml"

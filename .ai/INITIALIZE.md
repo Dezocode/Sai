@@ -325,6 +325,10 @@ stated) may you say you are initialized and accept tasks.
   `pre-push` and CI enforce this on protected refs for agent commits.
 - Every push is followed by remote-SHA confirmation; every event type in
   `.ai/_config/reporting.yaml` is reported or queued.
+- **Merges to `main`:** every agent commit in the merge range must have
+  `handoff.md` (or a HANDOFF event); the merge commit carries a Task-ID whose
+  run documents the merge. CI runs `verify-merge-handoff` and posts a merge
+  HANDOFF to #agentupdates (`scripts/ci-merge-handoff-slack`).
 - Keep your agent folder truthful: new verified tools go into `tools.json`
   with evidence; retired capabilities get downgraded, not deleted silently;
   skills and hooks stay current with what you actually do.

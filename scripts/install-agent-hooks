@@ -11,7 +11,8 @@ cd "$REPO_ROOT"
 chmod +x .githooks/post-checkout .githooks/post-commit .githooks/post-merge \
          .githooks/post-rewrite .githooks/pre-push .githooks/post-push-equivalent.sh \
          scripts/agent-report scripts/agent-sync-drive scripts/verify-agent-audit \
-         scripts/verify-semantic-hierarchy scripts/agent-init scripts/agent-scaffold \
+         scripts/verify-semantic-hierarchy scripts/verify-merge-handoff \
+         scripts/ci-merge-handoff-slack scripts/agent-init scripts/agent-scaffold \
          scripts/agent-verify-caps scripts/agent-automation-spec
 
 git config core.hooksPath .githooks

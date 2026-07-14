@@ -47,6 +47,10 @@ rules:
   report_every_commit_and_push: true
   report_worktree_lifecycle: true
   report_failures: true            # failed tests, failed sync, conflicts
+  require_handoff_before_main_merge: true
+  merge_handoff_slack_channel_id: C0BH15HDN2Z
+  merge_handoff_ci_script: scripts/ci-merge-handoff-slack
+  merge_handoff_verify_script: scripts/verify-merge-handoff
   include_links_and_shas: true
   never_post: [secrets, tokens, webhooks, full sensitive diffs, private paths]
   # Delivery must be idempotent: every event carries a unique event_id and
