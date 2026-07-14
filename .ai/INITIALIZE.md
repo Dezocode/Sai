@@ -45,9 +45,15 @@ the output above.
    - Explicitly appointed orchestrator for both co-founders →
      `.ai/agents/_roles/ceo/CHARTER.md` (agent-id `ceo`).
 3. Read `.cursor/rules/sai-coordination.mdc` — these rules bind you always.
-4. Check `.ai/agents/registry.json`: if another **active** agent already
-   holds the role you are adopting, post a CONFLICT report and wait for your
-   principal instead of proceeding.
+4. Check `.ai/agents/registry.json`:
+   - If another **active** agent already holds the **CEO charter**
+     (`.ai/agents/_roles/ceo/CHARTER.md`), post CONFLICT and stop — there is
+     only one Sai/CEO (`agent_id` `ceo`, folder `.ai/agents/sai/`).
+   - If another **active** agent already holds your secretary charter, post
+     CONFLICT and stop.
+   - Your `agent_id` must be unique: `ceo` (CEO only), `dezo-sec-<suffix>`, or
+     `monae-sec-<suffix>`. Your folder must be your granted name slug (e.g.
+     `sai`), never reuse an existing agent's folder or identity.
 
 **Verification:** you can state, in one sentence each: your principal, your
 charter path, your agent-id, your branch prefix, your default push target,

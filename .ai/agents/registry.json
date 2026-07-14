@@ -11,8 +11,8 @@
       "principal": "dezocode (U0BHYH0NMCY)",
       "status": "active",
       "initialized": "2026-07-14",
-      "automation": "delegated: .ai/agents/sai/automation/profile.md (awaiting creation by dezocode)",
-      "notes": "Named Sai, CEO by dezocode 2026-07-14. Bootstrap lineage: cursor-cloud-30d8 → sai. Guardian of INITIALIZE.md protocol and ICM CI on canonical + forks."
+      "automation": "SAI Sai — CEO (ceo); PR/Slack triggers + scheduled; created 2026-07-14; https://cursor.com/automations/8d962ddf-7f4e-11f1-ba66-0e7d0216e441; first [SAI][VERIFY] 20260714-0702-pr3-verify-ceo",
+      "notes": "Named Sai, CEO by dezocode 2026-07-14. Bootstrap lineage: cursor-cloud-30d8 → sai. Guardian of INITIALIZE.md protocol and ICM CI on canonical + forks. Do not confuse with bootstrap id cursor-cloud-30d8 (retired identity)."
     }
   ]
 }

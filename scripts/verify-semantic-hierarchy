@@ -134,7 +134,10 @@ if os.path.isdir(".ai/runs"):
 if os.path.exists(".ai/agents/registry.json"):
     try:
         reg = json.load(open(".ai/agents/registry.json"))
-        for i, a in enumerate(reg.get("agents", [])):
+        agents = reg.get("agents", [])
+        seen_ids, seen_folders, seen_names = {}, {}, {}
+        ceo_active = 0
+        for i, a in enumerate(agents):
             for key in ("agent_id", "charter", "principal", "status"):
                 if not a.get(key):
                     fail(f"registry agent[{i}]: missing '{key}'")
@@ -189,6 +192,26 @@ if os.path.exists(".ai/agents/registry.json"):
                         json.load(open(f"{agent_dir}/hooks.json"))
                     except (json.JSONDecodeError, UnicodeDecodeError) as e:
                         fail(f"registry agent[{i}]: hooks.json invalid JSON ({e})")
+            # Uniqueness: no duplicate agent_id, folder, or active name
+            if a.get("status") != "retired":
+                aid = a.get("agent_id")
+                if aid in seen_ids:
+                    fail(f"registry: duplicate agent_id '{aid}' (agents {seen_ids[aid]} and {i})")
+                seen_ids[aid] = i
+                if folder:
+                    fd = folder.rstrip("/")
+                    if fd in seen_folders:
+                        fail(f"registry: duplicate folder '{fd}' (agents {seen_folders[fd]} and {i})")
+                    seen_folders[fd] = i
+                nm = a.get("name")
+                if nm and a.get("status") == "active":
+                    if nm in seen_names:
+                        fail(f"registry: duplicate active name '{nm}' (agents {seen_names[nm]} and {i})")
+                    seen_names[nm] = i
+                if a.get("status") == "active" and a.get("charter", "").endswith("_roles/ceo/CHARTER.md"):
+                    ceo_active += 1
+        if ceo_active > 1:
+            fail(f"registry: only one active CEO agent allowed, found {ceo_active}")
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
         fail(f".ai/agents/registry.json invalid JSON ({e})")
 
