@@ -21,7 +21,8 @@ decision records once they exist.
 - ICM (arXiv:2603.16021) filesystem workspace under `.ai/` — see
   `.ai/CONTEXT.md` for the layer map.
 - Three agents: CEO (orchestrator), secretary-dezocode, secretary-monaecode.
-  Charters under `.ai/agents/`.
+  Charters under `.ai/agents/_roles/`; named agent profiles under
+  `.ai/agents/<name>/`.
 - Reporting to Slack #agentupdates via `scripts/agent-report`, wired through
   `.githooks/` (installed with `scripts/install-agent-hooks`).
 - Google Drive is a replicated recovery layer per `.ai/_config/sync-policy.md`.

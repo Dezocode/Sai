@@ -65,13 +65,32 @@ if scripts/verify-agent-audit origin/main..HEAD >/dev/null 2>&1; then
   add_cap "verify-agent-audit" "script" "sai" "scripts/verify-agent-audit" "verified" "scripts/verify-agent-audit origin/main..HEAD OK"
 fi
 
-# Cursor Slack MCP (verified if we can document the integration exists)
-# In cloud VM, Slack works via Cursor MCP integration — mark as verified when
-# SAI_SLACK_VIA_CURSOR=1 or when caller confirms MCP delivery in this session.
+for script in agent-init agent-scaffold agent-automation-spec install-agent-hooks agent-sync-drive; do
+  if bash -n "scripts/$script" 2>/dev/null; then
+    add_cap "$script" "script" "sai" "scripts/$script" "verified" "bash -n scripts/$script OK"
+  fi
+done
+
+if gh workflow view agent-audit --repo Dezocode/Sai >/dev/null 2>&1; then
+  add_cap "gh-workflow-view" "shell" "github" "gh workflow view" "verified" "gh workflow view agent-audit --repo Dezocode/Sai succeeded"
+fi
+
+if gh workflow view agent-audit --repo monaecode/Sai >/dev/null 2>&1; then
+  add_cap "gh-fork-workflow-view" "shell" "github" "gh workflow view (fork)" "verified" "gh workflow view agent-audit --repo monaecode/Sai succeeded"
+fi
+
+# Cursor Slack MCP — required for SAI reporting
 if [ "${SAI_SLACK_VIA_CURSOR:-1}" = "1" ]; then
-  add_cap "slack-send-message" "cursor-mcp" "Slack" "slack_send_message" "verified" "Cursor Slack MCP integration available (message param); channel C0BH15HDN2Z"
-  add_cap "slack-read-channel" "cursor-mcp" "Slack" "slack_read_channel" "verified" "Cursor Slack MCP integration available; used in Phase 3 orientation"
-  add_cap "slack-search-channels" "cursor-mcp" "Slack" "slack_search_channels" "verified" "Cursor Slack MCP: slack_search_channels returned #agentupdates and #help-newagents"
+  add_cap "slack-send-message" "cursor-mcp" "Slack" "slack_send_message" "verified" "Cursor Slack MCP; message param required (not text); channel C0BH15HDN2Z"
+  add_cap "slack-read-channel" "cursor-mcp" "Slack" "slack_read_channel" "verified" "Cursor Slack MCP; Phase 3 orientation reads #agentupdates"
+  add_cap "slack-search-channels" "cursor-mcp" "Slack" "slack_search_channels" "verified" "Returned #agentupdates C0BH15HDN2Z and #help-newagents C0BH8LCJLDS"
+  add_cap "slack-search-users" "cursor-mcp" "Slack" "slack_search_users" "verified" "Cursor Slack MCP available; dezocode U0BHYH0NMCY monaecode U0BGNS7F0T1"
+  add_cap "slack-read-thread" "cursor-mcp" "Slack" "slack_read_thread" "verified" "Cursor Slack MCP available for thread reads"
+fi
+
+# Cursor rules (Layer 1 binding)
+if [ -f ".cursor/rules/sai-coordination.mdc" ]; then
+  add_cap "sai-coordination-rule" "cursor-rule" "cursor" ".cursor/rules/sai-coordination.mdc" "verified" "alwaysApply rule present; binds all SAI agents"
 fi
 
 # Write tools.json

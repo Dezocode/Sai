@@ -67,8 +67,10 @@ environment expectations (`SAI_AGENT_ID`, `SAI_SLACK_BOT_TOKEN`,
 `SAI_DRIVE_REMOTE`) reported honestly; CI enforcement present; semantic
 hierarchy valid; audit trailers valid; and a live hook self-test. Set
 `SAI_AGENT_ID` first (charter prefix + unique suffix, e.g. `dezo-sec-mbp1`).
-**Warning:** do not run `agent-init` inside a managed VM workspace whose
-`core.hooksPath` is platform-controlled; use your own clone or worktree.
+**Warning:** on platform-managed VM workspaces whose `core.hooksPath` is
+platform-controlled, `agent-init` verifies hooks in a throwaway clone
+automatically — you do not need your own clone, but you must still see
+`AGENT-INIT: PASS`.
 
 This is where you **modify your environment** to follow all hooks and rules
 in `.ai`: hooks installed in every clone you use, `SAI_*` variables in your
@@ -127,14 +129,20 @@ and know what you can actually do. Guessing is prohibited in both.
    `.ai/shared/memory/decisions/`.
 2. Read the stable references relevant to your role
    (`.ai/shared/references/`).
-3. Read the two most recent completed runs in `.ai/runs/` (their
-   verification and handoff files) — they show how work is actually done
-   here, including mistakes already made so you do not repeat them.
+3. Read `.ai/shared/references/icm-ci-policy.md` — CI on canonical and fork
+   repos must enforce ICM structure; you are responsible for knowing this if
+   your role touches infrastructure or onboarding.
 4. Survey the application code that exists for the conventions in use
    (languages, layout, test patterns). Where the codebase and the memory
    disagree, trust the codebase and propose a memory fix via PR.
-5. Distill what you learned into your `skills.md` (Phase 6): concrete,
-   task-relevant practices — not generic advice.
+5. Read the two most recent completed runs in `.ai/runs/` (verification and
+   handoff files) — they show how work is actually done here, including
+   mistakes already made so you do not repeat them.
+6. Read `.cursor/rules/sai-coordination.mdc` and any role-relevant scripts
+   under `scripts/` — your `hooks.json` must reference the rules and hooks
+   you actually run.
+7. Distill what you learned into your `skills.md` (Phase 6): concrete,
+   task-relevant practices with file/run citations — not generic advice.
 
 **B. Verify your working capabilities.** Build an evidence-backed inventory
 of every Cursor tool, MCP server, integration, and skill you will claim:
@@ -148,9 +156,14 @@ of every Cursor tool, MCP server, integration, and skill you will claim:
    returned JSON; `python3 -c 'print(1)'` printed `1`). Anything untested
    is `unverified` and may not appear in your automation profile or your
    #help-newagents announcement.
-3. Record the inventory — it becomes `tools.json` in your agent folder
-   (Phase 6), and `scripts/agent-automation-spec` embeds only its
-   `verified` entries into your automation profile.
+3. Record the inventory — run the verifier script (do not hand-edit verified
+   status without evidence):
+   ```bash
+   scripts/agent-verify-caps --tools-file .ai/agents/<folder>/tools.json
+   ```
+   It becomes `tools.json` in your agent folder (Phase 6), and
+   `scripts/agent-automation-spec` embeds only its `verified` entries into
+   your automation profile.
 
 **Verification:** every claim in your draft inventory carries evidence and
 a date; best-practice notes cite the file or run they came from.
@@ -179,7 +192,8 @@ words:
      --role-title "<granted role title>" --principal "<your principal>" \
      --purpose "<confirmed purpose paragraph>" --charter <your charter path>
    ```
-   This creates `.ai/agents/<granted-name>/` (lowercase, hyphenated):
+   This creates `.ai/agents/<granted-name>/` (lowercase slug of granted name,
+   e.g. `Sai` → `sai`):
    | File | Contents |
    |---|---|
    | `AGENT.md` | Who you are: name, role title, description, purpose, scope, principal, charter, how to reach you from Slack, pointers to every other file |
@@ -191,9 +205,12 @@ words:
    survey. The semantic verifier rejects agent folders with missing files,
    invalid JSON, or `tools.json` entries marked `verified` without evidence.
 5. Register yourself: add your entry — name, role title, purpose, `folder`
-   — to `.ai/agents/registry.json`, commit with your trailers, include it
-   in your PR. Provisional agents (not yet named) use their agent-id as the
-   folder name and rename it when named.
+   — to `.ai/agents/registry.json`, set `status` to `active` once named,
+   commit with your trailers, include it in your PR. Provisional agents (not
+   yet named) use their agent-id as the folder name and rename when named.
+6. **CEO obligation:** if you are the CEO agent, verify that
+   `.github/workflows/agent-audit.yml` exists on canonical and every fork in
+   `.ai/_config/repositories.yaml`, per `.ai/shared/references/icm-ci-policy.md`.
 
 **The `@agentname` convention:** because your folder is named after you,
 anyone can type `@<your-name>` in Cursor Desktop (or reference
@@ -308,3 +325,6 @@ stated) may you say you are initialized and accept tasks.
 - Re-run `scripts/agent-init` after pulling changes that touch `.githooks/`,
   `scripts/`, or `.ai/_config/` — the protocol you enforce can change, and
   stale hooks are a silent failure.
+- **CEO (Sai):** ensure every new agent completes INITIALIZE.md; keep the
+  protocol, CI, and agent folders truthful; fix INITIALIZE.md when any phase
+  fails a live test.

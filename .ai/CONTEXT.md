@@ -32,7 +32,7 @@ authorized without verification.
 |---|---|---|
 | dezocode | Co-founder | `U0BHYH0NMCY` |
 | monaecode | Co-founder | `U0BGNS7F0T1` |
-| SAI CEO agent | Orchestrating agent serving both co-founders | posts as agent |
+| SAI CEO agent (**Sai**) | Orchestrating agent serving both co-founders | `@sai` / `.ai/agents/sai/` |
 | Secretary agent (dezocode) | Cursor Desktop agent for dezocode | posts as agent |
 | Secretary agent (monaecode) | Cursor Desktop agent for monaecode | posts as agent |
 

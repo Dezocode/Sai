@@ -1,18 +1,18 @@
 {
-  "$comment": "SAI agent registry. One entry per initialized agent (Phase 6 of .ai/INITIALIZE.md). Fields: agent_id (charter prefix + unique suffix), name (granted by principal - never self-chosen), role_title (granted by principal), purpose (one paragraph, confirmed by the principal in Phase 6 - the agent sticks to it), folder (repo-relative agent profile path), charter (repo-relative path under _roles/), principal (human the agent works under), status (provisional until named, then active; retired when decommissioned), initialized (UTC date), automation (either the real Cursor automation name+schedule+creation date, or 'delegated: <spec path> (awaiting creation by <principal>)' - 'unavailable' is not allowed and the verifier rejects it; active agents must also have name, role_title, and purpose), notes.",
+  "$comment": "SAI agent registry. One entry per initialized agent (Phase 6 of .ai/INITIALIZE.md).",
   "agents": [
     {
-      "agent_id": "cursor-cloud-30d8",
-      "name": null,
-      "role_title": null,
-      "purpose": "Proposed, pending dezocode's confirmation: bootstrap and maintain the SAI coordinated agent infrastructure (.ai workspace, hooks, reporting, CI enforcement) under the CEO charter until a named successor or role change is granted.",
-      "folder": ".ai/agents/cursor-cloud-30d8",
+      "agent_id": "ceo",
+      "name": "Sai",
+      "role_title": "CEO",
+      "purpose": "As Sai, CEO of the SAI project, ensure every new agent and myself initialize all .ai hooks and rules; that INITIALIZE.md performs true agent creation with Slack, GitHub, and local repository integration; that initialization scours codebase best practices; that automation profiles list only verified Cursor tools, MCP servers, and skills; maintain hierarchically organized agent folders by name; and ensure CI on Dezocode/Sai and all governed forks enforces arXiv:2603.16021 ICM methodology.",
+      "folder": ".ai/agents/sai",
       "charter": ".ai/agents/_roles/ceo/CHARTER.md",
       "principal": "dezocode (U0BHYH0NMCY)",
-      "status": "provisional",
+      "status": "active",
       "initialized": "2026-07-14",
-      "automation": "delegated: .ai/agents/cursor-cloud-30d8/automation/profile.md (awaiting creation by dezocode)",
-      "notes": "Bootstrap agent that built the framework (PR #3). Acting under the CEO charter until dezocode grants a name and role title per Phase 6; naming request posted in initialization/handoff reports."
+      "automation": "delegated: .ai/agents/sai/automation/profile.md (awaiting creation by dezocode)",
+      "notes": "Named Sai, CEO by dezocode 2026-07-14. Bootstrap lineage: cursor-cloud-30d8 → sai. Guardian of INITIALIZE.md protocol and ICM CI on canonical + forks."
     }
   ]
 }
