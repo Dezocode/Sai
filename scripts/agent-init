@@ -139,20 +139,25 @@ if [ "$(git config core.hooksPath)" = ".githooks" ] || [ "$HOOKS_VIA_CLONE" = "1
     if git clone --quiet "file://$REPO_ROOT" "$TMP_CLONE" 2>/dev/null; then
       (cd "$TMP_CLONE" && SAI_AGENT_ID="${SAI_AGENT_ID:-unset}" scripts/install-agent-hooks >/dev/null 2>&1)
       GIT_DIR_CLONE=$(git -C "$TMP_CLONE" rev-parse --git-common-dir)
-      before=$(ls "$GIT_DIR_CLONE/agent-events/queue" 2>/dev/null | wc -l)
-      (cd "$TMP_CLONE" && git checkout -q -b init-selftest \
+      mkdir -p "$GIT_DIR_CLONE/agent-events/queue" "$GIT_DIR_CLONE/agent-events/sent"
+      before=$(find "$GIT_DIR_CLONE/agent-events/queue" -maxdepth 1 -name '*-COMMIT.json' 2>/dev/null | wc -l)
+      if (cd "$TMP_CLONE" && git checkout -q -b init-selftest \
         && printf 'agent-init self-test\n' > .agent-init-selftest \
         && git add .agent-init-selftest \
         && git -c commit.gpgsign=false commit -q -m "agent-init hook self-test (auto-removed)
 
 Task-ID: $(date -u +%Y%m%d-%H%M)-agent-init-selftest-${SAI_AGENT_ID:-unset}
-Agent: ${SAI_AGENT_ID:-unset}" >/dev/null 2>&1)
-      after=$(ls "$GIT_DIR_CLONE/agent-events/queue" 2>/dev/null | wc -l)
-      rm -rf "$TMP_CLONE"
-      if [ "$after" -gt "$before" ]; then
-        check "hook-selftest" PASS "temp-clone commit produced $((after - before)) queued event(s)"
+Agent: ${SAI_AGENT_ID:-unset}"); then
+        after=$(find "$GIT_DIR_CLONE/agent-events/queue" -maxdepth 1 -name '*-COMMIT.json' 2>/dev/null | wc -l)
+        rm -rf "$TMP_CLONE"
+        if [ "$after" -gt "$before" ]; then
+          check "hook-selftest" PASS "temp-clone commit produced $((after - before)) COMMIT event(s)"
+        else
+          check "hook-selftest" FAIL "temp-clone self-test: commit succeeded but no COMMIT event queued"
+        fi
       else
-        check "hook-selftest" FAIL "temp-clone self-test: no event captured — hooks not firing"
+        rm -rf "$TMP_CLONE"
+        check "hook-selftest" FAIL "temp-clone self-test: commit step failed"
       fi
     else
       check "hook-selftest" FAIL "could not create temp clone for hook self-test"
