@@ -136,7 +136,7 @@ if [ "$(git config core.hooksPath)" = ".githooks" ] || [ "$HOOKS_VIA_CLONE" = "1
     check "hook-selftest" WARN "working tree dirty — skipped live self-test to preserve your changes; re-run agent-init from a clean tree"
   elif [ "$HOOKS_VIA_CLONE" = "1" ]; then
     TMP_CLONE=$(mktemp -d)
-    if git clone --quiet "$REPO_ROOT" "$TMP_CLONE" 2>/dev/null; then
+    if git clone --quiet "file://$REPO_ROOT" "$TMP_CLONE" 2>/dev/null; then
       (cd "$TMP_CLONE" && SAI_AGENT_ID="${SAI_AGENT_ID:-unset}" scripts/install-agent-hooks >/dev/null 2>&1)
       GIT_DIR_CLONE=$(git -C "$TMP_CLONE" rev-parse --git-common-dir)
       before=$(ls "$GIT_DIR_CLONE/agent-events/queue" 2>/dev/null | wc -l)
