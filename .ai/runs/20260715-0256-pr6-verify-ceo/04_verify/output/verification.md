@@ -17,9 +17,18 @@
 
 | Check | Result |
 |-------|--------|
-| PR #6 head | `cursor/runtime-adapters-6fee` @ `c8f9ec8` |
-| `icm-enforcement` (pre-fix) | FAILURE — missing handoff for `20260715-0254-pr6-verify-ceo` (run 29385287284) |
+| PR | [#6](https://github.com/Dezocode/Sai/pull/6) `cursor/runtime-adapters-6fee` |
+| Rebase base | PR #5 @ `9812438` (agent ownership in `agent-verify-caps`) |
+| Final head SHA | `382fdf8bcd092d86324e75e0fabd7493827e02e6` |
+| `icm-enforcement` (pre-fix @ `c8f9ec8`) | FAILURE — missing handoff for `20260715-0254-pr6-verify-ceo` (run 29385287284) |
+| `icm-enforcement` (final @ `382fdf8`) | **SUCCESS** (run 29385342946) |
+| JSON schema | 23 `.ai/**/*.json` files valid |
 | Fork `monaecode/Sai` `agent-audit.yml` | active (workflow 313270481) |
+
+## SHA correction (coded review)
+
+- PLAN cited truncated `9736348`; full pre-rebase commit was `9736348e86fd31ecdf632c43533cc63d88f0c7cd` (superseded).
+- Authoritative head for review: `382fdf8bcd092d86324e75e0fabd7493827e02e6`.
 
 ## CEO assessment (initialization compliance)
 

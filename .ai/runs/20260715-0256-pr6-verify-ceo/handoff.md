@@ -2,10 +2,10 @@
 
 ## Result
 
-CEO VERIFY on PR #6 synchronize. Fixed CI blocker: created missing
-`.ai/runs/20260715-0254-pr6-verify-ceo/` handoff for commit `c8f9ec8`.
-ICM enforcement scripts pass locally; PR #6 ready for human review after
-push.
+CEO VERIFY on PR #6 (coded review follow-up). Rebased onto PR #5 @ `9812438`;
+fixed CI blocker (missing handoff for `20260715-0254-pr6-verify-ceo` on
+`c8f9ec8`). Final head `382fdf8` — `icm-enforcement` SUCCESS (run
+29385342946). PR #6 ready for human review.
 
 ## Evidence
 
