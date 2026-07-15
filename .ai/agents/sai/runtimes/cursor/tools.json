@@ -4,7 +4,7 @@
   "surveyed_at": "2026-07-15",
   "environment": "cursor-cloud-vm",
   "tool_categories": {
-    "cursor_marketplace": "Slack Send/Read (Automations UI); optional GitHub Comment on PR — enable only when verified in your environment",
+    "cursor_marketplace": "Slack Send/Read (Automations UI); optional GitHub Comment on PR \u2014 enable only when verified in your environment",
     "cursor_mcp": "Slack MCP tools listed below (slack_send_message, slack_read_channel, etc.)",
     "custom_sai_scripts": "Repo scripts under scripts/ (agent-init, agent-report, verify-*, etc.)",
     "custom_git_hooks": "Documented in hooks.json; installed via scripts/install-agent-hooks",

@@ -12,10 +12,8 @@ JSON validation, GitHub Actions on final head.
 
 ## Result
 
-- Rebased onto `cursor/agent-initialization-compliance-99d4` (PR #5)
-- Merged PR #5 ownership guard language with runtime suite paths
-- Sai capabilities in `runtimes/cursor/tools.json` (manifest at root)
-- Strengthened verifier: manifest/registry primary_runtime match, codex stub
+- Rebased onto `cursor/agent-initialization-compliance-99d4` (PR #5 @ `9812438`)
+- `agent-verify-caps` accepts `runtimes/<suite>/tools.json`; refuses manifest + cross-agent writes
 
 ## Next safe action
 
