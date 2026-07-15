@@ -34,6 +34,26 @@ def fail(msg): fails.append(msg)
 
 STAGES = ["01_intake", "02_plan", "03_implement", "04_verify", "05_review", "06_publish_sync"]
 TASK_ID = re.compile(r"^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$")
+VALID_RUNTIMES = {"cursor-desktop", "cursor-cloud-vm", "claude-code-cli", "codex-desktop"}
+RUNTIME_SUITE = {
+    "cursor-desktop": "cursor",
+    "cursor-cloud-vm": "cursor",
+    "claude-code-cli": "claude",
+    "codex-desktop": "codex",
+}
+
+def load_capabilities_tools(agent_dir, manifest):
+    cap_rel = manifest.get("canonical_capabilities_path")
+    if cap_rel:
+        cap_path = f"{agent_dir}/{cap_rel}"
+        if not os.path.exists(cap_path):
+            fail(f"canonical_capabilities_path missing: {cap_path}")
+        try:
+            return json.load(open(cap_path)), cap_path
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            fail(f"{cap_path}: invalid JSON ({e})")
+            return manifest, cap_path
+    return manifest, f"{agent_dir}/tools.json"
 
 # 1. Required layer files
 required = (
@@ -41,9 +61,11 @@ required = (
      ".ai/_config/repositories.yaml", ".ai/_config/reporting.yaml",
      ".ai/_config/sync-policy.md", ".ai/_config/security-policy.md",
      ".ai/shared/references/icm-ci-policy.md",
+     ".ai/shared/references/agent-runtimes.md",
      ".ai/shared/schemas/stage-output.schema.json",
      ".ai/agents/registry.json",
      ".ai/runs/README.md", ".ai/audit/README.md",
+     "CLAUDE.md", "CODEX.md",
      ".cursor/rules/sai-coordination.mdc",
      ".github/workflows/agent-audit.yml",
      "scripts/agent-report", "scripts/agent-init",
@@ -151,6 +173,14 @@ if os.path.exists(".ai/agents/registry.json"):
                 for key in ("name", "role_title", "purpose"):
                     if not a.get(key):
                         fail(f"registry agent[{i}]: active agents must have '{key}' (granted/confirmed by the principal in Phase 5)")
+                pr = a.get("primary_runtime")
+                if not pr:
+                    fail(f"registry agent[{i}]: active agents must have primary_runtime")
+                elif pr not in VALID_RUNTIMES:
+                    fail(f"registry agent[{i}]: primary_runtime '{pr}' not in {sorted(VALID_RUNTIMES)}")
+                eps = a.get("entry_points")
+                if not isinstance(eps, dict) or not eps:
+                    fail(f"registry agent[{i}]: active agents must have entry_points map")
             auto = a.get("automation") or ""
             if a.get("status") in ("active", "provisional"):
                 if not auto:
@@ -178,15 +208,49 @@ if os.path.exists(".ai/agents/registry.json"):
                         fp = f"{agent_dir}/{af}"
                         if not os.path.exists(fp):
                             fail(f"registry agent[{i}]: agent folder missing {af} at {fp}")
-                    # tools.json: verified entries must carry evidence
+                    rt_readme = f"{agent_dir}/runtimes/README.md"
+                    if not os.path.exists(rt_readme):
+                        fail(f"registry agent[{i}]: missing runtimes/README.md")
+                    if a.get("status") == "active" and a.get("primary_runtime"):
+                        suite = RUNTIME_SUITE.get(a["primary_runtime"])
+                        if suite:
+                            suite_tools = f"{agent_dir}/runtimes/{suite}/tools.json"
+                            if not os.path.exists(suite_tools):
+                                fail(f"registry agent[{i}]: missing primary runtime tools at {suite_tools}")
+                    # tools.json manifest + canonical capabilities evidence
                     try:
-                        tools = json.load(open(f"{agent_dir}/tools.json"))
+                        manifest = json.load(open(f"{agent_dir}/tools.json"))
+                        tools, tools_path = load_capabilities_tools(agent_dir, manifest)
                         for j, cap in enumerate(tools.get("capabilities", [])):
                             if cap.get("status") == "verified" and not cap.get("evidence"):
-                                fail(f"registry agent[{i}]: tools.json capability[{j}] marked verified without evidence")
-                        tf = tools.get("folder", "")
+                                fail(f"registry agent[{i}]: {tools_path} capability[{j}] marked verified without evidence")
+                        tf = tools.get("folder", manifest.get("folder", ""))
                         if tf and tf != agent_dir:
-                            fail(f"registry agent[{i}]: tools.json folder '{tf}' != registry folder '{agent_dir}'")
+                            fail(f"registry agent[{i}]: tools folder '{tf}' != registry folder '{agent_dir}'")
+                        cap_rel = manifest.get("canonical_capabilities_path")
+                        if a.get("status") == "active":
+                            if not cap_rel:
+                                fail(f"registry agent[{i}]: active agents must have canonical_capabilities_path in tools.json manifest")
+                            pr_reg = a.get("primary_runtime")
+                            pr_man = manifest.get("primary_runtime")
+                            if pr_man and pr_reg and pr_man != pr_reg:
+                                fail(f"registry agent[{i}]: tools.json primary_runtime '{pr_man}' != registry '{pr_reg}'")
+                        if cap_rel and a.get("status") == "active":
+                            pr = a.get("primary_runtime")
+                            suite = RUNTIME_SUITE.get(pr or "")
+                            if suite and not cap_rel.startswith(f"runtimes/{suite}/"):
+                                fail(f"registry agent[{i}]: canonical_capabilities_path '{cap_rel}' does not match primary_runtime suite '{suite}'")
+                        # Codex stub: non-codex-primary agents must not claim verified Codex caps
+                        codex_tools = f"{agent_dir}/runtimes/codex/tools.json"
+                        if os.path.exists(codex_tools):
+                            try:
+                                cdoc = json.load(open(codex_tools))
+                                if a.get("primary_runtime") != "codex-desktop":
+                                    for j, cap in enumerate(cdoc.get("capabilities", [])):
+                                        if cap.get("status") == "verified":
+                                            fail(f"registry agent[{i}]: runtimes/codex/tools.json has verified capability[{j}] but agent primary_runtime is not codex-desktop (stub until live init)")
+                            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                                fail(f"registry agent[{i}]: runtimes/codex/tools.json invalid JSON ({e})")
                     except (json.JSONDecodeError, UnicodeDecodeError) as e:
                         fail(f"registry agent[{i}]: tools.json invalid JSON ({e})")
                     try:

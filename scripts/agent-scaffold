@@ -3,12 +3,13 @@
 #
 # Usage:
 #   agent-scaffold --name NAME --agent-id ID --role-title TITLE \
-#                  --principal HUMAN --purpose TEXT --charter PATH
-#                  [--folder-name slug]   # defaults to slugified --name, or --agent-id if name pending
+#                  --principal HUMAN --purpose TEXT --charter PATH \
+#                  [--folder-name slug]   # defaults to slugified --name
+#                  [--primary-runtime cursor|claude|codex]  # default: cursor
 set -euo pipefail
 
 NAME="" AGENT_ID="" ROLE_TITLE="" PRINCIPAL="" PURPOSE="" CHARTER=""
-FOLDER=""
+FOLDER="" PRIMARY_RUNTIME="cursor"
 while [ $# -gt 0 ]; do
   case $1 in
     --name) NAME=$2; shift 2;;
@@ -18,12 +19,20 @@ while [ $# -gt 0 ]; do
     --purpose) PURPOSE=$2; shift 2;;
     --charter) CHARTER=$2; shift 2;;
     --folder-name) FOLDER=$2; shift 2;;
+    --primary-runtime) PRIMARY_RUNTIME=$2; shift 2;;
     *) echo "agent-scaffold: unknown option $1" >&2; exit 2;;
   esac
 done
 
 [ -n "$AGENT_ID" ] && [ -n "$PRINCIPAL" ] && [ -n "$CHARTER" ] || {
   echo "agent-scaffold: --agent-id, --principal, and --charter are required" >&2; exit 1; }
+
+case "$PRIMARY_RUNTIME" in
+  cursor) RUNTIME_ENV="cursor-cloud-vm"; RUNTIME_SUITE="cursor" ;;
+  claude) RUNTIME_ENV="claude-code-cli"; RUNTIME_SUITE="claude" ;;
+  codex)  RUNTIME_ENV="codex-desktop"; RUNTIME_SUITE="codex" ;;
+  *) echo "agent-scaffold: --primary-runtime must be cursor, claude, or codex" >&2; exit 2;;
+esac
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 slugify() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g;s/--*/-/g;s/^-//;s/-$//'; }
@@ -37,55 +46,58 @@ if [ -z "$FOLDER" ]; then
 fi
 
 AGENT_DIR="$REPO_ROOT/.ai/agents/$FOLDER"
-mkdir -p "$AGENT_DIR/automation"
+CANONICAL_TOOLS="runtimes/${RUNTIME_SUITE}/tools.json"
+mkdir -p "$AGENT_DIR/automation" "$AGENT_DIR/runtimes/cursor/automation" \
+         "$AGENT_DIR/runtimes/claude/automation" "$AGENT_DIR/runtimes/codex/automation"
 TODAY=$(date -u +%Y-%m-%d)
 
-# AGENT.md — identity card; @agentname loads this first
+# AGENT.md — runtime-neutral identity card
 cat > "$AGENT_DIR/AGENT.md" <<EOF
 # ${NAME:-$AGENT_ID}
 
 | | |
 |---|---|
-| **Name** | ${NAME:-pending Phase 5 grant} |
-| **Role title** | ${ROLE_TITLE:-pending Phase 5 grant} |
+| **Name** | ${NAME:-pending Phase 6 grant} |
+| **Role title** | ${ROLE_TITLE:-pending Phase 6 grant} |
 | **Agent ID** | \`${AGENT_ID}\` |
 | **Principal** | ${PRINCIPAL} |
 | **Charter** | \`${CHARTER}\` |
 | **Folder** | \`.ai/agents/${FOLDER}/\` |
+| **Primary runtime** | \`${RUNTIME_ENV}\` |
 | **Initialized** | ${TODAY} |
 
 ## Purpose and scope
 
-${PURPOSE:-(pending confirmation in Phase 5)}
+${PURPOSE:-(pending confirmation in Phase 6)}
 
 ## Description
 
-SAI agent operating under the coordinated development system. This folder is
-the agent's complete profile: skills, verified tools, hooks/rules suite, and
-automation profile. Type **@${FOLDER}** in Cursor Desktop (or open
-\`https://github.com/Dezocode/Sai/tree/main/.ai/agents/${FOLDER}\` on mobile)
-to attach this profile to your session.
+SAI agent operating under the coordinated development system. Runtime-neutral
+identity card — see \`runtimes/README.md\` and
+\`.ai/shared/references/agent-runtimes.md\` for per-runtime invoke paths.
 
-## How to reach me from Slack
+## How to invoke
 
-- **#agentupdates** (\`C0BH15HDN2Z\`): mention my principal's Cursor agent with
-  \`@${FOLDER}: <request>\` — I report every action there.
-- **#help-newagents** (\`C0BH8LCJLDS\`): my introduction post lists skills and
-  how to invoke me.
-- Principal: ${PRINCIPAL}
+| Runtime | Entry |
+|---|---|
+| Cursor | \`@${FOLDER}\` in Cursor Desktop |
+| Claude Code | \`CLAUDE.md\` → this folder |
+| Codex Desktop | \`CODEX.md\` → this folder |
+
+Slack bots (@Claude, ChatGPT) are not registered agents unless listed in
+\`.ai/agents/registry.json\`.
 
 ## Files in this folder
 
 | File | Role |
 |---|---|
 | \`AGENT.md\` | This identity card (load first) |
-| \`skills.md\` | Uniquely defined skills + codebase best practices |
-| \`tools.json\` | Verified Cursor tools, MCP servers, integrations |
-| \`hooks.json\` | Git hooks, Cursor rules, automation triggers |
-| \`automation/profile.md\` | Cursor Automations UI profile (paste-ready) |
+| \`skills.md\` | Role skills + best practices |
+| \`tools.json\` | Manifest → \`${CANONICAL_TOOLS}\` |
+| \`hooks.json\` | Git hooks, reporting, triggers |
+| \`runtimes/\` | Per-runtime capability suites |
 EOF
 
-# skills.md — template to fill from Phase 5A
 cat > "$AGENT_DIR/skills.md" <<EOF
 # Skills — ${NAME:-$AGENT_ID}
 
@@ -109,18 +121,48 @@ cat > "$AGENT_DIR/skills.md" <<EOF
 <!-- Add skills unique to this agent's purpose after Phase 5A survey -->
 EOF
 
-# tools.json — fill verified entries in Phase 5B
 cat > "$AGENT_DIR/tools.json" <<EOF
 {
   "agent_id": "${AGENT_ID}",
   "folder": ".ai/agents/${FOLDER}",
+  "primary_runtime": "${RUNTIME_ENV}",
+  "canonical_capabilities_path": "${CANONICAL_TOOLS}",
   "surveyed_at": "${TODAY}",
-  "environment": "pending — run scripts/agent-verify-caps or fill manually in Phase 5B",
+  "environment": "${RUNTIME_ENV}",
+  "note": "Manifest only — run scripts/agent-verify-caps against canonical_capabilities_path in Phase 5B",
   "capabilities": []
 }
 EOF
 
-# hooks.json — this agent's hook/rule/trigger suite
+cat > "$AGENT_DIR/runtimes/${RUNTIME_SUITE}/tools.json" <<EOF
+{
+  "agent_id": "${AGENT_ID}",
+  "folder": ".ai/agents/${FOLDER}",
+  "surveyed_at": "${TODAY}",
+  "environment": "${RUNTIME_ENV}",
+  "capabilities": []
+}
+EOF
+
+for suite in cursor claude codex; do
+  if [ ! -f "$AGENT_DIR/runtimes/$suite/README.md" ]; then
+    cat > "$AGENT_DIR/runtimes/$suite/README.md" <<EOF
+# ${suite} runtime suite
+
+Primary runtime for this agent: \`${RUNTIME_ENV}\` (${RUNTIME_SUITE}).
+Capability file: \`runtimes/${RUNTIME_SUITE}/tools.json\` when this suite is primary.
+EOF
+  fi
+done
+
+cat > "$AGENT_DIR/runtimes/README.md" <<EOF
+# Runtime suites — ${NAME:-$AGENT_ID}
+
+Primary runtime: \`${RUNTIME_ENV}\` → \`runtimes/${RUNTIME_SUITE}/\`.
+
+See \`.ai/shared/references/agent-runtimes.md\`.
+EOF
+
 cat > "$AGENT_DIR/hooks.json" <<EOF
 {
   "agent_id": "${AGENT_ID}",
@@ -135,7 +177,7 @@ cat > "$AGENT_DIR/hooks.json" <<EOF
     "help_newagents": "C0BH8LCJLDS"
   },
   "automation_triggers": {
-    "required": [{"type": "scheduled", "note": "baseline protocol upkeep"}],
+    "required": [{"type": "scheduled", "note": "baseline protocol upkeep — configure per runtime in Phase 7"}],
     "optional": [
       {"type": "slack", "note": "run on mention in #agentupdates"},
       {"type": "github", "note": "run on PR events"}
@@ -150,10 +192,10 @@ cat > "$AGENT_DIR/hooks.json" <<EOF
     ],
     "merge_handoff": "scripts/ci-merge-handoff-slack",
     "icm_reference": "https://arxiv.org/abs/2603.16021"
-  },
+  }
 }
 EOF
 
-echo "agent-scaffold: created $AGENT_DIR"
-echo "  Next: fill skills.md and tools.json from Phase 5 survey;"
-echo "  run scripts/agent-automation-spec --out $AGENT_DIR/automation/profile.md"
+echo "agent-scaffold: created $AGENT_DIR (primary-runtime=$PRIMARY_RUNTIME)"
+echo "  Next: Phase 5B survey → scripts/agent-verify-caps --tools-file $AGENT_DIR/$CANONICAL_TOOLS --environment $RUNTIME_ENV"
+echo "  Phase 7 → scripts/agent-automation-spec --out $AGENT_DIR/runtimes/$RUNTIME_SUITE/automation/profile.md"

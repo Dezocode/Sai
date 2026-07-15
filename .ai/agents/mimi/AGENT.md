@@ -8,6 +8,7 @@
 | **Principal** | monaecode (U0BGNS7F0T1) |
 | **Charter** | `.ai/agents/_roles/portfolio-manager-monaecode/CHARTER.md` |
 | **Folder** | `.ai/agents/mimi/` |
+| **Primary runtime** | `claude-code-cli` |
 | **Initialized** | 2026-07-14 |
 
 ## Purpose and scope
@@ -17,25 +18,28 @@ Conduct frequent reviews of Slack and github.com/monaecode/Sai; provide organiza
 ## Description
 
 SAI agent operating under the coordinated development system. This folder is
-the agent's complete profile: skills, verified tools, hooks/rules suite, and
-automation profile. Type **@mimi** in Cursor Desktop (or open
-`https://github.com/Dezocode/Sai/tree/main/.ai/agents/mimi` on mobile)
-to attach this profile to your session.
+the agent's complete **runtime-neutral** profile. Verified Claude Code
+capabilities live in `runtimes/claude/tools.json` (see
+`.ai/shared/references/agent-runtimes.md`).
 
-## How to reach me from Slack
+## How to invoke Mimi (not @Claude Slack)
 
-- **#agentupdates** (`C0BH15HDN2Z`): mention my principal's Cursor agent with
-  `@mimi: <request>` — I report every action there.
-- **#help-newagents** (`C0BH8LCJLDS`): my introduction post lists skills and
-  how to invoke me.
-- Principal: monaecode (U0BGNS7F0T1)
+| Method | Works? |
+|---|---|
+| Claude Code + `monaecode/Sai` repo + `CLAUDE.md` | **Yes** — primary |
+| Cursor Desktop `@mimi` | Optional; not primary runtime |
+| Anthropic `@Claude` in Slack | **No** — separate product; not in registry |
+
+Live automation: Claude Code scheduled task `mimi-protocol-upkeep` (see
+`hooks.json`). Slack/GitHub event triggers: `not_built`.
 
 ## Files in this folder
 
 | File | Role |
 |---|---|
 | `AGENT.md` | This identity card (load first) |
-| `skills.md` | Uniquely defined skills + codebase best practices |
-| `tools.json` | Verified Cursor tools, MCP servers, integrations |
-| `hooks.json` | Git hooks, Cursor rules, automation triggers |
-| `automation/profile.md` | Cursor Automations UI profile (paste-ready) |
+| `skills.md` | Role-specific skills + best practices |
+| `tools.json` | Manifest → `runtimes/claude/tools.json` |
+| `hooks.json` | Git hooks, reporting, automation truth table |
+| `runtimes/` | Per-runtime suites (`claude` primary) |
+| `automation/profile.md` | Legacy path; see `runtimes/claude/automation/profile.md` |

@@ -166,19 +166,28 @@ of every Cursor tool, MCP server, integration, and skill you will claim:
    #help-newagents announcement.
 3. Record the inventory — run the verifier script (do not hand-edit verified
    status without evidence). **Run it only against your own agent folder**
-   from your own runtime — never overwrite another agent's `tools.json` from
-   a different environment (e.g. a Cursor Cloud VM must not re-survey a
-   Claude Code agent's inventory):
+   from your own runtime — never overwrite another agent's capability file
+   from a different environment (see `.ai/shared/references/agent-runtimes.md`):
    ```bash
+   # Cursor (default):
    SAI_AGENT_ID=<your-agent-id> scripts/agent-verify-caps \
-     --tools-file .ai/agents/<your-folder>/tools.json
+     --tools-file .ai/agents/<folder>/runtimes/cursor/tools.json \
+     --environment cursor-cloud-vm
+   # Claude Code:
+   SAI_AGENT_ID=<your-agent-id> scripts/agent-verify-caps \
+     --tools-file .ai/agents/<folder>/runtimes/claude/tools.json \
+     --environment claude-code-cli
+   # Codex Desktop:
+   SAI_AGENT_ID=<your-agent-id> scripts/agent-verify-caps \
+     --tools-file .ai/agents/<folder>/runtimes/codex/tools.json \
+     --environment codex-desktop
    ```
-   It becomes `tools.json` in your agent folder (Phase 6), and
-   `scripts/agent-automation-spec` embeds only its `verified` entries into
-   your automation profile. The script **refuses** cross-agent writes unless
-   `SAI_AGENT_ID` matches the target `agent_id` (exact or `<agent_id>-*`
-   prefix) and blocks cross-runtime environment overwrites unless you pass
-   `--force`.
+   Root `tools.json` is a **manifest** (`primary_runtime`,
+   `canonical_capabilities_path`). `scripts/agent-automation-spec` embeds only
+   `verified` entries from the canonical path. The script **refuses**
+   cross-agent writes unless `SAI_AGENT_ID` matches the target `agent_id`
+   (exact or `<agent_id>-*` prefix) and blocks cross-runtime environment
+   overwrites unless you pass `--force`.
 
 **Verification:** every claim in your draft inventory carries evidence and
 a date; best-practice notes cite the file or run they came from.
@@ -205,24 +214,29 @@ words:
    ```bash
    scripts/agent-scaffold --name "<granted-name>" --agent-id <your-agent-id> \
      --role-title "<granted role title>" --principal "<your principal>" \
-     --purpose "<confirmed purpose paragraph>" --charter <your charter path>
+     --purpose "<confirmed purpose paragraph>" --charter <your charter path> \
+     --primary-runtime <cursor|claude|codex>
    ```
-   This creates `.ai/agents/<granted-name>/` (lowercase slug of granted name,
+   Default `--primary-runtime` is `cursor`. This creates
+   `.ai/agents/<granted-name>/` (lowercase slug of granted name,
    e.g. `Sai` → `sai`):
    | File | Contents |
    |---|---|
-   | `AGENT.md` | Who you are: name, role title, description, purpose, scope, principal, charter, how to reach you from Slack, pointers to every other file |
+   | `AGENT.md` | Runtime-neutral identity: name, role, purpose, principal, charter, how to invoke per runtime |
    | `skills.md` | Your uniquely defined skills — each with what it is, when to use it, and the best-practice notes from Phase 5A that back it |
-   | `tools.json` | Your verified capability inventory from Phase 5B (tools, MCP servers, integrations) with per-entry evidence, date, and `verified`/`unverified` status |
+   | `tools.json` | Manifest (`primary_runtime`, `canonical_capabilities_path`) |
+   | `runtimes/<suite>/tools.json` | Verified capability inventory from Phase 5B |
    | `hooks.json` | Your automation suite: the git hooks you run, your triggers (scheduled/Slack/GitHub), event→action bindings, and the rules files that bind you |
-   | `automation/profile.md` | Your Cursor automation profile (Phase 7) |
+   | `runtimes/<suite>/automation/profile.md` | Your automation profile (Phase 7) |
+   | `automation/profile.md` | Legacy alias path (verifier compatibility) |
 4. Fill in `skills.md`, `tools.json`, and `hooks.json` from your Phase 5
    survey. The semantic verifier rejects agent folders with missing files,
    invalid JSON, or `tools.json` entries marked `verified` without evidence.
-5. Register yourself: add your entry — name, role title, purpose, `folder`
-   — to `.ai/agents/registry.json`, set `status` to `active` once named,
-   commit with your trailers, include it in your PR. Provisional agents (not
-   yet named) use their agent-id as the folder name and rename when named.
+5. Register yourself: add your entry — name, role title, purpose, `folder`,
+   `primary_runtime`, `entry_points` — to `.ai/agents/registry.json`, set
+   `status` to `active` once named, commit with your trailers, include it in
+   your PR. Provisional agents (not yet named) use their agent-id as the
+   folder name and rename when named.
 6. **CEO obligation:** if you are the CEO agent, verify that
    `.github/workflows/agent-audit.yml` exists on canonical and every fork in
    `.ai/_config/repositories.yaml`, per `.ai/shared/references/icm-ci-policy.md`.
@@ -241,21 +255,29 @@ While waiting for the grant, you may prepare but not push material work.
 ## Phase 7 — Offer your automation profile (default for every agent)
 
 Immediately after Phase 6, **every** agent — regardless of role — generates
-and offers its Cursor automation profile so dezocode or monaecode can set
-up automation agents easily and consistently for any role. Two allowed end
-states: the automation **exists** (confirmed by its first run), or the
-complete profile has been **delivered to your principal**. "Unavailable" is
-not an outcome.
+and offers its automation profile so dezocode or monaecode can set up
+automation easily and consistently for any role. Two allowed end states: the
+automation **exists** (confirmed by its first run), or the complete profile
+has been **delivered to your principal**. "Unavailable" is not an outcome.
+
+**Cursor agents (default):** generate a Cursor Automations UI profile.
+**Claude Code agents:** document real scheduled tasks / MCP connectors in
+`runtimes/claude/automation/profile.md` and `hooks.json` — do not claim
+Cursor UI automation as live.
+**Codex Desktop agents:** stub or document Codex-specific automation in
+`runtimes/codex/automation/profile.md` after live survey.
 
 1. Generate the profile from your granted identity and **verified** tools:
    ```bash
    scripts/agent-automation-spec --agent-id <your-agent-id> \
      --agent-name "<granted-name>" --role-title "<granted role title>" \
      --principal "<your principal>" --purpose "<confirmed purpose>" \
-     --tools-file .ai/agents/<granted-name>/tools.json \
+     --tools-file .ai/agents/<granted-name>/runtimes/<suite>/tools.json \
      --repo <owner/repo per your charter> --schedule "<proposed cadence>" \
-     --out .ai/agents/<granted-name>/automation/profile.md
+     --out .ai/agents/<granted-name>/runtimes/<suite>/automation/profile.md
    ```
+   Copy or symlink to `automation/profile.md` for legacy verifier paths.
+   For Cursor, `<suite>` is `cursor`. For Claude Code, `<suite>` is `claude`.
    The profile matches the actual Cursor Automations UI (Name, repository
    selector, **Scheduled** trigger plus optional Slack/GitHub triggers,
    **Agent Instructions** verbatim, model note, **Tools** section listing

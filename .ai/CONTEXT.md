@@ -46,6 +46,20 @@ hooks, has your principal name you and grant your role title, registers you
 in `.ai/agents/registry.json`, and sets up your Cursor automation. You are
 not an initialized SAI agent until its Phase 9 report is delivered.
 
+## Runtime entry points (Layer 0)
+
+One registry row per agent; runtime-specific capability suites live under
+`.ai/agents/<name>/runtimes/`. See `.ai/shared/references/agent-runtimes.md`.
+
+| Runtime | Read first | Attach profile |
+|---|---|---|
+| Cursor Desktop / Cloud | `.cursor/rules/sai-coordination.mdc` | `@<name>` → `.ai/agents/<name>/` |
+| Claude Code CLI | `CLAUDE.md` | `.ai/agents/<name>/AGENT.md` |
+| OpenAI Codex Desktop | `CODEX.md` | `.ai/agents/<name>/AGENT.md` after init |
+
+Slack bots (@Claude, ChatGPT, etc.) are **not** registered agents unless
+listed in `.ai/agents/registry.json`.
+
 ## Context layers (ICM)
 
 - **Layer 0** — this file: workspace identity and map.

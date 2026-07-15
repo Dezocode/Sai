@@ -11,6 +11,12 @@
       "principal": "dezocode (U0BHYH0NMCY)",
       "status": "active",
       "initialized": "2026-07-14",
+      "primary_runtime": "cursor-cloud-vm",
+      "entry_points": {
+        "cursor": "@sai in Cursor Desktop → .ai/agents/sai/; Automations https://cursor.com/automations/8d962ddf-7f4e-11f1-ba66-0e7d0216e441",
+        "claude-code-cli": "Not primary — see runtimes/claude/README.md",
+        "codex-desktop": "Not primary — see runtimes/codex/README.md and CODEX.md"
+      },
       "automation": "SAI Sai — CEO (ceo); PR/Slack triggers + scheduled; created 2026-07-14; https://cursor.com/automations/8d962ddf-7f4e-11f1-ba66-0e7d0216e441; first [SAI][VERIFY] 20260714-0702-pr3-verify-ceo",
       "notes": "Named Sai, CEO by dezocode 2026-07-14. Bootstrap lineage: cursor-cloud-30d8 → sai. Guardian of INITIALIZE.md protocol and ICM CI on canonical + forks. Do not confuse with bootstrap id cursor-cloud-30d8 (retired identity)."
     },
@@ -24,7 +30,13 @@
       "principal": "monaecode (U0BGNS7F0T1)",
       "status": "active",
       "initialized": "2026-07-14",
-      "automation": "SAI Mimi — Portfolio Project Agent Manager (mimi); scheduled task 'mimi-protocol-upkeep' (Claude Code, cron 0 9 * * *, fires only while the app is open); created 2026-07-14; Slack-mention and GitHub-event triggers NOT built (would need external webhook infra) — see .ai/agents/mimi/tools.json",
+      "primary_runtime": "claude-code-cli",
+      "entry_points": {
+        "claude-code-cli": "Open monaecode/Sai in Claude Code; read CLAUDE.md → .ai/agents/mimi/AGENT.md",
+        "cursor": "Optional — @mimi in Cursor; not primary runtime",
+        "codex-desktop": "Stub — runtimes/codex/README.md"
+      },
+      "automation": "SAI Mimi — Portfolio Project Agent Manager (mimi); scheduled task 'mimi-protocol-upkeep' (Claude Code, cron 0 9 * * *, fires only while the app is open); created 2026-07-14; Slack-mention and GitHub-event triggers NOT built (would need external webhook infra) — see .ai/agents/mimi/runtimes/claude/tools.json",
       "notes": "Named Mimi, Portfolio Project Agent Manager by monaecode 2026-07-14. Runs as a Claude Code agent (not Cursor Desktop) — tools.json distinguishes Claude Code MCP connectors from the Cursor-specific entries used by ceo/dezo-sec agents. Composio slack/googledrive toolkit connections initiated but not active as of initialization; Drive index-integrity duties (#knowledgebase) are blocked until that connection is confirmed active. Phase 9 report: see .ai/runs/20260714-2348-agent-initialization-mimi/."
     }
   ]

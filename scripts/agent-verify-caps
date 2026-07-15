@@ -42,13 +42,25 @@ path, caller, env_label, force, root = sys.argv[1:6]
 force = force == "1"
 
 norm = os.path.normpath(path)
-parts = norm.split(os.sep)
-if len(parts) < 4 or parts[-1] != "tools.json" or parts[-3] != "agents" or parts[-4] != ".ai":
-    print(f"agent-verify-caps: tools file must live at .ai/agents/<folder>/tools.json (got {path})", file=sys.stderr)
+try:
+    rel = os.path.relpath(norm, root)
+except ValueError:
+    rel = norm.replace("\\", "/")
+
+import re
+m_root = re.match(r"\.ai/agents/([^/]+)/tools\.json$", rel)
+m_rt = re.match(r"\.ai/agents/([^/]+)/runtimes/([^/]+)/tools\.json$", rel)
+if not m_root and not m_rt:
+    print(
+        f"agent-verify-caps: tools file must be .ai/agents/<folder>/tools.json "
+        f"or .ai/agents/<folder>/runtimes/<suite>/tools.json (got {path})",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
-folder_slug = parts[-2]
-expected_rel = f".ai/agents/{folder_slug}/tools.json"
+folder_slug = m_root.group(1) if m_root else m_rt.group(1)
+runtime_suite = m_rt.group(2) if m_rt else None
+expected_rel = rel
 
 try:
     doc = json.load(open(path))
@@ -103,6 +115,22 @@ if not authorized(caller, target_id):
         file=sys.stderr,
     )
     sys.exit(1)
+
+# If targeting manifest, require canonical path write instead (runtime adapters).
+manifest_path = os.path.join(root, f".ai/agents/{folder_slug}/tools.json")
+if m_root and os.path.isfile(manifest_path):
+    try:
+        manifest = json.load(open(manifest_path))
+        canon = manifest.get("canonical_capabilities_path")
+        if canon and manifest.get("capabilities") == []:
+            print(
+                f"agent-verify-caps: REFUSED — {expected_rel} is a manifest. "
+                f"Survey {manifest.get('folder', '')}/{canon} instead.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+    except json.JSONDecodeError:
+        pass
 
 prev_env = doc.get("environment", "")
 pending = prev_env.startswith("pending")

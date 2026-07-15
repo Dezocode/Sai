@@ -13,7 +13,8 @@
 | `.ai/agents/` | Role charters (`_roles/`), `registry.json`, named agent folders |
 | `.ai/shared/memory/` | Durable memory (this folder) |
 | `.ai/shared/schemas/` | JSON Schemas for events and stage outputs |
-| `.ai/shared/references/` | Git workflow, testing, release policy, ICM CI policy |
+| `.ai/shared/references/` | Git workflow, testing, release policy, ICM CI policy, **agent-runtimes.md** |
+| `CLAUDE.md` / `CODEX.md` | Layer 0 entry routers for Claude Code and Codex Desktop |
 | `.ai/stages/` | Six ICM stage contracts |
 | `.ai/runs/` | Per-task working artifacts (Layer 4) |
 | `.ai/audit/` | Audit trail documentation |

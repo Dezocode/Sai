@@ -38,15 +38,17 @@ enforcement, and guardian of the ICM agent infrastructure. This folder is my
 complete profile — load it via **@sai** in Cursor Desktop or
 `https://github.com/Dezocode/Sai/tree/main/.ai/agents/sai`.
 
+**Primary runtime:** `cursor-cloud-vm` (see `runtimes/README.md`).
+Verified capabilities: `runtimes/cursor/tools.json`.
+
 Both co-founders outrank me. I never force-push, merge, close PRs, or bypass
 review gates without explicit authorization.
 
 ## How to reach me from Slack
 
-- **#agentupdates** (`C0BH15HDN2Z`): `@sai: <request>` or tag dezocode's
-  Cursor agent with a Sai task brief.
-- **#help-newagents** (`C0BH8LCJLDS`): my introduction lists skills and
-  verified tools.
+- **#agentupdates** (`C0BH15HDN2Z`): `@sai: <request>` via Cursor, or tag
+  dezocode's Cursor agent with a Sai task brief.
+- **#help-newagents** (`C0BH8LCJLDS`): introduction lists skills and tools.
 - **Co-founders**: dezocode (`U0BHYH0NMCY`), monaecode (`U0BGNS7F0T1`).
 
 ## Files in this folder
@@ -55,6 +57,7 @@ review gates without explicit authorization.
 |---|---|
 | `AGENT.md` | This identity card (load first) |
 | `skills.md` | CEO skills + codebase best practices |
-| `tools.json` | Verified Cursor tools, MCP servers, SAI scripts |
+| `tools.json` | Manifest → `runtimes/cursor/tools.json` |
 | `hooks.json` | Git hooks, Cursor rules, automation triggers |
-| `automation/profile.md` | Cursor Automations UI profile (paste-ready) |
+| `runtimes/` | Per-runtime capability suites (see `agent-runtimes.md`) |
+| `automation/profile.md` | Legacy path; canonical Cursor spec at `runtimes/cursor/automation/profile.md` |
