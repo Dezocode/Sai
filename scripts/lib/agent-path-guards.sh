@@ -3,17 +3,62 @@
 # Sourced by agent-scaffold, agent-memory-scaffold, agent-contract-scaffold.
 set -euo pipefail
 
-# Portable equivalent of GNU realpath -m (path need not exist).
-# macOS realpath lacks -m; python3 is available in SAI CI and agent environments.
+# Portable equivalent of GNU realpath -m (path need not exist; do not follow symlinks).
+# Always use python3 so Linux (realpath -m) and macOS (no -m) behave identically.
 guard_normalize_path() {
   local path=$1
-  if command -v realpath >/dev/null 2>&1 && realpath -m / >/dev/null 2>&1; then
-    realpath -m "$path"
-    return
-  fi
   python3 - "$path" <<'PY'
 import os, sys
-print(os.path.normpath(os.path.abspath(sys.argv[1])))
+path = os.path.expanduser(sys.argv[1])
+if not os.path.isabs(path):
+    path = os.path.join(os.getcwd(), path)
+print(os.path.normpath(path))
+PY
+}
+
+# Reject when any existing component under repo_root/rel_path is a symlink.
+# Prevents scaffold scripts from writing outside the repository through link hops.
+guard_reject_symlink_components() {
+  local repo_root=$1 rel_path=$2
+  python3 - "$repo_root" "$rel_path" <<'PY'
+import os, sys
+root, rel = sys.argv[1], sys.argv[2]
+cur = root
+for part in rel.replace("\\", "/").split("/"):
+    if not part or part == ".":
+        continue
+    if part == "..":
+        print(f"guard: path traversal in {rel}", file=sys.stderr)
+        sys.exit(1)
+    cur = os.path.join(cur, part)
+    if os.path.islink(cur):
+        print(f"guard: symlink not allowed in repository path: {cur}", file=sys.stderr)
+        sys.exit(1)
+PY
+}
+
+# When rel_path (or ancestors) exist, verify realpath stays under base_rel.
+guard_realpath_under_base() {
+  local repo_root=$1 rel_path=$2 base_rel=$3
+  python3 - "$repo_root" "$rel_path" "$base_rel" <<'PY'
+import os, sys
+root, rel, base_rel = sys.argv[1], sys.argv[2], sys.argv[3]
+parts = [p for p in rel.replace("\\", "/").split("/") if p and p != "."]
+if ".." in parts:
+    print(f"guard: path traversal in {rel}", file=sys.stderr)
+    sys.exit(1)
+full = os.path.join(root, *parts) if parts else root
+base = os.path.join(root, base_rel)
+prefix = root
+for part in parts:
+    prefix = os.path.join(prefix, part)
+    if os.path.exists(prefix):
+        real = os.path.realpath(full)
+        real_base = os.path.realpath(base)
+        if not (real == real_base or real.startswith(real_base + os.sep)):
+            print(f"guard: resolved path escapes {base_rel}: {rel}", file=sys.stderr)
+            sys.exit(1)
+        break
 PY
 }
 
@@ -130,6 +175,8 @@ guard_agent_folder_rel() {
   esac
   local slug="${folder_rel#.ai/agents/}"
   guard_slug folder-slug "$slug" || return 1
+  guard_reject_symlink_components "$repo_root" "$folder_rel"
+  guard_realpath_under_base "$repo_root" "$folder_rel" ".ai/agents"
   local resolved agents_root
   resolved=$(guard_normalize_path "$repo_root/$folder_rel")
   agents_root=$(guard_normalize_path "$repo_root/.ai/agents")
@@ -148,6 +195,8 @@ guard_under_ai_subtree() {
       echo "guard: path traversal in $rel_path" >&2
       return 1 ;;
   esac
+  guard_reject_symlink_components "$repo_root" "$rel_path"
+  guard_realpath_under_base "$repo_root" "$rel_path" ".ai/$subtree"
   local resolved base
   resolved=$(guard_normalize_path "$repo_root/$rel_path")
   base=$(guard_normalize_path "$repo_root/.ai/$subtree")

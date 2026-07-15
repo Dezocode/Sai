@@ -57,6 +57,17 @@ if [ -x scripts/agent-contract-scaffold ]; then
       --contractor-type coding --isolation-mode prototype --runtime cursor
 fi
 
+# agent-memory-scaffold must reject existing symlinks under .ai/agents/<slug>
+SYMLINK_REPO="$TMP_BASE/symlink-repo"
+mkdir -p "$SYMLINK_REPO/.ai/agents"
+ln -s /tmp "$SYMLINK_REPO/.ai/agents/review-link-test"
+git -C "$SYMLINK_REPO" init -q
+git -C "$SYMLINK_REPO" config user.email "test@test"
+git -C "$SYMLINK_REPO" config user.name "test"
+check_fail "memory-scaffold rejects agent-folder symlink" \
+  env -C "$SYMLINK_REPO" "$REPO_ROOT/scripts/agent-memory-scaffold" \
+    --agent-id reviewlink --folder ".ai/agents/review-link-test"
+
 # agent-contract-pr-review must not return overall pass when manual criteria exist
 if [ -x scripts/agent-contract-pr-review ]; then
   CONTRACT_DIR="$TMP_BASE/contract"

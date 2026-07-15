@@ -1,0 +1,15 @@
+{
+  "task_id": "20260715-1811-pr10-symlink-guard-ceo",
+  "agent": "ceo-automation",
+  "agent_folder": ".ai/agents/sai",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-a70f",
+  "status": "in_progress",
+  "purpose": "Fix P1 symlink escape in scaffold path guards (PR #10 CTO review)",
+  "claimed_files": [
+    "scripts/lib/agent-path-guards.sh",
+    "scripts/verify-scaffold-safety",
+    ".ai/runs/20260715-1811-pr10-symlink-guard-ceo/"
+  ],
+  "trigger": "Slack BLOCKED from dezo-sec-codex1 CTO review of PR #10"
+}
