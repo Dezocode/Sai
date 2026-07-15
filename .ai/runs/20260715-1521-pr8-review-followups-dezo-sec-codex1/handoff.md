@@ -2,8 +2,8 @@
 
 ## State
 
-Sai's five actionable non-blocking findings are implemented and locally
-verified. Draft PR #8 remains open and unmerged.
+Sai's five actionable non-blocking findings are implemented, locally verified,
+and pushed to draft PR #8 in commit `e0f0634`. The PR remains open and unmerged.
 
 ## Evidence
 
@@ -19,5 +19,5 @@ verified. Draft PR #8 remains open and unmerged.
 
 ## Next safe action
 
-Commit and push the follow-up to draft PR #8, verify the remote SHA and CI, and
-return it to human review. Do not merge without explicit authorization.
+Verify PR #8 CI and return it to human review. Do not merge without explicit
+authorization.
