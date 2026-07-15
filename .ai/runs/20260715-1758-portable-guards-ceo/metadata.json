@@ -1,9 +1,8 @@
 {
   "task_id": "20260715-1758-portable-guards-ceo",
-  "agent_id": "ceo-automation",
-  "agent_name": "Sai",
+  "agent": "ceo-automation",
   "repository": "Dezocode/Sai",
-  "branch": "cursor/agent-initialization-compliance-ae2f",
+  "branch": "cursor/agent-initialization-compliance-a9c9",
   "base_sha": "24de40c",
   "purpose": "Fix P1 portability block on PR #10 scaffold path guards for macOS/Codex Desktop",
   "status": "verify",
