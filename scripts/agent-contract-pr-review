@@ -47,16 +47,69 @@ OUT_FILE="$REPO_ROOT/.ai/contracts/$CONTRACT_ID/reviews/${REVIEW_ID}.json"
 guard_under_ai_subtree "$REPO_ROOT" ".ai/contracts/$CONTRACT_ID/reviews/${REVIEW_ID}.json" "contracts"
 
 set +e
-python3 - "$CONTRACT_PATH" "$BRANCH" "$REVIEW_ID" "$ACTOR" "$OUT_FILE" <<'PY'
-import json, sys, subprocess, os
+python3 - "$CONTRACT_PATH" "$BRANCH" "$REVIEW_ID" "$ACTOR" "$OUT_FILE" "$REPO_ROOT" <<'PY'
+import json, sys, subprocess, os, re
 
-contract_path, branch, review_id, actor, out_file = sys.argv[1:6]
+contract_path, branch, review_id, actor, out_file, repo_root = sys.argv[1:7]
 ts = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 contract = json.load(open(contract_path))
 contract_id = contract["contract_id"]
 project_slug = contract["project_slug"]
+contract_repo = contract.get("repository", "")
 os.makedirs(os.path.dirname(out_file), exist_ok=True)
 
+def parse_github_remote(url):
+    url = (url or "").strip().rstrip("/")
+    m = re.search(r"github\.com[:/]([^/]+)/([^/.]+)", url)
+    if m:
+        return f"{m.group(1)}/{m.group(2)}"
+    return ""
+
+def current_origin_repo():
+    try:
+        url = subprocess.check_output(
+            ["git", "-C", repo_root, "remote", "get-url", "origin"],
+            stderr=subprocess.DEVNULL, text=True,
+        ).strip()
+        return parse_github_remote(url)
+    except subprocess.CalledProcessError:
+        return ""
+
+def remote_branch_exists(repo, ref_branch):
+    try:
+        subprocess.check_output(
+            ["gh", "api", f"repos/{repo}/git/ref/heads/{ref_branch}"],
+            stderr=subprocess.DEVNULL, text=True,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+def remote_commit_log(repo, ref_branch, n=5):
+    try:
+        out = subprocess.check_output(
+            ["gh", "api", f"repos/{repo}/commits", "-f", f"sha={ref_branch}", "-f", f"per_page={n}"],
+            stderr=subprocess.DEVNULL, text=True,
+        )
+        commits = json.loads(out)
+        return "\n".join(
+            f"{c['sha'][:7]} {c['commit']['message'].splitlines()[0]}"
+            for c in commits
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError, KeyError):
+        return ""
+
+def remote_tip_message(repo, ref_branch):
+    try:
+        out = subprocess.check_output(
+            ["gh", "api", f"repos/{repo}/commits/{ref_branch}"],
+            stderr=subprocess.DEVNULL, text=True,
+        )
+        return json.loads(out)["commit"]["message"]
+    except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError, KeyError):
+        return ""
+
+origin_repo = current_origin_repo()
 checks = []
 expected_prefix = contract.get("branch_prefix", f"proj/{project_slug}/")
 checks.append({
@@ -64,6 +117,26 @@ checks.append({
     "status": "pass" if branch.startswith(expected_prefix) else "fail",
     "detail": f"expected prefix {expected_prefix}, got {branch}",
 })
+
+if contract_repo:
+    repo_match = origin_repo == contract_repo
+    checks.append({
+        "criterion": "repository_context",
+        "status": "pass" if repo_match else "fail",
+        "detail": (
+            f"contract repository {contract_repo}; "
+            f"local origin {origin_repo or '(unknown)'}"
+        ),
+        "note": "Contract reviews must run in the governed repository named by contract.json",
+    })
+else:
+    repo_match = True
+    checks.append({
+        "criterion": "repository_context",
+        "status": "pass",
+        "detail": f"contract.json has no repository field — using local origin {origin_repo or '(unknown)'}",
+        "note": "Fork-scoped contracts should set repository explicitly",
+    })
 
 for i, ac in enumerate(contract.get("acceptance_criteria", [])):
     checks.append({
@@ -73,25 +146,69 @@ for i, ac in enumerate(contract.get("acceptance_criteria", [])):
         "note": "Requires human/CI verification on PR",
     })
 
-try:
-    log = subprocess.check_output(
-        ["git", "log", "--oneline", "-5", branch], stderr=subprocess.DEVNULL, text=True
-    ).strip()
-    checks.append({"criterion": "commit_history", "status": "pass" if log else "warn",
-                   "detail": log or "no commits"})
-except subprocess.CalledProcessError:
-    checks.append({"criterion": "commit_history", "status": "warn",
-                   "detail": f"branch {branch} not found locally"})
+log = ""
+msg = ""
+history_source = ""
+if repo_match:
+    try:
+        log = subprocess.check_output(
+            ["git", "-C", repo_root, "log", "--oneline", "-5", branch],
+            stderr=subprocess.DEVNULL, text=True,
+        ).strip()
+        history_source = "local"
+        msg = subprocess.check_output(
+            ["git", "-C", repo_root, "log", "-1", "--format=%B", branch],
+            stderr=subprocess.DEVNULL, text=True,
+        )
+    except subprocess.CalledProcessError:
+        log = ""
+elif contract_repo and remote_branch_exists(contract_repo, branch):
+    log = remote_commit_log(contract_repo, branch)
+    history_source = f"remote:{contract_repo}"
+    msg = remote_tip_message(contract_repo, branch)
+    checks.append({
+        "criterion": "repository_evidence",
+        "status": "pass",
+        "detail": f"branch {branch} verified on {contract_repo} via gh API (not local origin {origin_repo})",
+    })
+else:
+    checks.append({
+        "criterion": "repository_evidence",
+        "status": "fail",
+        "detail": (
+            f"branch {branch} not found locally and not on contract repo "
+            f"{contract_repo or '(unset)'}; cannot record passing commit evidence from wrong repository"
+        ),
+    })
 
-try:
-    msg = subprocess.check_output(
-        ["git", "log", "-1", "--format=%B", branch], stderr=subprocess.DEVNULL, text=True
-    )
+if log:
+    checks.append({
+        "criterion": "commit_history",
+        "status": "pass",
+        "detail": log,
+        "note": history_source or "unknown",
+    })
+elif repo_match or contract_repo:
+    checks.append({
+        "criterion": "commit_history",
+        "status": "fail",
+        "detail": f"branch {branch} unavailable in {contract_repo or origin_repo}",
+    })
+
+if msg:
     ok = "Task-ID:" in msg and "Agent:" in msg
-    checks.append({"criterion": "audit_trailers", "status": "pass" if ok else "fail",
-                   "detail": f"Task-ID: {'Task-ID:' in msg}, Agent: {'Agent:' in msg}"})
-except subprocess.CalledProcessError:
-    checks.append({"criterion": "audit_trailers", "status": "skip", "detail": "branch unavailable"})
+    checks.append({
+        "criterion": "audit_trailers",
+        "status": "pass" if ok else "fail",
+        "detail": f"Task-ID: {'Task-ID:' in msg}, Agent: {'Agent:' in msg}",
+        "note": history_source or "unknown",
+    })
+elif repo_match or contract_repo:
+    checks.append({
+        "criterion": "audit_trailers",
+        "status": "skip",
+        "detail": "branch unavailable for trailer inspection",
+    })
 
 blockers = [c for c in checks if c["status"] in ("fail", "warn", "skip")]
 manuals = [c for c in checks if c["status"] == "manual"]
@@ -106,6 +223,8 @@ review = {
     "review_id": review_id,
     "contract_id": contract_id,
     "project_slug": project_slug,
+    "repository": contract_repo,
+    "local_origin": origin_repo,
     "branch": branch,
     "actor": actor,
     "timestamp": ts,

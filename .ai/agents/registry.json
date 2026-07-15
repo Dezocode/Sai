@@ -28,7 +28,7 @@
       "folder": ".ai/agents/mimi",
       "charter": ".ai/agents/_roles/portfolio-manager-monaecode/CHARTER.md",
       "principal": "monaecode (U0BGNS7F0T1)",
-      "status": "active",
+      "status": "provisional",
       "initialized": "2026-07-14",
       "primary_runtime": "claude-code-cli",
       "entry_points": {
@@ -37,7 +37,7 @@
         "codex-desktop": "Stub — runtimes/codex/README.md"
       },
       "automation": "SAI Mimi — Portfolio Project Agent Manager (mimi); scheduled task 'mimi-protocol-upkeep' (Claude Code, cron 0 9 * * *, fires only while the app is open); created 2026-07-14; Slack-mention and GitHub-event triggers NOT built (would need external webhook infra) — see .ai/agents/mimi/runtimes/claude/tools.json",
-      "notes": "Named Mimi, Portfolio Project Agent Manager by monaecode 2026-07-14. Runs as a Claude Code agent (not Cursor Desktop) — tools.json distinguishes Claude Code MCP connectors from the Cursor-specific entries used by ceo/dezo-sec agents. Composio slack/googledrive toolkit connections initiated but not active as of initialization; Drive index-integrity duties (#knowledgebase) are blocked until that connection is confirmed active. Phase 9 report: see .ai/runs/20260714-2348-agent-initialization-mimi/."
+      "notes": "Named Mimi, Portfolio Project Agent Manager by monaecode 2026-07-14. Runs as a Claude Code agent (not Cursor Desktop). Registry reverted to provisional 2026-07-15 by Sai CEO audit: Phases 7-9 incomplete per .ai/runs/20260714-2348-agent-initialization-mimi/ (status phases-0-6-complete-paused-before-push). Complete Phase 9 INTAKE + replace Cursor UI automation stub with Claude Code profile before reactivating."
     },
     {
       "agent_id": "dezo-sec-codex1",
@@ -66,7 +66,7 @@
       "folder": ".ai/agents/cora",
       "charter": ".ai/agents/_roles/contract-administrator/CHARTER.md",
       "principal": "dezocode (U0BHYH0NMCY) and monaecode (U0BGNS7F0T1)",
-      "status": "active",
+      "status": "provisional",
       "initialized": "2026-07-15",
       "primary_runtime": "cursor-cloud-vm",
       "entry_points": {
@@ -75,7 +75,7 @@
         "codex-desktop": "Not primary — see runtimes/codex/README.md"
       },
       "automation": "delegated: .ai/agents/cora/runtimes/cursor/automation/profile.md (awaiting creation by dezocode or monaecode)",
-      "notes": "Named Cora, Contract Administrator by dezocode and monaecode 2026-07-15. Drafts contracts, scaffolds contractors, reviews history. Reports to Sai for ICM enforcement."
+      "notes": "Named Cora, Contract Administrator by dezocode and monaecode 2026-07-15. Registry reverted to provisional 2026-07-15 by Sai CEO audit: Phase 5B capability survey empty; PR #13 (cursor/cora-init-complete-f1d6) completes Phases 5B-9. Reports to Sai for ICM enforcement."
     },
     {
       "agent_id": "ctr-code-splunk1",

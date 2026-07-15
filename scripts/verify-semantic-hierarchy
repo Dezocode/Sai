@@ -41,6 +41,9 @@ RUNTIME_SUITE = {
     "claude-code-cli": "claude",
     "codex-desktop": "codex",
 }
+MIN_ACTIVE_VERIFIED_CAPS = 3
+NON_CURSOR_RUNTIMES = {"claude-code-cli", "codex-desktop"}
+CURSOR_PROFILE_MARKERS = ("Cursor Automations UI", "scheduled Cursor automation")
 
 def load_capabilities_tools(agent_dir, manifest):
     cap_rel = manifest.get("canonical_capabilities_path")
@@ -54,6 +57,61 @@ def load_capabilities_tools(agent_dir, manifest):
             fail(f"{cap_path}: invalid JSON ({e})")
             return manifest, cap_path
     return manifest, f"{agent_dir}/tools.json"
+
+def count_verified_caps(tools_doc):
+    return sum(1 for c in tools_doc.get("capabilities", []) if c.get("status") == "verified")
+
+def agent_init_evidence(agent_id, folder=""):
+    runs_root = ".ai/runs"
+    if not os.path.isdir(runs_root):
+        return False
+    name_slug = folder.rstrip("/").split("/")[-1] if folder else ""
+    init_markers = ("agent-initialization", "initialization", "ceo-activation", "initialize")
+    for run in os.listdir(runs_root):
+        run_path = f"{runs_root}/{run}"
+        if not os.path.isdir(run_path):
+            continue
+        if not any(m in run for m in init_markers):
+            continue
+        meta_agent = None
+        meta_path = f"{run_path}/metadata.json"
+        if os.path.isfile(meta_path):
+            try:
+                meta_agent = json.load(open(meta_path)).get("agent")
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+        identity_match = (
+            agent_id in run
+            or (name_slug and name_slug in run)
+            or meta_agent == agent_id
+        )
+        if not identity_match:
+            continue
+        handoff = f"{run_path}/handoff.md"
+        if os.path.isfile(handoff) and os.path.getsize(handoff) > 20:
+            return True
+        ev = f"{run_path}/events.jsonl"
+        if os.path.isfile(ev):
+            for line in open(ev):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    if json.loads(line).get("event_type") == "INTAKE":
+                        return True
+                except json.JSONDecodeError:
+                    continue
+    return False
+
+def stub_suite_has_verified(agent_dir, suite):
+    path = f"{agent_dir}/runtimes/{suite}/tools.json"
+    if not os.path.exists(path):
+        return False
+    try:
+        doc = json.load(open(path))
+        return any(c.get("status") == "verified" for c in doc.get("capabilities", []))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return False
 
 # 1. Required layer files
 required = (
@@ -242,6 +300,17 @@ if os.path.exists(".ai/agents/registry.json"):
                             suite = RUNTIME_SUITE.get(pr or "")
                             if suite and not cap_rel.startswith(f"runtimes/{suite}/"):
                                 fail(f"registry agent[{i}]: canonical_capabilities_path '{cap_rel}' does not match primary_runtime suite '{suite}'")
+                            verified_count = count_verified_caps(tools)
+                            if verified_count < MIN_ACTIVE_VERIFIED_CAPS:
+                                fail(f"registry agent[{i}]: active agent has {verified_count} verified capabilities in {tools_path}; minimum {MIN_ACTIVE_VERIFIED_CAPS} required (complete INITIALIZE Phase 5B)")
+                        # Non-primary runtime suites must not claim verified capabilities
+                        pr_reg = a.get("primary_runtime")
+                        primary_suite = RUNTIME_SUITE.get(pr_reg or "")
+                        for suite in ("cursor", "claude", "codex"):
+                            if suite == primary_suite:
+                                continue
+                            if stub_suite_has_verified(agent_dir, suite):
+                                fail(f"registry agent[{i}]: runtimes/{suite}/tools.json has verified capabilities but primary_runtime is '{pr_reg}' (stub until live init in that runtime)")
                         # Codex stub: non-codex-primary agents must not claim verified Codex caps
                         codex_tools = f"{agent_dir}/runtimes/codex/tools.json"
                         if os.path.exists(codex_tools):
@@ -259,6 +328,18 @@ if os.path.exists(".ai/agents/registry.json"):
                         json.load(open(f"{agent_dir}/hooks.json"))
                     except (json.JSONDecodeError, UnicodeDecodeError) as e:
                         fail(f"registry agent[{i}]: hooks.json invalid JSON ({e})")
+                    if a.get("status") == "active":
+                        aid = a.get("agent_id", "")
+                        if not agent_init_evidence(aid, folder or ""):
+                            fail(f"registry agent[{i}]: active agent '{aid}' lacks Phase 9 initialization evidence (.ai/runs/*initialization* with handoff.md or INTAKE event)")
+                        pr = a.get("primary_runtime")
+                        if pr in NON_CURSOR_RUNTIMES:
+                            suite = RUNTIME_SUITE.get(pr or "")
+                            profile = f"{agent_dir}/runtimes/{suite}/automation/profile.md"
+                            if os.path.isfile(profile):
+                                text = open(profile, encoding="utf-8", errors="ignore").read()
+                                if any(marker in text for marker in CURSOR_PROFILE_MARKERS):
+                                    fail(f"registry agent[{i}]: {profile} contains Cursor Automations UI content but primary_runtime is '{pr}' — use runtime-native profile (INITIALIZE Phase 7)")
             # Uniqueness: no duplicate agent_id, folder, or active name
             if a.get("status") != "retired":
                 aid = a.get("agent_id")

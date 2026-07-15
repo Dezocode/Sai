@@ -251,9 +251,10 @@ words:
    invalid JSON, or `tools.json` entries marked `verified` without evidence.
 5. Register yourself: add your entry — name, role title, purpose, `folder`,
    `primary_runtime`, `entry_points` — to `.ai/agents/registry.json`, set
-   `status` to `active` once named, commit with your trailers, include it in
-   your PR. Provisional agents (not yet named) use their agent-id as the
-   folder name and rename when named.
+   `status` to **`provisional`** once named (never `active` before Phase 9).
+   Commit with your trailers and include the registry change in your PR.
+   Provisional agents use their granted name folder; flip to `active` only
+   after Phase 9's initialization report is delivered or durably queued.
 6. **CEO obligation:** if you are the CEO agent, verify that
    `.github/workflows/agent-audit.yml` exists on canonical and every fork in
    `.ai/_config/repositories.yaml`, per `.ai/shared/references/icm-ci-policy.md`.
@@ -280,9 +281,13 @@ has been **delivered to your principal**. "Unavailable" is not an outcome.
 **Cursor agents (default):** generate a Cursor Automations UI profile.
 **Claude Code agents:** document real scheduled tasks / MCP connectors in
 `runtimes/claude/automation/profile.md` and `hooks.json` — do not claim
-Cursor UI automation as live.
+Cursor UI automation as live. **Do not run `agent-automation-spec` into
+`runtimes/claude/`** — that script emits Cursor UI instructions; write a
+Claude Code profile manually (see `.ai/agents/saul/runtimes/codex/` for the
+Codex pattern).
 **Codex Desktop agents:** stub or document Codex-specific automation in
-`runtimes/codex/automation/profile.md` after live survey.
+`runtimes/codex/automation/profile.md` after live survey — never paste
+Cursor Automations UI content into Codex or Claude paths.
 
 1. Generate the profile from your granted identity and **verified** tools:
    ```bash
@@ -361,7 +366,11 @@ Review gate/next action: awaiting first task from <principal>
 ```
 
 Only after this report is delivered (or durably queued with the queue path
-stated) may you say you are initialized and accept tasks.
+stated) may you say you are initialized and accept tasks. Update your
+registry row from `provisional` to `active` in the same commit as your
+Phase 9 artifacts (or immediately after the report is confirmed delivered).
+CI enforces: active agents need Phase 5B verified capabilities (minimum 3),
+Phase 9 initialization run evidence, and runtime-native automation profiles.
 
 ---
 
