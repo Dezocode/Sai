@@ -1,8 +1,8 @@
 # Decision 0003 — Contractor charters and per-agent memory
 
-**Status:** accepted  
-**Date:** 2026-07-15  
-**Deciders:** dezocode, monaecode (via SAI coordinated agent system)  
+**Status:** accepted
+**Date:** 2026-07-15
+**Deciders:** dezocode, monaecode (via SAI coordinated agent system)
 **Supersedes:** none
 
 ## Context

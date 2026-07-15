@@ -1,7 +1,7 @@
 # Drive activation verification
 
-**Date:** 2026-07-15  
-**Agent:** ctr-admin  
+**Date:** 2026-07-15
+**Agent:** ctr-admin
 **Environment:** cloud-agent VM
 
 ## Configuration status
