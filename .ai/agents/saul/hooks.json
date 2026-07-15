@@ -1,0 +1,44 @@
+{
+  "agent_id": "dezo-sec-codex1",
+  "git_hooks": {
+    "path": ".githooks",
+    "install": "scripts/install-agent-hooks",
+    "hooks": ["post-checkout", "post-commit", "post-merge", "post-rewrite", "pre-push", "post-push-equivalent.sh"]
+  },
+  "cursor_rules": [".cursor/rules/sai-coordination.mdc"],
+  "reporting_channels": {
+    "agentupdates": "C0BH15HDN2Z",
+    "help_newagents": "C0BH8LCJLDS",
+    "dev": "C0BHBGBNMT7"
+  },
+  "automation_triggers": {
+    "required": [
+      {
+        "type": "scheduled",
+        "status": "not_configured",
+        "mechanism": "none verified for Codex Desktop",
+        "note": "Saul is session-driven; do not claim a recurring schedule until a real Codex mechanism and first successful run are recorded"
+      }
+    ],
+    "optional": [
+      {"type": "slack", "status": "session_driven", "note": "monitor #agentupdates and #dev through the connected Codex session; not an always-on trigger"},
+      {"type": "github", "status": "not_configured", "note": "no PR-event wake mechanism verified for Codex Desktop"}
+    ]
+  },
+  "ci_enforcement": {
+    "workflow": ".github/workflows/agent-audit.yml",
+    "verifiers": [
+      "scripts/verify-agent-audit",
+      "scripts/verify-semantic-hierarchy",
+      "scripts/verify-merge-handoff"
+    ],
+    "merge_handoff": "scripts/ci-merge-handoff-slack",
+    "icm_reference": "https://arxiv.org/abs/2603.16021"
+  },
+  "roadmap": {
+    "configuration": ".ai/agents/saul/roadmap.json",
+    "human_view": ".ai/agents/saul/roadmap.md",
+    "slack_channel": "C0BHBGBNMT7",
+    "update_policy": "reviewed commits plus attributable #dev updates"
+  }
+}

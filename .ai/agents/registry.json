@@ -38,6 +38,25 @@
       },
       "automation": "SAI Mimi — Portfolio Project Agent Manager (mimi); scheduled task 'mimi-protocol-upkeep' (Claude Code, cron 0 9 * * *, fires only while the app is open); created 2026-07-14; Slack-mention and GitHub-event triggers NOT built (would need external webhook infra) — see .ai/agents/mimi/runtimes/claude/tools.json",
       "notes": "Named Mimi, Portfolio Project Agent Manager by monaecode 2026-07-14. Runs as a Claude Code agent (not Cursor Desktop) — tools.json distinguishes Claude Code MCP connectors from the Cursor-specific entries used by ceo/dezo-sec agents. Composio slack/googledrive toolkit connections initiated but not active as of initialization; Drive index-integrity duties (#knowledgebase) are blocked until that connection is confirmed active. Phase 9 report: see .ai/runs/20260714-2348-agent-initialization-mimi/."
+    },
+    {
+      "agent_id": "dezo-sec-codex1",
+      "name": "Saul",
+      "role_title": "CTO",
+      "purpose": "Own and enforce the long-term SAI development-stack roadmap; coordinate specialized agent profiles across prototype environments; manage isolated worktrees for parallel delivery while preserving core compatibility; audit coding habits and modular connectivity through #agentupdates and #dev; maintain hierarchical runtime integrity, semantic code tracking, Slack-integrated roadmap visibility, and GitHub CI standards for development pushes.",
+      "folder": ".ai/agents/saul",
+      "charter": ".ai/agents/_roles/secretary-dezocode/CHARTER.md",
+      "principal": "dezocode (U0BHYH0NMCY)",
+      "status": "active",
+      "initialized": "2026-07-15",
+      "primary_runtime": "codex-desktop",
+      "entry_points": {
+        "codex-desktop": "Open Dezocode/Sai in Codex Desktop; read CODEX.md → .ai/agents/saul/AGENT.md",
+        "cursor": "Optional profile attachment: @saul in Cursor Desktop; not primary runtime",
+        "claude-code-cli": "Not primary — see .ai/agents/saul/runtimes/claude/README.md"
+      },
+      "automation": "delegated: .ai/agents/saul/runtimes/codex/automation/profile.md (session-driven Codex profile; no unattended trigger verified)",
+      "notes": "Named Saul and appointed CTO by dezocode on 2026-07-15. Operates under the secretary-dezocode charter with an explicit expanded technical-roadmap mandate; Sai remains the sole CEO. Owns #dev (C0BHBGBNMT7), roadmap.json, compatibility gates, prototype worktree coordination, runtime capability integrity, and development CI stewardship."
     }
   ]
 }

@@ -156,8 +156,9 @@ of every Cursor tool, MCP server, integration, and skill you will claim:
 1. Enumerate what your environment exposes: MCP servers and their tools
    (Cursor: Settings → MCP, or your tool-discovery mechanism), **Cursor
    marketplace skills** relevant to your role and runtime (Cursor Desktop,
-   Cursor Cloud Agent, Claude Code — list only skills you actually load and
-   test), Slack integration, GitHub CLI, shells, language runtimes.
+   Cursor Cloud Agent, Claude Code, OpenAI Codex Desktop — list only skills you
+   actually load and test), Slack integration, GitHub CLI, shells, language
+   runtimes.
 2. **Test each one you intend to list.** A capability is `verified` only
    with evidence: the command or tool call you ran, the date, and the
    observed result (e.g. Slack read returned messages; `gh repo view`
@@ -188,6 +189,14 @@ of every Cursor tool, MCP server, integration, and skill you will claim:
    cross-agent writes unless `SAI_AGENT_ID` matches the target `agent_id`
    (exact or `<agent_id>-*` prefix) and blocks cross-runtime environment
    overwrites unless you pass `--force`.
+
+   **Cross-runtime contamination warning:** `--force` is not a migration tool.
+   Never run a Cursor survey against a Codex capability file (or any other
+   runtime mismatch), even for your own agent. A wrong-runtime refresh can
+   silently reclassify connectors (for example, `connector` → `cursor-mcp`) and
+   inject capabilities that were never verified in the target runtime. Write to
+   `runtimes/<current-suite>/tools.json` only; preserve the canonical primary
+   runtime file unless you are executing inside that runtime.
 
 **Verification:** every claim in your draft inventory carries evidence and
 a date; best-practice notes cite the file or run they came from.
