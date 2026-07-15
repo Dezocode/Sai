@@ -3,6 +3,20 @@
 # Sourced by agent-scaffold, agent-memory-scaffold, agent-contract-scaffold.
 set -euo pipefail
 
+# Portable equivalent of GNU realpath -m (path need not exist).
+# macOS realpath lacks -m; python3 is available in SAI CI and agent environments.
+guard_normalize_path() {
+  local path=$1
+  if command -v realpath >/dev/null 2>&1 && realpath -m / >/dev/null 2>&1; then
+    realpath -m "$path"
+    return
+  fi
+  python3 - "$path" <<'PY'
+import os, sys
+print(os.path.normpath(os.path.abspath(sys.argv[1])))
+PY
+}
+
 guard_slug() {
   local label=$1 value=$2
   if [ -z "$value" ]; then
@@ -92,8 +106,8 @@ guard_charter_path() {
       return 1 ;;
   esac
   local resolved roles_root
-  resolved=$(realpath -m "$repo_root/$charter")
-  roles_root=$(realpath -m "$repo_root/.ai/agents/_roles")
+  resolved=$(guard_normalize_path "$repo_root/$charter")
+  roles_root=$(guard_normalize_path "$repo_root/.ai/agents/_roles")
   case "$resolved" in
     "$roles_root"/*) ;;
     *)
@@ -117,8 +131,8 @@ guard_agent_folder_rel() {
   local slug="${folder_rel#.ai/agents/}"
   guard_slug folder-slug "$slug" || return 1
   local resolved agents_root
-  resolved=$(realpath -m "$repo_root/$folder_rel")
-  agents_root=$(realpath -m "$repo_root/.ai/agents")
+  resolved=$(guard_normalize_path "$repo_root/$folder_rel")
+  agents_root=$(guard_normalize_path "$repo_root/.ai/agents")
   case "$resolved" in
     "$agents_root"/*) ;;
     *)
@@ -135,8 +149,8 @@ guard_under_ai_subtree() {
       return 1 ;;
   esac
   local resolved base
-  resolved=$(realpath -m "$repo_root/$rel_path")
-  base=$(realpath -m "$repo_root/.ai/$subtree")
+  resolved=$(guard_normalize_path "$repo_root/$rel_path")
+  base=$(guard_normalize_path "$repo_root/.ai/$subtree")
   case "$resolved" in
     "$base"/*|"$base") ;;
     *)
@@ -147,8 +161,10 @@ guard_under_ai_subtree() {
 
 guard_json_safe_string() {
   local label=$1 value=$2
-  if printf '%s' "$value" | grep -q $'[\n\r\t\\"]'; then
-    echo "guard: $label contains disallowed control or quote characters" >&2
-    return 1
-  fi
+  case "$value" in
+    *$'\n'*|*$'\r'*|*$'\t'*|*\\*|*\"*)
+      echo "guard: $label contains disallowed control or quote characters" >&2
+      return 1
+      ;;
+  esac
 }
