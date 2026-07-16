@@ -59,6 +59,9 @@ Empty until **ONBOARDING Phase 3** owner approval loops. Candidates listed in `c
 
 - Project subagent: `splunk-clone/.claude/agents/splunky.md` (check into fork)
 - Bootstrap reference: `claude-desktop-bootstrap.json` in this contract folder
+  (provisional Bash allowlist per
+  `.ai/shared/references/contractor-provisional-shell-allowlist.json`; no
+  `Bash(git *)` / `Bash(gh *)` until owner approves shell git/gh in Phase 3)
 - Invoke: `"agent": "splunky"` in `splunk-clone/.claude/settings.json` or `@splunky` / explicit subagent delegation per [Claude Code subagents](https://docs.anthropic.com/en/docs/claude-code/sub-agents)
 
 ## Superseded

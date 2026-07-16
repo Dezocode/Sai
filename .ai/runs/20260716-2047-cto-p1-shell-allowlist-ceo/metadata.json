@@ -1,0 +1,17 @@
+{
+  "task_id": "20260716-2047-cto-p1-shell-allowlist-ceo",
+  "agent": "ceo-automation",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-88ae",
+  "status": "in_progress",
+  "worktree": "cloud-agent VM workspace (non-synced)",
+  "purpose": "Address PR #16 CTO P1: least-privilege shell grants for provisional contractor Splunky",
+  "claimed_files": [
+    ".ai/shared/references/contractor-provisional-shell-allowlist.json",
+    ".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json",
+    "splunk-clone/.claude/settings.json",
+    ".ai/ONBOARDING.md",
+    ".ai/contracts/20260715-splunk-clone-monaecode/contract.md",
+    ".ai/runs/20260716-2047-cto-p1-shell-allowlist-ceo/"
+  ]
+}
