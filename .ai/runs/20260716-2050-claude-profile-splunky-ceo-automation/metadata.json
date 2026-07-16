@@ -13,6 +13,6 @@
     ".ai/agents/splunky/automation/profile.md",
     ".ai/agents/splunky/hooks.json"
   ],
-  "status": "in_progress",
+  "status": "complete",
   "trigger": "pr_comment_3598807940"
 }
