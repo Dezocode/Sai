@@ -4,8 +4,6 @@
   "includeGitInstructions": true,
   "permissions": {
     "allow": [
-      "Bash(git *)",
-      "Bash(gh *)",
       "Bash(scripts/agent-report *)",
       "Bash(scripts/agent-contract-pr-review *)",
       "Read",
@@ -16,5 +14,6 @@
       "Skill"
     ]
   },
-  "hooks": {}
+  "hooks": {},
+  "_note": "Merge shell_allowlist_after_phase_5b.allow from claude-desktop-bootstrap.json into permissions.allow only after Phase 5B + owner approval."
 }

@@ -1,12 +1,10 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "$comment": "Copy or merge into splunk-clone/.claude/settings.json on monaecode/Sai after owner review. MCP server names must match monaecode's Claude Desktop MCP config.",
+  "$comment": "Copy or merge into splunk-clone/.claude/settings.json on monaecode/Sai after owner review. MCP server names must match monaecode's Claude Desktop MCP config. Broad Bash(git *) / Bash(gh *) are intentionally omitted until ONBOARDING Phase 5B + owner approval of shell_allowlist_after_phase_5b.",
   "agent": "splunky",
   "includeGitInstructions": true,
   "permissions": {
     "allow": [
-      "Bash(git *)",
-      "Bash(gh *)",
       "Bash(scripts/agent-report *)",
       "Bash(scripts/agent-contract-pr-review *)",
       "Read",
@@ -14,6 +12,35 @@
       "Edit",
       "Glob",
       "Grep"
+    ]
+  },
+  "shell_allowlist_after_phase_5b": {
+    "requires": [
+      "ONBOARDING Phase 3 approved_capabilities includes shell/git-gh",
+      "ONBOARDING Phase 5B agent-verify-caps PASS on runtimes/claude/tools.json",
+      "Owner records approval in contract.json amendments with evidence"
+    ],
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git fetch origin *)",
+      "Bash(git branch *)",
+      "Bash(git checkout -b proj/splunk-clone/ctr-code-splunky/*)",
+      "Bash(git add splunk-clone/*)",
+      "Bash(git add .ai/runs/*)",
+      "Bash(git commit *)",
+      "Bash(git push -u origin proj/splunk-clone/ctr-code-splunky/*)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr create *)"
+    ],
+    "explicitly_excluded": [
+      "git push --force",
+      "git reset --hard",
+      "git push * :*",
+      "gh pr merge",
+      "gh pr close",
+      "SAI_AUDIT_BYPASS"
     ]
   },
   "hooks": {
