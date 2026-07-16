@@ -289,11 +289,15 @@ Cursor UI automation as live.
    scripts/agent-automation-spec --agent-id <your-agent-id> \
      --agent-name "<granted-name>" --role-title "<granted role title>" \
      --principal "<your principal>" --purpose "<confirmed purpose>" \
-     --tools-file .ai/agents/<granted-name>/runtimes/<suite>/tools.json \
+     --tools-file .ai/agents/<folder-slug>/runtimes/<suite>/tools.json \
      --repo <owner/repo per your charter> --schedule "<proposed cadence>" \
      --out .ai/agents/<granted-name>/runtimes/<suite>/automation/profile.md
    ```
    Copy or symlink to `automation/profile.md` for legacy verifier paths.
+   `<folder-slug>` is the lowercase registry `folder` basename (e.g. `splunky`
+   for display name Splunky). `agent-automation-spec` reads it from
+   `tools.json` `folder` or `--folder-slug`; never use display-name casing in
+   paths on Linux CI.
    For Cursor, `<suite>` is `cursor` and the profile matches the Cursor
    Automations UI. For Claude Code, `<suite>` is `claude` and you **must** pass
    `--suite claude` so the output documents session/scheduled-task protocol —

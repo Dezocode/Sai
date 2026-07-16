@@ -25,6 +25,7 @@ set -euo pipefail
 
 AGENT_ID="${SAI_AGENT_ID:-}"
 AGENT_NAME=""
+AGENT_FOLDER_SLUG=""
 ROLE_TITLE=""
 PRINCIPAL=""
 PURPOSE=""
@@ -40,6 +41,7 @@ while [ $# -gt 0 ]; do
   case $1 in
     --agent-id)   AGENT_ID=$2; shift 2;;
     --agent-name) AGENT_NAME=$2; shift 2;;
+    --folder-slug) AGENT_FOLDER_SLUG=$2; shift 2;;
     --role-title) ROLE_TITLE=$2; shift 2;;
     --principal)  PRINCIPAL=$2; shift 2;;
     --purpose)    PURPOSE=$2; shift 2;;
@@ -64,6 +66,21 @@ case "$SUITE" in
   cursor|claude) ;;
   *) echo "agent-automation-spec: --suite must be cursor or claude (got: $SUITE)" >&2; exit 2;;
 esac
+
+# Filesystem paths use the registry folder slug (lowercase), not display name.
+if [ -z "$AGENT_FOLDER_SLUG" ] && [ -n "$TOOLS_FILE" ] && [ -f "$TOOLS_FILE" ]; then
+  AGENT_FOLDER_SLUG=$(python3 - "$TOOLS_FILE" <<'PY'
+import json, sys
+doc = json.load(open(sys.argv[1]))
+folder = (doc.get("folder") or "").rstrip("/")
+print(folder.split("/")[-1] if folder else "")
+PY
+)
+fi
+if [ -z "$AGENT_FOLDER_SLUG" ] && [ -n "$AGENT_NAME" ]; then
+  AGENT_FOLDER_SLUG=$(printf '%s' "$AGENT_NAME" | tr '[:upper:]' '[:lower:]')
+fi
+[ -n "$AGENT_FOLDER_SLUG" ] || AGENT_FOLDER_SLUG="(folder-slug-pending)"
 
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 [ -n "$OUT" ] || OUT="$REPO_ROOT/.ai/agents/automation-specs/${AGENT_ID}.md"
@@ -132,7 +149,7 @@ valid for this suite.
 ## Invocation
 
 1. Open \`${REPO}\` in Claude Code (repo root on disk).
-2. Read \`CLAUDE.md\`, then \`.ai/agents/${AGENT_NAME}/AGENT.md\`, this file,
+2. Read \`CLAUDE.md\`, then \`.ai/agents/${AGENT_FOLDER_SLUG}/AGENT.md\`, this file,
    and \`.ai/_config/reporting.yaml\`.
 3. Load Layer 1 constraints manually: \`.cursor/rules/sai-coordination.mdc\`
    is Cursor-format — read it as reference; it is not auto-applied in Claude.
@@ -188,7 +205,7 @@ If a run would take you outside this purpose, do not do the work: say so in
 your report and stop. Never expand your own scope.
 
 CONTEXT: read .ai/CONTEXT.md, CLAUDE.md, .ai/_config/reporting.yaml, and
-.ai/agents/${AGENT_NAME}/AGENT.md. Read .cursor/rules/sai-coordination.mdc
+.ai/agents/${AGENT_FOLDER_SLUG}/AGENT.md. Read .cursor/rules/sai-coordination.mdc
 as Layer 1 reference. Use SAI_AGENT_ID=${AGENT_ID} for SAI scripts.
 
 SAI PROTOCOL BLOCK (identical intent to Cursor automations — do, in order):
