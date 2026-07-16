@@ -16,10 +16,27 @@
     "pr_protocol": "PLAN before every PR; VERIFY after every push to #splunk-clone-project"
   },
   "automation_triggers": {
-    "required": [{"type": "scheduled", "note": "baseline protocol upkeep — configure per runtime in Phase 7"}],
-    "optional": [
-      {"type": "slack", "note": "run on mention in #agentupdates"},
-      {"type": "github", "note": "run on PR events"}
+    "primary_runtime": "claude-code-cli",
+    "live": [],
+    "required": [
+      {
+        "type": "session-driven",
+        "note": "Open monaecode/Sai in Claude Code; load splunk-clone/CLAUDE.md and .ai/agents/splunky/AGENT.md. No unattended trigger verified as of 2026-07-16."
+      }
+    ],
+    "optional_future": [
+      {
+        "type": "claude-scheduled-task",
+        "note": "Only after create_scheduled_task is verified in runtimes/claude/tools.json and documented in runtimes/claude/automation/profile.md"
+      },
+      {"type": "slack", "note": "Not built — requires external webhook; do not claim"},
+      {"type": "github", "note": "Not built — requires Action/webhook; do not claim"}
+    ],
+    "forbidden": [
+      {
+        "type": "cursor-automations-ui",
+        "note": "Splunky primary runtime is Claude Code; Cursor Automations profile must not replace runtimes/claude/automation/profile.md"
+      }
     ]
   },
   "ci_enforcement": {

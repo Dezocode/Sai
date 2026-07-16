@@ -39,5 +39,6 @@ Slack bots (@Claude, ChatGPT) are not registered agents unless listed in
 | `AGENT.md` | This identity card (load first) |
 | `skills.md` | Role skills + best practices |
 | `tools.json` | Manifest → `runtimes/claude/tools.json` |
-| `hooks.json` | Git hooks, reporting, triggers |
+| `hooks.json` | Git hooks, reporting, Claude session triggers |
+| `automation/profile.md` | Legacy alias → `runtimes/claude/automation/profile.md` |
 | `runtimes/` | Per-runtime capability suites |
