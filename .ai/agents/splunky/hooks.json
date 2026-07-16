@@ -16,7 +16,7 @@
     "pr_protocol": "PLAN before every PR; VERIFY after every push to #splunk-clone-project"
   },
   "automation_triggers": {
-    "required": [{"type": "scheduled", "note": "baseline protocol upkeep — configure per runtime in Phase 7"}],
+    "required": [{"type": "session", "note": "Claude Code session-driven; no verified scheduled task yet (Phase 5B/7)"}],
     "optional": [
       {"type": "slack", "note": "run on mention in #agentupdates"},
       {"type": "github", "note": "run on PR events"}
