@@ -13,20 +13,28 @@ Each skill: what it is, when to use it, and the codebase evidence that backs it.
 - **Semantic compliance** — `scripts/verify-semantic-hierarchy` before
   protected pushes.
 
-## Contract Administrator skills
+## Contract Administrator skills (verified tools only)
 
 - **Contract intake and drafting** — gather project name, isolation mode,
   contractor type, runtime, principal; produce `contract.json`, `contract.md`,
-  and `onboarding-prompt.md` via `scripts/agent-contract-scaffold`. Evidence:
-  `.ai/agents/_roles/contract-administrator/CHARTER.md`,
+  and `onboarding-prompt.md` via `scripts/agent-contract-scaffold` (verified).
+  Evidence: `.ai/agents/_roles/contract-administrator/CHARTER.md`,
   `.ai/contracts/README.md`.
 - **Contractor scaffolding** — create provisional registry entries and agent
-  folders with per-agent memory via `scripts/agent-scaffold --with-memory`.
-  Evidence: `.ai/ONBOARDING.md`, `scripts/agent-memory-scaffold`.
+  folders with per-agent memory via `scripts/agent-scaffold --with-memory`
+  and `scripts/agent-memory-scaffold` (both verified).
+  Evidence: `.ai/ONBOARDING.md`.
 - **Contract history review** — load contract, contractor `memory/audit/`,
   and PR branches; produce `CONTRACT_REVIEW` via
-  `scripts/agent-contract-pr-review`. Evidence:
+  `scripts/agent-contract-pr-review` (verified; live run
+  `20260715T215324Z` → `pending_manual`). Evidence:
   `.ai/shared/schemas/contract.schema.json`.
+- **Scaffold safety verification** — run `scripts/verify-scaffold-safety`
+  after scaffold script changes (verified).
+- **GitHub PR inspection** — `gh pr view` / `gh pr list` for branch and PR
+  state (verified).
+- **Isolated worktrees** — `git worktree add` outside Drive/sync paths
+  (verified at `/tmp`).
 - **Sai audit routing** — post `CONTRACT` and coordinate `PERSONA_GATE`
   before contractors become `active`. Evidence: `.ai/agents/_roles/ceo/CHARTER.md`
   contractor compliance section.

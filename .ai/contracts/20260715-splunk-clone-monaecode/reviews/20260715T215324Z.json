@@ -1,0 +1,44 @@
+{
+  "review_id": "20260715T215324Z",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "project_slug": "splunk-clone",
+  "branch": "proj/splunk-clone/ctr-code-splunk1/pilot-intake",
+  "actor": "ctr-admin",
+  "timestamp": "2026-07-15T21:53:24Z",
+  "overall": "pending_manual",
+  "checks": [
+    {
+      "criterion": "branch_prefix",
+      "status": "pass",
+      "detail": "expected prefix proj/splunk-clone/, got proj/splunk-clone/ctr-code-splunk1/pilot-intake"
+    },
+    {
+      "criterion": "acceptance_criteria[0]",
+      "status": "manual",
+      "detail": "Deliverables match contract scope and claimed files",
+      "note": "Requires human/CI verification on PR"
+    },
+    {
+      "criterion": "acceptance_criteria[1]",
+      "status": "manual",
+      "detail": "ICM run artifacts complete for every executed stage",
+      "note": "Requires human/CI verification on PR"
+    },
+    {
+      "criterion": "acceptance_criteria[2]",
+      "status": "manual",
+      "detail": "scripts/agent-contract-pr-review PASS on every PR",
+      "note": "Requires human/CI verification on PR"
+    },
+    {
+      "criterion": "commit_history",
+      "status": "pass",
+      "detail": "36a989e Add pilot contract review marker\n8fbacb7 Update README.md\n4256e07 Merge pull request #8 from Dezocode/dezo/initialize-saul-cto\n24b5b40 Record PR 8 review follow-up publication\ne0f0634 Align Saul runtime records with review"
+    },
+    {
+      "criterion": "audit_trailers",
+      "status": "pass",
+      "detail": "Task-ID: True, Agent: True"
+    }
+  ]
+}

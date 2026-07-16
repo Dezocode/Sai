@@ -4,6 +4,7 @@
   "primary_runtime": "cursor-cloud-vm",
   "canonical_capabilities_path": "runtimes/cursor/tools.json",
   "surveyed_at": "2026-07-15",
+  "capabilities_count": 25,
   "environment": "cursor-cloud-vm",
   "note": "Manifest only — run scripts/agent-verify-caps against canonical_capabilities_path in Phase 5B",
   "capabilities": []
