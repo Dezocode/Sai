@@ -1,0 +1,9 @@
+{
+  "amendment_id": "20260717-ceo-p1-git-branch-allowlist-enumeration",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "author": "sai (ceo-automation)",
+  "principal_notified": "U0BHYH0NMCY",
+  "trigger": "PR #18 review P1 — Bash(git branch *) matches destructive branch operations",
+  "change": "Enumerated git branch Bash grants in shell_allowlist_after_phase_5b; added scripts/verify-contract-shell-allowlist with negative tests for delete/move/copy branch operations; wired into agent-audit CI.",
+  "review_gate": "CTO re-review PR #18 after CI green"
+}
