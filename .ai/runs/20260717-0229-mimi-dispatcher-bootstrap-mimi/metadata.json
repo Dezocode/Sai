@@ -1,0 +1,25 @@
+{
+  "task_id": "20260717-0229-mimi-dispatcher-bootstrap-mimi",
+  "agent": "mimi",
+  "repository": "monaecode/Sai",
+  "status": "in_progress",
+  "contract_id": "20260717-mimi-dispatcher-bootstrap-monaecode",
+  "contract_verified": true,
+  "contract_source": "upstream/cursor/mimi-dispatcher-bootstrap-f1d6:.ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/ (created_by ctr-admin, checked into branch)",
+  "runtime": "claude-code-cli",
+  "created": "2026-07-17T02:29Z",
+  "branch": "monae/mimi-dispatcher-bootstrap-v2",
+  "base_sha": "3c5c799",
+  "plan_reference": "02_plan/output/plan.md",
+  "supersedes": "20260716-2122-mimi-dispatcher-bootstrap-mimi",
+  "file_claims": [
+    ".ai/runs/20260717-0229-mimi-dispatcher-bootstrap-mimi/**",
+    ".ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/**",
+    ".claude/agents/mimi-dispatcher.md",
+    ".claude/skills/mimi-dispatcher/**",
+    ".claude/settings.json",
+    ".ai/agents/mimi/**",
+    ".github/workflows/mimi-dispatch-stub.yml"
+  ],
+  "notes": "Bootstrap contract executed after fork fast-forward d091438..3c5c799; prior run blocked on missing on-disk contract artifacts, now present on upstream contract branch and imported to this branch."
+}

@@ -1,0 +1,15 @@
+{
+  "task_id": "20260716-2122-mimi-dispatcher-bootstrap-mimi",
+  "agent": "mimi",
+  "contract_id": "20260717-mimi-dispatcher-bootstrap-monaecode",
+  "contract_verified": false,
+  "status": "superseded",
+  "created": "2026-07-16T21:22Z",
+  "branch": "monae/agent-init-mimi (no work branch created)",
+  "file_claims": [
+    ".ai/runs/20260716-2122-mimi-dispatcher-bootstrap-mimi/**"
+  ],
+  "notes": "Bootstrap contract received via Claude Desktop chat, attributed to Cora (ctr-admin). Contract artifacts not found on disk. No repo edits made beyond this run folder.",
+  "repository": "monaecode/Sai",
+  "superseded_by": "20260717-0229-mimi-dispatcher-bootstrap-mimi"
+}
