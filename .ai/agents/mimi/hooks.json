@@ -38,7 +38,8 @@
         "status": "building",
         "promotion_rule": "status may become 'verified' only with an evidence URL or log showing a real @mimi mention producing a real dispatch run (Slack message link + resulting .ai/runs/<task-id>/)",
         "design": ".ai/agents/mimi/docs/dispatch-triggers.md (Slack Events API / Socket Mode bridge)",
-        "note": "True inbound-event trigger still requires the documented OSS bridge; the polling task above is the interim implementation. Not claimed as working."
+        "implementation": "tools/mimi-slack-listener/ (slack-bolt Socket Mode -> headless Claude Code); target host desktop-akn48te (tailnet monaecode.github)",
+        "note": "Code implemented 2026-07-17; NOT deployed. Human gates: Slack app tokens, host claude auth, dezocode ack (shared machine). The polling task above is the interim path. Not claimed as working."
       },
       {
         "type": "github",
