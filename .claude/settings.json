@@ -1,0 +1,60 @@
+{
+  "$comment": "SAI repo Claude Code settings — Mimi dispatcher discipline. Documented copy: .ai/agents/mimi/runtimes/claude/claude-desktop-bootstrap.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git fetch:*)",
+      "Bash(git show:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh repo view:*)",
+      "Bash(scripts/agent-report:*)",
+      "Bash(scripts/agent-init:*)",
+      "Bash(scripts/agent-verify-caps:*)",
+      "Bash(scripts/verify-agent-audit:*)",
+      "Bash(scripts/verify-semantic-hierarchy:*)",
+      "Bash(scripts/verify-merge-handoff:*)",
+      "Bash(scripts/agent-automation-spec:*)"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'SAI ICM workspace: read CLAUDE.md + .ai/CONTEXT.md first. Dispatch via mimi-dispatcher subagent; report events with scripts/agent-report; contracts live in .ai/contracts/; no force-push, no self-activation in registry.'"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys,re; d=json.load(sys.stdin); c=d.get('tool_input',{}).get('command',''); bad=re.search(r'push[^|;&]*(--force|\\\\s-f\\\\b)', c); sys.exit(2 if bad else 0)\" || { echo 'SAI dispatch discipline: force-push is prohibited (CHARTER + contract hard limit).' >&2; exit 2; }"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); c=d.get('tool_input',{}).get('command',''); print('SAI reminder: verify remote SHA and emit PUSH via scripts/agent-report push-confirm.') if 'git push' in c else None\""
+          }
+        ]
+      }
+    ]
+  }
+}
