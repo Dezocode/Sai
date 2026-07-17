@@ -76,6 +76,13 @@ Never add unapproved capabilities to `tools.json` or `hooks.json`.
 1. Update `contract.md` with the finalized capability plan.
 2. Configure `hooks.json` and runtime `tools.json` for approved capabilities
    only. Test each; mark `verified` only with evidence per INITIALIZE Phase 5B.
+   **Provisional contractors:** Claude/Cursor project settings and subagent
+   definitions must stay **read-only** (no repository-wide `Write`/`Edit`, no
+   `permissionMode: acceptEdits`) until Phase 3 records file-mutation approval,
+   Phase 5B passes, and Phase 6 PERSONA_GATE + Sai VERIFY. Use
+   `.ai/contracts/_templates/claude-desktop-bootstrap-provisional.json` as the
+   bootstrap baseline; merge `file_mutations_after_persona_gate` only after
+   owner amendment.
 3. Run `scripts/agent-verify-caps` against your runtime tools file.
 4. Update `skills.md` with contract-specific skills backed by evidence.
 5. Loop back to Phase 3 if new candidates emerge from research.

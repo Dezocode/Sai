@@ -1,0 +1,9 @@
+{
+  "amendment_id": "20260716-ceo-p1-shell-least-privilege",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "author": "sai (ceo-automation)",
+  "principal_notified": "U0BHYH0NMCY",
+  "trigger": "PR #15 CTO-REVIEW P1 — Bash(git *) / Bash(gh *) too broad for provisional contractor",
+  "change": "Removed wildcard git/gh shell grants from claude-desktop-bootstrap.json and splunk-clone/.claude/settings.json. Documented least-privilege shell_allowlist_after_phase_5b for owner merge post Phase 5B.",
+  "review_gate": "monaecode confirms allowlist before Splunky merges entries into live settings"
+}

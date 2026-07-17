@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "$comment": "Provisional contractor bootstrap — read-only until ONBOARDING Phase 3 approved_capabilities, Phase 5B verify-caps PASS, and PERSONA_GATE Sai VERIFY. Merge file_mutations_after_persona_gate and shell_allowlist_after_phase_5b only after owner approval recorded in contract amendments.",
+  "permissions": {
+    "allow": [
+      "Bash(scripts/agent-report *)",
+      "Bash(scripts/agent-contract-pr-review *)",
+      "Read",
+      "Glob",
+      "Grep",
+      "Skill"
+    ]
+  },
+  "file_mutations_after_persona_gate": {
+    "requires": [
+      "ONBOARDING Phase 3 approved_capabilities includes workspace file mutations",
+      "ONBOARDING Phase 5B agent-verify-caps PASS on runtimes/claude/tools.json",
+      "PERSONA_GATE posted and Sai VERIFY PASS",
+      "Owner records approval in contract.json amendments with evidence"
+    ],
+    "permissions_allow_append": ["Write", "Edit"],
+    "subagent_tools_append": ["Write", "Edit"],
+    "subagent_permissionMode": "default"
+  },
+  "shell_allowlist_after_phase_5b": {
+    "requires": [
+      "ONBOARDING Phase 3 approved_capabilities includes shell/git-gh",
+      "ONBOARDING Phase 5B agent-verify-caps PASS",
+      "Owner records approval in contract.json amendments with evidence"
+    ],
+    "allow": [],
+    "explicitly_excluded": [
+      "git push --force",
+      "git reset --hard",
+      "git push * :*",
+      "gh pr merge",
+      "gh pr close",
+      "SAI_AUDIT_BYPASS"
+    ]
+  },
+  "hooks": {},
+  "mcpServers": {},
+  "_mcp_note": "Populate mcpServers only after ONBOARDING Phase 3 records approved_capabilities[]"
+}

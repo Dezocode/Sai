@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "agent": "splunky",
+  "includeGitInstructions": true,
+  "permissions": {
+    "allow": [
+      "Bash(scripts/agent-report *)",
+      "Bash(scripts/agent-contract-pr-review *)",
+      "Read",
+      "Glob",
+      "Grep",
+      "Skill"
+    ]
+  },
+  "hooks": {},
+  "_note": "Provisional read-only: merge file_mutations_after_persona_gate and shell_allowlist_after_phase_5b from claude-desktop-bootstrap.json only after Phase 3 + 5B + PERSONA_GATE and owner amendment."
+}
