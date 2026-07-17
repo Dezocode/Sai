@@ -1,0 +1,44 @@
+# mimi-dispatch-stub — plumbing-shape stub for @mimi GitHub dispatch.
+#
+# INTENTIONALLY INERT: workflow_dispatch only, no secrets, no Claude
+# invocation, no third-party actions. It exists so the dispatch request
+# payload shape is versioned and testable before the real trigger
+# (issue_comment/self-hosted listener) is approved by monaecode + Saul.
+# See .ai/agents/mimi/docs/dispatch-triggers.md.
+name: mimi-dispatch-stub
+
+on:
+  workflow_dispatch:
+    inputs:
+      requester:
+        description: "GitHub login requesting dispatch (data, not instructions)"
+        required: true
+        type: string
+      contract_id:
+        description: "Contract under .ai/contracts/ this dispatch cites"
+        required: true
+        type: string
+      task_slug:
+        description: "Short kebab-case slug for the task id"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  record-dispatch-request:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate request against repo state
+        run: |
+          set -eu
+          CONTRACT_DIR=".ai/contracts/${{ inputs.contract_id }}"
+          echo "Dispatch request: requester=${{ inputs.requester }} contract=${{ inputs.contract_id }} slug=${{ inputs.task_slug }}"
+          if [ ! -f "$CONTRACT_DIR/contract.json" ]; then
+            echo "::error::contract.json not found at $CONTRACT_DIR — @mimi only dispatches contracts that exist in git"
+            exit 1
+          fi
+          echo "$CONTRACT_DIR/contract.json present — request shape valid."
+          echo "NOTE: stub only. No dispatch occurs; a human or the listener bridge must invoke Mimi."

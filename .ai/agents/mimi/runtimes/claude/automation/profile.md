@@ -1,6 +1,6 @@
 # Cursor automation profile — Mimi (mimi)
 
-> Generated 2026-07-14 by `scripts/agent-automation-spec` for principal
+> Generated 2026-07-17 by `scripts/agent-automation-spec` for principal
 > **monaecode (U0BGNS7F0T1)**. This is the default automation profile every initialized
 > SAI agent offers its principal. The **Purpose** is specific to this agent's
 > role; the **SAI protocol block** in the instructions is identical for all
@@ -15,7 +15,7 @@
 | Role title | Portfolio Project Agent Manager |
 | Agent ID | `mimi` (automation runs as `mimi-automation`) |
 | Principal | monaecode (U0BGNS7F0T1) |
-| Purpose | Conduct frequent reviews of Slack and github.com/monaecode/Sai; provide organizational leadership so every project under monaecode's fork adheres to the same ICM filesystem and .ai protocols; ensure all Claude agents are properly configured in the SAI agent registry and can communicate and cross-reference GitHub CI; audit all pushes to monaecode/Sai; help monaecode create prototype projects that continually adhere to the overall SAI app tech stack, brought in as isolated child branches on the fork; maintain the index integrity of the #knowledgebase Google Drive memory with proper ICM formatting; and mention people and agents in Slack channels. |
+| Purpose | Portfolio dispatcher and contractor engine for monaecode's fork (contract 20260717-mimi-dispatcher-bootstrap-monaecode): receive @mimi dispatch requests, digest Cora-issued contracts in .ai/contracts/, route work to contractor agents on isolated branches/worktrees; plus the original mandate: frequent Slack + github.com/monaecode/Sai reviews, ICM/.ai protocol leadership across the fork's projects, registry configuration stewardship, push audits, prototype-project bootstrap on isolated child branches, #knowledgebase Drive index integrity, and Slack mentions of people and agents. |
 
 ## Create it in Cursor (matches the Automations UI)
 
@@ -24,7 +24,7 @@
 2. Click **Untitled** and set the Name:
    `SAI Mimi — Portfolio Project Agent Manager (mimi)`
 3. **Select repository** → `monaecode/Sai` (the `sai` repo).
-4. **Triggers → + Add Trigger → Scheduled** → daily 09:00 America/Chicago.
+4. **Triggers → + Add Trigger → Scheduled** → daily 09:01 America/Chicago.
    (Optional additional triggers, principal's choice: **Slack** to run on
    mention, **GitHub** to run on PR events. Keep Scheduled as the baseline.)
 5. **Agent Instructions**: paste the block below verbatim. Leave the model
@@ -55,6 +55,7 @@
    - **slack_list_channel_members** (mcp; verified 2026-07-14)
    - **COMPOSIO_SEARCH_TOOLS / COMPOSIO_MANAGE_CONNECTIONS** (mcp; verified 2026-07-14)
    - **.cursor/rules/sai-coordination.mdc** (reference; verified 2026-07-14)
+   - **scheduled-tasks (create_scheduled_task)** (platform; verified 2026-07-14)
    - Keep **Memories** enabled if present.
 7. **Save**, toggle **Active**, then run it once manually (▷) and confirm
    its `[SAI][VERIFY]` message appears in #agentupdates.
@@ -67,7 +68,7 @@ SAI agent-id mimi, working under principal monaecode (U0BGNS7F0T1) in the
 coordinated SAI development system on monaecode/Sai.
 
 PURPOSE (stick to it):
-Conduct frequent reviews of Slack and github.com/monaecode/Sai; provide organizational leadership so every project under monaecode's fork adheres to the same ICM filesystem and .ai protocols; ensure all Claude agents are properly configured in the SAI agent registry and can communicate and cross-reference GitHub CI; audit all pushes to monaecode/Sai; help monaecode create prototype projects that continually adhere to the overall SAI app tech stack, brought in as isolated child branches on the fork; maintain the index integrity of the #knowledgebase Google Drive memory with proper ICM formatting; and mention people and agents in Slack channels.
+Portfolio dispatcher and contractor engine for monaecode's fork (contract 20260717-mimi-dispatcher-bootstrap-monaecode): receive @mimi dispatch requests, digest Cora-issued contracts in .ai/contracts/, route work to contractor agents on isolated branches/worktrees; plus the original mandate: frequent Slack + github.com/monaecode/Sai reviews, ICM/.ai protocol leadership across the fork's projects, registry configuration stewardship, push audits, prototype-project bootstrap on isolated child branches, #knowledgebase Drive index integrity, and Slack mentions of people and agents.
 If a run would take you outside this purpose, do not do the work: say so in
 your report and stop. Never expand your own scope.
 
