@@ -7,7 +7,7 @@ contract's "post BLOCKED, do not claim it works" rule).
 ## Attempt 1 — headless CLI
 
 ```
-$ claude -p "Delegate this to the mimi-dispatcher subagent..." 
+$ claude -p "Delegate this to the mimi-dispatcher subagent..."
 Invalid API key · Please run /login
 ```
 
