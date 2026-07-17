@@ -234,6 +234,11 @@ words:
    Use `--with-memory` (or `--contract-id` for contractors) to create the
    per-agent memory tree under `<folder>/memory/` for durable audit indexing
    (Drive mirror path recorded in `memory/manifest.json`).
+   **Contractors** completing `.ai/ONBOARDING.md` must ship Claude/Cursor
+   bootstrap settings read-only until Phase 3 capability approval, Phase 5B
+   evidence, and Phase 6 persona gate — use
+   `.ai/contracts/_templates/claude-desktop-bootstrap-provisional.json`; CI
+   enforces via `scripts/verify-provisional-contractor-perms`.
    Default `--primary-runtime` is `cursor`. This creates
    `.ai/agents/<granted-name>/` (lowercase slug of granted name,
    e.g. `Sai` → `sai`):

@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# verify-provisional-contractor-perms — fail CI when provisional contractors
+# (empty approved_capabilities[]) grant repository-wide Write/Edit or acceptEdits.
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+python3 <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+root = Path(".")
+failed = []
+
+def load_json(path: Path):
+    with path.open() as f:
+        return json.load(f)
+
+def contract_is_provisional_no_caps(doc: dict) -> bool:
+    if doc.get("approved_capabilities"):
+        return False
+    for c in doc.get("assigned_contractors") or []:
+        if c.get("status") == "provisional":
+            return True
+    if doc.get("status") in ("draft", "active") and not doc.get("approved_capabilities"):
+        # Splunk contract stays provisional via assigned_contractors; draft contracts too.
+        for c in doc.get("assigned_contractors") or []:
+            if c.get("status") == "provisional":
+                return True
+    return False
+
+def check_permissions_allow(path: Path, allow: list):
+    bad = [x for x in allow if x in ("Write", "Edit")]
+    if bad:
+        failed.append(f"{path}: permissions.allow must not include {bad} while contractor provisional / approved_capabilities[] empty")
+
+def check_subagent_md(path: Path, text: str):
+    if re.search(r"permissionMode:\s*acceptEdits", text):
+        failed.append(f"{path}: permissionMode acceptEdits forbidden for provisional contractor")
+    m = re.search(r"^tools:\s*(.+)$", text, re.MULTILINE)
+    if m:
+        tools = [t.strip() for t in m.group(1).split(",")]
+        for t in ("Write", "Edit"):
+            if t in tools:
+                failed.append(f"{path}: tools list must omit {t} until persona gate + approved mutations")
+
+contracts_dir = root / ".ai/contracts"
+for contract_path in sorted(contracts_dir.glob("*/contract.json")):
+    try:
+        doc = load_json(contract_path)
+    except json.JSONDecodeError as e:
+        failed.append(f"{contract_path}: invalid JSON: {e}")
+        continue
+    if not contract_is_provisional_no_caps(doc):
+        continue
+    cid = doc.get("contract_id", contract_path.parent.name)
+    bootstrap = contract_path.parent / "claude-desktop-bootstrap.json"
+    if bootstrap.is_file():
+        try:
+            b = load_json(bootstrap)
+            allow = (b.get("permissions") or {}).get("allow") or []
+            check_permissions_allow(bootstrap, allow)
+        except json.JSONDecodeError as e:
+            failed.append(f"{bootstrap}: invalid JSON: {e}")
+    runtime = doc.get("claude_desktop") or doc.get("claude_runtime") or doc.get("runtime") or {}
+    settings_rel = runtime.get("settings_path") or doc.get("settings_path")
+    if settings_rel:
+        sp = root / settings_rel
+        if sp.is_file():
+            try:
+                s = load_json(sp)
+                allow = (s.get("permissions") or {}).get("allow") or []
+                check_permissions_allow(sp, allow)
+            except json.JSONDecodeError as e:
+                failed.append(f"{sp}: invalid JSON: {e}")
+    subagent_rel = runtime.get("project_agent_path") or runtime.get("subagent_path")
+    if subagent_rel:
+        ap = root / subagent_rel
+        if ap.is_file():
+            check_subagent_md(ap, ap.read_text())
+
+# Known isolated product trees (contract-linked paths not always in contract.json)
+for settings in root.glob("*/.claude/settings.json"):
+    try:
+        s = load_json(settings)
+    except json.JSONDecodeError:
+        continue
+    allow = (s.get("permissions") or {}).get("allow") or []
+    # Only enforce when sibling contract folder references this tree or agent is splunky provisional
+    if any(x in allow for x in ("Write", "Edit")):
+        # splunk-clone is under active provisional contract
+        if "splunk-clone" in str(settings):
+            check_permissions_allow(settings, allow)
+
+for subagent in root.glob("*/.claude/agents/*.md"):
+    if "splunk-clone" in str(subagent):
+        check_subagent_md(subagent, subagent.read_text())
+
+if failed:
+    for line in failed:
+        print(f"FAIL  {line}", file=sys.stderr)
+    print("verify-provisional-contractor-perms: FAILED", file=sys.stderr)
+    sys.exit(1)
+
+print("verify-provisional-contractor-perms: OK")
+PY

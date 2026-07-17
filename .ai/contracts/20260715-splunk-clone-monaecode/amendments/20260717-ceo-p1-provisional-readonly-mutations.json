@@ -1,0 +1,9 @@
+{
+  "amendment_id": "20260717-ceo-p1-provisional-readonly-mutations",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "author": "Sai (ceo-automation)",
+  "timestamp": "2026-07-17T06:12:00Z",
+  "trigger": "PR #18 P1 — provisional contractor granted repository-wide Write/Edit and acceptEdits before Phase 3/5B/persona gate",
+  "change": "Removed Write/Edit from claude-desktop-bootstrap.json and splunk-clone/.claude/settings.json; splunky subagent uses permissionMode plan without Write/Edit tools until file_mutations_after_persona_gate owner merge. Added CI script verify-provisional-contractor-perms and template claude-desktop-bootstrap-provisional.json.",
+  "evidence": ".ai/runs/20260717-0611-pr18-provisional-readonly-ceo/"
+}
