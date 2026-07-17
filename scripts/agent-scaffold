@@ -210,6 +210,32 @@ cat > "$AGENT_DIR/hooks.json" <<EOF
 }
 EOF
 
+# Claude Agent SDK scaffold (required for claude-primary agents — see claude-agent-sdk.md)
+if [ "$PRIMARY_RUNTIME" = "claude" ]; then
+  mkdir -p "$AGENT_DIR/runtimes/claude/agent-sdk/config"
+  cat > "$AGENT_DIR/runtimes/claude/agent-sdk/README.md" <<'EOF'
+# Claude Agent SDK — this agent
+
+Required for `primary_runtime: claude-code-cli`. See `.ai/shared/references/claude-agent-sdk.md`.
+
+1. Add `package.json` (`@anthropic-ai/claude-agent-sdk`) or Python venv + `claude-agent-sdk`.
+2. Implement `src/run-agent.ts` or `run_agent.py` calling `query()` with options from `config/agent-options.json`.
+3. Map SDK hooks to ICM: PLAN before mutating tools; VERIFY after contract checks.
+4. Record smoke-test evidence in `runtimes/claude/tools.json` as `claude-agent-sdk` capability.
+
+Dispatch (@Slack / @GitHub) must use SDK or documented OSS webhook → `query()` bridge.
+EOF
+  cat > "$AGENT_DIR/runtimes/claude/agent-sdk/config/agent-options.json" <<EOF
+{
+  "\$comment": "ClaudeAgentOptions skeleton — fill allowedTools, hooks, mcpServers, agents after ONBOARDING Phase 3",
+  "reference": ".ai/shared/references/claude-agent-sdk.md",
+  "agent_id": "${AGENT_ID}",
+  "allowedTools": ["Read", "Glob", "Grep"],
+  "settingSources": [".claude/settings.json"]
+}
+EOF
+fi
+
 echo "agent-scaffold: created $AGENT_DIR (primary-runtime=$PRIMARY_RUNTIME)"
 if [ "$WITH_MEMORY" = "1" ] || [ -n "$CONTRACT_ID" ]; then
   MEM_ARGS=(--agent-id "$AGENT_ID" --folder ".ai/agents/$FOLDER")
