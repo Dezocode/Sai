@@ -158,6 +158,12 @@ You are a **${CONTRACTOR_TYPE} contractor** for the SAI project.
 6. Project Slack channel: \`#proj-${PROJECT_SLUG}\` (join when channel exists)
 7. Isolation mode: **${ISOLATION_MODE}**
 8. Primary runtime: **${PRIMARY_RUNTIME}**
+$(if [ "$RUNTIME" = "claude" ]; then cat <<'SDKONB'
+
+9. **Claude Agent SDK (required):** read `.ai/shared/references/claude-agent-sdk.md`; implement `.ai/agents/<your-folder>/runtimes/claude/agent-sdk/` (`query()` smoke test + `config/agent-options.json` for hooks/MCP/subagents); record verified `claude-agent-sdk` in tools.json.
+10. `.claude/agents/*.md` subagents complement the SDK — they do **not** replace SDK-based @Slack/@GitHub dispatch.
+SDKONB
+fi)
 
 Do not begin implementation work until Phase 6 persona gate and Sai audit PASS.
 Ask your principal (owner) to confirm contract terms in ONBOARDING Phase 1.

@@ -7,6 +7,13 @@
   "contractor_type": "coding",
   "isolation_mode": "prototype",
   "primary_runtime": "claude-code-cli",
+  "claude_agent_sdk": {
+    "reference": ".ai/shared/references/claude-agent-sdk.md",
+    "scaffold_path": ".ai/agents/<folder>/runtimes/claude/agent-sdk/",
+    "npm_package": "@anthropic-ai/claude-agent-sdk",
+    "pypi_package": "claude-agent-sdk",
+    "required_deliverable": "SDK harness + smoke test before persona gate"
+  },
   "compatibility_layer": "sai-mac-ios-android",
   "repository": "monaecode/Sai",
   "branch_prefix": "proj/<project-slug>/",
