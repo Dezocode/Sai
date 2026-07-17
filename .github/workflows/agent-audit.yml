@@ -34,11 +34,15 @@ jobs:
         run: |
           chmod +x scripts/verify-agent-audit scripts/verify-semantic-hierarchy \
                    scripts/verify-merge-handoff scripts/ci-merge-handoff-slack \
-                   scripts/verify-scaffold-safety scripts/agent-memory-scaffold \
+                   scripts/verify-scaffold-safety scripts/verify-contract-shell-allowlist \
+                   scripts/agent-memory-scaffold \
                    scripts/agent-contract-scaffold scripts/agent-contract-pr-review
 
       - name: Verify scaffold path safety
         run: scripts/verify-scaffold-safety
+
+      - name: Verify contract shell allowlists (Phase 5B least-privilege)
+        run: scripts/verify-contract-shell-allowlist
 
       - name: Validate scaffold script syntax
         run: |

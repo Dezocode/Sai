@@ -5,6 +5,15 @@
 
 ## Open
 
+- **Contract shell allowlist `git branch` wildcards** (CTO P1 PR #15, 2026-07-17):
+  `Bash(git branch proj/…/*)` in Phase-5B allowlists can match destructive
+  `git branch <prefix> -D <victim>`. Remediation: use `--list` / `checkout -b`
+  only; merge PR #15 follow-up or amend `claude-desktop-bootstrap.json` on the
+  contract branch. CI gate: `scripts/verify-contract-shell-allowlist`.
+- **Mimi PR #21 — Cursor profile vs Claude-primary** (CTO P1, 2026-07-17):
+  Draft dispatcher bootstrap must not ship pre-verification `Bash(git *)` /
+  `Bash(gh *)` grants or a Cursor automation profile as primary for
+  `claude-code-cli` agents. Remediate on PR #21 before CTO re-review.
 - **No Google Drive credentials in cloud-agent VMs** (observed 2026-07-14):
   `scripts/agent-sync-drive` records status `pending` when
   `SAI_DRIVE_REMOTE` is unset. Drive mirroring must be run from a machine
