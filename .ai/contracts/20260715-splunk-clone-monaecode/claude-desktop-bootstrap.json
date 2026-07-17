@@ -25,7 +25,14 @@
       "Bash(git diff *)",
       "Bash(git log *)",
       "Bash(git fetch origin *)",
-      "Bash(git branch *)",
+      "Bash(git branch)",
+      "Bash(git branch --show-current)",
+      "Bash(git branch -a)",
+      "Bash(git branch -r)",
+      "Bash(git branch -vv)",
+      "Bash(git branch --list)",
+      "Bash(git branch --list proj/splunk-clone/ctr-code-splunky/*)",
+      "Bash(git branch proj/splunk-clone/ctr-code-splunky/* origin/*)",
       "Bash(git checkout -b proj/splunk-clone/ctr-code-splunky/*)",
       "Bash(git add splunk-clone/*)",
       "Bash(git add .ai/runs/*)",
@@ -34,10 +41,22 @@
       "Bash(gh pr view *)",
       "Bash(gh pr create *)"
     ],
+    "hard_gated_git_branch_operations": [
+      "git branch -d",
+      "git branch --delete",
+      "git branch -D",
+      "git branch -m",
+      "git branch -M",
+      "git branch --move",
+      "git branch -c",
+      "git branch -C",
+      "git branch --copy"
+    ],
     "explicitly_excluded": [
       "git push --force",
       "git reset --hard",
       "git push * :*",
+      "git branch *",
       "gh pr merge",
       "gh pr close",
       "SAI_AUDIT_BYPASS"

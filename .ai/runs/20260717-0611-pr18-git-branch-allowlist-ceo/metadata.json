@@ -1,0 +1,15 @@
+{
+  "task_id": "20260717-0611-pr18-git-branch-allowlist-ceo",
+  "agent": "ceo-automation",
+  "agent_name": "sai",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-4bcf",
+  "purpose": "PR #18 P1: enumerate git branch Bash grants and CI negative tests",
+  "status": "in_progress",
+  "claimed_files": [
+    ".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json",
+    "scripts/lib/shell_allowlist.py",
+    "scripts/verify-contract-shell-allowlist",
+    ".github/workflows/agent-audit.yml"
+  ]
+}
