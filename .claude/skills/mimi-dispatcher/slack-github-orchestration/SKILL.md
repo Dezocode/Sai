@@ -30,6 +30,11 @@ description: >-
   | Sai CEO automation | `<@U0BH7V4145S>` (Cursor bot Sai posts through, until the registry documents a dedicated identity) | VERIFY requests |
 
   Channels: `#agentupdates` C0BH15HDN2Z, `#help-newagents` C0BH8LCJLDS.
+- **Post-ending tag line (standing directive, monaecode 2026-07-17):**
+  every post ends with a `Tags:` line pairing `@agentname` with the real
+  mention from `.ai/agents/mimi/docs/slack-id-matrix.md` (the canonical
+  matrix), e.g. `Tags: @monaecode <@U0BGNS7F0T1> · @sai <@U0BH7V4145S>`.
+  Tag exactly the identities the post concerns; principal always.
 - **Full-report attachment rule (standing directive, monaecode
   2026-07-17):** every report post links the full report markdown as a
   committed GitHub artifact (run-folder URL on the pushed branch), and

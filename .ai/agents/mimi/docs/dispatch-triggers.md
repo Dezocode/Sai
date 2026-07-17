@@ -8,7 +8,8 @@ Status date: 2026-07-17 (contract `20260717-mimi-dispatcher-bootstrap-monaecode`
 |---|---|---|
 | Direct chat (Claude Desktop/Code, this repo open) | **verified** | This bootstrap run itself |
 | Scheduled `mimi-protocol-upkeep` (daily 09:01 local) | **verified, caveated** | Fires only while the Claude app is open at fire time; not always-on cloud cron |
-| Slack `@mimi` mention → dispatch | **building** | None — do not claim |
+| Slack `@mimi` mention → reply via **15-min poll** (`mimi-slack-dispatch-poll`) | **active, caveated** | Task created 2026-07-17 (cron `*/15 * * * *`); polling not event-driven, app-open caveat applies; promote to verified with first real mention→reply link pair |
+| Slack `@mimi` mention → **event-driven** dispatch | **building** | None — do not claim; OSS bridge below |
 | GitHub `@mimi` comment / label → dispatch | **building** | None — do not claim |
 
 Promotion rule (binding, mirrored in `hooks.json`): a trigger becomes
