@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+# verify-contractor-shell-allowlist — ensure provisional contractor Bash patterns
+# do not authorize hard-review git/gh deletion or force operations (CTO P1 PR #17).
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+ALLOWLIST=".ai/shared/references/contractor-provisional-shell-allowlist.json"
+SETTINGS="splunk-clone/.claude/settings.json"
+BOOTSTRAP=".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json"
+
+python3 - "$ALLOWLIST" "$SETTINGS" "$BOOTSTRAP" <<'PY'
+import fnmatch
+import json
+import sys
+
+allowlist_path, settings_path, bootstrap_path = sys.argv[1:4]
+
+with open(allowlist_path, encoding="utf-8") as f:
+    doc = json.load(f)
+
+patterns = doc["bash_allow_patterns"]
+deny_patterns = doc.get("bash_deny_patterns", [])
+gates = doc.get("hard_review_gates_not_in_allowlist", [])
+
+
+def inner(p: str) -> str:
+    if not p.startswith("Bash(") or not p.endswith(")"):
+        raise SystemExit(f"invalid Bash pattern: {p!r}")
+    return p[5:-1]
+
+
+def allowed(cmd: str) -> bool:
+    if any(fnmatch.fnmatchcase(cmd, inner(p)) for p in deny_patterns):
+        return False
+    return any(fnmatch.fnmatchcase(cmd, inner(p)) for p in patterns)
+
+
+forbidden_cmds = [
+    "git push origin proj/splunk-clone/ctr-code-splunky/x:main",
+    "git push -u origin proj/splunk-clone/ctr-code-splunky/x:main",
+    "git push origin proj/splunk-clone/ctr-code-splunky/x:refs/heads/main",
+    "git push origin main",
+    "git push -f origin proj/splunk-clone/ctr-code-splunky/x",
+    "git branch -D feature",
+    "git branch -D",
+    "git branch -d feature",
+    "git branch --delete feature",
+    "git branch -m new-name",
+    "git branch -M new-name",
+    "git branch -c copy-name",
+    "git branch -C copy-name",
+]
+for gate in gates:
+    if gate.startswith("git branch"):
+        forbidden_cmds.append(gate)
+        forbidden_cmds.append(f"{gate} feature")
+
+required_safe = [
+    "git push origin proj/splunk-clone/ctr-code-splunky/feature",
+    "git push -u origin proj/splunk-clone/ctr-code-splunky/feature",
+    "git branch",
+    "git branch -a",
+    "git branch -vv",
+    "git branch --show-current",
+    "git branch --list proj/splunk-clone/*",
+    "git branch proj/splunk-clone/ctr-code-splunky/feature origin/main",
+]
+
+failed = 0
+for cmd in forbidden_cmds:
+    if allowed(cmd):
+        print(f"FAIL  forbidden command matched allowlist: {cmd!r}", file=sys.stderr)
+        failed += 1
+    else:
+        print(f"PASS  forbidden blocked: {cmd!r}")
+
+for cmd in required_safe:
+    if allowed(cmd):
+        print(f"PASS  safe allowed: {cmd!r}")
+    else:
+        print(f"FAIL  safe command not covered: {cmd!r}", file=sys.stderr)
+        failed += 1
+
+# Legacy wildcard must not appear (CTO P1).
+if "Bash(git branch*)" in patterns:
+    print("FAIL  Bash(git branch*) still present — use narrowed branch patterns", file=sys.stderr)
+    failed += 1
+else:
+    print("PASS  no Bash(git branch*) wildcard")
+
+if not deny_patterns:
+    print("FAIL  bash_deny_patterns missing from allowlist reference", file=sys.stderr)
+    failed += 1
+else:
+    print(f"PASS  bash_deny_patterns present ({len(deny_patterns)} entries)")
+
+bash_from_doc = [p for p in patterns if p.startswith("Bash(")]
+deny_from_doc = [p for p in deny_patterns if p.startswith("Bash(")]
+
+for label, path in [("splunk-clone settings", settings_path), ("contract bootstrap", bootstrap_path)]:
+    with open(path, encoding="utf-8") as f:
+        cfg = json.load(f)
+    allow = cfg.get("permissions", {}).get("allow", [])
+    deny = cfg.get("permissions", {}).get("deny", [])
+    bash_in_file = [a for a in allow if isinstance(a, str) and a.startswith("Bash(")]
+    deny_in_file = [d for d in deny if isinstance(d, str) and d.startswith("Bash(")]
+    missing = [p for p in bash_from_doc if p not in bash_in_file]
+    extra_bash = [p for p in bash_in_file if p not in bash_from_doc]
+    missing_deny = [p for p in deny_from_doc if p not in deny_in_file]
+    extra_deny = [p for p in deny_in_file if p not in deny_from_doc]
+    if missing or extra_bash:
+        print(f"FAIL  {label} Bash allow list drift vs {allowlist_path}", file=sys.stderr)
+        if missing:
+            print(f"       missing: {missing}", file=sys.stderr)
+        if extra_bash:
+            print(f"       extra: {extra_bash}", file=sys.stderr)
+        failed += 1
+    elif missing_deny or extra_deny:
+        print(f"FAIL  {label} Bash deny list drift vs {allowlist_path}", file=sys.stderr)
+        if missing_deny:
+            print(f"       missing deny: {missing_deny}", file=sys.stderr)
+        if extra_deny:
+            print(f"       extra deny: {extra_deny}", file=sys.stderr)
+        failed += 1
+    else:
+        print(f"PASS  {label} Bash allow/deny patterns match allowlist reference")
+
+if failed:
+    print("\nverify-contractor-shell-allowlist: FAILED", file=sys.stderr)
+    sys.exit(1)
+print("\nverify-contractor-shell-allowlist: OK")
+PY

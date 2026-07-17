@@ -1,0 +1,17 @@
+{
+  "task_id": "20260717-0303-git-branch-allowlist-narrow-ceo",
+  "agent": "ceo-automation",
+  "agent_folder": "sai",
+  "purpose": "CTO P1 PR #17: narrow Bash(git branch*) so deletion gates cannot be bypassed",
+  "status": "completed",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-c699",
+  "claims": [
+    ".ai/shared/references/contractor-provisional-shell-allowlist.json",
+    "splunk-clone/.claude/settings.json",
+    ".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json",
+    "scripts/verify-contractor-shell-allowlist",
+    ".github/workflows/agent-audit.yml",
+    ".ai/runs/20260717-0303-git-branch-allowlist-narrow-ceo/"
+  ]
+}
