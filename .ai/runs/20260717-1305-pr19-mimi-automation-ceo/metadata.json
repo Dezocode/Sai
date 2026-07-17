@@ -1,7 +1,6 @@
 {
   "task_id": "20260717-1305-pr19-mimi-automation-ceo",
-  "agent_id": "ceo",
-  "agent_name": "Sai",
+  "agent": "ceo-automation",
   "runtime": "cursor-cloud-vm",
   "repository": "Dezocode/Sai",
   "branch": "cursor/agent-initialization-compliance-556b",
