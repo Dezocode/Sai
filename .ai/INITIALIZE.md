@@ -235,8 +235,9 @@ words:
    per-agent memory tree under `<folder>/memory/` for durable audit indexing
    (Drive mirror path recorded in `memory/manifest.json`).
    Default `--primary-runtime` is `cursor`. This creates
-   `.ai/agents/<granted-name>/` (lowercase slug of granted name,
-   e.g. `Sai` → `sai`):
+   `.ai/agents/<folder-slug>/` where `<folder-slug>` is the lowercase
+   registry folder basename (e.g. display name `Sai` → folder slug `sai`,
+   `Splunky` → `splunky`). Never use display-name casing in paths on Linux CI.
    | File | Contents |
    |---|---|
    | `AGENT.md` | Runtime-neutral identity: name, role, purpose, principal, charter, how to invoke per runtime |
@@ -291,20 +292,20 @@ Cursor UI automation as live.
      --principal "<your principal>" --purpose "<confirmed purpose>" \
      --tools-file .ai/agents/<folder-slug>/runtimes/<suite>/tools.json \
      --repo <owner/repo per your charter> --schedule "<proposed cadence>" \
-     --out .ai/agents/<granted-name>/runtimes/<suite>/automation/profile.md
+     --out .ai/agents/<folder-slug>/runtimes/<suite>/automation/profile.md
    ```
    Copy or symlink to `automation/profile.md` for legacy verifier paths.
    `<folder-slug>` is the lowercase registry `folder` basename (e.g. `splunky`
    for display name Splunky). `agent-automation-spec` reads it from
-   `tools.json` `folder` or `--folder-slug`; never use display-name casing in
-   paths on Linux CI.
+   `tools.json` `folder` or `--folder-slug`; every `--out` and `--tools-file`
+   path must use `<folder-slug>`, not display `<granted-name>` casing.
    For Cursor, `<suite>` is `cursor` and the profile matches the Cursor
    Automations UI. For Claude Code, `<suite>` is `claude` and you **must** pass
    `--suite claude` so the output documents session/scheduled-task protocol —
    never Cursor Automations steps.
    ```bash
    scripts/agent-automation-spec --suite claude ... \
-     --out .ai/agents/<granted-name>/runtimes/claude/automation/profile.md
+     --out .ai/agents/<folder-slug>/runtimes/claude/automation/profile.md
    ```
    The purpose section is role-specific; the SAI protocol block is identical
    for every agent, so all automations follow the same Slack, GitHub, and CI
@@ -317,7 +318,7 @@ Cursor UI automation as live.
 4. Record the state in your registry entry: the real automation name,
    schedule, and creation date once the first run's `[SAI][VERIFY]` message
    is confirmed; otherwise
-   `"automation": "delegated: .ai/agents/<granted-name>/automation/profile.md (awaiting creation by <principal>)"`.
+   `"automation": "delegated: .ai/agents/<folder-slug>/automation/profile.md (awaiting creation by <principal>)"`.
    The verifier rejects `unavailable` and dangling `delegated:` references.
 
 ## Phase 8 — Introduce yourself in #help-newagents

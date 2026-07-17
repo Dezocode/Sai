@@ -1,0 +1,17 @@
+{
+  "task_id": "20260717-1305-pr33-cto-p1-ceo",
+  "agent": "ceo-automation",
+  "agent_name": "Sai",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-4bcf",
+  "purpose": "Repair PR #33 P1s from Saul CTO REQUEST_CHANGES: INITIALIZE folder-slug paths and provisional Splunky read-only CI gate",
+  "status": "implement",
+  "claimed_files": [
+    ".ai/INITIALIZE.md",
+    ".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json",
+    "splunk-clone/.claude/settings.json",
+    "splunk-clone/.claude/agents/splunky.md",
+    "scripts/verify-provisional-claude-permissions",
+    ".github/workflows/agent-audit.yml"
+  ]
+}

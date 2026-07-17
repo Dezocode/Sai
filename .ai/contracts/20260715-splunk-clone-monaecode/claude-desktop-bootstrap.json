@@ -8,11 +8,17 @@
       "Bash(scripts/agent-report *)",
       "Bash(scripts/agent-contract-pr-review *)",
       "Read",
-      "Write",
-      "Edit",
       "Glob",
       "Grep"
     ]
+  },
+  "mutation_tools_after_phase_5b": {
+    "requires": [
+      "ONBOARDING Phase 3 approved_capabilities includes repository mutation",
+      "ONBOARDING Phase 5B agent-verify-caps PASS on runtimes/claude/tools.json",
+      "Owner records approval in contract.json amendments with evidence"
+    ],
+    "allow": ["Write", "Edit"]
   },
   "shell_allowlist_after_phase_5b": {
     "requires": [

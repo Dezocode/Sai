@@ -35,6 +35,7 @@ jobs:
           chmod +x scripts/verify-agent-audit scripts/verify-semantic-hierarchy \
                    scripts/verify-merge-handoff scripts/ci-merge-handoff-slack \
                    scripts/verify-scaffold-safety scripts/verify-contract-shell-allowlist \
+                   scripts/verify-provisional-claude-permissions \
                    scripts/agent-memory-scaffold scripts/agent-contract-scaffold \
                    scripts/agent-contract-pr-review
 
@@ -43,6 +44,9 @@ jobs:
 
       - name: Verify contract shell allowlist (branch least-privilege)
         run: scripts/verify-contract-shell-allowlist
+
+      - name: Verify provisional Claude permissions (read-only bootstrap)
+        run: scripts/verify-provisional-claude-permissions
 
       - name: Validate scaffold script syntax
         run: |

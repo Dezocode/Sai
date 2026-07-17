@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# verify-provisional-claude-permissions — ICM CI: provisional Claude agents stay
+# read-only in committed settings/subagents until ONBOARDING Phase 5B + persona gate.
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+python3 - "$REPO_ROOT" <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+registry_path = root / ".ai/agents/registry.json"
+if not registry_path.is_file():
+    print("verify-provisional-claude-permissions: skip (no registry)", file=sys.stderr)
+    sys.exit(0)
+
+registry = json.loads(registry_path.read_text(encoding="utf-8"))
+agents = registry.get("agents") or []
+
+FORBIDDEN_ALLOW = frozenset({"Write", "Edit"})
+FORBIDDEN_TOOL_TOKENS = frozenset({"Write", "Edit", "Bash"})
+SUBAGENT_DIR = root / "splunk-clone" / ".claude" / "agents"
+SETTINGS_PATH = root / "splunk-clone" / ".claude" / "settings.json"
+
+failed = False
+
+
+def fail(msg: str) -> None:
+    global failed
+    failed = True
+    print(f"FAIL  {msg}", file=sys.stderr)
+
+
+def check_settings(path: Path, label: str) -> None:
+    if not path.is_file():
+        return
+    data = json.loads(path.read_text(encoding="utf-8"))
+    allow = (data.get("permissions") or {}).get("allow") or []
+    for entry in allow:
+        if entry in FORBIDDEN_ALLOW:
+            fail(f"{label}: permissions.allow must not include {entry!r} while provisional")
+        if entry == "Bash" or entry.startswith("Bash(*"):
+            fail(f"{label}: broad Bash grant {entry!r} forbidden while provisional")
+
+
+def check_subagent(path: Path) -> None:
+    if not path.is_file():
+        return
+    text = path.read_text(encoding="utf-8")
+    if re.search(r"^permissionMode:\s*acceptEdits\s*$", text, re.MULTILINE):
+        fail(f"{path}: permissionMode must not be acceptEdits while provisional")
+    m = re.search(r"^tools:\s*(.+)$", text, re.MULTILINE)
+    if m:
+        tools = {t.strip() for t in m.group(1).split(",")}
+        bad = tools & FORBIDDEN_TOOL_TOKENS
+        if bad:
+            fail(f"{path}: tools must not include {sorted(bad)} while provisional")
+
+
+provisional_claude = [
+    a
+    for a in agents
+    if a.get("status") == "provisional"
+    and a.get("primary_runtime") == "claude-code-cli"
+]
+
+if not provisional_claude:
+    print("verify-provisional-claude-permissions: OK (no provisional Claude agents)")
+    sys.exit(0)
+
+for agent in provisional_claude:
+    aid = agent.get("agent_id", "?")
+    check_settings(SETTINGS_PATH, f"{aid} settings.json")
+
+if SUBAGENT_DIR.is_dir():
+    for md in SUBAGENT_DIR.glob("*.md"):
+        check_subagent(md)
+
+# Contract bootstrap template must not ship mutation tools in the live allow block.
+bootstrap = root / ".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json"
+if bootstrap.is_file():
+    check_settings(bootstrap, "claude-desktop-bootstrap.json")
+
+if failed:
+    print("verify-provisional-claude-permissions: FAILED", file=sys.stderr)
+    sys.exit(1)
+
+print("verify-provisional-claude-permissions: OK")
+PY
