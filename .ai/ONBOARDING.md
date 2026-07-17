@@ -76,6 +76,11 @@ Never add unapproved capabilities to `tools.json` or `hooks.json`.
 1. Update `contract.md` with the finalized capability plan.
 2. Configure `hooks.json` and runtime `tools.json` for approved capabilities
    only. Test each; mark `verified` only with evidence per INITIALIZE Phase 5B.
+   For Claude Code / Desktop, merge Bash permissions from
+   `.ai/shared/references/contractor-provisional-shell-allowlist.json` while
+   `registry.json` status is `provisional`. Never use `Bash(git *)` or
+   `Bash(gh *)` until `approved_capabilities[]` records owner approval for
+   `git/gh` and Phase 5B verifies the runtime `tools.json`.
 3. Run `scripts/agent-verify-caps` against your runtime tools file.
 4. Update `skills.md` with contract-specific skills backed by evidence.
 5. Loop back to Phase 3 if new candidates emerge from research.
