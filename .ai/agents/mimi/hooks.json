@@ -25,12 +25,20 @@
     ],
     "optional": [
       {
+        "type": "slack-polling",
+        "trigger": "@mimi mention in SAI public channels, detected by 15-min poll",
+        "status": "active",
+        "mechanism": "Claude Code scheduled task 'mimi-slack-dispatch-poll' (cron */15 * * * *), created 2026-07-17; loads the full Mimi profile mirror, scans public channels for new @mimi mentions, replies in-thread per ICM protocol with ID-matrix tag line",
+        "caveat": "Polling, not event-driven: worst-case ~15 min latency, and runs only while the Claude app is open at fire time. First-response evidence pending; promote to 'verified' only with a real mention->reply message-link pair.",
+        "id_matrix": ".ai/agents/mimi/docs/slack-id-matrix.md"
+      },
+      {
         "type": "slack",
-        "trigger": "@mimi mention in #agentupdates or authorized project channels",
+        "trigger": "@mimi mention in #agentupdates or authorized project channels (event-driven)",
         "status": "building",
         "promotion_rule": "status may become 'verified' only with an evidence URL or log showing a real @mimi mention producing a real dispatch run (Slack message link + resulting .ai/runs/<task-id>/)",
         "design": ".ai/agents/mimi/docs/dispatch-triggers.md (Slack Events API / Socket Mode bridge)",
-        "note": "No native Claude Desktop/Code subscription to Slack events exists; requires the documented OSS bridge. Not claimed as working."
+        "note": "True inbound-event trigger still requires the documented OSS bridge; the polling task above is the interim implementation. Not claimed as working."
       },
       {
         "type": "github",
