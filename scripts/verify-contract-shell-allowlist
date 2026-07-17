@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# verify-contract-shell-allowlist — CI enforcement for contractor Bash(...) grants
+# (P1 PR #18: no Bash(git branch *) — enumerate inspection/creation + negative tests).
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+BOOTSTRAP=".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json"
+
+if [ ! -f "$BOOTSTRAP" ]; then
+  echo "verify-contract-shell-allowlist: skip (no bootstrap at $BOOTSTRAP)" >&2
+  exit 0
+fi
+
+python3 - "$BOOTSTRAP" "$REPO_ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+repo_root = Path(sys.argv[2])
+sys.path.insert(0, str(repo_root / "scripts/lib"))
+from shell_allowlist import (  # noqa: E402
+    HARD_GATED_GIT_BRANCH_COMMANDS,
+    FORBIDDEN_INNER_PATTERNS,
+    SAFE_GIT_BRANCH_COMMANDS,
+    collect_allow_entries_from_bootstrap,
+    command_allowed,
+    parse_bash_entry,
+)
+
+bootstrap_path = Path(sys.argv[1])
+data = json.loads(bootstrap_path.read_text(encoding="utf-8"))
+allow = collect_allow_entries_from_bootstrap(data)
+if not allow:
+    print("FAIL  bootstrap missing shell_allowlist_after_phase_5b.allow", file=sys.stderr)
+    sys.exit(1)
+
+failed = False
+
+for entry in allow:
+    inner = parse_bash_entry(entry)
+    if inner is None:
+        print(f"FAIL  not a Bash(...) entry: {entry!r}", file=sys.stderr)
+        failed = True
+        continue
+    if inner in FORBIDDEN_INNER_PATTERNS:
+        print(f"FAIL  forbidden inner pattern in allowlist: {entry!r}", file=sys.stderr)
+        failed = True
+
+for cmd in HARD_GATED_GIT_BRANCH_COMMANDS:
+    if command_allowed(cmd, allow):
+        print(f"FAIL  hard-gated command matched allowlist: {cmd!r}", file=sys.stderr)
+        failed = True
+    else:
+        print(f"PASS  hard-gated rejected: {cmd!r}")
+
+for cmd in SAFE_GIT_BRANCH_COMMANDS:
+    if command_allowed(cmd, allow):
+        print(f"PASS  safe branch inspection allowed: {cmd!r}")
+    else:
+        print(f"FAIL  safe command not allowed: {cmd!r}", file=sys.stderr)
+        failed = True
+
+if failed:
+    print("verify-contract-shell-allowlist: FAILED", file=sys.stderr)
+    sys.exit(1)
+
+print("verify-contract-shell-allowlist: OK")
+PY
