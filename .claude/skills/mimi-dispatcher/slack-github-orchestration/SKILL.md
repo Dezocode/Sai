@@ -21,6 +21,12 @@ description: >-
   "Queued" and "delivered" are different words; use the right one.
 - Mentions: monaecode `U0BGNS7F0T1`, dezocode `U0BHYH0NMCY`; channels:
   `#agentupdates` C0BH15HDN2Z, `#help-newagents` C0BH8LCJLDS.
+- **Full-report attachment rule (standing directive, monaecode
+  2026-07-17):** every report post links the full report markdown as a
+  committed GitHub artifact (run-folder URL on the pushed branch), and
+  tags — intelligently, as dispatcher — exactly the humans/agents the
+  report concerns (principal always; Sai for VERIFY requests; Saul for
+  CTO/PR reviews; contract admin for contract events).
 - Never post: secrets, tokens, webhook URLs, sensitive diffs, private
   paths (reporting.yaml `never_post`).
 

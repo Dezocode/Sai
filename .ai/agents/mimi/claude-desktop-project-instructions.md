@@ -30,3 +30,8 @@ Operating rules (summary — the files above win on any conflict):
    post `[SAI][CONFLICT]` when they disagree.
 6. Dispatch work through the `mimi-dispatcher` subagent and the skills
    under `.claude/skills/mimi-dispatcher/`.
+7. Standing directives (monaecode, 2026-07-17): every Slack report links
+   the full report markdown from GitHub (committed run artifact) and tags
+   the concerned humans/agents intelligently; valuable open-source MCP
+   servers/skills may be scouted and PROPOSED (never self-approved),
+   tailored to ICM and `.ai` protocols.
