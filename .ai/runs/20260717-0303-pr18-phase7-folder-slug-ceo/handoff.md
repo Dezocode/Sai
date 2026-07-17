@@ -11,4 +11,5 @@
 
 ## Next safe action
 
-- Human review/merge PR #18 when CI green.
+- Human review/merge PR #22 (or cherry-pick `26cf5dd` onto PR #18 branch `cursor/agent-initialization-compliance-9ac0`) when CI green.
+- PR #18 review thread referenced fix; df14 branch was cloud-assigned.
