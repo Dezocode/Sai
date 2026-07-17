@@ -153,6 +153,13 @@ Agent: ceo-automation"
   fi
 fi
 
+# P1 (PR #15): post-Phase-5B shell allowlist must not permit git branch deletion.
+BOOTSTRAP=".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json"
+if [ -f "$BOOTSTRAP" ]; then
+  check_pass "claude shell allowlist git branch least-privilege" \
+    python3 "$REPO_ROOT/scripts/lib/verify-claude-shell-allowlist.py" "$BOOTSTRAP"
+fi
+
 # P1 (PR #15): agent-automation-spec must use canonical folder slug in paths,
 # not the display agent name (case-sensitive filesystems).
 SPEC_OUT=$(SAI_AGENT_ID=ctr-code-splunk1 scripts/agent-automation-spec --suite claude \
