@@ -93,3 +93,13 @@ Preferred architecture:
 3. Hooks block writes without prior `[SAI][PLAN]` event id in prompt context.
 
 Desktop project sessions remain valid for human-driven work; **automated** @mention dispatch requires SDK or documented OSS bridge with the same hook semantics.
+
+## CI enforcement
+
+`scripts/verify-agent-setup` runs on every push and PR (`agent-audit.yml`):
+
+- Claude-primary agents: `runtimes/claude/agent-sdk/` scaffold present
+- **Active** agents: ≥1 verified capability with evidence
+- **Active** contracts with live contractors: non-empty `deliverables[]`
+
+Set `SAI_CI_REQUIRE_SDK_SMOKE=1` in CI when Mimi (or any dispatcher) must show verified `claude-agent-sdk` before merge.
