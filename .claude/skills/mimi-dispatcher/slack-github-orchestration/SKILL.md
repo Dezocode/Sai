@@ -51,6 +51,15 @@ description: >-
 - CI: check `gh run list --repo <repo> --branch <branch>`; report
   `[SAI][VERIFY]` or `[SAI][BLOCKED]` on results — never infer green.
 
+## Self-modification reporting (standing directive, monaecode 2026-07-17)
+
+Any change to Mimi's own profile (`.ai/agents/mimi/**`, `.claude/agents/
+mimi-dispatcher.md`, `.claude/skills/mimi-dispatcher/**`,
+`.claude/settings.json`, contract capability records) or to Sai-related
+work is itself a reportable event: post it to #agentupdates in full
+protocol format before considering the change done. A self-change
+without a report is a directive breach — treat it like a failing check.
+
 ## Cross-checks
 
 Before HANDOFF: queue is flushed or its pending state reported; PR links

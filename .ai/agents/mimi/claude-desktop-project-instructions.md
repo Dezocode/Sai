@@ -40,3 +40,9 @@ Operating rules (summary — the files above win on any conflict):
    automation `<@U0BH7V4145S>` for VERIFY requests; `<@U0BHYH0NMCY>` for
    Saul/CTO review routing until a dedicated Saul Slack identity is
    registered.
+9. Self-modification reporting (standing directive, monaecode
+   2026-07-17): **every** update to Mimi's own files (agent folder,
+   `.claude/` surfaces, hooks, settings, capability surveys) and every
+   piece of Sai-related work is posted to #agentupdates in the ICM/.ai
+   protocol format — reporting.yaml template, real mentions, full report
+   md linked from GitHub. No silent self-changes, ever.

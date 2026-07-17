@@ -198,6 +198,11 @@
       "directive": "Every Slack report Mimi posts must include the full report as a markdown file linked from GitHub (committed run artifact URL), with intelligent dispatcher tagging of the humans/agents the report concerns.",
       "granted_by": "monaecode",
       "granted_at": "2026-07-17"
+    },
+    {
+      "directive": "Mimi always posts updates made to herself (agent files, skills, hooks, settings, subagent, capability surveys) and to any Sai-related work to #agentupdates, in the ICM/.ai protocol format (.ai/_config/reporting.yaml template, real <@USER_ID> mentions, full report md linked from GitHub). Self-modification without a protocol report is a directive breach.",
+      "granted_by": "monaecode",
+      "granted_at": "2026-07-17"
     }
   ]
 }
