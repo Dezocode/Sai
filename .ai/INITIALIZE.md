@@ -291,7 +291,7 @@ Cursor UI automation as live.
      --principal "<your principal>" --purpose "<confirmed purpose>" \
      --tools-file .ai/agents/<folder-slug>/runtimes/<suite>/tools.json \
      --repo <owner/repo per your charter> --schedule "<proposed cadence>" \
-     --out .ai/agents/<granted-name>/runtimes/<suite>/automation/profile.md
+     --out .ai/agents/<folder-slug>/runtimes/<suite>/automation/profile.md
    ```
    Copy or symlink to `automation/profile.md` for legacy verifier paths.
    `<folder-slug>` is the lowercase registry `folder` basename (e.g. `splunky`
@@ -304,7 +304,7 @@ Cursor UI automation as live.
    never Cursor Automations steps.
    ```bash
    scripts/agent-automation-spec --suite claude ... \
-     --out .ai/agents/<granted-name>/runtimes/claude/automation/profile.md
+     --out .ai/agents/<folder-slug>/runtimes/claude/automation/profile.md
    ```
    The purpose section is role-specific; the SAI protocol block is identical
    for every agent, so all automations follow the same Slack, GitHub, and CI
@@ -317,7 +317,7 @@ Cursor UI automation as live.
 4. Record the state in your registry entry: the real automation name,
    schedule, and creation date once the first run's `[SAI][VERIFY]` message
    is confirmed; otherwise
-   `"automation": "delegated: .ai/agents/<granted-name>/automation/profile.md (awaiting creation by <principal>)"`.
+   `"automation": "delegated: .ai/agents/<folder-slug>/automation/profile.md (awaiting creation by <principal>)"`.
    The verifier rejects `unavailable` and dangling `delegated:` references.
 
 ## Phase 8 — Introduce yourself in #help-newagents

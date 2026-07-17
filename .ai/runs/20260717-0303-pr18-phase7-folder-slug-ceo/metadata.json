@@ -1,0 +1,10 @@
+{
+  "task_id": "20260717-0303-pr18-phase7-folder-slug-ceo",
+  "agent": "sai",
+  "agent_id": "ceo-automation",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-df14",
+  "status": "in_progress",
+  "claimed_files": [".ai/INITIALIZE.md"],
+  "purpose": "PR #18 P1: Phase 7 agent-automation-spec --out paths use folder-slug not granted-name"
+}
