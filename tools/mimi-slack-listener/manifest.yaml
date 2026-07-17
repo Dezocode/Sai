@@ -1,0 +1,27 @@
+# Slack app manifest for the @mimi bot (create at api.slack.com/apps →
+# "Create New App" → "From an app manifest" → paste this).
+# After creating: enable Socket Mode (generates the xapp- app token),
+# install to the SAI workspace (generates the xoxb- bot token).
+# Tokens go ONLY into /etc/mimi-listener.env on the listener host.
+display_information:
+  name: mimi
+  description: SAI portfolio dispatcher for monaecode (event-driven @mimi)
+  background_color: "#4A154B"
+features:
+  bot_user:
+    display_name: mimi
+    always_online: true
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - channels:read
+      - chat:write
+      - chat:write.public
+settings:
+  event_subscriptions:
+    bot_events:
+      - app_mention
+  socket_mode_enabled: true
+  org_deploy_enabled: false
+  token_rotation_enabled: false

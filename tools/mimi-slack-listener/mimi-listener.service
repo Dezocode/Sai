@@ -1,0 +1,25 @@
+# systemd unit for the @mimi Slack listener (Path A).
+# Install: sudo cp mimi-listener.service /etc/systemd/system/ &&
+#          sudo systemctl daemon-reload && sudo systemctl enable --now mimi-listener
+# WSL2 note: requires systemd enabled in /etc/wsl.conf ([boot] systemd=true).
+[Unit]
+Description=SAI @mimi Slack Socket Mode dispatch listener
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Set User= to the account that owns the repo clone and claude auth.
+User=%i
+EnvironmentFile=/etc/mimi-listener.env
+WorkingDirectory=/opt/mimi-listener
+ExecStart=/opt/mimi-listener/venv/bin/python /opt/mimi-listener/listener.py
+Restart=always
+RestartSec=10
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
