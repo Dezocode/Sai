@@ -162,8 +162,8 @@
       "kind": "mcp",
       "server": "Slack connector (claude.ai, Claude Code session)",
       "tool": "slack_send_message",
-      "status": "unverified",
-      "evidence": "No message has been sent by Mimi via this connector; sends also require monaecode per-action approval. Do not mark verified until a real send succeeds and the returned link is confirmed",
+      "status": "verified",
+      "evidence": "Real send to #agentupdates (C0BH15HDN2Z) 2026-07-17 with monaecode approval; API returned message link https://sai-qbz5908.slack.com/archives/C0BH15HDN2Z/p1784257771191669",
       "verified_at": "2026-07-17"
     },
     {
