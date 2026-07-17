@@ -387,3 +387,23 @@ stated) may you say you are initialized and accept tasks.
   protocol, CI, and agent folders truthful; fix INITIALIZE.md when any phase
   fails a live test; run `scripts/verify-scaffold-safety` after scaffold
   script changes and block contractor/contract CI gates until it passes.
+
+## Agent evolution (already-initialized agents)
+
+When an **active** registry agent expands under a signed
+`.ai/contracts/<contract-id>/` evolution contract (for example Mimi dispatcher
+bootstrap), do **not** skip initialization mechanics:
+
+1. Re-run **Phase 5B** for the contract's declared `primary_runtime`; update
+   only `runtimes/<suite>/tools.json` with dated evidence (`verified` vs
+   `unverified` — no fabricated Cursor Automations or MCP claims).
+2. Re-run **Phase 7** for that same suite (`claude`, `cursor`, or `codex`).
+   Claude-primary agents document session-driven automation in
+   `runtimes/claude/automation/profile.md`; Codex-primary agents use
+   `runtimes/codex/automation/profile.md`. Do not list Cursor UI automation
+   as live unless surveyed in Cursor.
+3. **Contractors** (`ctr-code-*`, `ctr-design-*`) still execute
+   `.ai/ONBOARDING.md` through Phase 6; Sai audits ONBOARDING **and** the
+   Phase 5B/7 truthfulness of the agent folder before implementation work.
+4. Record contract fulfillment in `.ai/runs/<task-id>/` with VERIFY/HANDOFF;
+   registry `automation` fields stay `delegated:` until a verified first run.
