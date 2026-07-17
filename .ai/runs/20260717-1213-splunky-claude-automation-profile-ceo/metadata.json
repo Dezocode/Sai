@@ -1,0 +1,17 @@
+{
+  "task_id": "20260717-1213-splunky-claude-automation-profile-ceo",
+  "agent": "sai",
+  "agent_id": "ceo-automation",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-6e76",
+  "purpose": "Address PR #21 CTO review: replace Splunky Cursor Automations profile with Claude-native session-driven profile",
+  "claimed_files": [
+    ".ai/agents/splunky/automation/profile.md",
+    ".ai/agents/splunky/runtimes/claude/automation/profile.md",
+    ".ai/agents/splunky/runtimes/cursor/README.md",
+    ".ai/agents/splunky/hooks.json",
+    ".ai/agents/splunky/AGENT.md"
+  ],
+  "status": "completed",
+  "trigger": "pr_comment PR #21 discussion_r3603037060"
+}
