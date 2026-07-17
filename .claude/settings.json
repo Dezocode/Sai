@@ -5,7 +5,9 @@
       "Bash(git status:*)",
       "Bash(git log:*)",
       "Bash(git diff:*)",
-      "Bash(git branch:*)",
+      "Bash(git branch --list:*)",
+      "Bash(git branch --show-current)",
+      "Bash(git branch -vv)",
       "Bash(git fetch:*)",
       "Bash(git show:*)",
       "Bash(gh pr view:*)",
@@ -21,7 +23,16 @@
       "Bash(scripts/verify-merge-handoff:*)",
       "Bash(scripts/agent-automation-spec:*)"
     ],
-    "deny": []
+    "deny": [
+      "Bash(git branch -D:*)",
+      "Bash(git branch -d:*)",
+      "Bash(git branch -m:*)",
+      "Bash(git branch -M:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -f:*)"
+    ]
   },
   "hooks": {
     "SessionStart": [

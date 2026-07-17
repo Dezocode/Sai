@@ -15,6 +15,15 @@ All command output captured live this session; nothing below is inferred.
 | Subagent frontmatter | python parse of `.claude/agents/mimi-dispatcher.md` | OK — name/description/memory/tools valid |
 | Stub workflow YAML | ruby YAML.load_file | OK |
 
+## Remediation round (Sai VERIFY FAIL + Saul REQUEST_CHANGES, 2026-07-17)
+
+| Fix | Evidence |
+|---|---|
+| 05_review stage gap | `05_review/output/review-record.md` added; `verify-semantic-hierarchy` re-run OK (was FAIL: "has 06_publish_sync output but missing 05_review") |
+| Workflow shell injection | Inputs via `env:` only; anchored-regex validation; 18-case malicious-input regression ALL PASS → `workflow-injection-tests.md` |
+| `Bash(git branch:*)` wildcard | Allow narrowed to `--list` / `--show-current` / `-vv` exact forms; explicit `deny` added for `git branch -D/-d/-m/-M`, `git push --force/-f`, `git reset --hard`, `git clean -f`. Matcher evidence: prefix-matcher cannot reach `git branch -D` from any remaining allow rule (no allow rule prefixes it), deny rules take precedence per Claude Code permission semantics, and the PreToolUse force-push guard (tested live earlier this run) adds a hook-layer backstop. In-runtime deny regression requires a fresh session — listed with subagent repro steps. |
+| Cursor-owned state in Claude adapter | `runtimes/claude/automation/profile.md` rewritten Claude-native (hand-authored; regenerate with `--suite claude` post-#19); Cursor walkthrough moved to `runtimes/cursor/automation/profile.md`; legacy `automation/profile.md` reduced to a pointer |
+
 ## Fork sync (pre-work)
 
 `origin/main` fast-forwarded d091438 → 3c5c799 = `upstream/main`, pushed

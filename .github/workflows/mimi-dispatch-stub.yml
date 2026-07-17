@@ -1,10 +1,16 @@
 # mimi-dispatch-stub — plumbing-shape stub for @mimi GitHub dispatch.
 #
 # INTENTIONALLY INERT: workflow_dispatch only, no secrets, no Claude
-# invocation, no third-party actions. It exists so the dispatch request
-# payload shape is versioned and testable before the real trigger
-# (issue_comment/self-hosted listener) is approved by monaecode + Saul.
-# See .ai/agents/mimi/docs/dispatch-triggers.md.
+# invocation, no third-party actions beyond actions/checkout. It exists so
+# the dispatch request payload shape is versioned and testable before the
+# real trigger (issue_comment/self-hosted listener) is approved by
+# monaecode + Saul. See .ai/agents/mimi/docs/dispatch-triggers.md.
+#
+# Security (Saul CTO review Dezocode/Sai#27, P1): inputs are untrusted
+# data. They reach the shell ONLY via env (never ${{ }} interpolation
+# inside run:) and are regex-validated before any other use. Malicious
+# input regressions: .ai/runs/20260717-0229-mimi-dispatcher-bootstrap-mimi/
+# 04_verify/output/workflow-injection-tests.md
 name: mimi-dispatch-stub
 
 on:
@@ -29,16 +35,33 @@ permissions:
 jobs:
   record-dispatch-request:
     runs-on: ubuntu-latest
+    env:
+      REQUESTER: ${{ inputs.requester }}
+      CONTRACT_ID: ${{ inputs.contract_id }}
+      TASK_SLUG: ${{ inputs.task_slug }}
     steps:
       - uses: actions/checkout@v4
-      - name: Validate request against repo state
+      - name: Validate inputs (strict allowlist, no interpolation)
         run: |
           set -eu
-          CONTRACT_DIR=".ai/contracts/${{ inputs.contract_id }}"
-          echo "Dispatch request: requester=${{ inputs.requester }} contract=${{ inputs.contract_id }} slug=${{ inputs.task_slug }}"
-          if [ ! -f "$CONTRACT_DIR/contract.json" ]; then
-            echo "::error::contract.json not found at $CONTRACT_DIR — @mimi only dispatches contracts that exist in git"
+          # GitHub login: alphanumeric + internal hyphens, max 39 chars.
+          printf '%s' "$REQUESTER" | grep -Eqx '[A-Za-z0-9]([A-Za-z0-9-]{0,37}[A-Za-z0-9])?' || {
+            echo "::error::requester is not a valid GitHub login"; exit 1; }
+          # Contract id: date-slug shape only; excludes /, ., whitespace,
+          # quotes, $(), newlines — no traversal out of .ai/contracts/.
+          printf '%s' "$CONTRACT_ID" | grep -Eqx '[0-9]{8}-[a-z0-9][a-z0-9-]{0,80}' || {
+            echo "::error::contract_id is not a valid contract id"; exit 1; }
+          # Task slug: kebab-case only.
+          printf '%s' "$TASK_SLUG" | grep -Eqx '[a-z0-9][a-z0-9-]{0,60}' || {
+            echo "::error::task_slug is not a valid kebab-case slug"; exit 1; }
+          echo "inputs valid"
+      - name: Check cited contract exists in git
+        run: |
+          set -eu
+          CONTRACT_FILE=".ai/contracts/$CONTRACT_ID/contract.json"
+          if [ ! -f "$CONTRACT_FILE" ]; then
+            echo "::error::contract.json not found for cited contract id — @mimi only dispatches contracts that exist in git"
             exit 1
           fi
-          echo "$CONTRACT_DIR/contract.json present — request shape valid."
+          echo "contract present for cited id; request shape valid."
           echo "NOTE: stub only. No dispatch occurs; a human or the listener bridge must invoke Mimi."
