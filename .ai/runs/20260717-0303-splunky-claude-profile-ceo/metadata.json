@@ -1,0 +1,14 @@
+{
+  "task_id": "20260717-0303-splunky-claude-profile-ceo",
+  "agent": "Sai",
+  "agent_id": "ceo-automation",
+  "purpose": "P1 CTO review: replace Splunky primary Claude runtime profile (Cursor UI copy) with truthful Claude session/delegated profile",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-2b7b",
+  "pr": "https://github.com/Dezocode/Sai/pull/17",
+  "trigger": "pr_comment CTO-REVIEW P1",
+  "claims": [
+    ".ai/agents/splunky/runtimes/claude/automation/profile.md",
+    ".ai/agents/splunky/automation/profile.md"
+  ]
+}
