@@ -1,0 +1,10 @@
+{
+  "task_id": "20260717-2047-claude-agent-sdk-scaffold-verify-ceo",
+  "agent": "ceo",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-645f",
+  "status": "completed",
+  "worktree": "cloud-agent VM /workspace",
+  "purpose": "CEO VERIFY — Cora Claude Agent SDK scaffold CHANGE vs initialization/ICM CI scope",
+  "claimed_files": []
+}
