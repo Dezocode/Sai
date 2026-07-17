@@ -12,6 +12,6 @@
     ".ai/agents/splunky/hooks.json",
     ".ai/agents/splunky/AGENT.md"
   ],
-  "status": "in_progress",
+  "status": "completed",
   "trigger": "pr_comment PR #21 discussion_r3603037060"
 }
