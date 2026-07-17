@@ -1,6 +1,6 @@
 # Claude Code operating profile — Splunky (ctr-code-splunky)
 
-> Generated 2026-07-16 by `scripts/agent-automation-spec --suite claude` for
+> Generated 2026-07-17 by `scripts/agent-automation-spec --suite claude` for
 > principal **monaecode (U0BGNS7F0T1)**. This documents **Claude Code** invocation and
 > session protocol — not Cursor Automations. Do not paste this into Cursor
 > Automations.
@@ -26,7 +26,7 @@ valid for this suite.
 ## Invocation
 
 1. Open `monaecode/Sai` in Claude Code (repo root on disk).
-2. Read `CLAUDE.md`, then `.ai/agents/Splunky/AGENT.md`, this file,
+2. Read `CLAUDE.md`, then `.ai/agents/splunky/AGENT.md`, this file,
    and `.ai/_config/reporting.yaml`.
 3. Load Layer 1 constraints manually: `.cursor/rules/sai-coordination.mdc`
    is Cursor-format — read it as reference; it is not auto-applied in Claude.
@@ -82,7 +82,7 @@ If a run would take you outside this purpose, do not do the work: say so in
 your report and stop. Never expand your own scope.
 
 CONTEXT: read .ai/CONTEXT.md, CLAUDE.md, .ai/_config/reporting.yaml, and
-.ai/agents/Splunky/AGENT.md. Read .cursor/rules/sai-coordination.mdc
+.ai/agents/splunky/AGENT.md. Read .cursor/rules/sai-coordination.mdc
 as Layer 1 reference. Use SAI_AGENT_ID=ctr-code-splunky for SAI scripts.
 
 SAI PROTOCOL BLOCK (identical intent to Cursor automations — do, in order):
