@@ -289,9 +289,10 @@ Cursor UI automation as live.
    scripts/agent-automation-spec --agent-id <your-agent-id> \
      --agent-name "<granted-name>" --role-title "<granted role title>" \
      --principal "<your principal>" --purpose "<confirmed purpose>" \
-     --tools-file .ai/agents/<granted-name>/runtimes/<suite>/tools.json \
+     --tools-file .ai/agents/<folder-slug>/runtimes/<suite>/tools.json \
+     --folder-name <folder-slug> \
      --repo <owner/repo per your charter> --schedule "<proposed cadence>" \
-     --out .ai/agents/<granted-name>/runtimes/<suite>/automation/profile.md
+     --out .ai/agents/<folder-slug>/runtimes/<suite>/automation/profile.md
    ```
    Copy or symlink to `automation/profile.md` for legacy verifier paths.
    For Cursor, `<suite>` is `cursor` and the profile matches the Cursor
@@ -300,7 +301,7 @@ Cursor UI automation as live.
    never Cursor Automations steps.
    ```bash
    scripts/agent-automation-spec --suite claude ... \
-     --out .ai/agents/<granted-name>/runtimes/claude/automation/profile.md
+     --out .ai/agents/<folder-slug>/runtimes/claude/automation/profile.md
    ```
    The purpose section is role-specific; the SAI protocol block is identical
    for every agent, so all automations follow the same Slack, GitHub, and CI

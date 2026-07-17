@@ -17,7 +17,8 @@
 #   agent-automation-spec --agent-id ID --agent-name NAME --role-title TITLE \
 #                         --principal HUMAN --purpose "ONE-PARAGRAPH PURPOSE" \
 #                         [--repo OWNER/REPO] [--branch BRANCH]
-#                         [--tools-file .ai/agents/<name>/tools.json]
+#                         [--tools-file .ai/agents/<slug>/tools.json]
+#                         [--folder-name slug]  # canonical .ai/agents/<slug>/ path
 #                         [--schedule "daily 09:00 America/Chicago"]
 #                         [--suite cursor|claude]
 #                         [--out PATH | --stdout]
@@ -33,6 +34,7 @@ BRANCH="main"
 SCHEDULE="daily at 09:00 (principal's timezone; proposed)"
 SUITE="cursor"
 TOOLS_FILE=""
+FOLDER_NAME=""
 OUT=""
 TO_STDOUT=0
 
@@ -46,6 +48,7 @@ while [ $# -gt 0 ]; do
     --repo)       REPO=$2; shift 2;;
     --branch)     BRANCH=$2; shift 2;;
     --tools-file) TOOLS_FILE=$2; shift 2;;
+    --folder-name) FOLDER_NAME=$2; shift 2;;
     --schedule)   SCHEDULE=$2; shift 2;;
     --suite)      SUITE=$2; shift 2;;
     --out)        OUT=$2; shift 2;;
@@ -66,6 +69,40 @@ case "$SUITE" in
 esac
 
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=scripts/lib/agent-path-guards.sh
+. "$SCRIPT_DIR/lib/agent-path-guards.sh"
+slugify() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g;s/--*/-/g;s/^-//;s/-$//'; }
+
+derive_folder_from_path() {
+  local p=$1
+  case "$p" in
+    *"/.ai/agents/"*)
+      local rest=${p#*"/.ai/agents/"}
+      local slug=${rest%%/*}
+      if [ -n "$slug" ]; then
+        printf '%s' "$slug"
+      fi
+      ;;
+  esac
+}
+
+FOLDER_SLUG="$FOLDER_NAME"
+if [ -z "$FOLDER_SLUG" ] && [ -n "$TOOLS_FILE" ]; then
+  FOLDER_SLUG=$(derive_folder_from_path "$TOOLS_FILE")
+fi
+if [ -z "$FOLDER_SLUG" ] && [ -n "$OUT" ]; then
+  FOLDER_SLUG=$(derive_folder_from_path "$OUT")
+fi
+if [ -z "$FOLDER_SLUG" ]; then
+  if printf '%s' "$AGENT_NAME" | grep -q 'pending'; then
+    FOLDER_SLUG="$AGENT_ID"
+  else
+    FOLDER_SLUG=$(slugify "$AGENT_NAME")
+  fi
+fi
+guard_slug folder-name "$FOLDER_SLUG"
+
 [ -n "$OUT" ] || OUT="$REPO_ROOT/.ai/agents/automation-specs/${AGENT_ID}.md"
 TODAY=$(date -u +%Y-%m-%d)
 
@@ -132,7 +169,7 @@ valid for this suite.
 ## Invocation
 
 1. Open \`${REPO}\` in Claude Code (repo root on disk).
-2. Read \`CLAUDE.md\`, then \`.ai/agents/${AGENT_NAME}/AGENT.md\`, this file,
+2. Read \`CLAUDE.md\`, then \`.ai/agents/${FOLDER_SLUG}/AGENT.md\`, this file,
    and \`.ai/_config/reporting.yaml\`.
 3. Load Layer 1 constraints manually: \`.cursor/rules/sai-coordination.mdc\`
    is Cursor-format — read it as reference; it is not auto-applied in Claude.
@@ -188,7 +225,7 @@ If a run would take you outside this purpose, do not do the work: say so in
 your report and stop. Never expand your own scope.
 
 CONTEXT: read .ai/CONTEXT.md, CLAUDE.md, .ai/_config/reporting.yaml, and
-.ai/agents/${AGENT_NAME}/AGENT.md. Read .cursor/rules/sai-coordination.mdc
+.ai/agents/${FOLDER_SLUG}/AGENT.md. Read .cursor/rules/sai-coordination.mdc
 as Layer 1 reference. Use SAI_AGENT_ID=${AGENT_ID} for SAI scripts.
 
 SAI PROTOCOL BLOCK (identical intent to Cursor automations — do, in order):
