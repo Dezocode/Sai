@@ -16,10 +16,31 @@
     "pr_protocol": "PLAN before every PR; VERIFY after every push to #splunk-clone-project"
   },
   "automation_triggers": {
-    "required": [{"type": "scheduled", "note": "baseline protocol upkeep — configure per runtime in Phase 7"}],
+    "required": [
+      {
+        "type": "session",
+        "status": "active",
+        "mechanism": "Claude Code / Claude Desktop session (splunk-clone/CLAUDE.md), not a Cursor Automation",
+        "note": "Protocol upkeep and contract work run when monaecode opens a Splunky session; see runtimes/claude/automation/profile.md"
+      }
+    ],
     "optional": [
-      {"type": "slack", "note": "run on mention in #agentupdates"},
-      {"type": "github", "note": "run on PR events"}
+      {
+        "type": "scheduled",
+        "status": "not_built",
+        "mechanism": "Claude Code scheduled task (cron)",
+        "note": "Configure after Phase 5B verify-caps; record task_id and first successful run in hooks.json before claiming active"
+      },
+      {
+        "type": "slack",
+        "status": "not_built",
+        "note": "Would require Slack Events → environment bridge; not built; not claimed"
+      },
+      {
+        "type": "github",
+        "status": "not_built",
+        "note": "Would require webhook/Action → environment bridge; not built; not claimed"
+      }
     ]
   },
   "ci_enforcement": {

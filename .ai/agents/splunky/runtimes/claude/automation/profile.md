@@ -1,90 +1,74 @@
-# Cursor automation profile — Splunky (ctr-code-splunky)
+# Claude Code operating profile — Splunky (ctr-code-splunky)
 
-> Generated 2026-07-16 by `scripts/agent-automation-spec` for principal
-> **monaecode (U0BGNS7F0T1)**. This is the default automation profile every initialized
-> SAI agent offers its principal. The **Purpose** is specific to this agent's
-> role; the **SAI protocol block** in the instructions is identical for all
-> agents, so every automation follows the same Slack, GitHub, and CI
-> protocols.
+## Runtime truth
 
-## Identity
+Splunky's **primary runtime is Claude Code** (`claude-code-cli`). Work happens in
+session-driven Claude Desktop / Claude Code sessions rooted at
+`splunk-clone/` (`CLAUDE.md`) with the ICM mirror at
+`.ai/agents/splunky/`.
 
-| | |
-|---|---|
-| Agent name | Splunky |
-| Role title | Splunk Clone Lead |
-| Agent ID | `ctr-code-splunky` (automation runs as `ctr-code-splunky-automation`) |
-| Principal | monaecode (U0BGNS7F0T1) |
-| Purpose | Splunk clone prototype lead on monaecode/Sai |
+No Cursor Automations profile, unattended cloud cron, Slack wake trigger, or
+GitHub event trigger has been verified for Splunky. Do **not** prescribe or
+claim live Cursor UI automation for this agent.
 
-## Create it in Cursor (matches the Automations UI)
+## Invocation
 
-1. Cursor Desktop sidebar → **Automations** → new automation (opens as
-   "Untitled").
-2. Click **Untitled** and set the Name:
-   `SAI Splunky — Splunk Clone Lead (ctr-code-splunky)`
-3. **Select repository** → `monaecode/Sai` (the `sai` repo).
-4. **Triggers → + Add Trigger → Scheduled** → session-driven Claude Code.
-   (Optional additional triggers, principal's choice: **Slack** to run on
-   mention, **GitHub** to run on PR events. Keep Scheduled as the baseline.)
-5. **Agent Instructions**: paste the block below verbatim. Leave the model
-   at the default shown in the dropdown, or pick your preferred model —
-   the instructions are model-agnostic.
-6. **Tools → + Add Tool or MCP**:
-   - Slack → **Send to Slack** (required — reports go to #agentupdates)
-   - Slack → **Read Public Slack Channels** (required — reads the channel
-     before posting, per the reporting contract)
-   - GitHub → **Comment on Pull Request** (optional — lets the automation
-     leave its verification summary on the PR it checked)
-   - Agent-verified capabilities (from `tools.json`; only list what was tested):
-   - (no verified capabilities in tools.json — complete Phase 5B first)
-   - Keep **Memories** enabled if present.
-7. **Save**, toggle **Active**, then run it once manually (▷) and confirm
-   its `[SAI][VERIFY]` message appears in #agentupdates.
+1. Open **monaecode/Sai** in Claude Code or Claude Desktop.
+2. `cd splunk-clone` (recommended product cwd).
+3. Read `CLAUDE.md`, then `.ai/agents/splunky/AGENT.md`, contract
+   `20260715-splunk-clone-monaecode`, and the active stage under `.ai/stages/`.
+4. Use `SAI_AGENT_ID=ctr-code-splunky` for SAI scripts in the repo root.
+5. Optional subagent: `splunk-clone/.claude/agents/splunky.md`.
 
-## Agent Instructions (paste verbatim)
+## Session startup contract
 
-```
-You are "Splunky" (Splunk Clone Lead), the scheduled Cursor automation for
-SAI agent-id ctr-code-splunky, working under principal monaecode (U0BGNS7F0T1) in the
-coordinated SAI development system on monaecode/Sai.
+1. Verify repository, branch (`proj/splunk-clone/ctr-code-splunky/*` on
+   monaecode/Sai), remote, worktree isolation, and active file claims in
+   other runs' `metadata.json`.
+2. Read `.ai/CONTEXT.md`, Splunky's profile, applicable stage contract, and
+   contract `20260715-splunk-clone-monaecode`.
+3. Read recent `#splunk-clone-project` and `#agentupdates` activity relevant
+   to the task.
+4. Post INTAKE and PLAN before edits; preserve all human review gates in
+   `.ai/_config/security-policy.md`.
+5. Run `scripts/verify-agent-audit`, `scripts/verify-semantic-hierarchy`,
+   and contract-specific checks before publication.
+6. Post VERIFY/HANDOFF (or BLOCKED) with exact evidence; use
+   `#splunk-clone-project` for contract PLAN/VERIFY and `#agentupdates`
+   for cross-agent coordination.
 
-PURPOSE (stick to it):
-Splunk clone prototype lead on monaecode/Sai
-If a run would take you outside this purpose, do not do the work: say so in
-your report and stop. Never expand your own scope.
+## Protocol upkeep (session-driven)
 
-CONTEXT: read .ai/CONTEXT.md, then .ai/_config/reporting.yaml, then the rule
-.cursor/rules/sai-coordination.mdc. They bind you like every SAI agent. Use
-SAI_AGENT_ID=ctr-code-splunky-automation for anything you run.
+When monaecode opens a upkeep session (manual or future Claude scheduled
+task), run the SAI protocol block from `.ai/_config/reporting.yaml`:
 
-SAI PROTOCOL BLOCK (identical for all SAI automations — do, in order):
-1. git fetch origin main; confirm a clean checkout of monaecode/Sai. If the
-   repository is unreachable, post BLOCKED (step 5 format) and stop.
-2. Run scripts/agent-report flush. Report events delivered vs still queued.
-   Never reorder, drop, or fabricate deliveries.
-3. Run scripts/verify-agent-audit origin/main..HEAD and
-   scripts/verify-semantic-hierarchy. Capture exact output.
-4. Run scripts/agent-sync-drive. Report its status
-   (pending/synced/failed/diverged) honestly.
-5. Do the role-specific work your PURPOSE defines, if any, following the six
-   stage contracts under .ai/stages/ with artifacts in .ai/runs/<task-id>/,
-   commit trailers (Task-ID, Agent, Plan, Report-Event), and remote-SHA
-   verification after any push. If your purpose is reporting-only, make no
-   code changes, no commits, no pushes.
-6. Post one message to #agentupdates (channel C0BH15HDN2Z) using the
-   [SAI][VERIFY][<YYYYMMDD-HHMM>-<purpose-slug>-ctr-code-splunky] template from
-   .ai/_config/reporting.yaml, tagging monaecode (U0BGNS7F0T1). If anything failed, use
-   [SAI][BLOCKED][...] with the exact failing output instead.
-7. Hard limits, always: never force-push, merge, close or mark PRs ready,
-   rewrite history, delete shared resources, touch credentials, or use
-   SAI_AUDIT_BYPASS. Human review gates in .ai/_config/security-policy.md
-   are absolute.
-```
+1. `git fetch origin main` — confirm clean checkout of monaecode/Sai.
+2. `scripts/agent-report flush` — report delivered vs queued events.
+3. `scripts/verify-agent-audit origin/main..HEAD` and
+   `scripts/verify-semantic-hierarchy`.
+4. `scripts/agent-sync-drive` — report pending/synced/failed honestly.
+5. Role work only within Splunk clone prototype scope; otherwise stop and
+   report scope refusal.
+6. Post `[SAI][VERIFY]` or `[SAI][BLOCKED]` to `#agentupdates`
+   (`C0BH15HDN2Z`), tagging monaecode (`U0BGNS7F0T1`).
 
-## After creating it
+## Future automation offer
 
-1. Confirm the first manual run posted `[SAI][VERIFY]` to #agentupdates.
-2. Update `.ai/agents/registry.json`: set this agent's `automation` to
-   `"SAI Splunky — Splunk Clone Lead (ctr-code-splunky); <schedule>; created <date>"`
-   (any agent can make this edit on a branch with proper trailers).
+When Claude Code exposes a verified recurring mechanism for this principal,
+record the exact task id, schedule, first successful run, and caveats in
+`hooks.json` and here before changing the registry from `delegated:` to a
+live automation claim. Until then, registry stays delegated to this file.
+
+## Verified capabilities
+
+Authoritative evidence: `.ai/agents/splunky/runtimes/claude/tools.json`.
+Phase 5B (`scripts/agent-verify-caps --environment claude-code-cli`) is
+**pending** — no capabilities are marked `verified` yet; do not list tools
+in automation claims until surveyed.
+
+## Optional Cursor runtime
+
+If monaecode later runs Splunky in Cursor Desktop (`@splunky`), use a
+**separate** optional suite under `runtimes/cursor/` and generate a Cursor
+Automations spec only after a Cursor-specific capability survey. That spec
+must not replace this Claude-primary profile.
