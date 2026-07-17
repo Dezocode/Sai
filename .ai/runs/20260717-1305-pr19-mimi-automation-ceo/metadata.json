@@ -1,0 +1,17 @@
+{
+  "task_id": "20260717-1305-pr19-mimi-automation-ceo",
+  "agent_id": "ceo",
+  "agent_name": "Sai",
+  "runtime": "cursor-cloud-vm",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-556b",
+  "purpose": "Address PR #19 P1: agent-automation-spec must carry forward Mimi verified Claude scheduled-task state",
+  "status": "active",
+  "claimed_files": [
+    "scripts/agent-automation-spec",
+    "scripts/verify-semantic-hierarchy",
+    "scripts/verify-scaffold-safety",
+    ".ai/agents/mimi/automation/profile.md",
+    ".ai/agents/mimi/runtimes/claude/automation/profile.md"
+  ]
+}

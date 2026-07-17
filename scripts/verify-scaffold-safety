@@ -170,6 +170,22 @@ else
   FAILED=1
 fi
 
+# P1 (PR #19): carry forward verified Claude scheduled-task facts (Mimi).
+MIMI_SPEC=$(SAI_AGENT_ID=mimi scripts/agent-automation-spec --suite claude \
+  --agent-id mimi --agent-name Mimi --role-title "Portfolio Project Agent Manager" \
+  --principal "monaecode (U0BGNS7F0T1)" --purpose "regression test purpose" \
+  --tools-file .ai/agents/mimi/runtimes/claude/tools.json \
+  --folder-name mimi --repo monaecode/Sai --stdout 2>&1 || true)
+if echo "$MIMI_SPEC" | grep -q 'session-driven\*\* until'; then
+  echo "FAIL  agent-automation-spec — regressed Mimi to session-driven while scheduled task verified" >&2
+  FAILED=1
+elif echo "$MIMI_SPEC" | grep -q 'mimi-protocol-upkeep'; then
+  echo "PASS  agent-automation-spec — preserves verified Claude scheduled task for Mimi"
+else
+  echo "FAIL  agent-automation-spec — expected mimi-protocol-upkeep in Mimi spec output" >&2
+  FAILED=1
+fi
+
 # P2 (Saul PR #10): guard_json_safe_string must reject all C0 control characters
 # shellcheck source=scripts/lib/agent-path-guards.sh
 . "$REPO_ROOT/scripts/lib/agent-path-guards.sh"

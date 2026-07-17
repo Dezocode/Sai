@@ -135,6 +135,101 @@ else
   TOOLS_SECTION="   - (no --tools-file provided — run scripts/agent-verify-caps first)"
 fi
 
+HOOKS_FILE="$REPO_ROOT/.ai/agents/$FOLDER_SLUG/hooks.json"
+CLAUDE_RUNTIME_TRUTH=""
+CLAUDE_CADENCE_LABEL="Proposed cadence"
+CLAUDE_CADENCE_VALUE="${SCHEDULE} (configure only after verified mechanism)"
+CLAUDE_RECURRING_SECTION=""
+if [ "$SUITE" = "claude" ]; then
+  eval "$(python3 - "$TOOLS_FILE" "$HOOKS_FILE" "$AGENT_NAME" "$SCHEDULE" <<'PY'
+import json, os, shlex, sys
+
+tools_path, hooks_path, agent_name, default_schedule = sys.argv[1:5]
+
+def verified_scheduled_task(tools_path: str):
+    if not tools_path or not os.path.isfile(tools_path):
+        return None
+    doc = json.load(open(tools_path, encoding="utf-8"))
+    for cap in doc.get("capabilities", []):
+        if cap.get("id") == "claude-code-scheduled-task" and cap.get("status") == "verified":
+            return cap
+    return None
+
+def active_hooks_schedule(hooks_path: str):
+    if not hooks_path or not os.path.isfile(hooks_path):
+        return None
+    doc = json.load(open(hooks_path, encoding="utf-8"))
+    for trig in doc.get("automation_triggers", {}).get("required", []):
+        if trig.get("type") == "scheduled" and trig.get("status") == "active":
+            return trig
+    return None
+
+cap = verified_scheduled_task(tools_path)
+hook = active_hooks_schedule(hooks_path)
+
+if cap and hook:
+    task_id = hook.get("task_id") or "scheduled-task"
+    schedule = hook.get("schedule") or default_schedule
+    caveat = hook.get("caveat") or cap.get("evidence", "")
+    verified_at = cap.get("verified_at", "")
+    runtime = (
+        f"Claude Code CLI is {agent_name}'s primary runtime (`claude-code-cli`).\n"
+        f"**Verified live automation:** Claude Code scheduled task `{task_id}` "
+        f"({schedule}). Ad-hoc sessions use the same SAI protocol block below.\n"
+        f"{caveat}\n"
+        "Authoritative trigger truth also lives in `hooks.json`. Do not regress this "
+        "profile to “session-driven until verified” while that capability stays "
+        "`verified` in `runtimes/claude/tools.json`. No Cursor Automations UI step "
+        "is required or valid for this suite."
+    )
+    cadence_label = "Verified cadence"
+    cadence_value = (
+        f"{schedule} — task `{task_id}` (Claude Code scheduled task, verified {verified_at})"
+    )
+    recurring = (
+        "## Verified recurring automation\n\n"
+        f"Live task `{task_id}` on schedule `{schedule}` (recorded in `hooks.json` "
+        "and `runtimes/claude/tools.json` capability `claude-code-scheduled-task`). "
+        "Re-run Phase 5B before changing or removing it:\n\n"
+        "1. `scripts/agent-verify-caps --environment claude-code-cli "
+        "--tools-file .ai/agents/<name>/runtimes/claude/tools.json`\n"
+        "2. Update `hooks.json`, this profile, and the registry `automation` field "
+        "together — never overwrite verified facts with the unverified template.\n"
+        "3. Post `[SAI][VERIFY]` to #agentupdates (`C0BH15HDN2Z`) after the first "
+        "successful scheduled run or any material change."
+    )
+else:
+    runtime = (
+        f"Claude Code CLI is {agent_name}'s primary runtime (`claude-code-cli`).\n"
+        "Automation is **session-driven** until a principal verifies Claude scheduled\n"
+        "tasks or MCP connectors in Phase 5B and records evidence in\n"
+        "`runtimes/claude/tools.json`. No Cursor Automations UI step is required or\n"
+        "valid for this suite."
+    )
+    recurring = (
+        "## Optional recurring automation (after verification)\n\n"
+        "When Claude Code exposes a verified scheduled task or MCP connector:\n\n"
+        "1. Complete Phase 5B:\n"
+        "   `scripts/agent-verify-caps --environment claude-code-cli \\\n"
+        "     --tools-file .ai/agents/<name>/runtimes/claude/tools.json`\n"
+        "2. Record the mechanism in `tools.json` with `status: verified` and\n"
+        "   evidence (see Mimi `claude-code-scheduled-task` capability for format).\n"
+        "3. Update this profile with the task name, cron, and first successful\n"
+        "   `[SAI][VERIFY]` post to #agentupdates (`C0BH15HDN2Z`).\n"
+        "4. Change the registry `automation` field from `delegated:` to the live\n"
+        "   claim only after step 3.\n\n"
+        "Until then, registry stays:\n"
+        "`delegated: .ai/agents/<name>/runtimes/claude/automation/profile.md (...)`."
+    )
+
+print(f"CLAUDE_RUNTIME_TRUTH={shlex.quote(runtime)}")
+print(f"CLAUDE_CADENCE_LABEL={shlex.quote(cadence_label)}")
+print(f"CLAUDE_CADENCE_VALUE={shlex.quote(cadence_value)}")
+print(f"CLAUDE_RECURRING_SECTION={shlex.quote(recurring)}")
+PY
+)"
+fi
+
 # Nested heredoc-in-$(...) is avoided here: bash mis-tracks quote nesting
 # across the substitution boundary when the body has an odd number of
 # unescaped apostrophes (this template's possessives trigger it). `read -d`
@@ -150,11 +245,7 @@ read -r -d '' SPEC <<EOF || true
 
 ## Runtime truth
 
-Claude Code CLI is ${AGENT_NAME}'s primary runtime (\`claude-code-cli\`).
-Automation is **session-driven** until a principal verifies Claude scheduled
-tasks or MCP connectors in Phase 5B and records evidence in
-\`runtimes/claude/tools.json\`. No Cursor Automations UI step is required or
-valid for this suite.
+${CLAUDE_RUNTIME_TRUTH}
 
 | | |
 |---|---|
@@ -164,7 +255,7 @@ valid for this suite.
 | Principal | ${PRINCIPAL} |
 | Repository | \`${REPO}\` (branch \`${BRANCH}\`) |
 | Purpose | ${PURPOSE} |
-| Proposed cadence | ${SCHEDULE} (configure only after verified mechanism) |
+| ${CLAUDE_CADENCE_LABEL} | ${CLAUDE_CADENCE_VALUE} |
 
 ## Invocation
 
@@ -189,22 +280,7 @@ Contractor/isolated worktrees: follow \`entry_points\` in
 5. Post VERIFY/HANDOFF with exact command output; never claim success without
    evidence.
 
-## Optional recurring automation (after verification)
-
-When Claude Code exposes a verified scheduled task or MCP connector:
-
-1. Complete Phase 5B:
-   \`scripts/agent-verify-caps --environment claude-code-cli \\
-     --tools-file .ai/agents/<name>/runtimes/claude/tools.json\`
-2. Record the mechanism in \`tools.json\` with \`status: verified\` and
-   evidence (see Mimi \`claude-code-scheduled-task\` capability for format).
-3. Update this profile with the task name, cron, and first successful
-   \`[SAI][VERIFY]\` post to #agentupdates (\`C0BH15HDN2Z\`).
-4. Change the registry \`automation\` field from \`delegated:\` to the live
-   claim only after step 3.
-
-Until then, registry stays:
-\`delegated: .ai/agents/<name>/runtimes/claude/automation/profile.md (...)\`.
+${CLAUDE_RECURRING_SECTION}
 
 ## Verified capabilities (Claude Code)
 

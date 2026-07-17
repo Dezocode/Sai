@@ -272,6 +272,31 @@ if os.path.exists(".ai/agents/registry.json"):
                                     f"scripts/agent-automation-spec --suite claude for "
                                     f"{claude_prof} (found Cursor Automations UI content)"
                                 )
+                            claude_tools = f"{agent_dir}/runtimes/claude/tools.json"
+                            hooks_path = f"{agent_dir}/hooks.json"
+                            if os.path.exists(claude_tools) and os.path.exists(hooks_path):
+                                try:
+                                    tdoc = json.load(open(claude_tools, encoding="utf-8"))
+                                    hdoc = json.load(open(hooks_path, encoding="utf-8"))
+                                except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                                    fail(f"registry agent[{i}]: cannot parse claude tools/hooks for automation truth ({e})")
+                                else:
+                                    verified_sched = any(
+                                        c.get("id") == "claude-code-scheduled-task"
+                                        and c.get("status") == "verified"
+                                        for c in tdoc.get("capabilities", [])
+                                    )
+                                    active_sched = any(
+                                        t.get("type") == "scheduled" and t.get("status") == "active"
+                                        for t in hdoc.get("automation_triggers", {}).get("required", [])
+                                    )
+                                    if verified_sched and active_sched and "session-driven** until" in ctext:
+                                        fail(
+                                            f"registry agent[{i}]: {claude_prof} regressed to "
+                                            "session-driven template while claude-code-scheduled-task "
+                                            "is verified and hooks.json has an active scheduled trigger "
+                                            "(regenerate with scripts/agent-automation-spec --suite claude)"
+                                        )
             # Uniqueness: no duplicate agent_id, folder, or active name
             if a.get("status") != "retired":
                 aid = a.get("agent_id")

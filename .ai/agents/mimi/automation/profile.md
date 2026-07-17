@@ -8,10 +8,9 @@
 ## Runtime truth
 
 Claude Code CLI is Mimi's primary runtime (`claude-code-cli`).
-Automation is **session-driven** until a principal verifies Claude scheduled
-tasks or MCP connectors in Phase 5B and records evidence in
-`runtimes/claude/tools.json`. No Cursor Automations UI step is required or
-valid for this suite.
+**Verified live automation:** Claude Code scheduled task `mimi-protocol-upkeep` (0 9 * * * (09:01 local, daily)). Ad-hoc sessions use the same SAI protocol block below.
+Runs only while the Claude app is open at fire time; if closed, it runs on next launch instead. This is not an always-on cloud cron.
+Authoritative trigger truth also lives in `hooks.json`. Do not regress this profile to “session-driven until verified” while that capability stays `verified` in `runtimes/claude/tools.json`. No Cursor Automations UI step is required or valid for this suite.
 
 | | |
 |---|---|
@@ -21,7 +20,7 @@ valid for this suite.
 | Principal | monaecode (U0BGNS7F0T1) |
 | Repository | `monaecode/Sai` (branch `main`) |
 | Purpose | Conduct frequent reviews of Slack and github.com/monaecode/Sai; provide organizational leadership so every project under monaecode's fork adheres to the same ICM filesystem and .ai protocols; ensure all Claude agents are properly configured in the SAI agent registry and can communicate and cross-reference GitHub CI; audit all pushes to monaecode/Sai; help monaecode create prototype projects that continually adhere to the overall SAI app tech stack, brought in as isolated child branches on the fork; maintain the index integrity of the #knowledgebase Google Drive memory with proper ICM formatting; and mention people and agents in Slack channels. |
-| Proposed cadence | cron 0 9 * * * (Claude Code scheduled task when verified) (configure only after verified mechanism) |
+| Verified cadence | 0 9 * * * (09:01 local, daily) — task `mimi-protocol-upkeep` (Claude Code scheduled task, verified 2026-07-14) |
 
 ## Invocation
 
@@ -46,22 +45,13 @@ Contractor/isolated worktrees: follow `entry_points` in
 5. Post VERIFY/HANDOFF with exact command output; never claim success without
    evidence.
 
-## Optional recurring automation (after verification)
+## Verified recurring automation
 
-When Claude Code exposes a verified scheduled task or MCP connector:
+Live task `mimi-protocol-upkeep` on schedule `0 9 * * * (09:01 local, daily)` (recorded in `hooks.json` and `runtimes/claude/tools.json` capability `claude-code-scheduled-task`). Re-run Phase 5B before changing or removing it:
 
-1. Complete Phase 5B:
-   `scripts/agent-verify-caps --environment claude-code-cli \
-     --tools-file .ai/agents/<name>/runtimes/claude/tools.json`
-2. Record the mechanism in `tools.json` with `status: verified` and
-   evidence (see Mimi `claude-code-scheduled-task` capability for format).
-3. Update this profile with the task name, cron, and first successful
-   `[SAI][VERIFY]` post to #agentupdates (`C0BH15HDN2Z`).
-4. Change the registry `automation` field from `delegated:` to the live
-   claim only after step 3.
-
-Until then, registry stays:
-`delegated: .ai/agents/<name>/runtimes/claude/automation/profile.md (...)`.
+1. `scripts/agent-verify-caps --environment claude-code-cli --tools-file .ai/agents/<name>/runtimes/claude/tools.json`
+2. Update `hooks.json`, this profile, and the registry `automation` field together — never overwrite verified facts with the unverified template.
+3. Post `[SAI][VERIFY]` to #agentupdates (`C0BH15HDN2Z`) after the first successful scheduled run or any material change.
 
 ## Verified capabilities (Claude Code)
 
