@@ -1,7 +1,7 @@
 {
   "agent_id": "ceo",
   "folder": ".ai/agents/sai",
-  "surveyed_at": "2026-07-15",
+  "surveyed_at": "2026-07-17",
   "environment": "cursor-cloud-vm",
   "tool_categories": {
     "cursor_marketplace": "Slack Send/Read (Automations UI); optional GitHub Comment on PR \u2014 enable only when verified in your environment",
@@ -18,7 +18,7 @@
       "tool": "git",
       "status": "verified",
       "evidence": "git rev-parse --show-toplevel succeeded",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "github-cli",
@@ -27,7 +27,7 @@
       "tool": "gh",
       "status": "verified",
       "evidence": "gh repo view Dezocode/Sai returned name=Sai",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "python3-json",
@@ -36,7 +36,7 @@
       "tool": "python3",
       "status": "verified",
       "evidence": "python3 -c 'import json' succeeded",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "agent-report",
@@ -45,7 +45,7 @@
       "tool": "scripts/agent-report",
       "status": "verified",
       "evidence": "bash -n scripts/agent-report OK",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "verify-semantic-hierarchy",
@@ -54,7 +54,7 @@
       "tool": "scripts/verify-semantic-hierarchy",
       "status": "verified",
       "evidence": "scripts/verify-semantic-hierarchy returned OK",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "verify-agent-audit",
@@ -63,7 +63,7 @@
       "tool": "scripts/verify-agent-audit",
       "status": "verified",
       "evidence": "scripts/verify-agent-audit origin/main..HEAD OK",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "agent-init",
@@ -72,7 +72,7 @@
       "tool": "scripts/agent-init",
       "status": "verified",
       "evidence": "bash -n scripts/agent-init OK",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "agent-scaffold",
@@ -81,7 +81,7 @@
       "tool": "scripts/agent-scaffold",
       "status": "verified",
       "evidence": "bash -n scripts/agent-scaffold OK",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "agent-automation-spec",
@@ -90,7 +90,7 @@
       "tool": "scripts/agent-automation-spec",
       "status": "verified",
       "evidence": "bash -n scripts/agent-automation-spec OK",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "install-agent-hooks",
@@ -99,7 +99,7 @@
       "tool": "scripts/install-agent-hooks",
       "status": "verified",
       "evidence": "bash -n scripts/install-agent-hooks OK",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "agent-sync-drive",
@@ -108,7 +108,7 @@
       "tool": "scripts/agent-sync-drive",
       "status": "verified",
       "evidence": "bash -n scripts/agent-sync-drive OK",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "gh-workflow-view",
@@ -117,7 +117,7 @@
       "tool": "gh workflow view",
       "status": "verified",
       "evidence": "gh workflow view agent-audit --repo Dezocode/Sai succeeded",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "gh-fork-workflow-view",
@@ -126,7 +126,7 @@
       "tool": "gh workflow view (fork)",
       "status": "verified",
       "evidence": "gh workflow view agent-audit --repo monaecode/Sai succeeded",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "slack-send-message",
@@ -135,7 +135,7 @@
       "tool": "slack_send_message",
       "status": "verified",
       "evidence": "Cursor Slack MCP; message param required (not text); channel C0BH15HDN2Z",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "slack-read-channel",
@@ -144,7 +144,7 @@
       "tool": "slack_read_channel",
       "status": "verified",
       "evidence": "Cursor Slack MCP; Phase 3 orientation reads #agentupdates",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "slack-search-channels",
@@ -153,7 +153,7 @@
       "tool": "slack_search_channels",
       "status": "verified",
       "evidence": "Returned #agentupdates C0BH15HDN2Z and #help-newagents C0BH8LCJLDS",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "slack-search-users",
@@ -162,7 +162,7 @@
       "tool": "slack_search_users",
       "status": "verified",
       "evidence": "Cursor Slack MCP available; dezocode U0BHYH0NMCY monaecode U0BGNS7F0T1",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "slack-read-thread",
@@ -171,7 +171,7 @@
       "tool": "slack_read_thread",
       "status": "verified",
       "evidence": "Cursor Slack MCP available for thread reads",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "verify-scaffold-safety",
@@ -180,7 +180,7 @@
       "tool": "scripts/verify-scaffold-safety",
       "status": "verified",
       "evidence": "verify-scaffold-safety OK on Linux and simulated macOS (python3 path fallback)",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "sai-coordination-rule",
@@ -189,7 +189,7 @@
       "tool": ".cursor/rules/sai-coordination.mdc",
       "status": "verified",
       "evidence": "alwaysApply rule present; binds all SAI agents",
-      "verified_at": "2026-07-15"
+      "verified_at": "2026-07-17"
     }
   ]
 }

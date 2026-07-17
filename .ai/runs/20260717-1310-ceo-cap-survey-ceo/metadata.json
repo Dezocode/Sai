@@ -1,0 +1,15 @@
+{
+  "task_id": "20260717-1310-ceo-cap-survey-ceo",
+  "agent": "ceo-automation",
+  "agent_name": "Sai",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/bc-98e5f725-f728-5aea-a4d5-cfc8bd83b5eb-4aa2",
+  "base_sha": "3c5c799",
+  "status": "handoff",
+  "claimed_files": [
+    ".ai/agents/sai/runtimes/cursor/tools.json",
+    ".ai/runs/20260715-2152-cora-init-complete-ctr-admin/events.jsonl",
+    ".ai/runs/20260717-1310-ceo-cap-survey-ceo/"
+  ],
+  "purpose": "Refresh Sai CEO verified capability survey dates; restore verify-scaffold-safety entry dropped by agent-verify-caps rewrite; commit queued SYNC event for Cora init run"
+}
