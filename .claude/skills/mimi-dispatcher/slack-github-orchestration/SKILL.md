@@ -19,8 +19,17 @@ description: >-
   and flushes FIFO when `SAI_SLACK_BOT_TOKEN` is available.
 - **Never claim delivery without the API response / message link.**
   "Queued" and "delivered" are different words; use the right one.
-- Mentions: monaecode `U0BGNS7F0T1`, dezocode `U0BHYH0NMCY`; channels:
-  `#agentupdates` C0BH15HDN2Z, `#help-newagents` C0BH8LCJLDS.
+- **Mentions must be real `<@USER_ID>` mentions — plain-text `@sai` does
+  not notify anyone** (Cora P1 finding, review
+  `20260717-0323-mimi-contract-review-ctr-admin`). Routing table:
+
+  | Notify | Mention | When |
+  |---|---|---|
+  | monaecode (principal) | `<@U0BGNS7F0T1>` | every report |
+  | dezocode (co-founder; Saul/CTO routing) | `<@U0BHYH0NMCY>` | CTO review requests, merge gates |
+  | Sai CEO automation | `<@U0BH7V4145S>` (Cursor bot Sai posts through, until the registry documents a dedicated identity) | VERIFY requests |
+
+  Channels: `#agentupdates` C0BH15HDN2Z, `#help-newagents` C0BH8LCJLDS.
 - **Full-report attachment rule (standing directive, monaecode
   2026-07-17):** every report post links the full report markdown as a
   committed GitHub artifact (run-folder URL on the pushed branch), and

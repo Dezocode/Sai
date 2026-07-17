@@ -26,6 +26,19 @@ monaecode (in-chat, 2026-07-17): connectors github/slack/git-shell →
 report md linked from GitHub in every Slack post + intelligent tagging;
 OSS MCP scouting as proposals only) → `contract.json standing_directives[]`.
 
+## Cora CONTRACT_REVIEW findings (20260717-0323, Slack ts 1784258795) — remediation
+
+- **P1 tagging**: `[SAI][PR]` post used plain `@sai` (no notification).
+  Fixed forward: real-mention routing table added to
+  `slack-github-orchestration/SKILL.md` + project instructions rule 8;
+  corrected thread reply posted with `<@U0BH7V4145S>` / `<@U0BHYH0NMCY>`.
+- **P1 profile drift**: `runtimes/claude/automation/profile.md` was
+  Cursor-framed. Annotated as Claude-primary with the Cursor UI section
+  marked secondary; full regeneration requires `--suite claude`, which
+  lands with PR #19 → rebase + regenerate after #19 merges.
+- **P2 skills.md stale**: dispatcher skills section added, pointing at
+  `.claude/skills/mimi-dispatcher/`.
+
 ## Risks / open items
 
 1. **PR #21 overlap**: identical contract folder (no conflict);

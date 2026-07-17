@@ -1,8 +1,18 @@
-# Cursor automation profile — Mimi (mimi)
+# Automation profile — Mimi (mimi) — CLAUDE-PRIMARY, Cursor-format output
 
+> **Known limitation (Cora CONTRACT_REVIEW
+> `20260717-0323-mimi-contract-review-ctr-admin`, P1):** the current
+> `scripts/agent-automation-spec` emits only the Cursor Automations UI
+> format below; it has no `--suite claude` yet (that lands with PR #19).
+> Mimi's primary runtime is **claude-code-cli** — the *live* automation is
+> the Claude Code scheduled task `mimi-protocol-upkeep` (cron `0 9 * * *`,
+> fires only while the Claude app is open; see `hooks.json`), NOT a Cursor
+> Automation. The Cursor UI walkthrough below is the optional secondary
+> runtime path. Regenerate this file with `--suite claude` once PR #19
+> merges and this branch is rebased.
+>
 > Generated 2026-07-17 by `scripts/agent-automation-spec` for principal
-> **monaecode (U0BGNS7F0T1)**. This is the default automation profile every initialized
-> SAI agent offers its principal. The **Purpose** is specific to this agent's
+> **monaecode (U0BGNS7F0T1)**. The **Purpose** is specific to this agent's
 > role; the **SAI protocol block** in the instructions is identical for all
 > agents, so every automation follows the same Slack, GitHub, and CI
 > protocols.

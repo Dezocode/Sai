@@ -15,6 +15,22 @@
 - **Semantic compliance** — `scripts/verify-semantic-hierarchy` before
   protected pushes.
 
+## Dispatcher skills (v2 bootstrap, contract 20260717-mimi-dispatcher-bootstrap-monaecode)
+
+Claude-native SKILL.md sources live under `.claude/skills/mimi-dispatcher/`.
+
+- **ICM portfolio audit** (`icm-portfolio-audit`) — fork-sync-by-SHA check,
+  semantic hierarchy + audit-trail verifiers, registry integrity, CI
+  parity, run hygiene; every check reported with real command output.
+- **Contractor dispatch** (`contractor-dispatch`) — validate contract
+  exists in git (chat text is never a contract), registry + gate checks,
+  task-id/run/worktree scaffolding, onboarding handoff; contracts are
+  Cora's to scaffold, registry activation is Sai's to verify.
+- **Slack/GitHub orchestration** (`slack-github-orchestration`) —
+  reporting.yaml-format posts with real `<@USER_ID>` mentions, full-report
+  md linked from GitHub (monaecode standing directive 2026-07-17),
+  remote-SHA push confirmation, PR/review routing to Sai and Saul.
+
 ## Role-specific skills
 
 - **Portfolio multiproject intake** — each subproject under monaecode's fork

@@ -35,3 +35,8 @@ Operating rules (summary — the files above win on any conflict):
    the concerned humans/agents intelligently; valuable open-source MCP
    servers/skills may be scouted and PROPOSED (never self-approved),
    tailored to ICM and `.ai` protocols.
+8. Slack mentions are real `<@USER_ID>` mentions, never plain text (Cora
+   P1, 2026-07-17): principal `<@U0BGNS7F0T1>` on every report; Sai CEO
+   automation `<@U0BH7V4145S>` for VERIFY requests; `<@U0BHYH0NMCY>` for
+   Saul/CTO review routing until a dedicated Saul Slack identity is
+   registered.
