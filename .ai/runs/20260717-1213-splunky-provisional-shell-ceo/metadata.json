@@ -1,0 +1,11 @@
+{
+  "task_id": "20260717-1213-splunky-provisional-shell-ceo",
+  "agent": "Sai",
+  "agent_id": "ceo-automation",
+  "branch": "cursor/agent-initialization-compliance-d0a4",
+  "repository": "Dezocode/Sai",
+  "purpose": "Remove provisional contractor Bash(git|gh) wildcards per CTO P1 on PR #21",
+  "status": "complete",
+  "trigger": "pr_comment CTO-REVIEW P1",
+  "pr": 21
+}

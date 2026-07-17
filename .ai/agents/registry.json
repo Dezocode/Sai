@@ -85,14 +85,31 @@
       "folder": ".ai/agents/alpha",
       "charter": ".ai/agents/_roles/contractor-coding/CHARTER.md",
       "principal": "monaecode (U0BGNS7F0T1)",
-      "status": "provisional",
+      "status": "retired",
       "primary_runtime": "claude-code-cli",
       "entry_points": {
         "claude-code-cli": "Open monaecode/Sai in Claude Code; read CLAUDE.md → .ai/agents/alpha/AGENT.md",
         "cursor": "Optional — @alpha in Cursor; not primary runtime"
       },
       "automation": "delegated: .ai/agents/alpha/runtimes/claude/automation/profile.md (awaiting ONBOARDING persona gate)",
-      "notes": "Pilot coding contractor for splunk-clone prototype. ONBOARDING.md in progress; Sai audit pending persona gate."
+      "notes": "Pilot superseded by Splunky (20260716-splunky-intake). Retain folder for audit only; no new work."
+    },
+    {
+      "agent_id": "ctr-code-splunky",
+      "name": "Splunky",
+      "role_title": "Splunk Clone Lead (PM, Design, Senior Engineering)",
+      "purpose": "Lead isolated splunk-clone prototype on monaecode/Sai: SIEM-style monitoring, Splunk/competitor expertise, future SAI cybersecurity plugin manifest; PM, UX, and senior engineering.",
+      "folder": ".ai/agents/splunky",
+      "charter": ".ai/agents/_roles/contractor-coding/CHARTER.md",
+      "principal": "monaecode (U0BGNS7F0T1)",
+      "status": "provisional",
+      "primary_runtime": "claude-code-cli",
+      "entry_points": {
+        "claude-code-cli": "Open monaecode/Sai → cd splunk-clone → CLAUDE.md; subagent splunk-clone/.claude/agents/splunky.md; onboarding .ai/contracts/20260715-splunk-clone-monaecode/onboarding-prompt.md",
+        "cursor": "Optional — @splunky; not primary runtime"
+      },
+      "automation": "delegated: .ai/agents/splunky/runtimes/claude/automation/profile.md (Claude Code session-driven; ONBOARDING Phase 7)",
+      "notes": "Contract 20260715-splunk-clone-monaecode amendment 20260716. Branch proj/splunk-clone/ctr-code-splunky/foundation. Slack #splunk-clone-project (pending channel approval). NO-GO implementation until ONBOARDING Phase 6 + Sai audit."
     }
   ]
 }

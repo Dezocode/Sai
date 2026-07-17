@@ -1,0 +1,20 @@
+{
+  "task_id": "20260716-0643-splunky-contract-intake-ctr-admin",
+  "agent": "ctr-admin",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/splunky-claude-contract-f1d6",
+  "status": "completed",
+  "worktree": "cloud-agent VM workspace (non-synced)",
+  "purpose": "Splunky Claude contract intake and scaffold for monaecode splunk-clone",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "project_slug": "splunk-clone",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "claimed_files": [
+    ".ai/contracts/20260715-splunk-clone-monaecode/",
+    ".ai/agents/splunky/",
+    "splunk-clone/",
+    ".ai/agents/registry.json",
+    ".ai/projects/splunk-clone/"
+  ]
+}
