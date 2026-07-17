@@ -1,0 +1,35 @@
+{
+  "agent_id": "ctr-code-splunky",
+  "git_hooks": {
+    "path": ".githooks",
+    "install": "scripts/install-agent-hooks",
+    "hooks": ["post-checkout", "post-commit", "post-merge", "post-rewrite", "pre-push", "post-push-equivalent.sh"]
+  },
+  "cursor_rules": [".cursor/rules/sai-coordination.mdc"],
+  "reporting_channels": {
+    "agentupdates": "C0BH15HDN2Z",
+    "help_newagents": "C0BH8LCJLDS",
+    "project_splunk_clone": "#splunk-clone-project"
+  },
+  "contract_reporting": {
+    "contract_id": "20260715-splunk-clone-monaecode",
+    "pr_protocol": "PLAN before every PR; VERIFY after every push to #splunk-clone-project"
+  },
+  "automation_triggers": {
+    "required": [{"type": "session", "note": "Claude Code session-driven; no verified scheduled task yet (Phase 5B/7)"}],
+    "optional": [
+      {"type": "slack", "note": "run on mention in #agentupdates"},
+      {"type": "github", "note": "run on PR events"}
+    ]
+  },
+  "ci_enforcement": {
+    "workflow": ".github/workflows/agent-audit.yml",
+    "verifiers": [
+      "scripts/verify-agent-audit",
+      "scripts/verify-semantic-hierarchy",
+      "scripts/verify-merge-handoff"
+    ],
+    "merge_handoff": "scripts/ci-merge-handoff-slack",
+    "icm_reference": "https://arxiv.org/abs/2603.16021"
+  }
+}
