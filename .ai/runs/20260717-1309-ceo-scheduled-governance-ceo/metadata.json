@@ -1,0 +1,12 @@
+{
+  "task_id": "20260717-1309-ceo-scheduled-governance-ceo",
+  "agent_id": "ceo-automation",
+  "agent_name": "Sai",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "purpose": "Scheduled CEO governance VERIFY: hooks/INITIALIZE/CI ICM enforcement",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/bc-6c29e93f-1526-5074-9c46-959e26f411ec-cff0",
+  "base_sha": "3c5c7995d782f1aa537b8c7c0e024fdc9f499446",
+  "status": "verify_complete_reporting_only",
+  "scope": "protocol steps 1-9; no code commits"
+}
