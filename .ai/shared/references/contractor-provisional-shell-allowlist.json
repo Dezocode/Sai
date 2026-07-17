@@ -3,6 +3,7 @@
   "icm_layer": 3,
   "policy": "Replace Bash(git *) and Bash(gh *) wildcards for registry status provisional until contract.json approved_capabilities[] records owner approval for git/gh shell and ONBOARDING Phase 5B verifies runtimes/<suite>/tools.json.",
   "branch_scope_example": "proj/splunk-clone/ctr-code-splunky/*",
+  "push_policy": "Allow only same-name branch pushes under proj/splunk-clone/; deny refspecs (colon), force, delete, and any push targeting main.",
   "bash_allow_patterns": [
     "Bash(git status*)",
     "Bash(git diff*)",
@@ -45,7 +46,18 @@
     "Bash(scripts/agent-contract-pr-review *)",
     "Bash(scripts/agent-init*)"
   ],
+  "bash_deny_patterns": [
+    "Bash(git push *:*)",
+    "Bash(git push --force*)",
+    "Bash(git push -f *)",
+    "Bash(git push origin main*)",
+    "Bash(git push origin --delete*)",
+    "Bash(git push --delete*)"
+  ],
   "hard_review_gates_not_in_allowlist": [
+    "git push origin proj/splunk-clone/ctr-code-splunky/x:main",
+    "git push -u origin proj/splunk-clone/ctr-code-splunky/x:main",
+    "git push origin proj/splunk-clone/ctr-code-splunky/x:refs/heads/main",
     "git push --force",
     "git reset --hard",
     "git clean -fdx",
