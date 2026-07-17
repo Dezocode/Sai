@@ -259,6 +259,19 @@ if os.path.exists(".ai/agents/registry.json"):
                         json.load(open(f"{agent_dir}/hooks.json"))
                     except (json.JSONDecodeError, UnicodeDecodeError) as e:
                         fail(f"registry agent[{i}]: hooks.json invalid JSON ({e})")
+                    if a.get("primary_runtime") == "claude-code-cli":
+                        claude_prof = f"{agent_dir}/runtimes/claude/automation/profile.md"
+                        if os.path.exists(claude_prof):
+                            try:
+                                ctext = open(claude_prof, encoding="utf-8").read()
+                            except OSError as e:
+                                fail(f"registry agent[{i}]: cannot read {claude_prof} ({e})")
+                            if "Create it in Cursor" in ctext or ctext.lstrip().startswith("# Cursor automation profile"):
+                                fail(
+                                    f"registry agent[{i}]: Claude-primary agent must use "
+                                    f"scripts/agent-automation-spec --suite claude for "
+                                    f"{claude_prof} (found Cursor Automations UI content)"
+                                )
             # Uniqueness: no duplicate agent_id, folder, or active name
             if a.get("status") != "retired":
                 aid = a.get("agent_id")
