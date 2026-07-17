@@ -4,8 +4,6 @@
   "includeGitInstructions": true,
   "permissions": {
     "allow": [
-      "Bash(git *)",
-      "Bash(gh *)",
       "Bash(scripts/agent-report *)",
       "Bash(scripts/agent-contract-pr-review *)",
       "Read",
