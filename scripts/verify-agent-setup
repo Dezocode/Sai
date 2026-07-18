@@ -30,6 +30,53 @@ RUNTIME_SUITE = {
     "codex-desktop": "codex",
 }
 
+INIT_TASK_MARKERS = ("agent-initialization", "init-complete", "ceo-activation")
+INIT_COMPLETE_STATUSES = ("completed", "initialized", "published", "published-awaiting-review")
+INIT_INCOMPLETE_STATUS_FRAGMENTS = ("paused", "phases-0-6", "provisional")
+
+
+def phase9_init_evidence(agent_id):
+    """Return task_id when an active agent has Phase 9 initialization evidence."""
+    for meta_path in glob.glob(".ai/runs/*/metadata.json"):
+        try:
+            meta = json.load(open(meta_path))
+        except (json.JSONDecodeError, UnicodeDecodeError, OSError):
+            continue
+        if meta.get("agent") != agent_id:
+            continue
+        task_id = meta.get("task_id") or ""
+        purpose = (meta.get("purpose") or "").lower()
+        if not any(m in task_id for m in INIT_TASK_MARKERS) and "initializ" not in purpose:
+            continue
+        status = (meta.get("status") or "").lower()
+        if any(b in status for b in INIT_INCOMPLETE_STATUS_FRAGMENTS):
+            continue
+        if any(s in status for s in INIT_COMPLETE_STATUSES):
+            return task_id
+        run_dir = os.path.dirname(meta_path)
+        events_path = os.path.join(run_dir, "events.jsonl")
+        if os.path.isfile(events_path):
+            try:
+                for line in open(events_path, encoding="utf-8"):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    ev = json.loads(line)
+                    if ev.get("event_type") == "INTAKE":
+                        return task_id
+            except (json.JSONDecodeError, UnicodeDecodeError, OSError):
+                pass
+        handoff_path = os.path.join(run_dir, "handoff.md")
+        if os.path.isfile(handoff_path):
+            try:
+                text = open(handoff_path, encoding="utf-8").read().lower()
+            except OSError:
+                continue
+            if "phase 9" in text and any(w in text for w in ("complete", "posted", "intake")):
+                return task_id
+    return None
+
+
 def load_tools(agent_dir, manifest):
     cap_rel = manifest.get("canonical_capabilities_path")
     if cap_rel:
@@ -95,6 +142,13 @@ for i, a in enumerate(reg.get("agents", [])):
     if status == "active":
         if not verified:
             fail(f"{aid}: active agent must have >=1 verified capability in {tools_path}")
+        if not aid.startswith("ctr-code-"):
+            init_task = phase9_init_evidence(aid)
+            if not init_task:
+                fail(
+                    f"{aid}: active agent lacks Phase 9 initialization evidence "
+                    f"(need completed init run or INTAKE in .ai/runs/; see INITIALIZE.md)"
+                )
         if require_sdk_smoke and suite == "claude":
             if not any(c.get("id") == "claude-agent-sdk" and c.get("status") == "verified" for c in caps):
                 fail(f"{aid}: SAI_CI_REQUIRE_SDK_SMOKE=1 requires verified claude-agent-sdk in {tools_path}")
@@ -120,10 +174,34 @@ for i, a in enumerate(reg.get("agents", [])):
             if not hooks.get("reporting_channels", {}).get("agentupdates"):
                 fail(f"{aid}: hooks.json missing reporting_channels.agentupdates")
             ci = hooks.get("ci_enforcement", {})
-            if not ci.get("verifiers"):
+            verifiers = ci.get("verifiers") or []
+            if not verifiers:
                 fail(f"{aid}: hooks.json must list ci_enforcement.verifiers")
+            required_verifiers = {
+                "scripts/verify-agent-audit",
+                "scripts/verify-scaffold-safety",
+                "scripts/verify-contract-shell-allowlist",
+                "scripts/verify-agent-setup",
+                "scripts/verify-semantic-hierarchy",
+                "scripts/verify-merge-handoff",
+            }
+            missing = sorted(required_verifiers - set(verifiers))
+            if missing:
+                fail(f"{aid}: hooks.json ci_enforcement.verifiers missing {missing}")
         except (json.JSONDecodeError, UnicodeDecodeError) as e:
             fail(f"{aid}: hooks.json invalid ({e})")
+
+    if suite and suite != "cursor":
+        prof = f"{folder}/runtimes/{suite}/automation/profile.md"
+        if os.path.isfile(prof):
+            try:
+                text = open(prof, encoding="utf-8").read()
+            except OSError as e:
+                fail(f"{aid}: cannot read {prof} ({e})")
+            else:
+                cursor_markers = ("Cursor automation profile", "Create it in Cursor")
+                if any(m in text for m in cursor_markers):
+                    fail(f"{aid}: {prof} is a Cursor Automations template but primary_runtime is {pr}")
 
 # Layer 3 reference must exist when any claude-primary agent is registered
 claude_agents = [a for a in reg.get("agents", []) if RUNTIME_SUITE.get(a.get("primary_runtime")) == "claude" and a.get("status") != "retired"]

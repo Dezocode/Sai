@@ -150,9 +150,10 @@ and know what you can actually do. Guessing is prohibited in both.
    otherwise (common fork/worktree mistake).
 6. Read `.cursor/rules/sai-coordination.mdc` and any role-relevant scripts
    under `scripts/` — your `hooks.json` must reference the rules and hooks
-   you actually run. List every ICM CI verifier under `ci_enforcement.verifiers`
-   (including `scripts/verify-agent-setup`), and set
-   `reporting_channels.agentupdates` to `C0BH15HDN2Z`. Run
+   you actually run. List **every** ICM CI verifier under `ci_enforcement.verifiers`
+   (including `scripts/verify-scaffold-safety`,
+   `scripts/verify-contract-shell-allowlist`, and `scripts/verify-agent-setup`),
+   and set `reporting_channels.agentupdates` to `C0BH15HDN2Z`. Run
    `scripts/verify-agent-setup` locally before claiming Phase 6 complete.
 7. Distill what you learned into your `skills.md` (Phase 6): concrete,
    task-relevant practices with file/run citations — not generic advice.
@@ -205,6 +206,11 @@ of every Cursor tool, MCP server, integration, and skill you will claim:
    `runtimes/<current-suite>/tools.json` only; preserve the canonical primary
    runtime file unless you are executing inside that runtime.
 
+   Optional **`marketplace_skills[]`** in your canonical `tools.json`: list only
+   Cursor/Claude/Codex marketplace skills you actually load and test in Phase 5B,
+   each with `id`, `source`, `status` (`verified`|`unverified`), and evidence.
+   Unverified skills must not appear in automation profiles or #help-newagents.
+
 **Verification:** every claim in your draft inventory carries evidence and
 a date; best-practice notes cite the file or run they came from.
 
@@ -240,7 +246,9 @@ words:
    with path traversal in `--folder-name`, `--folder`, or `--project-slug`.
    Use `--with-memory` (or `--contract-id` for contractors) to create the
    per-agent memory tree under `<folder>/memory/` for durable audit indexing
-   (Drive mirror path recorded in `memory/manifest.json`).
+   (Drive mirror path recorded in `memory/manifest.json`). When `memory/` exists,
+   verify `memory/manifest.json` and `memory/audit/index.json` are valid JSON and
+   that the Drive path matches `.ai/_config/sync-policy.md` before Phase 9.
    Default `--primary-runtime` is `cursor`. This creates
    `.ai/agents/<granted-name>/` (lowercase slug of granted name,
    e.g. `Sai` → `sai`):
@@ -257,10 +265,10 @@ words:
    survey. The semantic verifier rejects agent folders with missing files,
    invalid JSON, or `tools.json` entries marked `verified` without evidence.
 5. Register yourself: add your entry — name, role title, purpose, `folder`,
-   `primary_runtime`, `entry_points` — to `.ai/agents/registry.json`, set
-   `status` to `active` once named, commit with your trailers, include it in
-   your PR. Provisional agents (not yet named) use their agent-id as the
-   folder name and rename when named.
+   `primary_runtime`, `entry_points` — to `.ai/agents/registry.json`. Set
+   `status` to **`provisional`** until Phase 9's INTAKE report is delivered;
+   only then set `status` to **`active`**. Commit with your trailers and include
+   the registry change in your PR.
 6. **CEO obligation:** if you are the CEO agent, verify that
    `.github/workflows/agent-audit.yml` exists on canonical and every fork in
    `.ai/_config/repositories.yaml`, per `.ai/shared/references/icm-ci-policy.md`,
@@ -287,7 +295,9 @@ automation easily and consistently for any role. Two allowed end states: the
 automation **exists** (confirmed by its first run), or the complete profile
 has been **delivered to your principal**. "Unavailable" is not an outcome.
 
-**Cursor agents (default):** generate a Cursor Automations UI profile.
+**Cursor agents (default):** generate a Cursor Automations UI profile via
+`scripts/agent-automation-spec` (Cursor-only — do not run it for Claude Code or
+Codex Desktop primary runtimes).
 **Claude Code agents:** document real scheduled tasks / MCP connectors in
 `runtimes/claude/automation/profile.md` and `hooks.json` — do not claim
 Cursor UI automation as live.
