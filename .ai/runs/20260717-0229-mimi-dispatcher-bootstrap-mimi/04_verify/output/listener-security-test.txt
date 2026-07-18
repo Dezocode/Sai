@@ -1,0 +1,1 @@
+SECURITY TESTS: ALL PASS (fail-closed allowlist + explicit mimi-dispatcher selection)
