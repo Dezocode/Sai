@@ -20,14 +20,15 @@ PRs targeting `main`:
 
 1. **`scripts/verify-agent-audit`** — commit trailers and audit metadata.
 2. **`scripts/verify-scaffold-safety`** — scaffold path guards and contract-review regressions.
-3. **`scripts/verify-agent-setup`** — agent profiles (verified caps, Claude Agent SDK
-   scaffold, contract deliverables, hooks reporting/CI bindings).
-4. **`scripts/verify-semantic-hierarchy`** — ICM layer structure of `.ai/`:
+3. **`scripts/verify-contract-shell-allowlist`** — Phase 5B least-privilege shell allowlists for contractor scripts.
+4. **`scripts/verify-agent-setup`** — agent profiles (verified caps, Claude Agent SDK
+   scaffold, contract deliverables, hooks reporting/CI bindings, runtime profile truth).
+5. **`scripts/verify-semantic-hierarchy`** — ICM layer structure of `.ai/`:
    stage contracts, run grammar, registry, agent folders, no secrets in `.ai/`.
-5. **`scripts/verify-merge-handoff`** — every agent commit in the push
+6. **`scripts/verify-merge-handoff`** — every agent commit in the push
    range maps to a task-id with `handoff.md` or a HANDOFF event; pushes to
    `main` additionally require the tip commit's task-id to have handoff.
-6. **Merge HANDOFF to #agentupdates** — on every push to `main`, CI job
+7. **Merge HANDOFF to #agentupdates** — on every push to `main`, CI job
    `merge-handoff-slack` runs `scripts/ci-merge-handoff-slack` (requires
    `SAI_SLACK_BOT_TOKEN` GitHub secret; when absent, agents must post via
    Cursor Slack MCP or `scripts/agent-report flush`).
