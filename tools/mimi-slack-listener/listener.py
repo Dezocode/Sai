@@ -34,7 +34,9 @@ TIMEOUT_S = int(os.environ.get("MIMI_TIMEOUT_S", "600"))
 MAX_TEXT = int(os.environ.get("MIMI_MAX_TEXT", "2000"))
 ALLOWED_CHANNELS = {
     c for c in os.environ.get("MIMI_ALLOWED_CHANNELS", "").split(",") if c
-}  # empty set = all public channels
+}  # FAIL-CLOSED (Saul P1): an empty allowlist is refused at startup (see
+# __main__). A mention in a channel not in this set is always ignored.
+DISPATCH_AGENT = os.environ.get("MIMI_DISPATCH_AGENT", "mimi-dispatcher")
 SEEN_FILE = os.environ.get("MIMI_SEEN_FILE", os.path.expanduser("~/.mimi-listener-seen"))
 
 app = App(token=os.environ["SLACK_BOT_TOKEN"])
@@ -89,8 +91,17 @@ def _agent_prompt(user: str, channel: str, ts: str, permalink: str, text: str) -
 
 
 def _run_mimi(prompt: str) -> str:
+    # Explicit agent selection (Saul P1): dispatch runs AS the mimi-dispatcher
+    # subagent (its tools allowlist + hooks), not an inherited broad session.
+    # --permission-mode default keeps the repo .claude/settings.json deny list
+    # (force-push guard, destructive-git denies) in force.
     res = subprocess.run(
-        [CLAUDE_BIN, "-p", prompt, "--output-format", "text"],
+        [
+            CLAUDE_BIN, "-p", prompt,
+            "--agent", DISPATCH_AGENT,
+            "--permission-mode", "default",
+            "--output-format", "text",
+        ],
         cwd=REPO,
         capture_output=True,
         text=True,
@@ -114,8 +125,8 @@ def handle_mention(event, say, client, logger):
         return
     if event.get("bot_id"):
         return  # never respond to bots (loop guard)
-    if ALLOWED_CHANNELS and channel not in ALLOWED_CHANNELS:
-        return
+    if channel not in ALLOWED_CHANNELS:
+        return  # FAIL-CLOSED: only explicitly-allowlisted channels dispatch
     info = client.conversations_info(channel=channel).get("channel", {})
     if not info.get("is_channel") or info.get("is_private"):
         return  # public workspace channels only
@@ -153,6 +164,13 @@ if __name__ == "__main__":
     for var in ("SLACK_BOT_TOKEN", "SLACK_APP_TOKEN"):
         if not os.environ.get(var):
             raise SystemExit(f"{var} is required (set in /etc/mimi-listener.env)")
+    # FAIL-CLOSED (Saul P1): refuse to start with an empty channel allowlist —
+    # an empty set must NOT mean "all public channels".
+    if not ALLOWED_CHANNELS:
+        raise SystemExit(
+            "MIMI_ALLOWED_CHANNELS is empty — refusing to start. Set an explicit "
+            "comma-separated channel-ID allowlist (fail-closed)."
+        )
     if not os.path.isdir(os.path.join(REPO, ".git")):
         raise SystemExit(f"MIMI_REPO={REPO} is not a git repository")
     SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"]).start()
