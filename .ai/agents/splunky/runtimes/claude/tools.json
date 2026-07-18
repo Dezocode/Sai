@@ -1,0 +1,7 @@
+{
+  "agent_id": "ctr-code-splunky",
+  "folder": ".ai/agents/splunky",
+  "surveyed_at": "2026-07-16",
+  "environment": "claude-code-cli",
+  "capabilities": []
+}
