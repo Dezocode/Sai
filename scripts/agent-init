@@ -106,8 +106,9 @@ if [ -f ".github/workflows/agent-audit.yml" ] \
    && grep -q "verify-agent-audit" .github/workflows/agent-audit.yml \
    && grep -q "verify-semantic-hierarchy" .github/workflows/agent-audit.yml \
    && grep -q "verify-merge-handoff" .github/workflows/agent-audit.yml \
-   && grep -q "verify-scaffold-safety" .github/workflows/agent-audit.yml; then
-  check "ci-enforcement" PASS "agent-audit.yml runs verify-agent-audit, verify-semantic-hierarchy, verify-merge-handoff, verify-scaffold-safety"
+   && grep -q "verify-scaffold-safety" .github/workflows/agent-audit.yml \
+   && grep -q "verify-agent-setup" .github/workflows/agent-audit.yml; then
+  check "ci-enforcement" PASS "agent-audit.yml runs verify-agent-audit, verify-semantic-hierarchy, verify-merge-handoff, verify-scaffold-safety, verify-agent-setup"
 else
   check "ci-enforcement" FAIL ".github/workflows/agent-audit.yml missing or does not run the required verifiers"
 fi
@@ -117,6 +118,14 @@ if out=$(scripts/verify-semantic-hierarchy 2>&1); then
   check "semantic-hierarchy" PASS "$out"
 else
   check "semantic-hierarchy" FAIL "structure invalid — run scripts/verify-semantic-hierarchy for details"
+  printf '%s\n' "$out" | sed 's/^/      /'
+fi
+
+# 6b. Agent profile setup (caps, hooks, contracts, Claude SDK scaffold)
+if out=$(scripts/verify-agent-setup 2>&1); then
+  check "agent-setup" PASS "$out"
+else
+  check "agent-setup" FAIL "profile/contract gate failed — run scripts/verify-agent-setup for details"
   printf '%s\n' "$out" | sed 's/^/      /'
 fi
 

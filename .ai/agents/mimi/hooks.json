@@ -41,7 +41,8 @@
     "verifiers": [
       "scripts/verify-agent-audit",
       "scripts/verify-semantic-hierarchy",
-      "scripts/verify-merge-handoff"
+      "scripts/verify-merge-handoff",
+      "scripts/verify-agent-setup"
     ],
     "merge_handoff": "scripts/ci-merge-handoff-slack",
     "icm_reference": "https://arxiv.org/abs/2603.16021"

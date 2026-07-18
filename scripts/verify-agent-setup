@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+# verify-agent-setup — CI gate for agent profiles, Claude SDK scaffold, contracts,
+# and capability truth (complements verify-semantic-hierarchy).
+#
+# Usage: verify-agent-setup [repo-root]
+# Env:
+#   SAI_CI_STRICT_CONTRACTS=1  — fail active contracts with empty deliverables (default: 1 in CI)
+#   SAI_CI_REQUIRE_SDK_SMOKE=0 — if 1, active claude-primary agents must list verified claude-agent-sdk
+set -euo pipefail
+
+ROOT=${1:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
+cd "$ROOT"
+STRICT_CONTRACTS="${SAI_CI_STRICT_CONTRACTS:-1}"
+REQUIRE_SDK_SMOKE="${SAI_CI_REQUIRE_SDK_SMOKE:-0}"
+
+python3 - "$STRICT_CONTRACTS" "$REQUIRE_SDK_SMOKE" <<'PY'
+import json, glob, os, sys
+
+strict_contracts = sys.argv[1] == "1"
+require_sdk_smoke = sys.argv[2] == "1"
+fails = []
+
+def fail(msg):
+    fails.append(msg)
+
+RUNTIME_SUITE = {
+    "cursor-desktop": "cursor",
+    "cursor-cloud-vm": "cursor",
+    "claude-code-cli": "claude",
+    "codex-desktop": "codex",
+}
+
+def load_tools(agent_dir, manifest):
+    cap_rel = manifest.get("canonical_capabilities_path")
+    if cap_rel:
+        path = f"{agent_dir}/{cap_rel}"
+    else:
+        path = f"{agent_dir}/tools.json"
+    if not os.path.isfile(path):
+        return None, path
+    try:
+        return json.load(open(path)), path
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        fail(f"{path}: invalid JSON ({e})")
+        return None, path
+
+reg_path = ".ai/agents/registry.json"
+if not os.path.isfile(reg_path):
+    fail("missing registry.json")
+    sys.exit(1 if fails else 0)
+
+reg = json.load(open(reg_path))
+for i, a in enumerate(reg.get("agents", [])):
+    status = a.get("status")
+    if status == "retired":
+        continue
+    aid = a.get("agent_id", f"[{i}]")
+    folder = (a.get("folder") or "").rstrip("/")
+    if not folder.startswith(".ai/agents/"):
+        continue
+    pr = a.get("primary_runtime")
+    suite = RUNTIME_SUITE.get(pr or "")
+
+    manifest_path = f"{folder}/tools.json"
+    if not os.path.isfile(manifest_path):
+        fail(f"{aid}: missing tools.json manifest")
+        continue
+    try:
+        manifest = json.load(open(manifest_path))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        fail(f"{aid}: tools.json invalid ({e})")
+        continue
+
+    tools_doc, tools_path = load_tools(folder, manifest)
+    caps = (tools_doc or {}).get("capabilities", [])
+
+    if suite == "claude":
+        sdk_readme = f"{folder}/runtimes/claude/agent-sdk/README.md"
+        sdk_cfg = f"{folder}/runtimes/claude/agent-sdk/config/agent-options.json"
+        if not os.path.isfile(sdk_readme):
+            fail(f"{aid}: claude-primary agent missing {sdk_readme} (see .ai/shared/references/claude-agent-sdk.md)")
+        if not os.path.isfile(sdk_cfg):
+            fail(f"{aid}: claude-primary agent missing {sdk_cfg}")
+        else:
+            try:
+                json.load(open(sdk_cfg))
+            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                fail(f"{aid}: agent-sdk config invalid JSON ({e})")
+
+    verified = [c for c in caps if c.get("status") == "verified"]
+    for j, c in enumerate(caps):
+        if c.get("status") == "verified" and not (c.get("evidence") or "").strip():
+            fail(f"{aid}: {tools_path} capability[{j}] verified without evidence")
+
+    if status == "active":
+        if not verified:
+            fail(f"{aid}: active agent must have >=1 verified capability in {tools_path}")
+        if require_sdk_smoke and suite == "claude":
+            if not any(c.get("id") == "claude-agent-sdk" and c.get("status") == "verified" for c in caps):
+                fail(f"{aid}: SAI_CI_REQUIRE_SDK_SMOKE=1 requires verified claude-agent-sdk in {tools_path}")
+
+    if status == "provisional" and aid.startswith("ctr-"):
+        for j, c in enumerate(caps):
+            if c.get("status") == "verified" and not (c.get("evidence") or "").strip():
+                fail(f"{aid}: provisional contractor capability[{j}] verified without evidence")
+        hooks_path = f"{folder}/hooks.json"
+        if os.path.isfile(hooks_path):
+            try:
+                hooks = json.load(open(hooks_path))
+                for trig in hooks.get("automation_triggers", {}).get("required", []):
+                    if trig.get("status") == "active" and not trig.get("mechanism") and not trig.get("task_id"):
+                        fail(f"{aid}: hooks.json required trigger marked active without mechanism/task_id")
+            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                fail(f"{aid}: hooks.json invalid ({e})")
+
+    hooks_path = f"{folder}/hooks.json"
+    if status in ("active", "provisional") and os.path.isfile(hooks_path):
+        try:
+            hooks = json.load(open(hooks_path))
+            if not hooks.get("reporting_channels", {}).get("agentupdates"):
+                fail(f"{aid}: hooks.json missing reporting_channels.agentupdates")
+            ci = hooks.get("ci_enforcement", {})
+            if not ci.get("verifiers"):
+                fail(f"{aid}: hooks.json must list ci_enforcement.verifiers")
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            fail(f"{aid}: hooks.json invalid ({e})")
+
+# Layer 3 reference must exist when any claude-primary agent is registered
+claude_agents = [a for a in reg.get("agents", []) if RUNTIME_SUITE.get(a.get("primary_runtime")) == "claude" and a.get("status") != "retired"]
+if claude_agents and not os.path.isfile(".ai/shared/references/claude-agent-sdk.md"):
+    fail("claude-primary agents present but .ai/shared/references/claude-agent-sdk.md missing")
+
+# Active contracts with live contractors must define deliverables
+if strict_contracts:
+    for cpath in sorted(glob.glob(".ai/contracts/*/contract.json")):
+        try:
+            c = json.load(open(cpath))
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            fail(f"{cpath}: invalid JSON ({e})")
+            continue
+        if c.get("status") != "active":
+            continue
+        contractors = c.get("assigned_contractors") or []
+        live = [x for x in contractors if x.get("status") in ("provisional", "active")]
+        if not live:
+            continue
+        dels = c.get("deliverables") or []
+        if not dels:
+            fail(f"{cpath}: active contract with assigned contractors must have non-empty deliverables[] (Cora intake gate)")
+
+# Dispatcher bootstrap contract: if present, must include M0 SDK deliverable
+boot = ".ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/contract.json"
+if os.path.isfile(boot):
+    try:
+        bc = json.load(open(boot))
+        ids = {d.get("id") for d in bc.get("deliverables", [])}
+        if "M0-claude-agent-sdk" not in ids:
+            fail(f"{boot}: missing deliverable M0-claude-agent-sdk")
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        fail(f"{boot}: invalid JSON ({e})")
+
+if fails:
+    for m in fails:
+        print(f"FAIL {m}", file=sys.stderr)
+    print(f"verify-agent-setup: FAILED ({len(fails)} problem(s))", file=sys.stderr)
+    sys.exit(1)
+print("verify-agent-setup: OK")
+PY

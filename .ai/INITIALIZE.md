@@ -150,7 +150,10 @@ and know what you can actually do. Guessing is prohibited in both.
    otherwise (common fork/worktree mistake).
 6. Read `.cursor/rules/sai-coordination.mdc` and any role-relevant scripts
    under `scripts/` — your `hooks.json` must reference the rules and hooks
-   you actually run.
+   you actually run. List every ICM CI verifier under `ci_enforcement.verifiers`
+   (including `scripts/verify-agent-setup`), and set
+   `reporting_channels.agentupdates` to `C0BH15HDN2Z`. Run
+   `scripts/verify-agent-setup` locally before claiming Phase 6 complete.
 7. Distill what you learned into your `skills.md` (Phase 6): concrete,
    task-relevant practices with file/run citations — not generic advice.
 
@@ -260,7 +263,10 @@ words:
    folder name and rename when named.
 6. **CEO obligation:** if you are the CEO agent, verify that
    `.github/workflows/agent-audit.yml` exists on canonical and every fork in
-   `.ai/_config/repositories.yaml`, per `.ai/shared/references/icm-ci-policy.md`.
+   `.ai/_config/repositories.yaml`, per `.ai/shared/references/icm-ci-policy.md`,
+   and that `scripts/verify-agent-setup` is wired in CI (fork parity by commit
+   SHA, not recreated files). Do not enable `SAI_CI_REQUIRE_SDK_SMOKE=1` until
+   Mimi (or the owning agent) records a verified `claude-agent-sdk` capability.
 
 **The `@agentname` convention:** because your folder is named after you,
 anyone can type `@<your-name>` in Cursor Desktop (or reference

@@ -35,6 +35,7 @@ jobs:
           chmod +x scripts/verify-agent-audit scripts/verify-semantic-hierarchy \
                    scripts/verify-merge-handoff scripts/ci-merge-handoff-slack \
                    scripts/verify-scaffold-safety scripts/verify-contract-shell-allowlist \
+                   scripts/verify-agent-setup \
                    scripts/agent-memory-scaffold \
                    scripts/agent-contract-scaffold scripts/agent-contract-pr-review
 
@@ -43,6 +44,12 @@ jobs:
 
       - name: Verify contract shell allowlists (Phase 5B least-privilege)
         run: scripts/verify-contract-shell-allowlist
+
+      - name: Verify agent setup (profiles, SDK scaffold, contracts)
+        env:
+          SAI_CI_STRICT_CONTRACTS: "1"
+          SAI_CI_REQUIRE_SDK_SMOKE: "0"
+        run: scripts/verify-agent-setup
 
       - name: Validate scaffold script syntax
         run: |
@@ -84,8 +91,11 @@ jobs:
           test -f .github/workflows/agent-audit.yml
           test -f .ai/INITIALIZE.md
           test -f .cursor/rules/sai-coordination.mdc
+          test -f scripts/verify-agent-setup
+          test -f .ai/shared/references/claude-agent-sdk.md
           grep -q verify-merge-handoff .github/workflows/agent-audit.yml
           grep -q verify-semantic-hierarchy .github/workflows/agent-audit.yml
+          grep -q verify-agent-setup .github/workflows/agent-audit.yml
           echo "ICM CI files: OK"
 
       - name: Server-side push confirmation
