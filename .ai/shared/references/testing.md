@@ -17,6 +17,7 @@ a change means the checks below that apply to the files touched.
 | Audit metadata | `scripts/verify-agent-audit <range>` |
 | `.ai/**` structure | `scripts/verify-semantic-hierarchy` |
 | Agent profiles, Claude SDK scaffold, contracts | `scripts/verify-agent-setup` |
+| Dispatch matrix (Slack + GitHub per agent) | `scripts/verify-dispatcher-matrix` |
 | Scaffold / contract-review regressions | `scripts/verify-scaffold-safety` |
 
 ## Rules

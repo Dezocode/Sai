@@ -22,12 +22,15 @@ PRs targeting `main`:
 2. **`scripts/verify-scaffold-safety`** — scaffold path guards and contract-review regressions.
 3. **`scripts/verify-agent-setup`** — agent profiles (verified caps, Claude Agent SDK
    scaffold, contract deliverables, hooks reporting/CI bindings).
-4. **`scripts/verify-semantic-hierarchy`** — ICM layer structure of `.ai/`:
+4. **`scripts/verify-dispatcher-matrix`** — dispatch matrix covers every registered
+   agent with Slack + GitHub routing; strict merge gate on mimi/dispatcher PRs
+   (contract `20260718-dispatcher-ci-gate-monaecode`).
+5. **`scripts/verify-semantic-hierarchy`** — ICM layer structure of `.ai/`:
    stage contracts, run grammar, registry, agent folders, no secrets in `.ai/`.
-5. **`scripts/verify-merge-handoff`** — every agent commit in the push
+6. **`scripts/verify-merge-handoff`** — every agent commit in the push
    range maps to a task-id with `handoff.md` or a HANDOFF event; pushes to
    `main` additionally require the tip commit's task-id to have handoff.
-6. **Merge HANDOFF to #agentupdates** — on every push to `main`, CI job
+7. **Merge HANDOFF to #agentupdates** — on every push to `main`, CI job
    `merge-handoff-slack` runs `scripts/ci-merge-handoff-slack` (requires
    `SAI_SLACK_BOT_TOKEN` GitHub secret; when absent, agents must post via
    Cursor Slack MCP or `scripts/agent-report flush`).

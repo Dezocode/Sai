@@ -1,0 +1,132 @@
+{
+  "$comment": "Canonical Slack + GitHub dispatch routing for every registered SAI agent. CI verifies coverage via scripts/verify-dispatcher-matrix.",
+  "matrix_version": "2026-07-18",
+  "contract_ref": "20260718-dispatcher-ci-gate-monaecode",
+  "channels": {
+    "agentupdates": "C0BH15HDN2Z",
+    "help_newagents": "C0BH8LCJLDS",
+    "planning": "C0BGNTQ468P",
+    "dev": "C0BHBGBNMT7"
+  },
+  "repositories": {
+    "canonical": "Dezocode/Sai",
+    "fork": "monaecode/Sai"
+  },
+  "agents": {
+    "ceo": {
+      "name": "Sai",
+      "folder": ".ai/agents/sai",
+      "primary_runtime": "cursor-cloud-vm",
+      "slack": {
+        "mention": "@sai",
+        "channels": ["C0BH15HDN2Z"],
+        "trigger": "Cursor Automation 8d962ddf-7f4e-11f1-ba66-0e7d0216e441 + scheduled protocol upkeep",
+        "report_template": "[SAI][EVENT_TYPE][task-id]"
+      },
+      "github": {
+        "repos": ["Dezocode/Sai", "monaecode/Sai"],
+        "triggers": ["pull_request", "push"],
+        "ci_workflow": ".github/workflows/agent-audit.yml",
+        "entry": "@sai in Cursor or automation on PR/Slack"
+      },
+      "subagent_cli": {
+        "runtime": "cursor",
+        "invocation": "@sai profile attachment in Cursor Desktop",
+        "evidence_tier": "desktop_only"
+      }
+    },
+    "mimi": {
+      "name": "Mimi",
+      "folder": ".ai/agents/mimi",
+      "primary_runtime": "claude-code-cli",
+      "dispatcher": true,
+      "slack": {
+        "mention": "@mimi",
+        "channels": ["C0BH15HDN2Z", "C0BGNTQ468P"],
+        "trigger": "Claude Agent SDK dispatch harness (contract 20260717-mimi-dispatcher-bootstrap-monaecode)",
+        "report_template": "[SAI][EVENT_TYPE][task-id]"
+      },
+      "github": {
+        "repos": ["monaecode/Sai", "Dezocode/Sai"],
+        "triggers": ["issues", "pull_request", "workflow_dispatch"],
+        "ci_workflow": ".github/workflows/agent-audit.yml",
+        "entry": "SDK query() or Claude Desktop subagent mimi-dispatcher"
+      },
+      "subagent_cli": {
+        "runtime": "claude-code-cli",
+        "invocation": "claude --agent mimi-dispatcher or SDK agents.mimi-dispatcher",
+        "subagent_path": ".claude/agents/mimi-dispatcher.md",
+        "sdk_config": ".ai/agents/mimi/runtimes/claude/agent-sdk/config/agent-options.json",
+        "evidence_tier": "desktop_only",
+        "desktop_evidence_run": ".ai/runs/<task-id>/04_verify/output/dispatcher-desktop-proof.txt"
+      }
+    },
+    "dezo-sec-codex1": {
+      "name": "Saul",
+      "folder": ".ai/agents/saul",
+      "primary_runtime": "codex-desktop",
+      "slack": {
+        "mention": "@saul",
+        "channels": ["C0BH15HDN2Z", "C0BHBGBNMT7"],
+        "trigger": "Codex Desktop session + #dev visibility",
+        "report_template": "[SAI][EVENT_TYPE][task-id]"
+      },
+      "github": {
+        "repos": ["Dezocode/Sai"],
+        "triggers": ["pull_request", "push"],
+        "ci_workflow": ".github/workflows/agent-audit.yml",
+        "entry": "CODEX.md → .ai/agents/saul/AGENT.md"
+      },
+      "subagent_cli": {
+        "runtime": "codex-desktop",
+        "invocation": "Open Dezocode/Sai in Codex Desktop",
+        "evidence_tier": "desktop_only"
+      }
+    },
+    "ctr-admin": {
+      "name": "Cora",
+      "folder": ".ai/agents/cora",
+      "primary_runtime": "cursor-cloud-vm",
+      "slack": {
+        "mention": "@cora",
+        "channels": ["C0BH15HDN2Z"],
+        "trigger": "Cursor Desktop @cora profile (automation profile pending)",
+        "report_template": "[SAI][CONTRACT][task-id]"
+      },
+      "github": {
+        "repos": ["Dezocode/Sai", "monaecode/Sai"],
+        "triggers": ["pull_request"],
+        "ci_workflow": ".github/workflows/agent-audit.yml",
+        "entry": "@cora in Cursor Desktop"
+      },
+      "subagent_cli": {
+        "runtime": "cursor",
+        "invocation": "@cora profile attachment in Cursor Desktop",
+        "evidence_tier": "desktop_only"
+      }
+    },
+    "ctr-code-splunk1": {
+      "name": "Alpha",
+      "folder": ".ai/agents/alpha",
+      "primary_runtime": "claude-code-cli",
+      "status_note": "provisional — persona gate pending",
+      "slack": {
+        "mention": "@alpha",
+        "channels": ["C0BH15HDN2Z"],
+        "trigger": "Dispatched by Mimi after splunk-clone contract gates",
+        "report_template": "[SAI][CONTRACT][task-id]"
+      },
+      "github": {
+        "repos": ["monaecode/Sai"],
+        "triggers": ["pull_request"],
+        "branch_prefix": "proj/splunk-clone/ctr-code-splunk1/",
+        "entry": "CLAUDE.md → .ai/agents/alpha/AGENT.md via ONBOARDING"
+      },
+      "subagent_cli": {
+        "runtime": "claude-code-cli",
+        "invocation": "Claude Code session with contract 20260715-splunk-clone-monaecode",
+        "evidence_tier": "desktop_only"
+      }
+    }
+  }
+}

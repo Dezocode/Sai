@@ -265,8 +265,12 @@ words:
    `.github/workflows/agent-audit.yml` exists on canonical and every fork in
    `.ai/_config/repositories.yaml`, per `.ai/shared/references/icm-ci-policy.md`,
    and that `scripts/verify-agent-setup` is wired in CI (fork parity by commit
-   SHA, not recreated files). Do not enable `SAI_CI_REQUIRE_SDK_SMOKE=1` until
-   Mimi (or the owning agent) records a verified `claude-agent-sdk` capability.
+   SHA, not recreated files). Maintain `.ai/_config/dispatch-matrix.json` for
+   every registered agent (Slack + GitHub). PRs touching Mimi dispatcher paths
+   must pass `dispatcher-merge-gate` (verified `claude-agent-sdk` + Desktop
+   proof per `.ai/shared/references/dispatcher-desktop-evidence.md`). Do not
+   enable global `SAI_CI_REQUIRE_SDK_SMOKE=1` until Mimi records verified SDK
+   smoke — the path-filtered merge gate enforces this for dispatcher PRs only.
 
 **The `@agentname` convention:** because your folder is named after you,
 anyone can type `@<your-name>` in Cursor Desktop (or reference
