@@ -153,6 +153,30 @@ Agent: ceo-automation"
   fi
 fi
 
+# P1 (PR #15): post-Phase-5B shell allowlist must not permit git branch deletion.
+BOOTSTRAP=".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json"
+if [ -f "$BOOTSTRAP" ]; then
+  check_pass "claude shell allowlist git branch least-privilege" \
+    python3 "$REPO_ROOT/scripts/lib/verify-claude-shell-allowlist.py" "$BOOTSTRAP"
+fi
+
+# P1 (PR #15): agent-automation-spec must use canonical folder slug in paths,
+# not the display agent name (case-sensitive filesystems).
+SPEC_OUT=$(SAI_AGENT_ID=ctr-code-splunk1 scripts/agent-automation-spec --suite claude \
+  --agent-id ctr-code-splunk1 --agent-name Alpha --role-title "Coding Contractor" \
+  --principal "monaecode (U0BGNS7F0T1)" --purpose "regression test purpose" \
+  --tools-file .ai/agents/alpha/runtimes/claude/tools.json \
+  --repo monaecode/Sai --stdout 2>&1 || true)
+if echo "$SPEC_OUT" | grep -q '.ai/agents/Alpha/'; then
+  echo "FAIL  agent-automation-spec — used display-name path .ai/agents/Alpha/" >&2
+  FAILED=1
+elif echo "$SPEC_OUT" | grep -q '.ai/agents/alpha/AGENT.md'; then
+  echo "PASS  agent-automation-spec — canonical folder slug in generated paths"
+else
+  echo "FAIL  agent-automation-spec — expected .ai/agents/alpha/AGENT.md in output" >&2
+  FAILED=1
+fi
+
 # P2 (Saul PR #10): guard_json_safe_string must reject all C0 control characters
 # shellcheck source=scripts/lib/agent-path-guards.sh
 . "$REPO_ROOT/scripts/lib/agent-path-guards.sh"
