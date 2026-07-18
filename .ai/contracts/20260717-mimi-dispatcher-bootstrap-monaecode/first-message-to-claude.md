@@ -21,7 +21,7 @@ Load immediately (read in order):
 5. `.ai/agents/_roles/portfolio-manager-monaecode/CHARTER.md`
 6. `.ai/_config/reporting.yaml`, `.ai/_config/security-policy.md`
 7. `.cursor/rules/sai-coordination.mdc` (manual read — binding)
-8. Anthropic docs context: [Claude Code subagents](https://docs.anthropic.com/en/docs/claude-code/sub-agents), [settings/hooks/MCP](https://docs.anthropic.com/en/docs/claude-code/settings)
+8. Anthropic docs context: [Claude Code subagents](https://docs.anthropic.com/en/docs/claude-code/sub-agents), [settings/hooks/MCP](https://docs.anthropic.com/en/docs/claude-code/settings), **[Claude Agent SDK](https://docs.claude.com/en/docs/agent-sdk/overview)** and `.ai/shared/references/claude-agent-sdk.md`
 
 Create task-id: `20260717-<HHMM>-mimi-dispatcher-bootstrap-mimi` and folder `.ai/runs/<task-id>/` with `metadata.json` (`agent`: `mimi`, `contract_id` above).
 
@@ -71,7 +71,19 @@ If **@mimi** cannot fire from Slack/GitHub natively in Desktop:
 - Add **stub** workflow `.github/workflows/mimi-dispatch-stub.yml` (comment-only or workflow_dispatch) — **no secrets in repo**.
 - Post `[SAI][BLOCKED]` if blocked; do not claim triggers work.
 
-### 1D. Charter & registry (proposal only)
+### 1E. Claude Agent SDK harness (required — not optional)
+
+Per `.ai/shared/references/claude-agent-sdk.md` and Cora contract scaffolding (2026-07-17):
+
+1. Scaffold `.ai/agents/mimi/runtimes/claude/agent-sdk/` with `@anthropic-ai/claude-agent-sdk` (TypeScript) **or** `claude-agent-sdk` (Python 3.10+).
+2. Implement minimal `query()` runner loading `config/agent-options.json` (hooks, MCP, subagent `mimi-dispatcher`).
+3. Wire **@mimi Slack/GitHub dispatch** through SDK `query()` (OSS webhook bridge allowed; document in `dispatch-triggers.md`).
+4. Smoke test (read-only) → `.ai/runs/<task-id>/04_verify/output/agent-sdk-smoke.txt`.
+5. Add **`claude-agent-sdk`** to `runtimes/claude/tools.json` as **verified** only with smoke evidence.
+
+Subagents (§1A) and Desktop project settings **complement** the SDK; they **do not** satisfy this section alone.
+
+### 1F. Charter & registry (proposal only)
 
 - Write amendment draft: `.ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/amendments/charter-dispatcher-proposal.md`
 - Prepare registry.json diff (purpose + dispatcher notes) — **do not set yourself `active` with new powers** until Sai VERIFY after merge.

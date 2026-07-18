@@ -137,7 +137,7 @@
     }
   ],
   "acceptance_criteria": [
-    "All M1\u2013M6 deliverables exist on bootstrap branch with ICM run artifacts",
+    "All M0\u2013M6 deliverables exist on bootstrap branch with ICM run artifacts",
     "agent-init PASS in monaecode Claude environment (record evidence)",
     "agent-verify-caps: Slack + GitHub MCP or shell gh verified with dates",
     "verify-semantic-hierarchy OK on PR branch",

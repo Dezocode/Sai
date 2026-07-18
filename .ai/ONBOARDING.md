@@ -79,8 +79,17 @@ Never add unapproved capabilities to `tools.json` or `hooks.json`.
 3. Run `scripts/agent-verify-caps` against your runtime tools file.
 4. Update `skills.md` with contract-specific skills backed by evidence.
 5. Loop back to Phase 3 if new candidates emerge from research.
+6. **Claude Code shell allowlists** (when copying `claude-desktop-bootstrap.json`
+   or editing `.claude/settings.json`): never grant `Bash(git branch <prefix>/*)`
+   or other bare `git branch <ref>` wildcards — prefix matchers still permit
+   `git branch <allowed-prefix> -D <victim>`. Use read-only
+   `Bash(git branch --list …)`, `Bash(git branch --show-current)`, and
+   `Bash(git checkout -b …)` for branch creation; keep `-D`/`-d`/`--delete` in
+   `explicitly_excluded`. CI runs `scripts/verify-contract-shell-allowlist` on
+   every push/PR.
 
-**Verification:** `agent-verify-caps` passes; only approved capabilities listed.
+**Verification:** `agent-verify-caps` passes; only approved capabilities listed;
+contract JSON passes `verify-contract-shell-allowlist`.
 
 ## Phase 5 — Mechanical initialization (INITIALIZE subset)
 

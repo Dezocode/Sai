@@ -1,0 +1,9 @@
+{
+  "task_id": "20260717-2051-ceo-scheduled-verify-ceo",
+  "agent": "Sai (ceo-automation)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-ec46",
+  "status": "active",
+  "purpose": "CEO scheduled VERIFY: align INITIALIZE/agent-init with verify-agent-setup CI; fork CI drift report",
+  "trigger": "Slack CHANGE 20260717-2055-ci-agent-setup-gate-ctr-admin + scheduled automation"
+}

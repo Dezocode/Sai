@@ -1,0 +1,7 @@
+{
+  "$comment": "Provisional scaffold — expand after ONBOARDING Phase 3 MCP approval",
+  "reference": ".ai/shared/references/claude-agent-sdk.md",
+  "agent_id": "ctr-code-splunk1",
+  "allowedTools": ["Read", "Glob", "Grep"],
+  "settingSources": []
+}

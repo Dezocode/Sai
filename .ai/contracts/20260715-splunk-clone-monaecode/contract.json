@@ -5,34 +5,152 @@
   "principal": "monaecode (U0BGNS7F0T1)",
   "contractor_type": "coding",
   "isolation_mode": "prototype",
+  "integration_plan": {
+    "phase": "post-mvp",
+    "target": "SAI umbrella plugin for parental cybersecurity and network status monitoring",
+    "compatibility_layer": "sai-mac-ios-android",
+    "gate": "Separate integration contract + Saul/Mimi compatibility review before any import from splunk-clone/ into core SAI"
+  },
   "primary_runtime": "claude-code-cli",
+  "claude_desktop": {
+    "invoke": "Open monaecode/Sai in Claude Code; cd splunk-clone; set settings agent to splunky or invoke @splunky subagent",
+    "project_agent_path": "splunk-clone/.claude/agents/splunky.md",
+    "settings_path": "splunk-clone/.claude/settings.json",
+    "bootstrap_json": ".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json"
+  },
   "compatibility_layer": "sai-mac-ios-android",
   "repository": "monaecode/Sai",
+  "product_root": "splunk-clone/",
   "branch_prefix": "proj/splunk-clone/",
-  "slack_channel": "#proj-splunk-clone",
+  "slack_channel": "#splunk-clone-project",
+  "slack_pr_protocol": "Post PLAN summary to #splunk-clone-project before opening or updating every PR; post VERIFY summary after push with PR link and agent-contract-pr-review outcome.",
   "acceptance_criteria": [
-    "Deliverables match contract scope and claimed files",
-    "ICM run artifacts complete for every executed stage",
-    "scripts/agent-contract-pr-review PASS on every PR"
+    "All deliverables in deliverables[] exist under splunk-clone/ or documented paths with evidence in contract reviews",
+    "Splunk-competitive feature matrix covers Splunk Enterprise/Cloud, Elastic Security, Wazuh, Graylog, Microsoft Sentinel, and open-source SIEM patterns with cited sources in splunk-clone/docs/",
+    "Ingest → index → search → dashboard → alert pipeline demonstrable locally or via documented mock/staging",
+    "No runtime dependency on unpublished SAI application code; integration only via splunk-clone/docs/integration-manifest.md interfaces",
+    "ICM run artifacts complete for every executed stage under .ai/runs/<task-id>/ with contract_id and compatibility_layer in metadata.json",
+    "scripts/agent-contract-pr-review overall pass (not pending_manual) on every contractor PR after deliverables are defined",
+    "Claude agent splunky invocable by name (project .claude/agents/splunky.md + verified runtimes/claude/tools.json after ONBOARDING)",
+    "Slack PR protocol evidenced in #splunk-clone-project (or queued agent-report events if channel pending)"
   ],
-  "deliverables": [],
+  "deliverables": [
+    {
+      "id": "D1-competitive-matrix",
+      "title": "SIEM competitive landscape & Splunk feature parity map",
+      "path": "splunk-clone/docs/competitive-landscape.md",
+      "description": "Expert-level comparison: Splunk (Search, SPL, CIM, ES, ITSI, forwarders, indexes, apps, dashboards, alerts, RBAC, data models) vs Elastic Security, Wazuh, Graylog, Sentinel, QRadar patterns; recommended MVP subset for SAI plugin."
+    },
+    {
+      "id": "D2-architecture",
+      "title": "Prototype architecture & data model",
+      "path": "splunk-clone/docs/architecture.md",
+      "description": "Components, deployment topology, index/time-series strategy, schema for security and network telemetry, extension points for future SAI parent app."
+    },
+    {
+      "id": "D3-ingest",
+      "title": "Log/telemetry ingestion layer",
+      "path": "splunk-clone/src/ingest/",
+      "description": "Forwarder/agent or API ingest, parsing, enrichment, backpressure; sample sources (syslog, JSON, cloud audit stubs)."
+    },
+    {
+      "id": "D4-search",
+      "title": "Search & query layer",
+      "path": "splunk-clone/src/search/",
+      "description": "Structured search API or SPL-inspired query language; saved searches; performance notes."
+    },
+    {
+      "id": "D5-dashboards",
+      "title": "Security & network status dashboards",
+      "path": "splunk-clone/src/ui/",
+      "description": "Ops dashboards: auth failures, anomaly tiles, network health, asset inventory views; UX lead deliverable."
+    },
+    {
+      "id": "D6-alerts",
+      "title": "Alerting & correlation",
+      "path": "splunk-clone/src/alerts/",
+      "description": "Threshold/ correlation rules, notification hooks, runbook links."
+    },
+    {
+      "id": "D7-integration-manifest",
+      "title": "Future SAI plugin integration manifest",
+      "path": "splunk-clone/docs/integration-manifest.md",
+      "description": "Stable API/events contract for plugging into SAI umbrella; explicitly no implementation in core repo until approved."
+    },
+    {
+      "id": "D8-claude-agent",
+      "title": "Claude-native Splunky agent (skills, hooks, MCP plan)",
+      "path": "splunk-clone/.claude/",
+      "description": "Subagent splunky.md, project skills, settings.json hooks for PR/Slack discipline; ICM mirror at .ai/agents/splunky/."
+    },
+    {
+      "id": "D9-tests-ci",
+      "title": "Tests and project CI",
+      "path": "splunk-clone/",
+      "description": "Automated tests for ingest/search/alerts; CI workflow scoped to splunk-clone paths on contractor branch."
+    }
+  ],
+  "proposed_capabilities": [
+    {
+      "name": "github",
+      "type": "mcp",
+      "rationale": "PRs, issues, Actions on monaecode/Sai contractor branches",
+      "status": "proposed"
+    },
+    {
+      "name": "slack",
+      "type": "mcp",
+      "rationale": "#splunk-clone-project PR before/after protocol",
+      "status": "proposed"
+    },
+    {
+      "name": "git/gh",
+      "type": "shell",
+      "rationale": "Branch proj/splunk-clone/ctr-code-splunky/*, worktree isolation",
+      "status": "proposed"
+    },
+    {
+      "name": "sai-agent-report",
+      "type": "script",
+      "rationale": "Fallback queue when Slack token unavailable",
+      "status": "proposed"
+    },
+    {
+      "name": "splunk-siem-expertise",
+      "type": "skill",
+      "path": "splunk-clone/.claude/skills/splunk-siem-expertise/",
+      "rationale": "Domain skill for Splunk/competitor best practices",
+      "status": "proposed"
+    },
+    {
+      "name": "sai-icm-contract",
+      "type": "skill",
+      "path": "splunk-clone/.claude/skills/sai-icm-contract/",
+      "rationale": "ICM stages, trailers, contract-pr-review",
+      "status": "proposed"
+    }
+  ],
   "approved_capabilities": [],
   "assigned_contractors": [
     {
-      "agent_id": "ctr-code-splunk1",
-      "folder": ".ai/agents/alpha",
-      "branch": "proj/splunk-clone/ctr-code-splunk1/pilot-intake",
-      "status": "provisional"
+      "agent_id": "ctr-code-splunky",
+      "name": "Splunky",
+      "folder": ".ai/agents/splunky",
+      "branch": "proj/splunk-clone/ctr-code-splunky/foundation",
+      "status": "provisional",
+      "roles": ["project_manager", "lead_designer", "senior_software_engineer"]
     },
     {
-      "agent_id": "ctr-code-splunk2",
-      "branch": "proj/splunk-clone/ctr-code-splunk2/ingest-pipeline",
-      "status": "provisional",
-      "note": "Second contractor slot — unique branch, same project_slug"
+      "agent_id": "ctr-code-splunk1",
+      "name": "Alpha",
+      "folder": ".ai/agents/alpha",
+      "status": "superseded",
+      "note": "Pilot slot; superseded by Splunky intake 20260716 — do not assign new work"
     }
   ],
   "status": "active",
   "created_at": "2026-07-15T16:24:14Z",
   "created_by": "ctr-admin",
-  "contract_admin_agent_id": "ctr-admin"
+  "contract_admin_agent_id": "ctr-admin",
+  "last_amended": "2026-07-16T06:43:00Z"
 }

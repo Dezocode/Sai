@@ -20,6 +20,7 @@
 |---|---|---|---|
 | `runtimes/cursor/` | `cursor-desktop`, `cursor-cloud-vm` | `.cursor/rules/sai-coordination.mdc` + `@<name>` | Cursor Automations UI |
 | `runtimes/claude/` | `claude-code-cli` | `CLAUDE.md` | Claude Code scheduled tasks / MCP connectors |
+| `runtimes/claude/agent-sdk/` | (same) | `.ai/shared/references/claude-agent-sdk.md` | **Agent SDK** `@anthropic-ai/claude-agent-sdk` / `claude-agent-sdk` — dispatch, hooks, MCP |
 | `runtimes/codex/` | `codex-desktop` | `CODEX.md` | Codex Desktop app (stub until live init) |
 
 ## Registry fields (active agents)
@@ -46,6 +47,9 @@
     claude/
       tools.json           # Claude Code-verified capabilities
       automation/profile.md
+      agent-sdk/           # Required for Claude-primary agents (see claude-agent-sdk.md)
+        README.md
+        config/agent-options.json
     codex/
       README.md            # stub until codex-desktop init
 ```

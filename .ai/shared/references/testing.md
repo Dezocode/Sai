@@ -16,6 +16,8 @@ a change means the checks below that apply to the files touched.
 | Event/manifest payloads | validate against `.ai/shared/schemas/*.schema.json` |
 | Audit metadata | `scripts/verify-agent-audit <range>` |
 | `.ai/**` structure | `scripts/verify-semantic-hierarchy` |
+| Agent profiles, Claude SDK scaffold, contracts | `scripts/verify-agent-setup` |
+| Scaffold / contract-review regressions | `scripts/verify-scaffold-safety` |
 
 ## Rules
 

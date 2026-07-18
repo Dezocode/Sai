@@ -25,6 +25,10 @@ Paste **`first-message-to-claude.md`** from this folder as the **first chat mess
 - New contractors: always **Cora** (`ctr-admin`).
 - **Splunky** contract is **not** proof this contract succeeded — it is a **post-fulfillment PoC** only.
 
+## Claude Agent SDK (required)
+
+Mimi dispatcher automation **must** include the [Claude Agent SDK](https://docs.claude.com/en/docs/agent-sdk/overview) harness per `.ai/shared/references/claude-agent-sdk.md` (deliverable **M0**). `.claude/agents/*.md` alone does not satisfy @mimi Slack/GitHub dispatch requirements.
+
 ## Mandatory MCP (propose → monaecode approves → verify → tools.json)
 
 - GitHub (PRs, checks, comments)
