@@ -69,6 +69,12 @@ reason if declined).
 
 Never add unapproved capabilities to `tools.json` or `hooks.json`.
 
+While `registry.json` lists you as **`provisional`**, Claude Code
+`permissions.allow` must not include blanket `Bash(gh *)`. Use the explicit
+read/PR-open allowlist in
+`.ai/shared/references/contractor-claude-gh-permissions.md` (enforced by
+`scripts/verify-scaffold-safety`).
+
 **Verification:** every candidate has an owner decision on record.
 
 ## Phase 4 — Self-improve contract and profile

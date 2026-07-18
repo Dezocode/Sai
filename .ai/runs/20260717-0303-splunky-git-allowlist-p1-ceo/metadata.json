@@ -1,0 +1,15 @@
+{
+  "task_id": "20260717-0303-splunky-git-allowlist-p1-ceo",
+  "agent": "ceo-automation",
+  "agent_folder": "sai",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-b2bd",
+  "status": "complete",
+  "purpose": "P1 CTO review: replace Bash(git *) with least-privilege git allow/deny in Splunky Claude settings",
+  "claimed_files": [
+    ".ai/shared/references/claude-code-git-bash-allowlist.json",
+    "splunk-clone/.claude/settings.json",
+    ".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json",
+    ".ai/runs/20260717-0303-splunky-git-allowlist-p1-ceo/"
+  ]
+}

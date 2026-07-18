@@ -1,0 +1,52 @@
+{
+  "agent_id": "ctr-code-splunky",
+  "git_hooks": {
+    "path": ".githooks",
+    "install": "scripts/install-agent-hooks",
+    "hooks": ["post-checkout", "post-commit", "post-merge", "post-rewrite", "pre-push", "post-push-equivalent.sh"]
+  },
+  "cursor_rules": [".cursor/rules/sai-coordination.mdc"],
+  "reporting_channels": {
+    "agentupdates": "C0BH15HDN2Z",
+    "help_newagents": "C0BH8LCJLDS",
+    "project_splunk_clone": "#splunk-clone-project"
+  },
+  "contract_reporting": {
+    "contract_id": "20260715-splunk-clone-monaecode",
+    "pr_protocol": "PLAN before every PR; VERIFY after every push to #splunk-clone-project"
+  },
+  "automation_triggers": {
+    "primary_runtime": "claude-code-cli",
+    "live": [],
+    "required": [
+      {
+        "type": "session-driven",
+        "note": "Open monaecode/Sai in Claude Code; load splunk-clone/CLAUDE.md and .ai/agents/splunky/AGENT.md. No unattended trigger verified as of 2026-07-16."
+      }
+    ],
+    "optional_future": [
+      {
+        "type": "claude-scheduled-task",
+        "note": "Only after create_scheduled_task is verified in runtimes/claude/tools.json and documented in runtimes/claude/automation/profile.md"
+      },
+      {"type": "slack", "note": "Not built — requires external webhook; do not claim"},
+      {"type": "github", "note": "Not built — requires Action/webhook; do not claim"}
+    ],
+    "forbidden": [
+      {
+        "type": "cursor-automations-ui",
+        "note": "Splunky primary runtime is Claude Code; Cursor Automations profile must not replace runtimes/claude/automation/profile.md"
+      }
+    ]
+  },
+  "ci_enforcement": {
+    "workflow": ".github/workflows/agent-audit.yml",
+    "verifiers": [
+      "scripts/verify-agent-audit",
+      "scripts/verify-semantic-hierarchy",
+      "scripts/verify-merge-handoff"
+    ],
+    "merge_handoff": "scripts/ci-merge-handoff-slack",
+    "icm_reference": "https://arxiv.org/abs/2603.16021"
+  }
+}
