@@ -299,23 +299,28 @@ Cursor UI automation as live.
    scripts/agent-automation-spec --agent-id <your-agent-id> \
      --agent-name "<granted-name>" --role-title "<granted role title>" \
      --principal "<your principal>" --purpose "<confirmed purpose>" \
-     --tools-file .ai/agents/<granted-name>/runtimes/<suite>/tools.json \
+     --tools-file .ai/agents/<folder-slug>/runtimes/<suite>/tools.json \
+     --folder-name <folder-slug> \
      --repo <owner/repo per your charter> --schedule "<proposed cadence>" \
-     --out .ai/agents/<granted-name>/runtimes/<suite>/automation/profile.md
+     --out .ai/agents/<folder-slug>/runtimes/<suite>/automation/profile.md
    ```
    Copy or symlink to `automation/profile.md` for legacy verifier paths.
-   For Cursor, `<suite>` is `cursor`. For Claude Code, `<suite>` is `claude`.
-   The profile matches the actual Cursor Automations UI (Name, repository
-   selector, **Scheduled** trigger plus optional Slack/GitHub triggers,
-   **Agent Instructions** verbatim, model note, **Tools** section listing
-   required Slack tools plus only your `verified` capabilities, Save →
-   Activate → first-run confirmation). The purpose section is
-   role-specific; the SAI protocol block is identical for every agent, so
-   all automations follow the same Slack, GitHub, and CI protocols.
+   For Cursor, `<suite>` is `cursor` and the profile matches the Cursor
+   Automations UI. For Claude Code, `<suite>` is `claude` and you **must** pass
+   `--suite claude` so the output documents session/scheduled-task protocol —
+   never Cursor Automations steps.
+   ```bash
+   scripts/agent-automation-spec --suite claude ... \
+     --out .ai/agents/<folder-slug>/runtimes/claude/automation/profile.md
+   ```
+   The purpose section is role-specific; the SAI protocol block is identical
+   for every agent, so all automations follow the same Slack, GitHub, and CI
+   protocols.
 2. Commit the profile with your trailers and include it in your PR.
-3. **Offer it**: post the settings and full Agent Instructions block to
-   #agentupdates, tagging your principal, so it can be pasted into
-   Cursor → Automations without opening the repository.
+3. **Offer it**: post invocation steps to #agentupdates, tagging your principal.
+   Cursor agents: paste Agent Instructions into Cursor → Automations.
+   Claude agents: deliver this profile and entry-point paths — do not open
+   Cursor Automations.
 4. Record the state in your registry entry: the real automation name,
    schedule, and creation date once the first run's `[SAI][VERIFY]` message
    is confirmed; otherwise
