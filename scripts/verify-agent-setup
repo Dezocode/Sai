@@ -120,10 +120,34 @@ for i, a in enumerate(reg.get("agents", [])):
             if not hooks.get("reporting_channels", {}).get("agentupdates"):
                 fail(f"{aid}: hooks.json missing reporting_channels.agentupdates")
             ci = hooks.get("ci_enforcement", {})
-            if not ci.get("verifiers"):
+            verifiers = ci.get("verifiers") or []
+            if not verifiers:
                 fail(f"{aid}: hooks.json must list ci_enforcement.verifiers")
+            required_verifiers = {
+                "scripts/verify-agent-audit",
+                "scripts/verify-scaffold-safety",
+                "scripts/verify-contract-shell-allowlist",
+                "scripts/verify-agent-setup",
+                "scripts/verify-semantic-hierarchy",
+                "scripts/verify-merge-handoff",
+            }
+            missing = sorted(required_verifiers - set(verifiers))
+            if missing:
+                fail(f"{aid}: hooks.json ci_enforcement.verifiers missing {missing}")
         except (json.JSONDecodeError, UnicodeDecodeError) as e:
             fail(f"{aid}: hooks.json invalid ({e})")
+
+    if suite and suite != "cursor":
+        prof = f"{folder}/runtimes/{suite}/automation/profile.md"
+        if os.path.isfile(prof):
+            try:
+                text = open(prof, encoding="utf-8").read()
+            except OSError as e:
+                fail(f"{aid}: cannot read {prof} ({e})")
+            else:
+                cursor_markers = ("Cursor automation profile", "Create it in Cursor")
+                if any(m in text for m in cursor_markers):
+                    fail(f"{aid}: {prof} is a Cursor Automations template but primary_runtime is {pr}")
 
 # Layer 3 reference must exist when any claude-primary agent is registered
 claude_agents = [a for a in reg.get("agents", []) if RUNTIME_SUITE.get(a.get("primary_runtime")) == "claude" and a.get("status") != "retired"]
