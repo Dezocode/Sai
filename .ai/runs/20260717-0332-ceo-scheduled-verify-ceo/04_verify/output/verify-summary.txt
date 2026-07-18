@@ -1,0 +1,6 @@
+verify-agent-audit origin/main..HEAD: OK
+verify-semantic-hierarchy: OK
+agent-init: AGENT-INIT PASS
+agent-verify-caps (ceo cursor tools.json): exit 0
+monaecode/Sai agent-audit workflow: active
+gh run 29552518131: FAIL verify-semantic-hierarchy (missing 05_review on mimi dispatcher run)

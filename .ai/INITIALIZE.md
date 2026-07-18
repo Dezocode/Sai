@@ -143,7 +143,11 @@ and know what you can actually do. Guessing is prohibited in both.
    disagree, trust the codebase and propose a memory fix via PR.
 5. Read the two most recent completed runs in `.ai/runs/` (verification and
    handoff files) — they show how work is actually done here, including
-   mistakes already made so you do not repeat them.
+   mistakes already made so you do not repeat them. When you create run
+   artifacts, follow `.ai/runs/README.md`: if a stage writes under
+   `06_publish_sync/output/`, you must also have `04_verify/output/` and
+   `05_review/output/` — `scripts/verify-semantic-hierarchy` fails CI
+   otherwise (common fork/worktree mistake).
 6. Read `.cursor/rules/sai-coordination.mdc` and any role-relevant scripts
    under `scripts/` — your `hooks.json` must reference the rules and hooks
    you actually run.
