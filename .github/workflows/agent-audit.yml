@@ -35,7 +35,7 @@ jobs:
           chmod +x scripts/verify-agent-audit scripts/verify-semantic-hierarchy \
                    scripts/verify-merge-handoff scripts/ci-merge-handoff-slack \
                    scripts/verify-scaffold-safety scripts/verify-contract-shell-allowlist \
-                   scripts/verify-agent-setup \
+                   scripts/verify-agent-setup scripts/verify-dispatcher-matrix \
                    scripts/agent-memory-scaffold \
                    scripts/agent-contract-scaffold scripts/agent-contract-pr-review
 
@@ -44,6 +44,9 @@ jobs:
 
       - name: Verify contract shell allowlists (Phase 5B least-privilege)
         run: scripts/verify-contract-shell-allowlist
+
+      - name: Verify dispatch matrix (all registered agents)
+        run: scripts/verify-dispatcher-matrix
 
       - name: Verify agent setup (profiles, SDK scaffold, contracts)
         env:
@@ -92,10 +95,14 @@ jobs:
           test -f .ai/INITIALIZE.md
           test -f .cursor/rules/sai-coordination.mdc
           test -f scripts/verify-agent-setup
+          test -f scripts/verify-dispatcher-matrix
+          test -f .ai/_config/dispatch-matrix.json
           test -f .ai/shared/references/claude-agent-sdk.md
+          test -f .ai/shared/references/dispatcher-desktop-evidence.md
           grep -q verify-merge-handoff .github/workflows/agent-audit.yml
           grep -q verify-semantic-hierarchy .github/workflows/agent-audit.yml
           grep -q verify-agent-setup .github/workflows/agent-audit.yml
+          grep -q verify-dispatcher-matrix .github/workflows/agent-audit.yml
           echo "ICM CI files: OK"
 
       - name: Server-side push confirmation
@@ -103,6 +110,46 @@ jobs:
         run: |
           echo "Server-side confirmation: ref=${{ github.ref }} sha=${{ github.sha }} pusher=${{ github.actor }}"
           echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+  dispatcher-merge-gate:
+    needs: icm-enforcement
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect dispatcher-related PR paths
+        id: paths
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD" || true)
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -qE '^(\.ai/agents/mimi/|\.claude/|\.ai/contracts/.*dispatcher|\.ai/_config/dispatch-matrix\.json)'; then
+            echo "dispatch=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "dispatch=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install script permissions
+        if: steps.paths.outputs.dispatch == 'true'
+        run: chmod +x scripts/verify-dispatcher-matrix scripts/verify-agent-setup
+
+      - name: Dispatcher merge gate (Desktop proof + SDK smoke)
+        if: steps.paths.outputs.dispatch == 'true'
+        env:
+          SAI_CI_DISPATCH_MERGE_GATE: "1"
+          SAI_CI_REQUIRE_SDK_SMOKE: "1"
+          SAI_CI_STRICT_CONTRACTS: "1"
+        run: |
+          scripts/verify-dispatcher-matrix
+          scripts/verify-agent-setup
+
+      - name: Skip dispatcher merge gate (no dispatcher paths)
+        if: steps.paths.outputs.dispatch != 'true'
+        run: echo "dispatcher-merge-gate: skipped (no mimi/dispatcher paths in PR diff)"
 
   merge-handoff-slack:
     needs: icm-enforcement

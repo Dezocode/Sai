@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# verify-dispatcher-matrix — CI gate for Slack+GitHub dispatch routing coverage.
+#
+# Usage: verify-dispatcher-matrix [repo-root]
+# Env:
+#   SAI_CI_DISPATCH_MERGE_GATE=0  — if 1, strict gate before mimi/dispatcher merge
+#                                   (requires verified claude-agent-sdk + desktop proof manifest)
+set -euo pipefail
+
+ROOT=${1:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
+cd "$ROOT"
+MERGE_GATE="${SAI_CI_DISPATCH_MERGE_GATE:-0}"
+
+python3 - "$MERGE_GATE" <<'PY'
+import json, glob, os, sys
+
+merge_gate = sys.argv[1] == "1"
+fails = []
+
+def fail(msg):
+    fails.append(msg)
+
+matrix_path = ".ai/_config/dispatch-matrix.json"
+if not os.path.isfile(matrix_path):
+    fail(f"missing {matrix_path}")
+    sys.exit(1 if fails else 0)
+
+try:
+    matrix = json.load(open(matrix_path))
+except (json.JSONDecodeError, UnicodeDecodeError) as e:
+    fail(f"{matrix_path}: invalid JSON ({e})")
+    sys.exit(1)
+
+agents_map = matrix.get("agents") or {}
+if not agents_map:
+    fail(f"{matrix_path}: agents map empty")
+
+reg_path = ".ai/agents/registry.json"
+if not os.path.isfile(reg_path):
+    fail("missing registry.json")
+else:
+    reg = json.load(open(reg_path))
+    for a in reg.get("agents", []):
+        if a.get("status") == "retired":
+            continue
+        aid = a.get("agent_id")
+        if not aid:
+            continue
+        if aid not in agents_map:
+            fail(f"dispatch-matrix missing registry agent_id={aid!r}")
+            continue
+        entry = agents_map[aid]
+        folder = (a.get("folder") or "").rstrip("/")
+        if entry.get("folder", "").rstrip("/") != folder:
+            fail(f"{aid}: matrix folder {entry.get('folder')!r} != registry {folder!r}")
+        slack = entry.get("slack") or {}
+        gh = entry.get("github") or {}
+        if not slack.get("mention"):
+            fail(f"{aid}: slack.mention required")
+        if not slack.get("channels"):
+            fail(f"{aid}: slack.channels required")
+        if not gh.get("repos"):
+            fail(f"{aid}: github.repos required")
+        if not gh.get("triggers"):
+            fail(f"{aid}: github.triggers required")
+        if not os.path.isdir(folder):
+            fail(f"{aid}: agent folder missing on disk: {folder}")
+
+# Dispatcher bootstrap contract must stay aligned with matrix
+boot = ".ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/contract.json"
+if os.path.isfile(boot):
+    try:
+        bc = json.load(open(boot))
+        if bc.get("status") == "active":
+            mimi = agents_map.get("mimi") or {}
+            if not mimi.get("dispatcher"):
+                fail("mimi entry must set dispatcher=true while bootstrap contract active")
+            sdk_readme = ".ai/agents/mimi/runtimes/claude/agent-sdk/README.md"
+            sdk_cfg = ".ai/agents/mimi/runtimes/claude/agent-sdk/config/agent-options.json"
+            if not os.path.isfile(sdk_readme):
+                fail(f"active dispatcher contract requires {sdk_readme}")
+            if not os.path.isfile(sdk_cfg):
+                fail(f"active dispatcher contract requires {sdk_cfg}")
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        fail(f"{boot}: invalid JSON ({e})")
+
+# Strict merge gate (mimi dispatcher PRs to main)
+if merge_gate:
+    tools_path = ".ai/agents/mimi/runtimes/claude/tools.json"
+    if not os.path.isfile(tools_path):
+        fail(f"merge gate: missing {tools_path}")
+    else:
+        caps = json.load(open(tools_path)).get("capabilities", [])
+        sdk_ok = any(
+            c.get("id") == "claude-agent-sdk" and c.get("status") == "verified"
+            and (c.get("evidence") or "").strip()
+            for c in caps
+        )
+        if not sdk_ok:
+            fail(
+                "merge gate: mimi requires verified claude-agent-sdk in "
+                f"{tools_path} (Desktop --smoke + evidence before merge)"
+            )
+
+    proof_glob = ".ai/runs/*/04_verify/output/dispatcher-desktop-proof.txt"
+    proofs = [p for p in glob.glob(proof_glob) if os.path.getsize(p) > 20]
+    if not proofs:
+        fail(
+            "merge gate: no dispatcher-desktop-proof.txt (>20 bytes) under "
+            ".ai/runs/*/04_verify/output/ — Desktop host must record subagent CLI + dispatch drill"
+        )
+
+    manifest = ".ai/shared/references/dispatcher-desktop-evidence.md"
+    if not os.path.isfile(manifest):
+        fail(f"merge gate: missing {manifest}")
+
+if fails:
+    for m in fails:
+        print(f"FAIL {m}", file=sys.stderr)
+    print(f"verify-dispatcher-matrix: FAILED ({len(fails)} problem(s))", file=sys.stderr)
+    sys.exit(1)
+print("verify-dispatcher-matrix: OK")
+PY

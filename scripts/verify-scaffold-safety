@@ -161,6 +161,7 @@ check_fail "json-safe-string C0 control (U+0001)" \
   guard_json_safe_string test "$BAD_JSON_VAL"
 
 check_pass "verify-agent-setup" scripts/verify-agent-setup
+check_pass "verify-dispatcher-matrix" scripts/verify-dispatcher-matrix
 
 echo
 if [ "$FAILED" = "0" ]; then

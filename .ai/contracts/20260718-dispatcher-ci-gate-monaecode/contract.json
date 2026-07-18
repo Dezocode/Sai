@@ -1,0 +1,53 @@
+{
+  "contract_id": "20260718-dispatcher-ci-gate-monaecode",
+  "contract_type": "ci_enforcement",
+  "project_slug": "dispatcher-ci-gate",
+  "project_name": "Dispatcher CI merge gate (dispatch matrix + Desktop proof)",
+  "principal": "monaecode (U0BGNS7F0T1)",
+  "subject_agent_id": "mimi",
+  "subject_folder": ".ai/agents/mimi/",
+  "contractor_type": "n/a",
+  "isolation_mode": "integration",
+  "primary_runtime": "claude-code-cli",
+  "repository_canonical": "Dezocode/Sai",
+  "repository_fork": "monaecode/Sai",
+  "related_contracts": [
+    "20260717-mimi-dispatcher-bootstrap-monaecode"
+  ],
+  "slack_short_ref": "20260718-0155",
+  "reviewers": {
+    "ceo": {"agent_id": "ceo", "name": "Sai", "gate": "VERIFY PASS on CI wiring"},
+    "humans": ["monaecode (U0BGNS7F0T1)", "dezocode (U0BHYH0NMCY)"]
+  },
+  "deliverables": [
+    {
+      "id": "D0-dispatch-matrix",
+      "title": "Canonical dispatch matrix",
+      "paths": [".ai/_config/dispatch-matrix.json", ".ai/shared/schemas/dispatch-matrix.schema.json"]
+    },
+    {
+      "id": "D1-verify-script",
+      "title": "verify-dispatcher-matrix CI script",
+      "paths": ["scripts/verify-dispatcher-matrix"]
+    },
+    {
+      "id": "D2-desktop-evidence-ref",
+      "title": "Desktop-only evidence checklist",
+      "paths": [".ai/shared/references/dispatcher-desktop-evidence.md"]
+    },
+    {
+      "id": "D3-ci-workflow",
+      "title": "dispatcher-merge-gate job",
+      "paths": [".github/workflows/agent-audit.yml"]
+    }
+  ],
+  "acceptance_criteria": [
+    "verify-dispatcher-matrix OK on all PRs",
+    "dispatcher-merge-gate blocks mimi dispatcher PRs until SDK + desktop proof",
+    "dispatch matrix covers every non-retired registry agent with slack+github"
+  ],
+  "status": "active",
+  "created_at": "2026-07-18T02:00:00Z",
+  "created_by": "ctr-admin",
+  "contract_admin_agent_id": "ctr-admin"
+}

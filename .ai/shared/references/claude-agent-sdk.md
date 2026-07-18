@@ -102,4 +102,4 @@ Desktop project sessions remain valid for human-driven work; **automated** @ment
 - **Active** agents: ≥1 verified capability with evidence
 - **Active** contracts with live contractors: non-empty `deliverables[]`
 
-Set `SAI_CI_REQUIRE_SDK_SMOKE=1` in CI when Mimi (or any dispatcher) must show verified `claude-agent-sdk` before merge.
+Set `SAI_CI_REQUIRE_SDK_SMOKE=1` in CI when Mimi (or any dispatcher) must show verified `claude-agent-sdk` before merge. The `dispatcher-merge-gate` job in `agent-audit.yml` enables this only for PRs touching `.ai/agents/mimi/`, `.claude/`, dispatcher contracts, or `dispatch-matrix.json`. See `.ai/shared/references/dispatcher-desktop-evidence.md`.
