@@ -1,0 +1,40 @@
+{
+  "schema": "sai/claude-desktop-bootstrap/v1",
+  "project": {
+    "recommended_name": "Mimi — SAI Dispatcher",
+    "local_folder": "monaecode/Sai clone with full .ai/ (outside any Drive-synced path)",
+    "instructions_source": ".ai/agents/mimi/claude-desktop-project-instructions.md",
+    "first_message_source": ".ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/first-message-to-claude.md"
+  },
+  "claude_code": {
+    "settings_file": ".claude/settings.json",
+    "subagent": ".claude/agents/mimi-dispatcher.md",
+    "skills_dir": ".claude/skills/mimi-dispatcher/",
+    "entry_point": "CLAUDE.md",
+    "invoke": "delegate to subagent 'mimi-dispatcher' (Agent tool / @-mention in supported UIs); skills discovery caveat recorded in 04_verify of the bootstrap run"
+  },
+  "mcp_connectors": {
+    "policy": "propose -> monaecode approves -> exercise -> record verified-only in runtimes/claude/tools.json via scripts/agent-verify-caps",
+    "mandatory_candidates": ["github", "slack", "git/gh shell"],
+    "authoritative_capability_list": ".ai/agents/mimi/runtimes/claude/tools.json"
+  },
+  "sai_contract": {
+    "contract_id": "20260717-mimi-dispatcher-bootstrap-monaecode",
+    "contract_path": ".ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/",
+    "principal": "monaecode (U0BGNS7F0T1)",
+    "contract_admin": "ctr-admin (Cora)",
+    "reviewers": {
+      "ceo_verify": "ceo (Sai) — [SAI][VERIFY] on ICM adherence + registry proposal",
+      "cto_review": "dezo-sec-codex1 (Saul) — GitHub PR review on Dezocode/Sai:main"
+    },
+    "fulfillment_gate_summary": "merge to Dezocode/Sai:main + Sai VERIFY PASS + Saul review + both co-founders' explicit approval + committed caps/subagent evidence",
+    "hard_limits": [
+      "no force-push",
+      "no Slack channel creation",
+      "no contractor status=active flips",
+      "no Splunky PoC before fulfillment gate",
+      "no secrets in Slack or git",
+      "monaecode overrides Sai; conflicts posted as [SAI][CONFLICT]"
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 {
   "agent_id": "mimi",
   "folder": ".ai/agents/mimi",
-  "surveyed_at": "2026-07-14",
+  "surveyed_at": "2026-07-17",
   "environment": "claude-code-cli",
   "capabilities": [
     {
@@ -11,7 +11,7 @@
       "tool": "git",
       "status": "verified",
       "evidence": "git rev-parse --show-toplevel succeeded",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "github-cli",
@@ -20,7 +20,7 @@
       "tool": "gh",
       "status": "verified",
       "evidence": "gh repo view Dezocode/Sai returned name=Sai",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "python3-json",
@@ -29,7 +29,7 @@
       "tool": "python3",
       "status": "verified",
       "evidence": "python3 -c 'import json' succeeded",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "agent-report",
@@ -38,7 +38,7 @@
       "tool": "scripts/agent-report",
       "status": "verified",
       "evidence": "bash -n scripts/agent-report OK",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "verify-semantic-hierarchy",
@@ -47,7 +47,7 @@
       "tool": "scripts/verify-semantic-hierarchy",
       "status": "verified",
       "evidence": "scripts/verify-semantic-hierarchy returned OK",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "verify-agent-audit",
@@ -56,7 +56,7 @@
       "tool": "scripts/verify-agent-audit",
       "status": "verified",
       "evidence": "scripts/verify-agent-audit origin/main..HEAD OK",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "agent-init",
@@ -65,7 +65,7 @@
       "tool": "scripts/agent-init",
       "status": "verified",
       "evidence": "bash -n scripts/agent-init OK",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "agent-scaffold",
@@ -74,7 +74,16 @@
       "tool": "scripts/agent-scaffold",
       "status": "verified",
       "evidence": "bash -n scripts/agent-scaffold OK",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
+    },
+    {
+      "id": "agent-automation-spec",
+      "kind": "script",
+      "server": "sai",
+      "tool": "scripts/agent-automation-spec",
+      "status": "verified",
+      "evidence": "bash -n scripts/agent-automation-spec OK",
+      "verified_at": "2026-07-17"
     },
     {
       "id": "install-agent-hooks",
@@ -83,7 +92,7 @@
       "tool": "scripts/install-agent-hooks",
       "status": "verified",
       "evidence": "bash -n scripts/install-agent-hooks OK",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "agent-sync-drive",
@@ -92,7 +101,7 @@
       "tool": "scripts/agent-sync-drive",
       "status": "verified",
       "evidence": "bash -n scripts/agent-sync-drive OK",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "gh-workflow-view",
@@ -101,7 +110,7 @@
       "tool": "gh workflow view",
       "status": "verified",
       "evidence": "gh workflow view agent-audit --repo Dezocode/Sai succeeded",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "gh-fork-workflow-view",
@@ -110,88 +119,61 @@
       "tool": "gh workflow view (fork)",
       "status": "verified",
       "evidence": "gh workflow view agent-audit --repo monaecode/Sai succeeded",
-      "verified_at": "2026-07-14"
-    },
-    {
-      "id": "slack-send-message",
-      "kind": "mcp",
-      "server": "slack-by-salesforce (Claude Code connector)",
-      "tool": "slack_send_message",
-      "status": "unverified",
-      "evidence": "Not yet used this session — no message has been sent. Do not mark verified until a real send succeeds and the returned link is confirmed.",
-      "verified_at": "2026-07-14"
+      "verified_at": "2026-07-17"
     },
     {
       "id": "slack-read-channel",
       "kind": "mcp",
-      "server": "slack-by-salesforce (Claude Code connector)",
+      "server": "Slack connector (claude.ai, Claude Code session)",
       "tool": "slack_read_channel",
       "status": "verified",
-      "evidence": "Read #agentupdates (C0BH15HDN2Z) and #all-sai (C0BH64RT48Z) successfully this session",
-      "verified_at": "2026-07-14"
+      "evidence": "Read #agentupdates (C0BH15HDN2Z) live this session; retrieved Saul CTO summary of 2026-07-16 20:38 CDT",
+      "verified_at": "2026-07-17"
     },
     {
       "id": "slack-search-channels",
       "kind": "mcp",
-      "server": "slack-by-salesforce (Claude Code connector)",
+      "server": "Slack connector (claude.ai, Claude Code session)",
       "tool": "slack_search_channels",
-      "status": "verified",
-      "evidence": "Returned #all-sai, #agentupdates, #help-newagents, #knowledgebase, #social, #new-channel, #planning",
-      "verified_at": "2026-07-14"
+      "status": "unverified",
+      "evidence": "Tool schema loadable this session but not exercised on 2026-07-17; last exercised 2026-07-14",
+      "verified_at": "2026-07-17"
     },
     {
       "id": "slack-search-users",
       "kind": "mcp",
-      "server": "slack-by-salesforce (Claude Code connector)",
+      "server": "Slack connector (claude.ai, Claude Code session)",
       "tool": "slack_search_users",
-      "status": "verified",
-      "evidence": "Searched for 'claude' and 'anthropic' this session (both returned no results, confirming no Claude/Anthropic app installed)",
-      "verified_at": "2026-07-14"
-    },
-    {
-      "id": "slack-list-channel-members",
-      "kind": "mcp",
-      "server": "slack-by-salesforce (Claude Code connector)",
-      "tool": "slack_list_channel_members",
-      "status": "verified",
-      "evidence": "Listed members of C0BH64RT48Z, C0BH15HDN2Z, C0BH8LCJLDS this session",
-      "verified_at": "2026-07-14"
+      "status": "unverified",
+      "evidence": "Tool schema loadable this session but not exercised on 2026-07-17; last exercised 2026-07-14",
+      "verified_at": "2026-07-17"
     },
     {
       "id": "slack-read-thread",
       "kind": "mcp",
-      "server": "slack-by-salesforce (Claude Code connector)",
+      "server": "Slack connector (claude.ai, Claude Code session)",
       "tool": "slack_read_thread",
       "status": "unverified",
-      "evidence": "Tool is available but not yet exercised this session",
-      "verified_at": "2026-07-14"
+      "evidence": "Tool schema loadable this session but never exercised; do not mark verified until a real thread read succeeds",
+      "verified_at": "2026-07-17"
     },
     {
-      "id": "composio-search-tools",
+      "id": "slack-send-message",
       "kind": "mcp",
-      "server": "composio (Claude Code connector, HTTP tool-router)",
-      "tool": "COMPOSIO_SEARCH_TOOLS / COMPOSIO_MANAGE_CONNECTIONS",
+      "server": "Slack connector (claude.ai, Claude Code session)",
+      "tool": "slack_send_message",
       "status": "verified",
-      "evidence": "Session created via composio.sessions.create(mcp=True); registered with `claude mcp add`; connection status Connected",
-      "verified_at": "2026-07-14"
+      "evidence": "Real send to #agentupdates (C0BH15HDN2Z) 2026-07-17 with monaecode approval; API returned message link https://sai-qbz5908.slack.com/archives/C0BH15HDN2Z/p1784257771191669",
+      "verified_at": "2026-07-17"
     },
     {
-      "id": "composio-slack-toolkit",
-      "kind": "mcp-toolkit",
-      "server": "composio",
-      "tool": "slack (via Composio)",
-      "status": "unverified",
-      "evidence": "COMPOSIO_MANAGE_CONNECTIONS returned status 'initiated', not 'active' — auth link not yet completed by monaecode",
-      "verified_at": "2026-07-14"
-    },
-    {
-      "id": "composio-googledrive-toolkit",
-      "kind": "mcp-toolkit",
-      "server": "composio",
-      "tool": "googledrive (via Composio)",
-      "status": "unverified",
-      "evidence": "COMPOSIO_MANAGE_CONNECTIONS returned status 'initiated', not 'active' — auth link not yet completed by monaecode",
-      "verified_at": "2026-07-14"
+      "id": "gh-auth-monaecode",
+      "kind": "shell",
+      "server": "github",
+      "tool": "gh auth status",
+      "status": "verified",
+      "evidence": "gh auth status: logged in as monaecode, scopes gist/read:org/repo/workflow; gh repo view Dezocode/Sai returned default=main (2026-07-17)",
+      "verified_at": "2026-07-17"
     },
     {
       "id": "sai-coordination-rule",
@@ -199,35 +181,44 @@
       "server": "n/a",
       "tool": ".cursor/rules/sai-coordination.mdc",
       "status": "verified",
-      "evidence": "alwaysApply rule present and read this session; note: this is a Cursor-format rule file — Claude Code does not natively execute .mdc alwaysApply rules, it was read manually as Layer 1 context per .ai/CONTEXT.md",
-      "verified_at": "2026-07-14"
+      "evidence": "Read manually as Layer 1 context per CLAUDE.md; Claude Code does not auto-load .mdc alwaysApply rules",
+      "verified_at": "2026-07-17"
     },
     {
       "id": "claude-code-scheduled-task",
       "kind": "platform",
       "server": "claude-code",
-      "tool": "scheduled-tasks (create_scheduled_task)",
+      "tool": "scheduled-tasks (mimi-protocol-upkeep)",
       "status": "verified",
-      "evidence": "Created task mimi-protocol-upkeep, cron '0 9 * * *'; confirmed by create_scheduled_task response (next run scheduled). Caveat: fires only while the Claude app is open at the scheduled time; runs on next launch otherwise — not an always-on cloud cron like Cursor Automations.",
+      "evidence": "Created 2026-07-14 with cron 0 9 * * *; caveat: fires only while the Claude app is open at fire time. Not re-exercised 2026-07-17",
       "verified_at": "2026-07-14"
     },
     {
       "id": "slack-mention-trigger",
       "kind": "platform",
       "server": "n/a",
-      "tool": "Slack Events API subscription",
-      "status": "not_built",
-      "evidence": "No mechanism available in this session to receive inbound Slack events; would require external webhook infrastructure not currently set up.",
-      "verified_at": "2026-07-14"
+      "tool": "Slack Events API subscription (@mimi)",
+      "status": "building",
+      "evidence": "No inbound-event mechanism in this session; OSS bridge design at .ai/agents/mimi/docs/dispatch-triggers.md; promotion to verified requires evidence URL per hooks.json",
+      "verified_at": "2026-07-17"
     },
     {
       "id": "github-event-trigger",
       "kind": "platform",
       "server": "n/a",
-      "tool": "GitHub webhook/Action trigger",
-      "status": "not_built",
-      "evidence": "No mechanism available in this session to receive inbound GitHub push/PR events; would require a GitHub Action or webhook not currently set up.",
-      "verified_at": "2026-07-14"
+      "tool": "GitHub webhook/Action trigger (@mimi)",
+      "status": "building",
+      "evidence": "Inert stub .github/workflows/mimi-dispatch-stub.yml only (workflow_dispatch, no secrets, no Claude invocation); end-to-end not built",
+      "verified_at": "2026-07-17"
+    },
+    {
+      "id": "claude-agent-sdk",
+      "kind": "sdk",
+      "server": "anthropic",
+      "tool": "claude-agent-sdk (Python; @anthropic-ai/claude-agent-sdk equiv)",
+      "status": "building",
+      "evidence": "Harness .ai/agents/mimi/runtimes/claude/agent-sdk/ built (M0). SDK v0.2.121 installs + imports; run_agent.py --check PASS (options build OK, mimi-dispatcher subagent resolved); live --smoke reaches the CLI subprocess and fails only on headless auth (evidence: 04_verify/output/agent-sdk-smoke.txt). Promote to verified only after an authenticated exit-0 smoke, per Sai instruction.",
+      "verified_at": "2026-07-17"
     }
   ]
 }

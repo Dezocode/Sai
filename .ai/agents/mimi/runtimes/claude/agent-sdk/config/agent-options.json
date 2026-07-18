@@ -1,11 +1,22 @@
 {
-  "$comment": "ClaudeAgentOptions skeleton for Mimi dispatcher — expand after monaecode Phase 3 MCP approval",
+  "$comment": "ClaudeAgentOptions for Mimi's programmatic dispatch harness (M0). Mirrors .claude/settings.json discipline; expand mcpServers only after monaecode Phase 3 approval. Reference: .ai/shared/references/claude-agent-sdk.md",
   "reference": ".ai/shared/references/claude-agent-sdk.md",
   "agent_id": "mimi",
-  "systemPromptAppend": "Load .ai/agents/mimi/AGENT.md and contract 20260717-mimi-dispatcher-bootstrap-monaecode when present.",
+  "systemPromptAppend": "You are Mimi (mimi), portfolio dispatcher for monaecode. Load .ai/agents/mimi/AGENT.md and contract 20260717-mimi-dispatcher-bootstrap-monaecode when present. Follow dispatch discipline: task-id + run folder before edits, [SAI][PLAN] before changes, real <@USER_ID> Slack mentions, no merge/force-push/registry-activation/channel-creation, monaecode overrides Sai.",
   "allowedTools": ["Read", "Glob", "Grep", "Bash"],
-  "settingSources": [".claude/settings.json", "splunk-clone/.claude/settings.json"],
-  "hooks": {},
+  "settingSources": [".claude/settings.json"],
+  "hooks": {
+    "$comment": "Hook shapes are resolved by run_agent.py against the installed SDK; documented here as the intended dispatch-discipline mirror of .claude/settings.json.",
+    "PreToolUse": [
+      {"matcher": "Bash", "note": "block force-push (prohibited by CHARTER + contract hard limit); mirror .claude/settings.json deny list"}
+    ],
+    "PostToolUse": [
+      {"matcher": "Bash", "note": "after git push, verify remote SHA and emit PUSH via scripts/agent-report push-confirm"}
+    ],
+    "SessionStart": [
+      {"note": "read CLAUDE.md + .ai/CONTEXT.md; contracts live in .ai/contracts/; no self-activation in registry"}
+    ]
+  },
   "mcpServers": {},
   "agents": {
     "mimi-dispatcher": ".claude/agents/mimi-dispatcher.md"

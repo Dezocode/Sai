@@ -1,0 +1,72 @@
+---
+name: slack-github-orchestration
+description: >-
+  Compose and deliver SAI protocol reports across Slack (#agentupdates) and
+  GitHub (PRs, reviews, CI) with evidence discipline. Use when posting any
+  [SAI][EVENT] report, opening/annotating PRs, or reconciling Slack and
+  GitHub state.
+---
+
+# Slack + GitHub orchestration
+
+## Slack
+
+- Format: `.ai/_config/reporting.yaml` template, `[SAI][EVENT][task-id]`
+  first line, all fields present.
+- Delivery path, in order of preference: (1) live Slack MCP connector if
+  authenticated this session, (2) `SAI_AGENT_ID=mimi scripts/agent-report
+  emit <TYPE> ...` which queues durably under `.git/agent-events/queue/`
+  and flushes FIFO when `SAI_SLACK_BOT_TOKEN` is available.
+- **Never claim delivery without the API response / message link.**
+  "Queued" and "delivered" are different words; use the right one.
+- **Mentions must be real `<@USER_ID>` mentions — plain-text `@sai` does
+  not notify anyone** (Cora P1 finding, review
+  `20260717-0323-mimi-contract-review-ctr-admin`). Routing table:
+
+  | Notify | Mention | When |
+  |---|---|---|
+  | monaecode (principal) | `<@U0BGNS7F0T1>` | every report |
+  | dezocode (co-founder; Saul/CTO routing) | `<@U0BHYH0NMCY>` | CTO review requests, merge gates |
+  | Sai CEO automation | `<@U0BH7V4145S>` (Cursor bot Sai posts through, until the registry documents a dedicated identity) | VERIFY requests |
+
+  Channels: `#agentupdates` C0BH15HDN2Z, `#help-newagents` C0BH8LCJLDS.
+- **Post-ending tag line (standing directive, monaecode 2026-07-17):**
+  every post ends with a `Tags:` line pairing `@agentname` with the real
+  mention from `.ai/agents/mimi/docs/slack-id-matrix.md` (the canonical
+  matrix), e.g. `Tags: @monaecode <@U0BGNS7F0T1> · @sai <@U0BH7V4145S>`.
+  Tag exactly the identities the post concerns; principal always.
+- **Full-report attachment rule (standing directive, monaecode
+  2026-07-17):** every report post links the full report markdown as a
+  committed GitHub artifact (run-folder URL on the pushed branch), and
+  tags — intelligently, as dispatcher — exactly the humans/agents the
+  report concerns (principal always; Sai for VERIFY requests; Saul for
+  CTO/PR reviews; contract admin for contract events).
+- Never post: secrets, tokens, webhook URLs, sensitive diffs, private
+  paths (reporting.yaml `never_post`).
+
+## GitHub
+
+- PRs from fork branches target `Dezocode/Sai:main` unless the brief says
+  otherwise. Use `gh pr create --repo Dezocode/Sai`.
+- After every push: `git ls-remote` (or `scripts/agent-report
+  push-confirm`) to verify the remote SHA before reporting PUSH.
+- CTO review requests go to Saul (`dezo-sec-codex1`) as
+  `[SAI][CTO-REVIEW][Dezocode/Sai#<n>]`; Sai verification requests as
+  `[SAI][VERIFY]`.
+- CI: check `gh run list --repo <repo> --branch <branch>`; report
+  `[SAI][VERIFY]` or `[SAI][BLOCKED]` on results — never infer green.
+
+## Self-modification reporting (standing directive, monaecode 2026-07-17)
+
+Any change to Mimi's own profile (`.ai/agents/mimi/**`, `.claude/agents/
+mimi-dispatcher.md`, `.claude/skills/mimi-dispatcher/**`,
+`.claude/settings.json`, contract capability records) or to Sai-related
+work is itself a reportable event: post it to #agentupdates in full
+protocol format before considering the change done. A self-change
+without a report is a directive breach — treat it like a failing check.
+
+## Cross-checks
+
+Before HANDOFF: queue is flushed or its pending state reported; PR links
+and merged SHAs in the report match `gh` output; Drive sync status stated
+honestly (`pending` if not run).

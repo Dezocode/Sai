@@ -25,14 +25,29 @@
     ],
     "optional": [
       {
+        "type": "slack-polling",
+        "trigger": "@mimi mention in SAI public channels, detected by 15-min poll",
+        "status": "active",
+        "mechanism": "Claude Code scheduled task 'mimi-slack-dispatch-poll' (cron */15 * * * *), created 2026-07-17; loads the full Mimi profile mirror, scans public channels for new @mimi mentions, replies in-thread per ICM protocol with ID-matrix tag line",
+        "caveat": "Polling, not event-driven: worst-case ~15 min latency, and runs only while the Claude app is open at fire time. First-response evidence pending; promote to 'verified' only with a real mention->reply message-link pair.",
+        "id_matrix": ".ai/agents/mimi/docs/slack-id-matrix.md"
+      },
+      {
         "type": "slack",
-        "status": "not_built",
-        "note": "run on mention in #agentupdates — would require a Slack Events API subscription calling into this environment; not something Claude Code self-configures. Not built; not claimed as working."
+        "trigger": "@mimi mention in #agentupdates or authorized project channels (event-driven)",
+        "status": "building",
+        "promotion_rule": "status may become 'verified' only with an evidence URL or log showing a real @mimi mention producing a real dispatch run (Slack message link + resulting .ai/runs/<task-id>/)",
+        "design": ".ai/agents/mimi/docs/dispatch-triggers.md (Slack Events API / Socket Mode bridge)",
+        "implementation": "tools/mimi-slack-listener/ (slack-bolt Socket Mode -> headless Claude Code); target host desktop-akn48te (tailnet monaecode.github)",
+        "note": "Code implemented 2026-07-17; NOT deployed. Human gates: Slack app tokens, host claude auth, dezocode ack (shared machine). The polling task above is the interim path. Not claimed as working."
       },
       {
         "type": "github",
-        "status": "not_built",
-        "note": "run on PR/push events — would require a GitHub webhook/Action calling into this environment; not built; not claimed as working."
+        "trigger": "@mimi in issue/PR comments, or labeled issues, on monaecode/Sai and Dezocode/Sai",
+        "status": "building",
+        "promotion_rule": "status may become 'verified' only with an evidence URL or log showing a real GitHub event producing a real dispatch run (comment/Action run link + resulting .ai/runs/<task-id>/)",
+        "design": ".ai/agents/mimi/docs/dispatch-triggers.md; stub workflow .github/workflows/mimi-dispatch-stub.yml (workflow_dispatch only, no secrets)",
+        "note": "Stub proves plumbing shape only; end-to-end trigger not built. Not claimed as working."
       }
     ]
   },

@@ -1,0 +1,21 @@
+[project]
+name = "mimi-dispatch-sdk"
+version = "0.1.0"
+description = "Mimi (mimi) Claude Agent SDK dispatch harness — M0 of contract 20260717-mimi-dispatcher-bootstrap-monaecode"
+requires-python = ">=3.10"
+dependencies = [
+    "claude-agent-sdk>=0.1.0",
+]
+
+[project.optional-dependencies]
+# Slack/GitHub bridge (Path A listener reuse). Kept optional so the core
+# harness installs without the event-bridge deps.
+dispatch = [
+    "slack-bolt>=1.18",
+]
+
+[tool.mimi]
+# Auth uses the Claude Code CLI session or ANTHROPIC_API_KEY — never
+# committed. See .ai/shared/references/claude-agent-sdk.md.
+reference = ".ai/shared/references/claude-agent-sdk.md"
+options = "config/agent-options.json"

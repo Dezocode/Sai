@@ -10,7 +10,7 @@
   "isolation_mode": "integration",
   "primary_runtime": "claude-code-cli",
   "claude_desktop_project": {
-    "recommended_name": "Mimi — SAI Dispatcher",
+    "recommended_name": "Mimi \u2014 SAI Dispatcher",
     "local_folder": "monaecode/Sai clone with full .ai/",
     "settings_paths": [
       ".claude/settings.json",
@@ -25,7 +25,10 @@
   "slack_channel_primary": "#agentupdates",
   "slack_dispatch_triggers": {
     "target": "@mimi mentions",
-    "channels": ["#agentupdates", "project channels as authorized"],
+    "channels": [
+      "#agentupdates",
+      "project channels as authorized"
+    ],
     "status": "required_deliverable",
     "implementation": "MCP Slack + documented OSS webhook bridge if Desktop cannot subscribe natively"
   },
@@ -35,9 +38,20 @@
     "implementation": "GitHub MCP + optional GitHub Action/workflow_dispatch template in .github/"
   },
   "reviewers": {
-    "ceo": {"agent_id": "ceo", "name": "Sai", "gate": "VERIFY PASS on ICM + registry + verify-caps"},
-    "cto": {"agent_id": "dezo-sec-codex1", "name": "Saul", "gate": "CTO review on GitHub PR to canonical main"},
-    "humans": ["monaecode (U0BGNS7F0T1)", "dezocode (U0BHYH0NMCY)"]
+    "ceo": {
+      "agent_id": "ceo",
+      "name": "Sai",
+      "gate": "VERIFY PASS on ICM + registry + verify-caps"
+    },
+    "cto": {
+      "agent_id": "dezo-sec-codex1",
+      "name": "Saul",
+      "gate": "CTO review on GitHub PR to canonical main"
+    },
+    "humans": [
+      "monaecode (U0BGNS7F0T1)",
+      "dezocode (U0BHYH0NMCY)"
+    ]
   },
   "fulfillment_gate": {
     "description": "Contract fulfilled only when all are true",
@@ -54,7 +68,7 @@
   "splunky_poc_gate": {
     "contract_ref": "20260715-splunk-clone-monaecode",
     "rule": "Do NOT dispatch Splunky or digest splunk-clone contract as PoC until fulfillment_gate is complete",
-    "poc_after_fulfillment": "Single dispatch drill: post PLAN, paste onboarding-prompt to new session, verify branch/worktree rules — report only unless monaecode orders implementation"
+    "poc_after_fulfillment": "Single dispatch drill: post PLAN, paste onboarding-prompt to new session, verify branch/worktree rules \u2014 report only unless monaecode orders implementation"
   },
   "deliverables": [
     {
@@ -78,48 +92,127 @@
     {
       "id": "M2-hooks-automation",
       "title": "Hooks + automation trigger truth table",
-      "paths": [".ai/agents/mimi/hooks.json", ".claude/settings.json", ".ai/agents/mimi/runtimes/claude/automation/profile.md"]
+      "paths": [
+        ".ai/agents/mimi/hooks.json",
+        ".claude/settings.json",
+        ".ai/agents/mimi/runtimes/claude/automation/profile.md"
+      ]
     },
     {
       "id": "M3-mcp-connectors",
       "title": "Mandatory MCP + OSS connector plan (verified only in tools.json)",
-      "paths": [".ai/agents/mimi/runtimes/claude/tools.json"],
-      "mandatory_candidates": ["github", "slack", "filesystem", "git/gh shell"]
+      "paths": [
+        ".ai/agents/mimi/runtimes/claude/tools.json"
+      ],
+      "mandatory_candidates": [
+        "github",
+        "slack",
+        "filesystem",
+        "git/gh shell"
+      ]
     },
     {
       "id": "M4-slack-github-triggers",
       "title": "@mimi dispatch triggers (Slack + GitHub)",
-      "paths": [".ai/agents/mimi/docs/dispatch-triggers.md", ".github/workflows/mimi-dispatch-stub.yml"]
+      "paths": [
+        ".ai/agents/mimi/docs/dispatch-triggers.md",
+        ".github/workflows/mimi-dispatch-stub.yml"
+      ]
     },
     {
       "id": "M5-charter-amendment",
       "title": "Dispatcher charter amendment proposal",
-      "paths": [".ai/agents/_roles/portfolio-manager-monaecode/CHARTER.md", ".ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/amendments/"]
+      "paths": [
+        ".ai/agents/_roles/portfolio-manager-monaecode/CHARTER.md",
+        ".ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/amendments/"
+      ]
     },
     {
       "id": "M6-proof-package",
       "title": "Review package for Sai + Saul",
-      "paths": [".ai/runs/<task-id>/handoff.md", "PR to Dezocode/Sai:main"]
+      "paths": [
+        ".ai/runs/<task-id>/handoff.md",
+        "PR to Dezocode/Sai:main"
+      ]
     }
   ],
   "acceptance_criteria": [
-    "All M0–M6 deliverables exist on bootstrap branch with ICM run artifacts",
-    "Claude Agent SDK smoke test + claude-agent-sdk capability verified in tools.json",
+    "All M0\u2013M6 deliverables exist on bootstrap branch with ICM run artifacts",
     "agent-init PASS in monaecode Claude environment (record evidence)",
     "agent-verify-caps: Slack + GitHub MCP or shell gh verified with dates",
     "verify-semantic-hierarchy OK on PR branch",
     "No registry status=active upgrade without Sai VERIFY; Mimi may propose registry diff only",
     "Splunky PoC section untouched until fulfillment_gate complete",
-    "Every commit: Task-ID, Agent: Mimi, Report-Event trailers"
+    "Every commit: Task-ID, Agent: Mimi, Report-Event trailers",
+    "Claude Agent SDK smoke test + claude-agent-sdk capability verified in tools.json"
   ],
-  "approved_capabilities": [],
+  "approved_capabilities": [
+    {
+      "name": "github",
+      "type": "shell+mcp",
+      "tool": "gh CLI (authenticated as monaecode; scopes gist/read:org/repo/workflow)",
+      "approved_by": "monaecode (U0BGNS7F0T1)",
+      "approved_at": "2026-07-17",
+      "approval_channel": "in-chat AskUserQuestion, bootstrap session",
+      "evidence": "gh auth status + gh repo view Dezocode/Sai (default=main) exercised 2026-07-17"
+    },
+    {
+      "name": "slack",
+      "type": "mcp",
+      "tool": "claude.ai Slack connector (read + send; sends per-action approved or standing-report scope)",
+      "approved_by": "monaecode (U0BGNS7F0T1)",
+      "approved_at": "2026-07-17",
+      "approval_channel": "in-chat AskUserQuestion, bootstrap session",
+      "evidence": "slack_read_channel C0BH15HDN2Z exercised 2026-07-17; send evidence recorded in tools.json on first real send"
+    },
+    {
+      "name": "git-shell",
+      "type": "shell",
+      "tool": "git with .githooks audit pipeline",
+      "approved_by": "monaecode (U0BGNS7F0T1)",
+      "approved_at": "2026-07-17",
+      "approval_channel": "in-chat AskUserQuestion, bootstrap session",
+      "evidence": "branch/commit/fast-forward operations throughout run 20260717-0229-mimi-dispatcher-bootstrap-mimi"
+    }
+  ],
   "proposed_capabilities": [
-    {"name": "github", "type": "mcp", "mandatory": true, "status": "proposed"},
-    {"name": "slack", "type": "mcp", "mandatory": true, "status": "proposed"},
-    {"name": "composio-or-oss-webhook", "type": "connector", "mandatory": false, "status": "proposed", "note": "Only if needed for @mimi when native Desktop lacks Events API"}
+    {
+      "name": "composio-or-oss-webhook",
+      "type": "connector",
+      "mandatory": false,
+      "status": "proposed",
+      "note": "Only if needed for @mimi when native Desktop lacks Events API"
+    }
   ],
   "status": "active",
   "created_at": "2026-07-17T06:16:00Z",
   "created_by": "ctr-admin",
-  "contract_admin_agent_id": "ctr-admin"
+  "contract_admin_agent_id": "ctr-admin",
+  "standing_directives": [
+    {
+      "directive": "Mimi may scout and PROPOSE additional open-source MCP servers/skills that add portfolio value; each still follows propose -> monaecode approves -> exercise -> verified-only recording. Tailored to ICM and .ai protocols.",
+      "granted_by": "monaecode",
+      "granted_at": "2026-07-17"
+    },
+    {
+      "directive": "Every Slack report Mimi posts must include the full report as a markdown file linked from GitHub (committed run artifact URL), with intelligent dispatcher tagging of the humans/agents the report concerns.",
+      "granted_by": "monaecode",
+      "granted_at": "2026-07-17"
+    },
+    {
+      "directive": "Mimi always posts updates made to herself (agent files, skills, hooks, settings, subagent, capability surveys) and to any Sai-related work to #agentupdates, in the ICM/.ai protocol format (.ai/_config/reporting.yaml template, real <@USER_ID> mentions, full report md linked from GitHub). Self-modification without a protocol report is a directive breach.",
+      "granted_by": "monaecode",
+      "granted_at": "2026-07-17"
+    }
+  ],
+  "amendments": [
+    {
+      "amendment_id": "20260717-claude-agent-sdk-requirement",
+      "amended_by": "ctr-admin (Cora)",
+      "adopted_by": "mimi",
+      "adopted_at": "2026-07-17",
+      "summary": "Cora amendment (PR #39): require Claude Agent SDK harness; subagent/settings scaffolding alone insufficient. M0 implemented on this fork branch; SDK reference + scaffold stubs imported byte-identical from Cora's PR #39 (cursor/claude-agent-sdk-scaffold-f1d6).",
+      "reference": ".ai/shared/references/claude-agent-sdk.md"
+    }
+  ]
 }
