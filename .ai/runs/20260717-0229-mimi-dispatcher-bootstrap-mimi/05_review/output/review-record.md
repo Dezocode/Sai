@@ -34,6 +34,15 @@ rejected. Recorded lesson: **05_review is mandatory whenever
 | `.claude/settings.json:8` — `Bash(git branch:*)` may permit deletion/rename | Fixed this round: wildcard replaced with `--list`/`--show-current` forms; explicit deny entries for `-D/-d/-m/-M` and force-push; matcher evidence in 04_verify |
 | (verdict) subagent invocation unproved | Open — environment-blocked this session; fresh-session repro steps committed; fulfillment gate stays open |
 
+## 4. dezocode + Cora — Claude Agent SDK requirement (M0)
+(dezocode Slack ts 1784312066 "@mimi build on the Claude agent sdk"; Cora amendment `20260717-claude-agent-sdk-scaffold`, PR #39; Sai VERIFY assigning M0 to Mimi)
+
+| Finding | Disposition |
+|---|---|
+| Subagent + settings alone insufficient; Claude Agent SDK harness required | **Fixed this round:** M0 harness at `.ai/agents/mimi/runtimes/claude/agent-sdk/` — `run_agent.py` query() entrypoint (`--check`/`--smoke`/prompt), filled `agent-options.json`, `pyproject.toml`, dispatch-bridge doc. Cora's Layer-3 reference + Mimi scaffold stubs imported byte-identical from PR #39 |
+| Smoke test + `claude-agent-sdk` in tools.json | **Partial (honest):** SDK v0.2.121 installs/imports; `--check` PASS; live `--smoke` caught+fixed a real `agents`-option bug, now reaches the CLI subprocess and stops only at headless auth. Recorded `building` in tools.json per Sai ("do not claim until verified"); evidence in `04_verify/output/agent-sdk-smoke.txt` |
+| Contract M0 deliverable + acceptance criterion | **Fixed:** `M0-claude-agent-sdk` added to contract.json deliverables + acceptance criteria + amendment record |
+
 ## Gate status after this round
 
 Merge remains blocked pending: CI green on new head → Sai re-VERIFY →

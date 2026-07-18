@@ -210,6 +210,15 @@
       "status": "building",
       "evidence": "Inert stub .github/workflows/mimi-dispatch-stub.yml only (workflow_dispatch, no secrets, no Claude invocation); end-to-end not built",
       "verified_at": "2026-07-17"
+    },
+    {
+      "id": "claude-agent-sdk",
+      "kind": "sdk",
+      "server": "anthropic",
+      "tool": "claude-agent-sdk (Python; @anthropic-ai/claude-agent-sdk equiv)",
+      "status": "building",
+      "evidence": "Harness .ai/agents/mimi/runtimes/claude/agent-sdk/ built (M0). SDK v0.2.121 installs + imports; run_agent.py --check PASS (options build OK, mimi-dispatcher subagent resolved); live --smoke reaches the CLI subprocess and fails only on headless auth (evidence: 04_verify/output/agent-sdk-smoke.txt). Promote to verified only after an authenticated exit-0 smoke, per Sai instruction.",
+      "verified_at": "2026-07-17"
     }
   ]
 }
