@@ -28,8 +28,8 @@
       "folder": ".ai/agents/mimi",
       "charter": ".ai/agents/_roles/portfolio-manager-monaecode/CHARTER.md",
       "principal": "monaecode (U0BGNS7F0T1)",
-      "status": "active",
-      "initialized": "2026-07-14",
+      "status": "provisional",
+      "initialized": null,
       "primary_runtime": "claude-code-cli",
       "entry_points": {
         "claude-code-cli": "Open monaecode/Sai in Claude Code; read CLAUDE.md → .ai/agents/mimi/AGENT.md",
@@ -37,7 +37,7 @@
         "codex-desktop": "Stub — runtimes/codex/README.md"
       },
       "automation": "SAI Mimi — Portfolio Project Agent Manager (mimi); scheduled task 'mimi-protocol-upkeep' (Claude Code, cron 0 9 * * *, fires only while the app is open); created 2026-07-14; Slack-mention and GitHub-event triggers NOT built (would need external webhook infra) — see .ai/agents/mimi/runtimes/claude/tools.json",
-      "notes": "Named Mimi, Portfolio Project Agent Manager by monaecode 2026-07-14. Runs as a Claude Code agent (not Cursor Desktop) — tools.json distinguishes Claude Code MCP connectors from the Cursor-specific entries used by ceo/dezo-sec agents. Composio slack/googledrive toolkit connections initiated but not active as of initialization; Drive index-integrity duties (#knowledgebase) are blocked until that connection is confirmed active. Phase 9 report: see .ai/runs/20260714-2348-agent-initialization-mimi/."
+      "notes": "Named Mimi, Portfolio Project Agent Manager by monaecode 2026-07-14. Runs as a Claude Code agent (not Cursor Desktop). Composio slack/googledrive toolkit connections initiated but not active; Drive index-integrity duties (#knowledgebase) blocked until OAuth confirmed. Sai VERIFY 20260718-0155: downgraded active→provisional — commit d199f2c flipped status without Phase 9 [SAI][INTAKE]; init run .ai/runs/20260714-2348-agent-initialization-mimi/ remains phases-0-6 only. Re-activate only after Phase 9 INTAKE + Sai VERIFY."
     },
     {
       "agent_id": "dezo-sec-codex1",

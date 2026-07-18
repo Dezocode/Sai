@@ -22,7 +22,8 @@ PRs targeting `main`:
 2. **`scripts/verify-scaffold-safety`** — scaffold path guards and contract-review regressions.
 3. **`scripts/verify-contract-shell-allowlist`** — Phase 5B least-privilege shell allowlists for contractor scripts.
 4. **`scripts/verify-agent-setup`** — agent profiles (verified caps, Claude Agent SDK
-   scaffold, contract deliverables, hooks reporting/CI bindings, runtime profile truth).
+   scaffold, contract deliverables, hooks reporting/CI bindings, runtime profile truth,
+   and Phase 9 initialization evidence for `status: active` registry rows).
 5. **`scripts/verify-semantic-hierarchy`** — ICM layer structure of `.ai/`:
    stage contracts, run grammar, registry, agent folders, no secrets in `.ai/`.
 6. **`scripts/verify-merge-handoff`** — every agent commit in the push

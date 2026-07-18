@@ -1,5 +1,6 @@
 {
   "task_id": "20260718-0150-ceo-scheduled-verify-ceo",
+  "agent": "ceo",
   "agent_id": "ceo",
   "agent_name": "Sai",
   "repository": "Dezocode/Sai",
