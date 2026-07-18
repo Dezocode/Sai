@@ -1,0 +1,55 @@
+Claude Agent SDK harness (M0) — smoke evidence
+Task: 20260717-0229-mimi-dispatcher-bootstrap-mimi
+Contract deliverable: M0-claude-agent-sdk
+Reference: .ai/shared/references/claude-agent-sdk.md
+Captured: 2026-07-17, this session (Claude Code CLI on macOS)
+
+Environment:
+- Python 3.13.0 (SDK requires >=3.10) — OK
+- claude-agent-sdk installed in venv: version 0.2.121 — import OK
+- claude CLI present at /opt/homebrew/bin/claude (1.0.98)
+
+Progression (each step is real command output, not inferred):
+
+1. Offline --check (no auth, no model call):
+   $ python run_agent.py --check
+   config: .../agent-sdk/config/agent-options.json
+   agent_id: mimi
+   allowedTools: ['Read', 'Glob', 'Grep', 'Bash']
+   subagents: ['mimi-dispatcher']
+   mcpServers: []
+   SDK: import OK; ClaudeAgentOptions built (ClaudeAgentOptions)
+   CHECK: PASS   (exit 0)
+
+2. Live --smoke, first attempt — CAUGHT A REAL WIRING BUG:
+   TypeError: asdict() should be called on dataclass instances
+   Root cause: ClaudeAgentOptions.agents expects AgentDefinition
+   dataclasses, but the config supplied a name->path string map. The
+   Claude Agent SDK auto-discovers .claude/agents/*.md from settingSources,
+   so run_agent.py was fixed to NOT pass `agents` programmatically.
+   (This is the value of a real smoke test: import-only validation would
+   have missed it.)
+
+3. Live --smoke, after fix — reaches the CLI subprocess, fails only on
+   headless auth:
+   claude_agent_sdk._errors.ProcessError: Command failed with exit code 1
+   The SDK spawns the `claude` CLI, which is not authenticated for
+   headless use in this session (same boundary that blocked the subagent
+   invocation test — see subagent-invocation.md). The harness itself is
+   correct up to the auth boundary.
+
+Status of `claude-agent-sdk` capability: BUILDING (not `verified`).
+Per Sai's instruction ("do not claim claude-agent-sdk in tools.json until
+verified"), tools.json records it as `building` with this evidence.
+
+To reach exit-0 verified (fresh authenticated run):
+  A) `claude setup-token` (subscription-backed, one-time) OR export
+     ANTHROPIC_API_KEY on the host, then
+  B) $ python .ai/agents/mimi/runtimes/claude/agent-sdk/src/run_agent.py --smoke
+     expect: "mimi agent-sdk smoke OK", exit 0
+  C) flip tools.json claude-agent-sdk to verified with the run log, and
+     (only then) CI may set SAI_CI_REQUIRE_SDK_SMOKE=1.
+
+Note: the Claude Agent SDK honors the same credential resolution as the
+Claude Code CLI (ANTHROPIC_API_KEY or an `ant auth login` / setup-token
+subscription profile) — it does NOT require metered API tokens.

@@ -72,6 +72,15 @@
   },
   "deliverables": [
     {
+      "id": "M0-claude-agent-sdk",
+      "title": "Claude Agent SDK dispatch harness",
+      "paths": [
+        ".ai/agents/mimi/runtimes/claude/agent-sdk/",
+        ".ai/shared/references/claude-agent-sdk.md"
+      ],
+      "description": "Production @mimi / @GitHub dispatch via query(); hooks/MCP/subagents in agent-options.json; smoke evidence in tools.json"
+    },
+    {
       "id": "M1-claude-native-profile",
       "title": "Claude-native Mimi dispatcher profile",
       "paths": [
@@ -134,7 +143,8 @@
     "verify-semantic-hierarchy OK on PR branch",
     "No registry status=active upgrade without Sai VERIFY; Mimi may propose registry diff only",
     "Splunky PoC section untouched until fulfillment_gate complete",
-    "Every commit: Task-ID, Agent: Mimi, Report-Event trailers"
+    "Every commit: Task-ID, Agent: Mimi, Report-Event trailers",
+    "Claude Agent SDK smoke test + claude-agent-sdk capability verified in tools.json"
   ],
   "approved_capabilities": [
     {
@@ -193,6 +203,16 @@
       "directive": "Mimi always posts updates made to herself (agent files, skills, hooks, settings, subagent, capability surveys) and to any Sai-related work to #agentupdates, in the ICM/.ai protocol format (.ai/_config/reporting.yaml template, real <@USER_ID> mentions, full report md linked from GitHub). Self-modification without a protocol report is a directive breach.",
       "granted_by": "monaecode",
       "granted_at": "2026-07-17"
+    }
+  ],
+  "amendments": [
+    {
+      "amendment_id": "20260717-claude-agent-sdk-requirement",
+      "amended_by": "ctr-admin (Cora)",
+      "adopted_by": "mimi",
+      "adopted_at": "2026-07-17",
+      "summary": "Cora amendment (PR #39): require Claude Agent SDK harness; subagent/settings scaffolding alone insufficient. M0 implemented on this fork branch; SDK reference + scaffold stubs imported byte-identical from Cora's PR #39 (cursor/claude-agent-sdk-scaffold-f1d6).",
+      "reference": ".ai/shared/references/claude-agent-sdk.md"
     }
   ]
 }
