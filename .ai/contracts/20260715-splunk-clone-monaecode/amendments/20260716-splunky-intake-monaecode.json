@@ -1,0 +1,16 @@
+{
+  "amendment_id": "20260716-splunky-intake-monaecode",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "amended_at": "2026-07-16T06:43:00Z",
+  "amended_by": "ctr-admin",
+  "owner_representative": "monaecode (U0BGNS7F0T1) via co-founder assistant",
+  "summary": "Replace pilot Alpha slot with named contractor Splunky; define deliverables, Claude Desktop/Code agent stack, Slack #splunk-clone-project PR protocol, prototype isolation with planned SAI plugin integration.",
+  "changes": [
+    "Primary contractor: ctr-code-splunky (Splunky) on branch proj/splunk-clone/ctr-code-splunky/<task-slug>",
+    "Slack channel: #splunk-clone-project (owner approval required before creation)",
+    "Product root: splunk-clone/ (isolated tree; no imports from future SAI app until integration gate)",
+    "Alpha (ctr-code-splunk1) superseded for new work — retain folder for audit history only",
+    "deliverables[] and acceptance_criteria[] populated",
+    "proposed_capabilities[] added for ONBOARDING Phase 3 owner approval"
+  ]
+}

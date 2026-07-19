@@ -1,0 +1,2 @@
+{"event_id":"20260717-0458-pr15-metadata-status-ceo:1784265000000000001","event_type":"INTAKE","task_id":"20260717-0458-pr15-metadata-status-ceo","actor":"ceo-automation","timestamp":"2026-07-17T04:58:00Z","payload":{"trigger":"pr_comment","pr":15}}
+{"event_id":"20260717-0458-pr15-metadata-status-ceo:1784265000000000002","event_type":"VERIFY","task_id":"20260717-0458-pr15-metadata-status-ceo","actor":"ceo-automation","timestamp":"2026-07-17T04:59:00Z","payload":{"checks":["verify-semantic-hierarchy","verify-agent-audit"]}}

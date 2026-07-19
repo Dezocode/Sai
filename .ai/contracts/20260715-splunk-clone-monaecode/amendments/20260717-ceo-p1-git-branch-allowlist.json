@@ -1,0 +1,9 @@
+{
+  "amendment_id": "20260717-ceo-p1-git-branch-allowlist",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "author": "sai (ceo-automation)",
+  "principal_notified": "U0BHYH0NMCY",
+  "trigger": "PR #15 CTO-REVIEW P1 — Bash(git branch *) permits git branch -D",
+  "change": "Replaced Bash(git branch *) with explicit list/show/create patterns under contract branch prefix. Added branch-deletion tokens to explicitly_excluded. CI regression via scripts/lib/verify-claude-shell-allowlist.py in verify-scaffold-safety.",
+  "review_gate": "monaecode confirms allowlist before Splunky merges entries into live settings"
+}

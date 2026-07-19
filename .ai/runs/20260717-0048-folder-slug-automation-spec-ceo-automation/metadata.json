@@ -1,0 +1,17 @@
+{
+  "task_id": "20260717-0048-folder-slug-automation-spec-ceo-automation",
+  "agent": "ceo-automation",
+  "agent_name": "Sai",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-7695",
+  "purpose": "PR #15 P1: canonical folder slug in agent-automation-spec paths; regression test; regenerate Splunky profiles",
+  "status": "verify",
+  "claimed_files": [
+    "scripts/agent-automation-spec",
+    "scripts/verify-scaffold-safety",
+    ".ai/INITIALIZE.md",
+    ".github/workflows/agent-audit.yml",
+    ".ai/agents/splunky/automation/profile.md",
+    ".ai/agents/splunky/runtimes/claude/automation/profile.md"
+  ]
+}
