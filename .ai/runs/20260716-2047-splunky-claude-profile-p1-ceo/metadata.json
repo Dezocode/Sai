@@ -1,0 +1,18 @@
+{
+  "task_id": "20260716-2047-splunky-claude-profile-p1-ceo",
+  "agent": "Sai",
+  "agent_id": "ceo",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-e6d3",
+  "purpose": "P1 CTO review: replace Splunky Cursor Automations UI stub with Claude Code-native automation profile",
+  "status": "in_progress",
+  "claimed_files": [
+    ".ai/agents/splunky/runtimes/claude/automation/profile.md",
+    ".ai/agents/splunky/automation/profile.md",
+    ".ai/agents/splunky/hooks.json",
+    ".ai/agents/splunky/runtimes/claude/README.md",
+    ".ai/agents/splunky/AGENT.md"
+  ],
+  "pr": "https://github.com/Dezocode/Sai/pull/16",
+  "trigger": "CTO-REVIEW P1 on splunky claude automation profile"
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "$comment": "Copy or merge into splunk-clone/.claude/settings.json on monaecode/Sai after owner review. MCP server names must match monaecode's Claude Desktop MCP config.",
+  "agent": "splunky",
+  "includeGitInstructions": true,
+  "permissions": {
+    "$comment_provisional_gh": "Provisional contractors: explicit gh subcommands only — .ai/shared/references/contractor-claude-gh-permissions.md",
+    "allow": [
+      "Bash(git *)",
+      "Bash(gh auth status*)",
+      "Bash(gh repo view*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh pr create*)",
+      "Bash(gh run list*)",
+      "Bash(gh run view*)",
+      "Bash(gh workflow view*)",
+      "Bash(gh status*)",
+      "Bash(scripts/agent-report *)",
+      "Bash(scripts/agent-contract-pr-review *)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hook\": \"splunky-pre-tool\", \"agent\": \"splunky\", \"contract\": \"20260715-splunk-clone-monaecode\"}' >&2"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hook\": \"splunky-post-tool\"}' >&2"
+          }
+        ]
+      }
+    ]
+  },
+  "mcpServers": {},
+  "_mcp_recommendations_for_owner_approval": {
+    "github": "Repository, PR, Actions on monaecode/Sai",
+    "slack": "Post to #splunk-clone-project (channel C0BH8LCJLDS is #help-newagents — owner must create #splunk-clone-project and wire MCP)",
+    "note": "Populate mcpServers only after ONBOARDING Phase 3 records approved_capabilities[]"
+  },
+  "subagent_registry": {
+    "splunky": {
+      "path": "splunk-clone/.claude/agents/splunky.md",
+      "description": "Splunk/SIEM lead for splunk-clone prototype on monaecode/Sai"
+    }
+  },
+  "sai_contract": {
+    "contract_id": "20260715-splunk-clone-monaecode",
+    "agent_id": "ctr-code-splunky",
+    "branch_prefix": "proj/splunk-clone/ctr-code-splunky/",
+    "slack_channel": "#splunk-clone-project",
+    "icm_agent_folder": ".ai/agents/splunky/"
+  }
+}

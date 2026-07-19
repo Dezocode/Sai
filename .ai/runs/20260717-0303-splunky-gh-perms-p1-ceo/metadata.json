@@ -1,0 +1,16 @@
+{
+  "task_id": "20260717-0303-splunky-gh-perms-p1-ceo",
+  "agent": "ceo-automation",
+  "agent_name": "Sai",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-0196",
+  "purpose": "Address P1 CTO review on PR #16: remove Bash(gh *) from provisional contractor Splunky Claude settings",
+  "status": "implement",
+  "claimed_files": [
+    "splunk-clone/.claude/settings.json",
+    ".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json",
+    "scripts/verify-scaffold-safety",
+    ".ai/shared/references/contractor-claude-gh-permissions.md",
+    ".ai/ONBOARDING.md"
+  ]
+}
