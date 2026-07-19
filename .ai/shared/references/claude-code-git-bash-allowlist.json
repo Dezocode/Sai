@@ -1,0 +1,42 @@
+{
+  "description": "Least-privilege Claude Code Bash(git ...) patterns for SAI agents before owner-approved Phase 5B expansion. Copy allow/deny into splunk-clone/.claude/settings.json and contract bootstrap; keep in sync.",
+  "allow": [
+    "Bash(git status*)",
+    "Bash(git diff *)",
+    "Bash(git log *)",
+    "Bash(git fetch *)",
+    "Bash(git remote *)",
+    "Bash(git rev-parse *)",
+    "Bash(git show *)",
+    "Bash(git branch)",
+    "Bash(git branch *)",
+    "Bash(git switch *)",
+    "Bash(git checkout *)",
+    "Bash(git add *)",
+    "Bash(git commit *)",
+    "Bash(git push -u *)",
+    "Bash(git push origin *)",
+    "Bash(git ls-remote *)",
+    "Bash(git worktree *)",
+    "Bash(git merge --ff-only *)",
+    "Bash(git bundle create *)"
+  ],
+  "deny": [
+    "Bash(git push * --force*)",
+    "Bash(git push * -f*)",
+    "Bash(git push --force*)",
+    "Bash(git push -f*)",
+    "Bash(git push * :*)",
+    "Bash(git push origin :*)",
+    "Bash(git reset --hard*)",
+    "Bash(git reset --merge*)",
+    "Bash(git clean -f*)",
+    "Bash(git branch -D*)",
+    "Bash(git branch -d*)",
+    "Bash(git tag -d*)",
+    "Bash(git rebase*)",
+    "Bash(git filter-branch*)",
+    "Bash(git reflog delete*)",
+    "Bash(git update-ref -d*)"
+  ]
+}

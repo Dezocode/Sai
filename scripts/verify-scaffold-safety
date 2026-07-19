@@ -153,6 +153,16 @@ Agent: ceo-automation"
   fi
 fi
 
+# P1 (PR #16): provisional contractor Claude settings must not grant Bash(gh *)
+while IFS= read -r f; do
+  if grep -Eq '"Bash\(gh \*\)"' "$f"; then
+    echo "FAIL  provisional-gh-wildcard — $f grants blanket Bash(gh *)" >&2
+    FAILED=1
+  else
+    echo "PASS  provisional-gh-wildcard — $f"
+  fi
+done < <(git ls-files 'splunk-clone/.claude/settings.json' '.ai/contracts/*/claude-desktop-bootstrap.json' 2>/dev/null || true)
+
 # P2 (Saul PR #10): guard_json_safe_string must reject all C0 control characters
 # shellcheck source=scripts/lib/agent-path-guards.sh
 . "$REPO_ROOT/scripts/lib/agent-path-guards.sh"
