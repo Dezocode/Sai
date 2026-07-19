@@ -1,0 +1,18 @@
+{
+  "task_id": "20260719-0404-splunky-remove-bash-ceo",
+  "agent": "Sai",
+  "agent_id": "ceo-automation",
+  "branch": "cursor/agent-initialization-compliance-72cf",
+  "repository": "Dezocode/Sai",
+  "purpose": "Remove all Bash from provisional Splunky profile per CTO P1 on PR #21",
+  "status": "in_progress",
+  "trigger": "pr_comment CTO-REVIEW P1",
+  "pr": 21,
+  "claimed_files": [
+    "splunk-clone/.claude/agents/splunky.md",
+    "splunk-clone/.claude/settings.json",
+    ".ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json",
+    ".ai/contracts/20260715-splunk-clone-monaecode/onboarding-prompt.md",
+    ".ai/ONBOARDING.md"
+  ]
+}

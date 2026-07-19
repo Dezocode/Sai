@@ -70,7 +70,7 @@ Follow [Claude Code subagents](https://docs.anthropic.com/en/docs/claude-code/su
 
 1. **Subagent file** (already seeded): `splunk-clone/.claude/agents/splunky.md` — refine persona, tools, `skills`, `mcpServers`, `memory: project`, `isolation: worktree` when doing heavy refactors.
 
-2. **Project settings:** merge `.ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json` into `splunk-clone/.claude/settings.json` after owner approves MCP entries. **Do not** add `Bash(git *)` or `Bash(gh *)` while **`provisional`** — add git/gh only after Phase 5B verify-caps and owner approval per `approved_capabilities[]`.
+2. **Project settings:** merge `.ai/contracts/20260715-splunk-clone-monaecode/claude-desktop-bootstrap.json` into `splunk-clone/.claude/settings.json` after owner approves MCP entries. While **`provisional`**, do **not** declare or allow `Bash` (no agent `tools:` entry, no `Bash(...)` permissions, no Bash hooks). Add shell only after Phase 3 owner approval and Phase 5B verify-caps per `approved_capabilities[]`.
 
 3. **Skills** (project scope): `splunk-clone/.claude/skills/` — expand `splunk-siem-expertise` and `sai-icm-contract`.
 

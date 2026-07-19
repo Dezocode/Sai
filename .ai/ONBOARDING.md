@@ -76,12 +76,12 @@ Never add unapproved capabilities to `tools.json` or `hooks.json`.
 1. Update `contract.md` with the finalized capability plan.
 2. Configure `hooks.json` and runtime `tools.json` for approved capabilities
    only. Test each; mark `verified` only with evidence per INITIALIZE Phase 5B.
-   While registry `status` is **`provisional`**, Claude Code / Desktop
-   `permissions.allow` must **not** include `Bash(git *)`, `Bash(gh *)`, or
-   other wildcard shell grants for Git or GitHub. Use non-shell tools (Read,
-   Write, Edit, Glob, Grep, Skill) and narrowly scoped `Bash(scripts/… *)`
-   for ICM reporting only until `approved_capabilities[]` lists explicit,
-   owner-approved git/gh commands verified in Phase 5B.
+   While registry `status` is **`provisional`**, Claude Code / Desktop must
+   **not** declare or allow the `Bash` tool — no `Bash(...)`, no Bash hooks,
+   and no agent-level `tools:` entry for Bash. Use non-shell tools (Read,
+   Write, Edit, Glob, Grep, Skill) only until Phase 3 owner approval and
+   Phase 5B `scripts/agent-verify-caps` records narrow shell entries in
+   `approved_capabilities[]`.
 3. Run `scripts/agent-verify-caps` against your runtime tools file.
 4. Update `skills.md` with contract-specific skills backed by evidence.
 5. Loop back to Phase 3 if new candidates emerge from research.

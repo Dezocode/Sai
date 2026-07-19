@@ -7,7 +7,7 @@ isolation: worktree
 skills:
   - splunk-siem-expertise
   - sai-icm-contract
-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
+tools: Read, Write, Edit, Grep, Glob, Skill
 permissionMode: acceptEdits
 color: purple
 ---

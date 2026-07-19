@@ -1,44 +1,20 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "$comment": "Copy or merge into splunk-clone/.claude/settings.json on monaecode/Sai after owner review. MCP server names must match monaecode's Claude Desktop MCP config.",
-  "_provisional_shell_policy": "While registry status is provisional: no Bash(git *) or Bash(gh *) wildcards. Add only owner-approved, Phase-5B-verified git/gh command entries to approved_capabilities[] after scripts/agent-verify-caps PASS.",
+  "_provisional_shell_policy": "While registry status is provisional: no Bash tool or Bash(...) permissions in agent tools, settings, or hooks. Add shell only after Phase 3 owner approval and Phase 5B scripts/agent-verify-caps PASS records narrow entries in approved_capabilities[].",
   "agent": "splunky",
   "includeGitInstructions": true,
   "permissions": {
     "allow": [
-      "Bash(scripts/agent-report *)",
-      "Bash(scripts/agent-contract-pr-review *)",
       "Read",
       "Write",
       "Edit",
       "Glob",
-      "Grep"
+      "Grep",
+      "Skill"
     ]
   },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '{\"hook\": \"splunky-pre-tool\", \"agent\": \"splunky\", \"contract\": \"20260715-splunk-clone-monaecode\"}' >&2"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '{\"hook\": \"splunky-post-tool\"}' >&2"
-          }
-        ]
-      }
-    ]
-  },
+  "hooks": {},
   "mcpServers": {},
   "_mcp_recommendations_for_owner_approval": {
     "github": "Repository, PR, Actions on monaecode/Sai",
