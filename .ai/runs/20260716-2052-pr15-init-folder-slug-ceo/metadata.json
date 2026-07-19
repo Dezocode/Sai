@@ -1,0 +1,16 @@
+{
+  "task_id": "20260716-2052-pr15-init-folder-slug-ceo",
+  "agent": "sai",
+  "agent_id": "ceo-automation",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-9ac0",
+  "purpose": "CEO PR #15 sync verify; fix agent-automation-spec folder slug paths for Linux ICM",
+  "claimed_files": [
+    "scripts/agent-automation-spec",
+    ".ai/INITIALIZE.md",
+    ".ai/agents/splunky/runtimes/claude/automation/profile.md",
+    ".ai/agents/splunky/automation/profile.md"
+  ],
+  "status": "verify",
+  "trigger": "pr_15_synchronize"
+}

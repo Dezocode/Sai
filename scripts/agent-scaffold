@@ -243,4 +243,4 @@ if [ "$WITH_MEMORY" = "1" ] || [ -n "$CONTRACT_ID" ]; then
   "$REPO_ROOT/scripts/agent-memory-scaffold" "${MEM_ARGS[@]}"
 fi
 echo "  Next: Phase 5B survey → scripts/agent-verify-caps --tools-file $AGENT_DIR/$CANONICAL_TOOLS --environment $RUNTIME_ENV"
-echo "  Phase 7 → scripts/agent-automation-spec --out $AGENT_DIR/runtimes/$RUNTIME_SUITE/automation/profile.md"
+echo "  Phase 7 → scripts/agent-automation-spec --suite $RUNTIME_SUITE --out $AGENT_DIR/runtimes/$RUNTIME_SUITE/automation/profile.md"

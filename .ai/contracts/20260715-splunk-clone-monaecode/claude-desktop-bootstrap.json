@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "$comment": "Copy or merge into splunk-clone/.claude/settings.json on monaecode/Sai after owner review. MCP server names must match monaecode's Claude Desktop MCP config. Broad Bash(git *) / Bash(gh *) are intentionally omitted until ONBOARDING Phase 5B + owner approval of shell_allowlist_after_phase_5b.",
+  "agent": "splunky",
+  "includeGitInstructions": true,
+  "permissions": {
+    "allow": [
+      "Bash(scripts/agent-report *)",
+      "Bash(scripts/agent-contract-pr-review *)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep"
+    ]
+  },
+  "shell_allowlist_after_phase_5b": {
+    "requires": [
+      "ONBOARDING Phase 3 approved_capabilities includes shell/git-gh",
+      "ONBOARDING Phase 5B agent-verify-caps PASS on runtimes/claude/tools.json",
+      "Owner records approval in contract.json amendments with evidence"
+    ],
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git fetch origin *)",
+      "Bash(git branch *)",
+      "Bash(git checkout -b proj/splunk-clone/ctr-code-splunky/*)",
+      "Bash(git add splunk-clone/*)",
+      "Bash(git add .ai/runs/*)",
+      "Bash(git commit *)",
+      "Bash(git push -u origin proj/splunk-clone/ctr-code-splunky/*)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr create *)"
+    ],
+    "explicitly_excluded": [
+      "git push --force",
+      "git reset --hard",
+      "git push * :*",
+      "gh pr merge",
+      "gh pr close",
+      "SAI_AUDIT_BYPASS"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hook\": \"splunky-pre-tool\", \"agent\": \"splunky\", \"contract\": \"20260715-splunk-clone-monaecode\"}' >&2"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hook\": \"splunky-post-tool\"}' >&2"
+          }
+        ]
+      }
+    ]
+  },
+  "mcpServers": {},
+  "_mcp_recommendations_for_owner_approval": {
+    "github": "Repository, PR, Actions on monaecode/Sai",
+    "slack": "Post to #splunk-clone-project (channel C0BH8LCJLDS is #help-newagents — owner must create #splunk-clone-project and wire MCP)",
+    "note": "Populate mcpServers only after ONBOARDING Phase 3 records approved_capabilities[]"
+  },
+  "subagent_registry": {
+    "splunky": {
+      "path": "splunk-clone/.claude/agents/splunky.md",
+      "description": "Splunk/SIEM lead for splunk-clone prototype on monaecode/Sai"
+    }
+  },
+  "sai_contract": {
+    "contract_id": "20260715-splunk-clone-monaecode",
+    "agent_id": "ctr-code-splunky",
+    "branch_prefix": "proj/splunk-clone/ctr-code-splunky/",
+    "slack_channel": "#splunk-clone-project",
+    "icm_agent_folder": ".ai/agents/splunky/"
+  }
+}
