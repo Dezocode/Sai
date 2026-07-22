@@ -1,0 +1,7 @@
+{
+  "stage": "06_publish_sync",
+  "task_id": "20260722-2355-grok-harness-deepdive-ctr-admin",
+  "outputs": ["publish.md"],
+  "status": "in_progress",
+  "drive_status": "pending"
+}
