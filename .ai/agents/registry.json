@@ -75,7 +75,7 @@
         "codex-desktop": "Not primary — see runtimes/codex/README.md"
       },
       "automation": "delegated: .ai/agents/cora/runtimes/cursor/automation/profile.md (awaiting creation by dezocode or monaecode; profile regenerated 2026-07-15 with 25 verified capabilities)",
-      "notes": "Named Cora, Contract Administrator by dezocode and monaecode 2026-07-15. Phase 5B-9 complete 20260715-2152-cora-init-complete-ctr-admin: 25 verified capabilities, automation profile offered. Alpha (ctr-code-splunk1) remains provisional NO-GO until deliverables, capabilities, persona gate, and human approval."
+      "notes": "Named Cora, Contract Administrator by dezocode and monaecode 2026-07-15. Phase 5B-9 complete 20260715-2152-cora-init-complete-ctr-admin: 25 verified capabilities, automation profile offered. Alpha (ctr-code-splunk1) retired 20260722 — superseded by Splunky; registry enum is `retired`, not `superseded`."
     },
     {
       "agent_id": "ctr-code-splunk1",

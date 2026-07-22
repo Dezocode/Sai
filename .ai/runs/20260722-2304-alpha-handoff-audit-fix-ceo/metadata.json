@@ -5,7 +5,7 @@
   "repository": "Dezocode/Sai",
   "branch": "cursor/contractor-contract-compliance-aba9",
   "purpose": "Correct Alpha retirement handoff audit record to match registry.json committed status enum (retired, not superseded)",
-  "status": "in_progress",
+  "status": "published-awaiting-review",
   "requested_by": "dezocode (U0BHYH0NMCY) via PR #46 review comment",
   "claimed_files": [
     ".ai/runs/20260722-2205-alpha-retire-triage-ctr-admin/handoff.md",
