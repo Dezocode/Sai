@@ -1,6 +1,6 @@
 # Composio integrations
 
-**Deliverable:** A2 | **Settings:** [settings/auth/](../settings/auth/CONTEXT.md)
+**Deliverable:** A2 | **Settings:** [settings/auth/](../../settings/auth/CONTEXT.md)
 
 | Toolkit | Use |
 |---|---|

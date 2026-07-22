@@ -52,7 +52,7 @@ Full integration research:
 
 ## 2b. Design system (unified — all tabs, all controls)
 
-**Mandatory before any tab UI work:** [design/DESIGN-LANGUAGE.md](../design/DESIGN-LANGUAGE.md)
+**Mandatory before any tab UI work:** [design/DESIGN-LANGUAGE.md](design/DESIGN-LANGUAGE.md)
 
 | Topic | Path |
 |---|---|

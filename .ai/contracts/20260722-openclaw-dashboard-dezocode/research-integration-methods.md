@@ -122,7 +122,7 @@ flowchart TB
 
 ### Integration method
 
-Composio provides unified OAuth and MCP tool-router ([existing Mimi pattern](.ai/agents/mimi/runtimes/claude/tools.json)).
+Composio provides unified OAuth and MCP tool-router ([existing Mimi pattern](../../agents/mimi/runtimes/claude/tools.json)).
 
 | Service | Composio toolkit | OpenClaw native overlap | Recommendation |
 |---|---|---|---|
@@ -469,8 +469,8 @@ openclaw-dashboard/tests/smoke/telegram-session-reporting.sh  # exit 0 after pro
 - [OpenClaw GitHub](https://github.com/openclaw/openclaw)
 - [OpenClaw Slack channel](https://docs.openclaw.ai/channels/slack)
 - [OpenClaw Telegram channel](https://docs.openclaw.ai/channels/telegram)
-- [SAI Claude Agent SDK reference](.ai/shared/references/claude-agent-sdk.md)
-- [Mimi Composio pattern](.ai/agents/mimi/runtimes/claude/tools.json)
+- [SAI Claude Agent SDK reference](../../shared/references/claude-agent-sdk.md)
+- [Mimi Composio pattern](../../agents/mimi/runtimes/claude/tools.json)
 - [NotebookLM context](./notebooklm-context.md)
 
 ---

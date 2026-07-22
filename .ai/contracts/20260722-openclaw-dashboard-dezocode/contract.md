@@ -73,9 +73,9 @@ See [amendments/20260722-dezocode-pr45-review.md](./amendments/20260722-dezocode
 
 PR #45 governs credential **structure** for OpenClaw + dashboard — values on VPS only:
 
-→ [secrets-security.md](../../openclaw-dashboard/docs/secrets-security.md)  
-→ [auth-matrix.md](../../openclaw-dashboard/docs/auth-matrix.md)  
-→ [settings/secrets/](../../openclaw-dashboard/settings/secrets/CONTEXT.md)
+→ [secrets-security.md](../../../openclaw-dashboard/docs/secrets-security.md)  
+→ [auth-matrix.md](../../../openclaw-dashboard/docs/auth-matrix.md)  
+→ [settings/secrets/](../../../openclaw-dashboard/settings/secrets/CONTEXT.md)
 
 ## Activation & merge checklist
 
@@ -95,14 +95,14 @@ Until then: work **only** on isolated `proj/openclaw-dashboard/*` branches.
 **dezocode** (`U0BHYH0NMCY`) originated this contract and receives **every Alfred session
 run update on Telegram** (INTAKE through HANDOFF), with Slack mirror to `#agentupdates`.
 
-→ [telegram-session-protocol.md](../../openclaw-dashboard/docs/telegram-session-protocol.md)  
-→ [BEHAVIORS.md](../../.ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md)  
+→ [telegram-session-protocol.md](../../../openclaw-dashboard/docs/telegram-session-protocol.md)  
+→ [BEHAVIORS.md](../../agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md)  
 → **First prompt to attach:** [first-prompt-attach-contract.md](./first-prompt-attach-contract.md)
 
 ## Fleet coherence
 
 Alfred + all subagents and dashboard-created agents follow identical ICM + Telegram + Slack
-protocols. Proof gate: [fleet-coherence-gate.md](../../openclaw-dashboard/docs/fleet-coherence-gate.md)
+protocols. Proof gate: [fleet-coherence-gate.md](../../../openclaw-dashboard/docs/fleet-coherence-gate.md)
 
 ## Deliverables (A0–A13)
 

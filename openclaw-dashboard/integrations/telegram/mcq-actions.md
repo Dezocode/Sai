@@ -56,4 +56,4 @@ Parallel optional posts:
 
 `scripts/smoke-telegram-mcq.sh` — send test MCQ to dezocode sandbox chat; expect ack within 60s.
 
-See [tests/smoke/telegram-mcq.sh](../tests/smoke/telegram-mcq.sh).
+See [tests/smoke/telegram-mcq.sh](../../tests/smoke/telegram-mcq.sh).

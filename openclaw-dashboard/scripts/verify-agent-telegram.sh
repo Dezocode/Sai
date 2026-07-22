@@ -107,6 +107,19 @@ def run_self_test():
     ):
         if valid_blocked_record(bad):
             errors.append(f"self-test: malformed blocked record must fail ({bad!r})")
+    discovered = discover_openclaw_subagents()
+    required_subagents = {"config-expert", "research-coordinator"}
+    missing = required_subagents - discovered
+    if missing:
+        errors.append(
+            f"self-test: discover_openclaw_subagents missing {sorted(missing)} "
+            f"(found {sorted(discovered)})"
+        )
+    contract_scope = sorted({"ctr-code-alfred1"} | discovered)
+    if "config-expert" not in contract_scope or "research-coordinator" not in contract_scope:
+        errors.append(
+            f"self-test: contract scope must include dashboard subagents ({contract_scope})"
+        )
     if errors:
         print("verify-agent-telegram.sh --self-test: FAIL")
         for e in errors:
@@ -197,13 +210,33 @@ def parse_registry_table(path):
     return rows
 
 
+def discover_openclaw_subagents():
+    """Discover dashboard-created subagents from .openclaw/agents/*.md (A10 contract)."""
+    root = os.environ.get("ROOT", "")
+    agents_dir = os.path.join(root, ".openclaw", "agents")
+    ids = set()
+    if os.path.isdir(agents_dir):
+        for name in sorted(os.listdir(agents_dir)):
+            if name.endswith(".md") and not name.startswith("."):
+                ids.add(name[:-3])
+    return ids
+
+
 def scope_agent_ids(registry_data):
     agents = registry_data.get("agents", [])
     if SCOPE == "registry":
-        return [a["agent_id"] for a in agents if a.get("status") in ("active", "provisional")]
+        ids = {
+            a["agent_id"]
+            for a in agents
+            if a.get("status") in ("active", "provisional")
+        }
+        ids.update(discover_openclaw_subagents())
+        return sorted(ids)
     if SCOPE == "table":
         return list(parse_registry_table(REG).keys())
-    return sorted({"ctr-code-alfred1", "config-expert", "research-coordinator"})
+    contract_ids = {"ctr-code-alfred1"}
+    contract_ids.update(discover_openclaw_subagents())
+    return sorted(contract_ids)
 
 
 if MODE == "self-test":

@@ -1,6 +1,6 @@
 # Service: Telegram session memory + contract sender reporting
 
-**Protocol:** [telegram-session-protocol.md](../docs/telegram-session-protocol.md)  
+**Protocol:** [telegram-session-protocol.md](../../docs/telegram-session-protocol.md)  
 **Behaviors:** `.ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md`
 
 ## Responsibility

@@ -56,10 +56,10 @@ Activation authorizes Alfred to execute `first-message-to-openclaw.md` on Hostin
 | # | Action | Owner |
 |---|---|---|
 | A1 | Review final [contract.json](./contract.json) + [contract.md](./contract.md) | dezocode + monaecode |
-| A2 | Confirm secrets doctrine: [secrets-security.md](../../openclaw-dashboard/docs/secrets-security.md) | dezocode + Saul |
+| A2 | Confirm secrets doctrine: [secrets-security.md](../../../openclaw-dashboard/docs/secrets-security.md) | dezocode + Saul |
 | A3 | Set `contract.json` → `"status": "active"` (commit on `main` or activation PR) | dezocode + monaecode |
 | A4 | Post `[SAI][CONTRACT][task-id]` to #agentupdates announcing activation | Cora or dezocode |
-| A5 | Provision VPS secrets per [auth-matrix.md](../../openclaw-dashboard/docs/auth-matrix.md) — **values on VPS only** | dezocode + Alfred |
+| A5 | Provision VPS secrets per [auth-matrix.md](../../../openclaw-dashboard/docs/auth-matrix.md) — **values on VPS only** | dezocode + Alfred |
 | A6 | Paste [first-prompt-attach-contract.md](./first-prompt-attach-contract.md) into OpenClaw Gateway | dezocode triggers Alfred |
 
 ---
@@ -114,6 +114,6 @@ Alfred active + product on main?
 | Doc | Path |
 |---|---|
 | Contract JSON | [contract.json](./contract.json) |
-| Secrets control | [secrets-security.md](../../openclaw-dashboard/docs/secrets-security.md) |
+| Secrets control | [secrets-security.md](../../../openclaw-dashboard/docs/secrets-security.md) |
 | Review tracker | [PR45-REVIEW-TRACKER.md](./PR45-REVIEW-TRACKER.md) |
 | First prompt | [first-prompt-attach-contract.md](./first-prompt-attach-contract.md) |

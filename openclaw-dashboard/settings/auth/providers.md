@@ -1,7 +1,7 @@
 # Auth providers — Apple, GitHub, Composio
 
-**Settings surface:** [settings/auth/](../settings/auth/CONTEXT.md)  
-**Design:** [design/DESIGN-LANGUAGE.md](../design/DESIGN-LANGUAGE.md) → `EmbeddedBrowser`
+**Settings surface:** [settings/auth/](./CONTEXT.md)  
+**Design:** [design/DESIGN-LANGUAGE.md](../../design/DESIGN-LANGUAGE.md) → `EmbeddedBrowser`
 
 ## Provider matrix
 
@@ -42,4 +42,4 @@
 
 Auth hub health check runs every 60s; any required provider unreachable → status bar warning + Telegram MCQ to dezocode (see mcq-actions.md).
 
-Build: [settings/auth/BUILD.md](../settings/auth/BUILD.md)
+Build: [settings/auth/BUILD.md](./BUILD.md)

@@ -26,9 +26,16 @@ if "telegram_session" not in c:
 print("PASS contract telegram_session + contract_sender fields")
 PY
 
-# Fleet roster: Alfred + contract subagents
-FLEET=(ctr-code-alfred1 config-expert research-coordinator)
+# Fleet roster: Alfred + every .openclaw/agents/*.md subagent (dashboard-created)
 REG="$ROOT/docs/agent-telegram-registry.md"
+FLEET=(ctr-code-alfred1)
+if [ -d "$ROOT/.openclaw/agents" ]; then
+  for f in "$ROOT/.openclaw/agents"/*.md; do
+    [ -f "$f" ] || continue
+    aid=$(basename "$f" .md)
+    FLEET+=("$aid")
+  done
+fi
 
 for aid in "${FLEET[@]}"; do
   if ! grep -q "| $aid |" "$REG" 2>/dev/null && ! grep -q "|$aid|" "$REG" 2>/dev/null; then

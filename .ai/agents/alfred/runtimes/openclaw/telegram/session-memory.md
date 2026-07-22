@@ -1,7 +1,7 @@
 # Alfred — Telegram session memory model
 
 **Service:** `openclaw-dashboard/services/telegram-session/`  
-**Protocol:** [telegram-session-protocol.md](../../../../../openclaw-dashboard/docs/telegram-session-protocol.md)
+**Protocol:** [telegram-session-protocol.md](../../../../../../openclaw-dashboard/docs/telegram-session-protocol.md)
 
 ---
 

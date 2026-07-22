@@ -32,4 +32,4 @@
 - [ ] Apply change with config-expert approval flow
 - [ ] Reload gateway without secret leak to client logs
 
-Build: [BUILD.md](./BUILD.md) | Models: [settings/models/](../settings/models/CONTEXT.md)
+Build: [BUILD.md](./BUILD.md) | Models: [settings/models/](../../settings/models/CONTEXT.md)

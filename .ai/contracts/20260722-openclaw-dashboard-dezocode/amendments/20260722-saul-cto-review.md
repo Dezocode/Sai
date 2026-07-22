@@ -43,7 +43,7 @@
 
 **Finding:** `verify-ingest-latency.sh`, `telegram-mcq.sh`, dashboard tab smoke exit non-zero or stub — fulfillment conditions unmet.
 
-**Resolution:** Documented as **L4 open** in [PR45-REVIEW-TRACKER.md](./PR45-REVIEW-TRACKER.md). Alfred implements on bootstrap branch; stubs remain until VPS services exist (exit 2 = not implemented, not PASS).
+**Resolution:** Documented as **L4 open** in [PR45-REVIEW-TRACKER.md](../PR45-REVIEW-TRACKER.md). Alfred implements on bootstrap branch; stubs remain until VPS services exist (exit 2 = not implemented, not PASS).
 
 ## Non-blocking CEO audit items (addressed)
 
