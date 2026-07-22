@@ -36,7 +36,9 @@
     "telegram_session_reporting": "openclaw-dashboard/tests/smoke/telegram-session-reporting.sh",
     "fleet_coherence": "openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh",
     "secrets_compliance": "openclaw-dashboard/tests/smoke/secrets-compliance.sh",
-    "subagent_connection_gate": "openclaw-dashboard/tests/smoke/subagent-connection-gate.sh"
+    "subagent_connection_gate": "openclaw-dashboard/tests/smoke/subagent-connection-gate.sh",
+    "subagent_connection_gate_negative": "openclaw-dashboard/tests/smoke/subagent-connection-gate-negative.sh",
+    "gateway_bind": "openclaw-dashboard/scripts/verify-gateway-bind.sh"
   },
   "ci_enforcement": {
     "workflow": ".github/workflows/agent-audit.yml",

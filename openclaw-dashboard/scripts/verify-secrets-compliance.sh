@@ -17,6 +17,13 @@ check_file "$REPO/.ai/agents/alfred/runtimes/openclaw/gateway/config/secrets-sto
 
 python3 -m json.tool "$REPO/.ai/agents/alfred/runtimes/openclaw/gateway/config/secrets-store.schema.json" >/dev/null
 
+GATEWAY_BIND="$REPO/openclaw-dashboard/scripts/verify-gateway-bind.sh"
+if [ -x "$GATEWAY_BIND" ]; then
+  "$GATEWAY_BIND" || { echo "FAIL verify-gateway-bind.sh"; FAIL=1; }
+else
+  echo "FAIL missing verify-gateway-bind.sh"; FAIL=1
+fi
+
 CONTRACT="$REPO/.ai/contracts/20260722-openclaw-dashboard-dezocode/contract.json"
 python3 - <<'PY' "$CONTRACT"
 import json, sys

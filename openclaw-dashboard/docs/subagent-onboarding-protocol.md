@@ -47,7 +47,7 @@ Until all three: dashboard shows **disconnected** — gray avatar, no walk-up ch
 | agent_id | display_name | telegram_dm_link | pairing_status | verified_at | slack_intro_link |
 ```
 
-**telegram_dm_link** format: `https://t.me/<bot>?start=<agent_id>` or direct `@handle` deep link.
+**telegram_dm_link** format: `https://t.me/<bot>?start=<agent_id>` (strict — bare `@handle` rejected by gate)
 
 ### User-created subagents (dashboard)
 

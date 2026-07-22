@@ -59,7 +59,7 @@ On Hostinger VPS:
 node -v
 npm install -g openclaw@latest
 openclaw onboard --install-daemon
-openclaw gateway --port 18789
+openclaw gateway --port 18789 --host 127.0.0.1
 openclaw dashboard   # confirm Control UI reachable
 openclaw doctor      # record output in run artifacts
 ```

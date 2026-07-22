@@ -65,6 +65,7 @@ Slack task-IDs posted to `#agentupdates` (`C0BH15HDN2Z`):
 | Secrets structure (PR #45 controlling) | `secrets-security.md`, `auth-matrix.md`, `settings/secrets/`, `verify-secrets-compliance.sh` |
 | Telegram session + fleet A13 | `BEHAVIORS.md`, `fleet-coherence-gate`, `c1195f1` |
 | Activation & merge checklist | `ACTIVATION-AND-MERGE-CHECKLIST.md` |
+| Saul review 4751481118 fixes | `amendments/20260722-saul-review-4751481118.md`, CI negative regression |
 
 ### Open — Alfred VPS / fulfillment (L4, not scaffold PR)
 
