@@ -11,6 +11,10 @@ One directory per task, named by task ID:
   metadata.json      <- task id, agent, repository, branch, claimed files, status
                         (contractors also require: contract_id, project_slug,
                          contractor_type, isolation_mode)
+                        Status lifecycle: use `in_progress` only while actively
+                        claiming files; set `published-awaiting-review` once
+                        handoff.md is written and the branch/PR awaits human
+                        merge review (releases stale ownership claims).
   events.jsonl       <- every emitted event, one JSON object per line
                         (schema: .ai/shared/schemas/agent-event.schema.json)
   handoff.md         <- final state, evidence, risks, next safe action

@@ -9,7 +9,7 @@
   "contractor_type": "coding",
   "isolation_mode": "prototype",
   "purpose": "Retire superseded Alpha registry row per dezocode contractor triage; close stale PR #21",
-  "status": "in_progress",
+  "status": "published-awaiting-review",
   "requested_by": "dezocode (U0BHYH0NMCY)",
   "claimed_files": [
     ".ai/agents/registry.json",
