@@ -14,7 +14,7 @@
 | Composio | SafariView Connect flows |
 | OpenClaw | iOS node pairing per docs.openclaw.ai |
 | Realtime | URLSession WebSocket → VPS ingest |
-| Habbo lite | SpriteKit scene OR WKWebView Phaser mobile layout |
+| Habbo lite | Phaser WKWebView **full viewport** or SpriteKit full screen | Same avatar assets; room fills Chat tab |
 | Storage | Keychain for tokens |
 
 ## WhisperFlow UX
@@ -37,7 +37,7 @@
 | Tracking graph | Full LiveGraph | Sparkline + detail drill-in |
 | Second brain edit | Full TipTap | Read + quick note |
 | Research workspace | Full | Session list + editor |
-| Habbo chat | Phaser full | Chat sheet + mini room |
+| Habbo chat | Phaser **full-screen** immersive | Phaser/SpriteKit **full-screen** + chat sheet |
 | Live browse | CDP stream | SafariView / WKWebView |
 | MCQ actions | Bottom panel | Push notification + action sheet |
 

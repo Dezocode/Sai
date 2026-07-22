@@ -16,7 +16,7 @@ openclaw-dashboard/tests/smoke/all-gates.sh
 |---|---|---|
 | ICM hierarchy | `scripts/verify-semantic-hierarchy` | exit 0 |
 | Agent setup | `scripts/verify-agent-setup` | exit 0 |
-| Design language | `tests/smoke/design-tokens.sh` | no inline hex; tokens present |
+| Design language | `tests/smoke/design-tokens.sh`, `tests/smoke/design-compliance.sh` | tokens v2, immersive-game, CursorSelect, VPS liveData |
 | Ingest SLO | `scripts/verify-ingest-latency.sh` | p99 ≤ 15ms |
 | Telegram MCQ | `tests/smoke/telegram-mcq.sh` | dezocode ack ≤ 60s |
 | Subagent connection | `tests/smoke/subagent-connection-gate.sh` | TG + Slack intro + Habbo per agent |

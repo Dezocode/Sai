@@ -50,15 +50,17 @@ Settings pages use `settings/<name>/` with the same three files.
 Full integration research:
 [research-integration-methods.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md)
 
-## 2b. Design system (unified — all tabs)
+## 2b. Design system (unified — all tabs, all controls)
 
 **Mandatory before any tab UI work:** [design/DESIGN-LANGUAGE.md](../design/DESIGN-LANGUAGE.md)
 
 | Topic | Path |
 |---|---|
-| Tokens + Cursor chrome | `design/tokens.json`, `design/components.md` |
+| One language spec | `design/DESIGN-LANGUAGE.md` — Cursor + AM + Robinhood + immersive Chat |
+| Tokens v2 + live VPS | `design/tokens.json`, `design/components.md` |
+| Dropdowns / buttons / motion | `components.md` — `CursorSelect`, 28px scale, shared easing |
 | Mac native | `apps/desktop/tech-stack.md` |
-| iOS Whisper + TTS | `apps/ios-whisper/tech-stack.md` |
+| iOS full-screen Habbo | `apps/ios-whisper/tech-stack.md` |
 | Apple/GitHub/Composio auth | `settings/auth/providers.md` |
 | Habbo game generator | `tabs/chat-room/game-engine.md` |
 | Shared research workspaces | `tabs/research/shared-workspaces.md` |

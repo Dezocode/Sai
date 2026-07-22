@@ -11,6 +11,7 @@ run() {
 run scripts/verify-semantic-hierarchy
 run scripts/verify-agent-setup
 run openclaw-dashboard/tests/smoke/design-tokens.sh
+run openclaw-dashboard/tests/smoke/design-compliance.sh
 run openclaw-dashboard/scripts/verify-ingest-latency.sh || true
 run openclaw-dashboard/tests/smoke/telegram-mcq.sh || true
 run openclaw-dashboard/tests/smoke/subagent-connection-gate.sh || true

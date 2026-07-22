@@ -9,7 +9,7 @@
 
 ## Dashboard-specific skills
 
-- **Unified design language** — implement all UI via `design/tokens.json` + `design-system/`; Cursor/Obsidian clone shell on Mac/iOS ([DESIGN-LANGUAGE.md](../../openclaw-dashboard/design/DESIGN-LANGUAGE.md))
+- **Unified design language** — one token system for **all** tabs/pages/buttons/dropdowns; Cursor shell + Activity Monitor lists + Robinhood metrics + Notion blocks; Chat tab **full-screen immersive** Habbo; live VPS data ([DESIGN-LANGUAGE.md](../../openclaw-dashboard/design/DESIGN-LANGUAGE.md))
 - **Native clients** — Tauri 2 desktop + SwiftUI iOS; WhisperFlow in, TTS out ([tech-stack](../../openclaw-dashboard/apps/desktop/tech-stack.md))
 - **Live VPS browsing** — EmbeddedBrowser + CDP; Apple/GitHub/Composio auth ([providers.md](../../openclaw-dashboard/settings/auth/providers.md))
 - **Habbo room generator** — Phaser 3 + registry-driven avatars ([game-engine.md](../../openclaw-dashboard/tabs/chat-room/game-engine.md))

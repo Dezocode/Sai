@@ -1,9 +1,16 @@
 # BUILD — Chat room tab
 
-## Phase 0: Subagent protocol + Rolodex UI
+## Phase 0: Immersive shell + design system
 
-1. Implement `AgentRolodex` per [agent-rolodex.md](./agent-rolodex.md) — Cursor tokens only.
-2. Wire activity age from `activity-ingest` WebSocket.
+1. Read [DESIGN-LANGUAGE.md](../../design/DESIGN-LANGUAGE.md) Mode B (`immersive-game`).
+2. Implement `ImmersiveGameShell` — full-viewport Phaser on Mac; full-screen on iOS.
+3. HUD overlays (`AgentRolodex`, `ChatTranscript`, room bar) — **dashboard tokens only**, no game UI fonts.
+4. Wire VPS WebSockets: `ingest/stream` (activity age), `presence/stream` (positions).
+
+## Phase 0b: Subagent protocol + Rolodex UI
+
+1. Implement `AgentRolodex` per [agent-rolodex.md](./agent-rolodex.md) — 28px rows, 13px/11px.
+2. Same component in immersive HUD slide panel (280px) and optional shell sidebar.
 3. Alfred hook: on subagent create → [subagent-onboarding-protocol.md](../../docs/subagent-onboarding-protocol.md).
 
 ## Phase 1: Agent avatars
@@ -31,10 +38,12 @@
 1. WebSocket: position, room_id, agent_id, connection_status.
 2. Feed Rolodex activity age + busy/idle from ingest.
 
-## Phase 5: iOS parity
+## Phase 5: iOS parity (full-screen game)
 
-1. SwiftUI `AgentRolodexView` — identical 28px rows, 6px status dots, 13px/11px fonts.
-2. Friends list + simplified Habbo or chat sheet.
+1. Chat tab = **full-screen** Phaser WKWebView or SpriteKit — not chat-only fallback.
+2. SwiftUI `AgentRolodexView` — identical 28px rows, 6px status dots, 13px/11px fonts.
+3. Friends list + chat sheet overlay; room remains visible behind sheet.
+4. `ImmersiveGameShell` SwiftUI wrapper matches Mac HUD layout.
 
 ## Phase 6: Smoke
 

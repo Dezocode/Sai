@@ -25,14 +25,16 @@ Layer 0 remains `.ai/CONTEXT.md`.
 **OpenClaw-primary** on Hostinger VPS (`openclaw-gateway-vps`). Not Cursor-primary.
 Entry: repo `OPENCLAW.md` → Alfred first message in contract.
 
-## Design system (unified Cursor + Obsidian)
+## Design system (unified — one language, all surfaces)
 
-All tabs share one language: [design/DESIGN-LANGUAGE.md](./design/DESIGN-LANGUAGE.md)
+All tabs, settings, buttons, dropdowns, menus, animations, and interactions share
+**one design language**: [design/DESIGN-LANGUAGE.md](./design/DESIGN-LANGUAGE.md)
 
-- Tokens: [design/tokens.json](./design/tokens.json)
-- Mac: Tauri 2 + React | iOS: SwiftUI + WhisperFlow + TTS
-- Habbo chat: [tabs/chat-room/game-engine.md](./tabs/chat-room/game-engine.md)
-- Smoke gates: [tests/smoke/all-gates.sh](./tests/smoke/all-gates.sh)
+- **Shell aesthetic:** Cursor + Activity Monitor + Robinhood (+ Notion blocks in editors)
+- **Chat tab exception:** full-screen immersive Habbo game viewport (Mac + iOS)
+- **Live data:** VPS-hosted WebSockets for all metrics, graphs, and activity age
+- Tokens: [design/tokens.json](./design/tokens.json) v2
+- Smoke: [tests/smoke/design-compliance.sh](./tests/smoke/design-compliance.sh)
 
 ## Tab map (each folder = one dashboard surface)
 

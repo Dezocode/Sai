@@ -40,7 +40,7 @@
     "language": "openclaw-dashboard/design/DESIGN-LANGUAGE.md",
     "tokens": "openclaw-dashboard/design/tokens.json",
     "components": "openclaw-dashboard/design/components.md",
-    "intent": "Cursor Desktop + iOS clone unified with Obsidian panels; native Mac Tauri + SwiftUI iOS",
+    "intent": "One unified design language for entire dashboard: Cursor shell + Activity Monitor lists + Robinhood live metrics + Notion block UX; Chat tab immersive full-screen Habbo game; all live data VPS-hosted; Mac Tauri + SwiftUI iOS parity",
     "tech_stack": {
       "mac": "openclaw-dashboard/apps/desktop/tech-stack.md",
       "ios": "openclaw-dashboard/apps/ios-whisper/tech-stack.md"
@@ -208,7 +208,9 @@
     "No secrets committed; auth tokens in env/VPS secret store only",
     "Agent activity SOP posts to approved public Slack channels per reporting.yaml",
     "OpenClaw-primary runtime scaffold present (runtimes/openclaw/gateway/) — not Cursor-primary",
-    "Unified Cursor/Obsidian design language — design/tokens.json compliance (tests/smoke/design-tokens.sh)",
+    "Unified design language v2 — Cursor + Activity Monitor + Robinhood; one token source; 28px controls; CursorSelect on all dropdowns; design-compliance.sh PASS",
+    "Chat tab immersive-game mode — full-screen Habbo viewport on Mac and iOS; HUD uses dashboard tokens only",
+    "All live metrics/graphs/rolodex activity age sourced from VPS WebSockets — no fake production data",
     "Native Mac Tauri + iOS SwiftUI with WhisperFlow in and responsive TTS out",
     "Sign in with Apple + GitHub + Composio auth reachable from auth hub",
     "Habbo room generator operational in chat tab (Phaser desktop / SpriteKit or WebView iOS)",
