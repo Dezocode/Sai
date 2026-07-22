@@ -1,5 +1,11 @@
 # BUILD — Tracking tab
 
+## Phase 0: Design system bootstrap
+
+1. Generate CSS vars from `design/tokens.json` into `apps/desktop/src/design-system/tokens.css`
+2. Implement `AppShell`, `TabBar`, `LiveGraph` before tab-specific logic
+3. Run `tests/smoke/design-tokens.sh`
+
 ## Phase 1: Ingest service (`services/activity-ingest/`)
 
 1. Create WebSocket endpoint `/activity/stream` on VPS (port behind reverse proxy).

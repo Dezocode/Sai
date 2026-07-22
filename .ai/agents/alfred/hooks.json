@@ -11,11 +11,21 @@
     "help_newagents": "C0BH8LCJLDS"
   },
   "automation_triggers": {
-    "required": [{"type": "scheduled", "note": "baseline protocol upkeep — configure per runtime in Phase 7"}],
+    "required": [
+      {"type": "scheduled", "note": "Gateway health + smoke gate sweep on VPS", "status": "building"},
+      {"type": "ingest_slo", "note": "alert when p99 > 15ms", "status": "building"}
+    ],
     "optional": [
       {"type": "slack", "note": "run on mention in #agentupdates"},
-      {"type": "github", "note": "run on PR events"}
+      {"type": "github", "note": "PR events on bootstrap branch"},
+      {"type": "telegram_mcq", "note": "inline keyboard approvals — integrations/telegram/mcq-actions.md", "status": "building"}
     ]
+  },
+  "smoke_gates": {
+    "orchestrator": "openclaw-dashboard/tests/smoke/all-gates.sh",
+    "runbook": "openclaw-dashboard/docs/alfred-smoke-runbook.md",
+    "design_compliance": "openclaw-dashboard/tests/smoke/design-tokens.sh",
+    "telegram_mcq": "openclaw-dashboard/tests/smoke/telegram-mcq.sh"
   },
   "ci_enforcement": {
     "workflow": ".github/workflows/agent-audit.yml",

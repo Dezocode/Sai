@@ -45,3 +45,5 @@ Each folder contains **CONTEXT.md** (requirements) + **BUILD.md** (how to build)
 | [integrations/composio/](./integrations/composio/README.md) | Composio toolkits |
 
 Contract research: [research-integration-methods.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md)
+
+**Design (all tabs):** [design/DESIGN-LANGUAGE.md](./design/DESIGN-LANGUAGE.md) — Cursor Desktop + iOS unified clone.

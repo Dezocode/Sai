@@ -7,6 +7,11 @@
 | **Services** | `services/activity-ingest/` |
 | **Desktop route** | `/tracking` |
 
+## Design compliance
+
+All UI **must** follow [design/DESIGN-LANGUAGE.md](../../design/DESIGN-LANGUAGE.md).
+Use shared `LiveGraph` component — canonical chart styling for this product.
+
 ## Owner requirement (dezocode)
 
 Stock-market-style **live graph** at millisecond resolution for:

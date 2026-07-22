@@ -50,6 +50,21 @@ Settings pages use `settings/<name>/` with the same three files.
 Full integration research:
 [research-integration-methods.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md)
 
+## 2b. Design system (unified — all tabs)
+
+**Mandatory before any tab UI work:** [design/DESIGN-LANGUAGE.md](../design/DESIGN-LANGUAGE.md)
+
+| Topic | Path |
+|---|---|
+| Tokens + Cursor chrome | `design/tokens.json`, `design/components.md` |
+| Mac native | `apps/desktop/tech-stack.md` |
+| iOS Whisper + TTS | `apps/ios-whisper/tech-stack.md` |
+| Apple/GitHub/Composio auth | `settings/auth/providers.md` |
+| Habbo game generator | `tabs/chat-room/game-engine.md` |
+| Shared research workspaces | `tabs/research/shared-workspaces.md` |
+| Telegram MCQ approvals | `integrations/telegram/mcq-actions.md` |
+| Smoke all gates | `tests/smoke/all-gates.sh`, `docs/alfred-smoke-runbook.md` |
+
 ---
 
 ## 3. Repo-wide `.ai` protocol (mandatory)
@@ -100,11 +115,12 @@ flowchart LR
 
 | Concern | Canonical choice | Documented in |
 |---|---|---|
+| **Design language** | Cursor/Obsidian unified tokens | `design/DESIGN-LANGUAGE.md` |
 | VPS Gateway | OpenClaw npm global + systemd | `host/`, `settings/host-health/` |
 | Live data | Host admin CLI → WebSocket ingest | `services/activity-ingest/` |
-| Desktop UI | Tauri 2 or Electron + React | `apps/desktop/` |
-| iOS voice | SwiftUI + Whisper | `apps/ios-whisper/` |
-| Auth | GitHub OAuth + Composio Connect | `settings/auth/` |
+| Desktop UI | **Tauri 2** + React + design-system | `apps/desktop/tech-stack.md` |
+| iOS | **SwiftUI** + Whisper + TTS | `apps/ios-whisper/tech-stack.md` |
+| Auth | Apple + GitHub + Composio | `settings/auth/providers.md` |
 | Graph UI | force-graph / vis-network | `tabs/second-brain/` |
 | Charts | lightweight-charts | `tabs/tracking/` |
 | 2D room | Phaser 3 or PixiJS | `tabs/chat-room/` |
@@ -139,6 +155,7 @@ into second brain (tab A4). See
 openclaw-dashboard/
   CONTEXT.md                 ← you are here (product Layer 0)
   ICM-HANDBOOK.md            ← this file
+  design/                    ← Cursor/Obsidian tokens + DESIGN-LANGUAGE.md
   tabs/{tracking,second-brain,research,chat-room,github,config}/
   settings/{auth,host-health,reporting-sop,models}/
   apps/{desktop,ios-whisper}/

@@ -1,20 +1,24 @@
-# Skills — Alfred
+# Skills — Alfred (OpenClaw Administrator)
 
-> Fill from Phase 5A best-practice survey. Each skill: what it is, when to
-> use it, and the codebase evidence that backs it.
+## Core protocol skills
 
-## Core protocol skills (all SAI agents)
+- **ICM stage execution** — `.ai/stages/*`; runs in `.ai/runs/<task-id>/`
+- **Slack reporting** — `[SAI][EVENT]` per `.ai/_config/reporting.yaml`
+- **OpenClaw Gateway ops** — VPS bootstrap, channels, host CLI ingest
+- **Product ICM** — `openclaw-dashboard/ICM-HANDBOOK.md`; per-tab CONTEXT/BUILD
 
-- **ICM stage execution** — follow `.ai/stages/01_intake` through
-  `06_publish_sync`; artifacts in `.ai/runs/<task-id>/`.
-- **Slack reporting** — `[SAI][EVENT_TYPE][task-id]` format per
-  `.ai/_config/reporting.yaml`; queue via `scripts/agent-report` when
-  offline.
-- **Git audit discipline** — commit trailers; `scripts/verify-agent-audit`;
-  remote-SHA verification after every push.
-- **Semantic compliance** — `scripts/verify-semantic-hierarchy` before
-  protected pushes.
+## Dashboard-specific skills
+
+- **Unified design language** — implement all UI via `design/tokens.json` + `design-system/`; Cursor/Obsidian clone shell on Mac/iOS ([DESIGN-LANGUAGE.md](../../openclaw-dashboard/design/DESIGN-LANGUAGE.md))
+- **Native clients** — Tauri 2 desktop + SwiftUI iOS; WhisperFlow in, TTS out ([tech-stack](../../openclaw-dashboard/apps/desktop/tech-stack.md))
+- **Live VPS browsing** — EmbeddedBrowser + CDP; Apple/GitHub/Composio auth ([providers.md](../../openclaw-dashboard/settings/auth/providers.md))
+- **Habbo room generator** — Phaser 3 + registry-driven avatars ([game-engine.md](../../openclaw-dashboard/tabs/chat-room/game-engine.md))
+- **Shared research workspaces** — GitHub-gated dezocode/monaecode ACL ([shared-workspaces.md](../../openclaw-dashboard/tabs/research/shared-workspaces.md))
+- **Smoke gate orchestration** — `tests/smoke/all-gates.sh`; evidence in verify output ([alfred-smoke-runbook.md](../../openclaw-dashboard/docs/alfred-smoke-runbook.md))
+- **Telegram MCQ actions** — responsive approvals to dezocode/users ([mcq-actions.md](../../openclaw-dashboard/integrations/telegram/mcq-actions.md))
 
 ## Role-specific skills
 
-<!-- Add skills unique to this agent's purpose after Phase 5A survey -->
+- **Config expert team** — manage config-expert + research-coordinator subagents
+- **Agent Telegram verification** — A10 registry coverage for all present/future agents
+- **Composio toolkits** — Telegram, Drive, Gemini Notebook without secrets in Git
