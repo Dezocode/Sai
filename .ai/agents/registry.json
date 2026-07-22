@@ -80,19 +80,19 @@
     {
       "agent_id": "ctr-code-splunk1",
       "name": "Alpha",
-      "role_title": "Coding Contractor",
-      "purpose": "Contracted coding work on Cybersecurity Splunk Clone under contract 20260715-splunk-clone-monaecode.",
+      "role_title": "Coding Contractor (superseded)",
+      "purpose": "RETIRED — pilot slot superseded by Splunky (ctr-code-splunky) per contract amendment 20260716-splunky-intake-monaecode. No new work.",
       "folder": ".ai/agents/alpha",
       "charter": ".ai/agents/_roles/contractor-coding/CHARTER.md",
       "principal": "monaecode (U0BGNS7F0T1)",
-      "status": "provisional",
+      "status": "retired",
       "primary_runtime": "claude-code-cli",
       "entry_points": {
-        "claude-code-cli": "Open monaecode/Sai in Claude Code; read CLAUDE.md → .ai/agents/alpha/AGENT.md",
-        "cursor": "Optional — @alpha in Cursor; not primary runtime"
+        "claude-code-cli": "Historical only — do not invoke for new work",
+        "cursor": "Historical only — do not invoke for new work"
       },
-      "automation": "delegated: .ai/agents/alpha/runtimes/claude/automation/profile.md (awaiting ONBOARDING persona gate)",
-      "notes": "Pilot coding contractor for splunk-clone prototype. ONBOARDING.md in progress; Sai audit pending persona gate."
+      "automation": "none — slot retired",
+      "notes": "Pilot contractor retired 20260722 per Cora triage + dezocode review. Superseded by Splunky. Archive branch origin/proj/splunk-clone/ctr-code-splunk1/pilot-intake pending owner approval."
     }
   ]
 }
