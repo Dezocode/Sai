@@ -32,10 +32,17 @@ Load immediately (read in order):
 16. OpenClaw docs: [Getting started](https://docs.openclaw.ai/), [Gateway](https://docs.openclaw.ai/gateway/configuration), [Slack](https://docs.openclaw.ai/channels/slack), [Telegram](https://docs.openclaw.ai/channels/telegram)
 17. Amendments: `amendments/20260722-dezocode-pr45-review.md`, `amendments/20260722-saul-cto-review.md`
 18. Review tracker: `PR45-REVIEW-TRACKER.md` — **#agentupdates + GitHub status matrix**
+19. **Telegram native behaviors:** `.ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md`, `session-memory.md`
+20. **Telegram session + fleet protocol:** `openclaw-dashboard/docs/telegram-session-protocol.md`, `fleet-coherence-gate.md`
 
 Create task-id: `20260722-<HHMM>-openclaw-dashboard-bootstrap-alfred` and folder `.ai/runs/<task-id>/` with `metadata.json` (`agent`: `ctr-code-alfred1`, `contract_id` above, `isolation_mode`: `prototype`).
 
 Post `[SAI][INTAKE][<task-id>]` to **#agentupdates** (`C0BH15HDN2Z`) tagging **dezocode**, **monaecode**, **@sai**, **Saul review required on GitHub PR**.
+
+**Telegram (mandatory — contract sender reporting):** Send INTAKE summary to **dezocode**
+(`U0BHYH0NMCY`, contract sender) on Telegram **before or within 60s of** the Slack INTAKE.
+Initialize session memory at `~/.openclaw/sessions/ctr-code-alfred1/<chat_id>/session_state.json`.
+Every subsequent stage (PLAN, CHANGE, VERIFY, BLOCKED, HANDOFF) → Telegram to dezocode first, then Slack mirror.
 
 ---
 
@@ -132,6 +139,31 @@ Smoke tests in `openclaw-dashboard/tests/smoke/` — **zero blocking errors** on
 
 ---
 
+---
+
+## 6B. Telegram session bot + fleet coherence (A13)
+
+**Behaviors:** `.ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md`  
+**Memory:** `session-memory.md` | **Service:** `openclaw-dashboard/services/telegram-session/`  
+**Protocol:** `openclaw-dashboard/docs/telegram-session-protocol.md`
+
+You are the **Telegram session bot** for contract sender **dezocode** (`U0BHYH0NMCY`):
+
+1. Every ICM stage → Telegram update to dezocode within **60s**
+2. Persist session memory on VPS; mirror redacted log to `.ai/runs/<task-id>/telegram-session.jsonl`
+3. Slack mirror every Telegram run update to `#agentupdates`
+4. Provision fleet agents (config-expert, research-coordinator, user-created) with **identical** protocol
+5. Proof gate before fulfillment:
+
+```bash
+openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh
+openclaw-dashboard/tests/smoke/telegram-session-reporting.sh
+```
+
+Run fleet proof task-id: `YYYYMMDD-HHMM-fleet-coherence-proof-alfred` with INTAKE+HANDOFF Telegram evidence.
+
+---
+
 ## 6. Agent team + three-connection gate (A6, A10)
 
 **Protocol (binding):** `openclaw-dashboard/docs/subagent-onboarding-protocol.md`  
@@ -168,7 +200,9 @@ Build `openclaw-dashboard/apps/desktop/src/auth/` so **100%** of required OAuth 
 
 Before requesting merge:
 
-- [ ] All A0–A12 paths exist with evidence
+- [ ] All A0–A13 paths exist with evidence
+- [ ] Contract sender received Telegram INTAKE + HANDOFF for proof run
+- [ ] Fleet coherence gate PASS
 - [ ] `scripts/verify-agent-setup` PASS on PR branch
 - [ ] `scripts/agent-contract-pr-review --contract-id 20260722-openclaw-dashboard-dezocode` PASS
 - [ ] Demo recording or screenshots in `.ai/runs/<task-id>/handoff.md`

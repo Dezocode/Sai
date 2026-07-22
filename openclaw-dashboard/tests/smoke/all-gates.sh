@@ -12,8 +12,9 @@ run scripts/verify-semantic-hierarchy
 run scripts/verify-agent-setup
 run openclaw-dashboard/tests/smoke/design-tokens.sh
 run openclaw-dashboard/tests/smoke/design-compliance.sh
-# Fulfillment-only (fail-closed — expect FAIL until Alfred populates registry):
-# run openclaw-dashboard/tests/smoke/subagent-connection-gate.sh
+run openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh
+# Fulfillment-only (expect exit 2 until proof run):
+# run openclaw-dashboard/tests/smoke/telegram-session-reporting.sh
 run openclaw-dashboard/scripts/verify-ingest-latency.sh || true
 run openclaw-dashboard/tests/smoke/run-all.sh || true
 exit $FAIL

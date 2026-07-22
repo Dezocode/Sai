@@ -19,7 +19,8 @@ openclaw-dashboard/tests/smoke/all-gates.sh
 | Design language | `tests/smoke/design-tokens.sh`, `tests/smoke/design-compliance.sh` | tokens v2, immersive-game, CursorSelect, VPS liveData |
 | Ingest SLO | `scripts/verify-ingest-latency.sh` | p99 ≤ 15ms |
 | Telegram MCQ | `tests/smoke/telegram-mcq.sh` | dezocode ack ≤ 60s |
-| Subagent connection | `tests/smoke/subagent-connection-gate.sh` → `verify-agent-telegram.sh` | fail-closed per agent (Saul P1) |
+| Fleet coherence | `tests/smoke/fleet-coherence-gate.sh` | Alfred template + fleet registry + hooks |
+| Telegram session | `tests/smoke/telegram-session-reporting.sh` | contract sender reporting (fulfillment) |
 | Telegram registry | `scripts/verify-agent-telegram.sh --scope registry` | all registry agents evidenced |
 | Tab smoke | `tests/smoke/run-all.sh` | zero blocking errors |
 | Contract review | `scripts/agent-contract-pr-review` | no pending_manual |

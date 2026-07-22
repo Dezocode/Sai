@@ -10,10 +10,17 @@
     "agentupdates": "C0BH15HDN2Z",
     "help_newagents": "C0BH8LCJLDS"
   },
+  "telegram_session": {
+    "behaviors": ".ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md",
+    "contract_sender_slack_id": "U0BHYH0NMCY",
+    "report_events": ["INTAKE", "PLAN", "CHANGE", "VERIFY", "BLOCKED", "HANDOFF"],
+    "session_memory_path": "~/.openclaw/sessions/ctr-code-alfred1/"
+  },
   "automation_triggers": {
     "required": [
       {"type": "scheduled", "note": "Gateway health + smoke gate sweep on VPS", "status": "building"},
-      {"type": "ingest_slo", "note": "alert when p99 > 15ms", "status": "building"}
+      {"type": "ingest_slo", "note": "alert when p99 > 15ms", "status": "building"},
+      {"type": "telegram_session_report", "note": "ICM stage → Telegram to contract sender + Slack mirror", "status": "building"}
     ],
     "optional": [
       {"type": "slack", "note": "run on mention in #agentupdates"},
@@ -26,6 +33,8 @@
     "runbook": "openclaw-dashboard/docs/alfred-smoke-runbook.md",
     "design_compliance": "openclaw-dashboard/tests/smoke/design-tokens.sh",
     "telegram_mcq": "openclaw-dashboard/tests/smoke/telegram-mcq.sh",
+    "telegram_session_reporting": "openclaw-dashboard/tests/smoke/telegram-session-reporting.sh",
+    "fleet_coherence": "openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh",
     "subagent_connection_gate": "openclaw-dashboard/tests/smoke/subagent-connection-gate.sh"
   },
   "ci_enforcement": {

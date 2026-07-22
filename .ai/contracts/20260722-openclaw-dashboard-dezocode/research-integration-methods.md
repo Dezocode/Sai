@@ -422,6 +422,44 @@ Define smoke suite in `openclaw-dashboard/tests/smoke/` covering each tab; **blo
 | 6 | GitHub watch (A8) | CI tab |
 | 7 | Chat room (A6) | Agent Telegram (A10) |
 | 8 | Mac/iOS apps (A9) | End-user polish |
+| 9 | Telegram session + fleet coherence (A13) | Contract sender reporting; subagent fleet proof |
+
+---
+
+## 14. Telegram session bot + fleet coherence (A13)
+
+**Goal:** Alfred operates as a **native Telegram session bot** for the contract sender
+(dezocode), messaging every ICM stage update while maintaining VPS session memory and
+mirroring to Slack. All fleet agents inherit the same protocol as a **proof gate**.
+
+### Architecture
+
+| Layer | Path |
+|---|---|
+| Behaviors | `.ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md` |
+| Session memory | `session-memory.md` + `services/telegram-session/` |
+| Protocol | `openclaw-dashboard/docs/telegram-session-protocol.md` |
+| Fleet gate | `docs/fleet-coherence-gate.md` + `tests/smoke/fleet-coherence-gate.sh` |
+
+### Contract sender reporting
+
+- **Who:** dezocode (`U0BHYH0NMCY`) — contract originator
+- **When:** INTAKE, PLAN, CHANGE, VERIFY, BLOCKED, HANDOFF — every session run
+- **SLA:** Telegram within 60s; Slack mirror within 60s after
+- **Memory:** `~/.openclaw/sessions/ctr-code-alfred1/<chat_id>/session_state.json`
+
+### Fleet coherence
+
+Minimum fleet: Alfred, config-expert, research-coordinator. Alfred provisions Telegram
+behaviors template on subagent create. Proof run task-id:
+`YYYYMMDD-HHMM-fleet-coherence-proof-alfred`.
+
+### Verification
+
+```bash
+openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh
+openclaw-dashboard/tests/smoke/telegram-session-reporting.sh  # exit 0 after proof run
+```
 
 ---
 

@@ -13,6 +13,8 @@ Alfred fills this file on bootstrap branch before requesting merge to `main`.
 | Ingest SLO | `ingest-latency.json` | p99 ≤ 15ms over ≥1000 samples |
 | Phase 5B caps | `openclaw-tools-survey.json` | `agent-verify-caps` exit 0 |
 | Three-connection | `agent-telegram-verify.log` | `verify-agent-telegram.sh --scope registry` exit 0 |
+| Fleet coherence | `fleet-coherence.log` | `fleet-coherence-gate.sh` exit 0 |
+| Telegram session proof | `telegram-session.jsonl` in proof run | dezocode confirms INTAKE+HANDOFF on Telegram |
 | Design compliance | `design-compliance.log` | `design-compliance.sh` exit 0 |
 | Smoke all gates | `all-gates.log` | `all-gates.sh --enforce` exit 0 |
 

@@ -79,7 +79,21 @@ and merge to `Dezocode/Sai:main` complete per `contract.json` → `fulfillment_g
 
 Until then: work **only** on isolated `proj/openclaw-dashboard/*` branches.
 
-## Deliverables (A0–A12)
+## Contract sender — Telegram session reporting
+
+**dezocode** (`U0BHYH0NMCY`) originated this contract and receives **every Alfred session
+run update on Telegram** (INTAKE through HANDOFF), with Slack mirror to `#agentupdates`.
+
+→ [telegram-session-protocol.md](../../openclaw-dashboard/docs/telegram-session-protocol.md)  
+→ [BEHAVIORS.md](../../.ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md)  
+→ **First prompt to attach:** [first-prompt-attach-contract.md](./first-prompt-attach-contract.md)
+
+## Fleet coherence
+
+Alfred + all subagents and dashboard-created agents follow identical ICM + Telegram + Slack
+protocols. Proof gate: [fleet-coherence-gate.md](../../openclaw-dashboard/docs/fleet-coherence-gate.md)
+
+## Deliverables (A0–A13)
 
 | ID | Title | Research |
 |---|---|---|
@@ -96,16 +110,19 @@ Until then: work **only** on isolated `proj/openclaw-dashboard/*` branches.
 | A10 | Agent Telegram inbox verification | [§11](./research-integration-methods.md#11-agent-telegram-inbox-verification) |
 | A11 | Dashboard auth hub | [§12](./research-integration-methods.md#12-dashboard-auth-hub) |
 | A12 | Review package + merge gate | [§13](./research-integration-methods.md#13-fulfillment-and-merge-gate) |
+| A13 | Telegram session bot + fleet coherence | [§14](./research-integration-methods.md#14-telegram-session-fleet-coherence) |
 
 ## Acceptance criteria
 
-1. All A0–A12 deliverables evidenced on bootstrap branch with ICM run artifacts
+1. All A0–A13 deliverables evidenced on bootstrap branch with ICM run artifacts
 2. `first-message-to-openclaw.md` executed as opening session
-3. Mac desktop + iPhone companion pass smoke suite (no blocking errors on approved flows)
-4. Composio auth flows reachable from dashboard when Gateway healthy
-5. Every registry agent: verified Telegram inbox or documented BLOCKED
-6. `scripts/agent-contract-pr-review` PASS on every PR
-7. No secrets in Git; Sai VERIFY + Saul CTO review + human merge authorization
+3. Contract sender receives Telegram updates for every session run stage
+4. Fleet coherence proof gate PASS (Alfred + config-expert + research-coordinator)
+5. Mac desktop + iPhone companion pass smoke suite (no blocking errors on approved flows)
+6. Composio auth flows reachable from dashboard when Gateway healthy
+7. Every registry agent: verified Telegram inbox or documented BLOCKED
+8. `scripts/agent-contract-pr-review` PASS on every PR
+9. No secrets in Git; Sai VERIFY + Saul CTO review + human merge authorization
 
 ## Approved capabilities
 

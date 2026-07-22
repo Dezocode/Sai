@@ -4,6 +4,30 @@
   "project_slug": "openclaw-dashboard",
   "project_name": "OpenClaw SAI Dashboard (Alfred — The OpenClaw Administrator)",
   "principal": "dezocode (U0BHYH0NMCY) and monaecode (U0BGNS7F0T1)",
+  "contract_sender": {
+    "name": "dezocode",
+    "slack_id": "U0BHYH0NMCY",
+    "role": "Contract originator — primary Telegram session recipient for all Alfred run updates",
+    "telegram_reporting": "mandatory_per_session_run",
+    "report_events": ["INTAKE", "PLAN", "CHANGE", "VERIFY", "BLOCKED", "HANDOFF"],
+    "latency_sla_seconds": 60,
+    "mirror_slack_channel_id": "C0BH15HDN2Z"
+  },
+  "telegram_session": {
+    "protocol": "openclaw-dashboard/docs/telegram-session-protocol.md",
+    "behaviors": ".ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md",
+    "session_memory": ".ai/agents/alfred/runtimes/openclaw/telegram/session-memory.md",
+    "service": "openclaw-dashboard/services/telegram-session/",
+    "fleet_coherence": "openclaw-dashboard/docs/fleet-coherence-gate.md",
+    "smoke_session_reporting": "openclaw-dashboard/tests/smoke/telegram-session-reporting.sh",
+    "smoke_fleet_coherence": "openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh"
+  },
+  "fleet_coherence": {
+    "description": "Alfred + all subagents and dashboard-created OpenClaw agents follow identical ICM, Telegram session, and Slack mirror protocols; Alfred is the template agent",
+    "template_agent_id": "ctr-code-alfred1",
+    "minimum_fleet": ["ctr-code-alfred1", "config-expert", "research-coordinator"],
+    "proof_gate": "openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh"
+  },
   "contractor_type": "coding",
   "isolation_mode": "prototype",
   "primary_runtime": "openclaw-gateway-vps",
@@ -54,6 +78,8 @@
     "review_tracker": ".ai/contracts/20260722-openclaw-dashboard-dezocode/PR45-REVIEW-TRACKER.md",
     "layered_load_order": "openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md",
     "gateway_exposure_policy": ".ai/agents/alfred/runtimes/openclaw/gateway/config/gateway-exposure-policy.md",
+    "telegram_session_protocol": "openclaw-dashboard/docs/telegram-session-protocol.md",
+    "fleet_coherence_gate": "openclaw-dashboard/docs/fleet-coherence-gate.md",
     "smoke_orchestrator": "openclaw-dashboard/tests/smoke/all-gates.sh"
   },
   "hosting": {
@@ -71,6 +97,7 @@
   },
   "research_doc": ".ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md",
   "first_message": ".ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md",
+  "first_prompt_attach": ".ai/contracts/20260722-openclaw-dashboard-dezocode/first-prompt-attach-contract.md",
   "reviewers": {
     "ceo": {"agent_id": "ceo", "name": "Sai", "gate": "VERIFY PASS on ICM + registry + dashboard integration plan"},
     "cto": {"agent_id": "dezo-sec-codex1", "name": "Saul", "gate": "CTO review on architecture, VPS security, CI wiring"},
@@ -92,13 +119,15 @@
   "fulfillment_gate": {
     "description": "Alfred gains final organization approval only when all are true",
     "conditions": [
-      "All A0–A12 deliverables evidenced on bootstrap branch with ICM run artifacts",
+      "All A0–A13 deliverables evidenced on bootstrap branch with ICM run artifacts",
       "OpenClaw Gateway healthy on Hostinger VPS with documented health checks",
       "Host admin CLI live-feeds dashboard tabs with p99 latency <= 15ms (organization_onboarding_gate)",
       "100% production smoke: zero blocking errors on Mac desktop + iPhone Whisper approved flows",
       "Composio auth flows for Telegram, Google Drive, and Gemini Notebook reachable from dashboard auth hub",
       "Every registered SAI agent has verified Telegram inbox path documented (or honest BLOCKED with remediation plan)",
       "Every OpenClaw subagent (Alfred- or dashboard-created) passes three-connection gate: Telegram inbox, Slack intro with DM link, Habbo presence in rolodex",
+      "Every session run: Telegram updates to contract sender (dezocode) for INTAKE/PLAN/CHANGE/VERIFY/BLOCKED/HANDOFF within 60s; Slack mirror to #agentupdates",
+      "Fleet coherence proof gate PASS — all fleet agents inherit Alfred Telegram+ICM+Slack protocols",
       "Sai posts [SAI][VERIFY] PASS referencing this contract_id",
       "Saul posts acceptable CTO review (no blocking P1 on security/VPS/auth)",
       "Both co-founders explicitly authorize merge to Dezocode/Sai:main",
@@ -192,6 +221,20 @@
       "description": "GitHub account linking; Composio and native OAuth; permission handling; live browser MCP for auth completion"
     },
     {
+      "id": "A13-telegram-session-fleet",
+      "title": "Telegram native session bot + fleet coherence proof gate",
+      "paths": [
+        ".ai/agents/alfred/runtimes/openclaw/telegram/",
+        "openclaw-dashboard/docs/telegram-session-protocol.md",
+        "openclaw-dashboard/docs/fleet-coherence-gate.md",
+        "openclaw-dashboard/services/telegram-session/",
+        "openclaw-dashboard/tests/smoke/telegram-session-reporting.sh",
+        "openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh"
+      ],
+      "research_ref": "research-integration-methods.md#14-telegram-session-fleet-coherence",
+      "description": "Alfred as Telegram session bot: message contract sender every run update; maintain VPS session memory; fleet agents inherit same ICM+Telegram+Slack coherence; proof gate before onboarding"
+    },
+    {
       "id": "A12-review-package",
       "title": "Review package for Sai + Saul + co-founders",
       "paths": [".ai/runs/<task-id>/handoff.md", "openclaw-dashboard/docs/fulfillment-evidence.md"],
@@ -204,7 +247,7 @@
     {"name": "research-coordinator", "role": "Research tab session lead", "path": "openclaw-dashboard/.openclaw/agents/research-coordinator.md"}
   ],
   "acceptance_criteria": [
-    "All A0–A12 deliverables exist on bootstrap branch with ICM run artifacts",
+    "All A0–A13 deliverables exist on bootstrap branch with ICM run artifacts",
     "first-message-to-openclaw.md executed as binding opening session",
     "research-integration-methods.md cited in every deliverable README",
     "OpenClaw Gateway + dashboard health checks pass on Hostinger VPS",
@@ -222,6 +265,8 @@
     "Gateway binds loopback (127.0.0.1) by default; remote exposure documented per gateway-exposure-policy.md",
     "verify-agent-telegram.sh fail-closed per agent; subagent-connection-gate.sh delegates (no stub PASS)",
     "Every subagent (Alfred- or user-created): Telegram inbox + Slack intro with DM link + Habbo avatar (three-connection gate)",
+    "Alfred messages contract sender (dezocode) on Telegram for every session run stage; session memory persisted on VPS; Slack mirror within 60s",
+    "Fleet coherence proof gate PASS — config-expert and research-coordinator inherit Alfred telegram/ICM/Slack protocols",
     "Agent Rolodex lists all agents with activity age; friends + personal rooms; Cursor-identical typography on Mac and iOS",
     "Host CLI ingest p99 <= 15ms evidenced (openclaw-dashboard/scripts/verify-ingest-latency.sh)",
     "100% production smoke flows pass — zero blocking errors",

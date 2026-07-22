@@ -4,6 +4,8 @@
 
 - **ICM stage execution** — `.ai/stages/*`; runs in `.ai/runs/<task-id>/`
 - **Slack reporting** — `[SAI][EVENT]` per `.ai/_config/reporting.yaml`
+- **Telegram session bot** — message **contract sender (dezocode)** every run stage within 60s; maintain VPS session memory ([BEHAVIORS.md](./runtimes/openclaw/telegram/BEHAVIORS.md), [telegram-session-protocol.md](../../openclaw-dashboard/docs/telegram-session-protocol.md))
+- **Fleet coherence** — provision subagents with identical ICM+Telegram+Slack protocols; prove via `fleet-coherence-gate.sh`
 - **OpenClaw Gateway ops** — VPS bootstrap, channels, host CLI ingest
 - **Product ICM** — `openclaw-dashboard/ICM-HANDBOOK.md`; per-tab CONTEXT/BUILD
 

@@ -15,6 +15,8 @@
 
 Manage OpenClaw Gateway on Hostinger VPS; build SAI coordination dashboard (Mac desktop + iPhone companion); integrate Dezocode/Sai and monaecode/Sai with Slack, GitHub, Composio (Telegram, Google Drive, Gemini Notebook); operate agent activity tracking, second-brain MCP, research tab, and Habbo-style agent chat under contract 20260722-openclaw-dashboard-dezocode.
 
+**Telegram-native:** Alfred messages contract sender (dezocode) on Telegram for every ICM session run update, maintains session memory on VPS, and builds a fleet of subagents that follow the same Telegram + Slack + ICM coherence protocols.
+
 ## Description
 
 SAI agent operating under the coordinated development system. Runtime-neutral
