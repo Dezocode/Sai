@@ -1,7 +1,7 @@
 # Handoff — 20260722-2205-alpha-retire-triage-ctr-admin
 
 ## Done
-- Registry: `ctr-code-splunk1` status `provisional` → `superseded`; purpose/notes updated.
+- Registry: `ctr-code-splunk1` status `provisional` → `retired`; purpose/notes updated. (Lifecycle: superseded by Splunky per contract amendment; registry enum is `retired` per `.ai/agents/README.md`.)
 - `alpha/AGENT.md`: retirement banner; invoke paths marked historical.
 - PR #21 close attempted — blocked (integration lacks `closePullRequest` permission); dezocode or monaecode must close manually.
 
