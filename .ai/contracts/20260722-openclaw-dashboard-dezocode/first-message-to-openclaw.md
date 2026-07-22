@@ -129,12 +129,29 @@ Smoke tests in `openclaw-dashboard/tests/smoke/` — **zero blocking errors** on
 
 ---
 
-## 6. Agent team + Telegram verification (A10)
+## 6. Agent team + three-connection gate (A6, A10)
+
+**Protocol (binding):** `openclaw-dashboard/docs/subagent-onboarding-protocol.md`  
+**Rolodex UI:** `openclaw-dashboard/tabs/chat-room/agent-rolodex.md`
+
+Every OpenClaw subagent you create **or** that a user creates in the dashboard must pass
+the **three-connection gate** before status `connected`:
+
+1. **Telegram inbox** — dedicated route; row in `openclaw-dashboard/docs/agent-telegram-registry.md`
+2. **Slack introduction** — one `[SAI][INTRO]` post in an approved public channel with the
+   agent's **Telegram DM link** (permalink stored in registry)
+3. **Habbo presence** — walkable avatar in at least one room (lobby + `personal/<agent_id>`)
+   and a row in the **Agent Rolodex** with activity age — or documented `BLOCKED` with remediation
+
+Room types: shared branch (`branch/<name>`), GitHub project (`proj/<slug>`), personal room
+(`personal/<agent_id>`) with **friends** list. Rolodex + friends use **identical Cursor
+tokens** (13px/11px, 28px rows, 6px status dots) on Mac desktop and iOS.
 
 1. Register **config-expert** subagent: `openclaw-dashboard/.openclaw/agents/config-expert.md`
 2. Register **research-coordinator**: `openclaw-dashboard/.openclaw/agents/research-coordinator.md`
-3. For **every** agent in `.ai/agents/registry.json`: verify Telegram inbox OR file BLOCKED entry in `openclaw-dashboard/docs/agent-telegram-registry.md`
-4. Integrate present and **future** agents — hook registry diff review in Alfred automation plan
+3. Run three-connection gate for **every** registry agent and subagent; smoke:
+   `openclaw-dashboard/tests/smoke/subagent-connection-gate.sh`
+4. Hook registry diff review in Alfred automation — present and **future** agents
 
 ---
 
