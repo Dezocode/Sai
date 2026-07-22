@@ -21,6 +21,9 @@ openclaw-dashboard/tests/smoke/all-gates.sh
 | Telegram MCQ | `tests/smoke/telegram-mcq.sh` | dezocode ack ≤ 60s |
 | Fleet coherence | `tests/smoke/fleet-coherence-gate.sh` | Alfred template + fleet registry + hooks |
 | Secrets compliance | `tests/smoke/secrets-compliance.sh` | PR #45 controlling structure; no values in Git |
+| Gateway loopback | `scripts/verify-gateway-bind.sh` | 127.0.0.1 only (Saul P1, CI) |
+| Subagent gate negative | `tests/smoke/subagent-connection-gate-negative.sh` | rejects `@`, `http-not-a-url` (CI) |
+| Subagent connection enforce | `tests/smoke/subagent-connection-gate.sh` | fail-closed — fulfillment only |
 | Telegram registry | `scripts/verify-agent-telegram.sh --scope registry` | all registry agents evidenced |
 | Tab smoke | `tests/smoke/run-all.sh` | zero blocking errors |
 | Contract review | `scripts/agent-contract-pr-review` | no pending_manual |
