@@ -28,6 +28,7 @@ RUNTIME_SUITE = {
     "cursor-cloud-vm": "cursor",
     "claude-code-cli": "claude",
     "codex-desktop": "codex",
+    "openclaw-gateway-vps": "openclaw",
 }
 
 def load_tools(agent_dir, manifest):
@@ -87,6 +88,19 @@ for i, a in enumerate(reg.get("agents", [])):
             except (json.JSONDecodeError, UnicodeDecodeError) as e:
                 fail(f"{aid}: agent-sdk config invalid JSON ({e})")
 
+    if suite == "openclaw":
+        gw_readme = f"{folder}/runtimes/openclaw/gateway/README.md"
+        gw_cfg = f"{folder}/runtimes/openclaw/gateway/config/gateway-options.json"
+        if not os.path.isfile(gw_readme):
+            fail(f"{aid}: openclaw-primary agent missing {gw_readme} (see .ai/shared/references/openclaw-runtime.md)")
+        if not os.path.isfile(gw_cfg):
+            fail(f"{aid}: openclaw-primary agent missing {gw_cfg}")
+        else:
+            try:
+                json.load(open(gw_cfg))
+            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                fail(f"{aid}: gateway config invalid JSON ({e})")
+
     verified = [c for c in caps if c.get("status") == "verified"]
     for j, c in enumerate(caps):
         if c.get("status") == "verified" and not (c.get("evidence") or "").strip():
@@ -129,6 +143,10 @@ for i, a in enumerate(reg.get("agents", [])):
 claude_agents = [a for a in reg.get("agents", []) if RUNTIME_SUITE.get(a.get("primary_runtime")) == "claude" and a.get("status") != "retired"]
 if claude_agents and not os.path.isfile(".ai/shared/references/claude-agent-sdk.md"):
     fail("claude-primary agents present but .ai/shared/references/claude-agent-sdk.md missing")
+
+openclaw_agents = [a for a in reg.get("agents", []) if RUNTIME_SUITE.get(a.get("primary_runtime")) == "openclaw" and a.get("status") != "retired"]
+if openclaw_agents and not os.path.isfile(".ai/shared/references/openclaw-runtime.md"):
+    fail("openclaw-primary agents present but .ai/shared/references/openclaw-runtime.md missing")
 
 # Active contracts with live contractors must define deliverables
 if strict_contracts:

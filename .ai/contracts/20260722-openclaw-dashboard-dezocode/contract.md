@@ -8,7 +8,7 @@
 | **Principals** | dezocode (U0BHYH0NMCY) and monaecode (U0BGNS7F0T1) |
 | **Contractor type** | coding |
 | **Isolation** | prototype (merge to main only after fulfillment gate) |
-| **Runtime** | OpenClaw Gateway on Hostinger VPS + Cursor for repo artifacts (`cursor-cloud-vm`) |
+| **Runtime** | `openclaw-gateway-vps` (Hostinger VPS OpenClaw Gateway — **not Cursor**) |
 | **Repository** | `Dezocode/Sai` (canonical); sync `monaecode/Sai` by SHA |
 | **Branch prefix** | `proj/openclaw-dashboard/` |
 | **Bootstrap branch** | `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap` |
@@ -44,6 +44,18 @@ and coordination platform:
    Research (+ MCP), Habbo-style chat room, Config, GitHub
 6. **Clients** — Mac desktop app + iPhone Whisper companion
 7. **Agent team** — config-expert subagent; Telegram inbox verification for all registry agents
+
+## Organization onboarding gate (dezocode hard requirements)
+
+Alfred joins the SAI organization only when:
+
+1. **OpenClaw-primary** — `openclaw-gateway-vps`; not a Cursor runtime agent
+2. **100% production** — dashboard, host CLI, dependencies, auth regulation complete on VPS
+3. **Live feed** — host admin CLI streams activity into all monitoring tabs
+4. **Latency SLO** — p99 **≤ 15ms** from CLI event to dashboard tab render
+5. **ICM + Sai** — all `.ai` verifiers PASS; Sai VERIFY; Saul review; cofounder merge auth
+
+See [amendments/20260722-dezocode-pr45-review.md](./amendments/20260722-dezocode-pr45-review.md).
 
 ## Fulfillment gate
 

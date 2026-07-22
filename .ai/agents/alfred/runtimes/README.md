@@ -1,5 +1,8 @@
 # Runtime suites — Alfred
 
-Primary runtime: `cursor-cloud-vm` → `runtimes/cursor/`.
+Primary runtime: `openclaw-gateway-vps` → `runtimes/openclaw/`.
 
-See `.ai/shared/references/agent-runtimes.md`.
+Alfred is an **OpenClaw-primary** agent — not Cursor-primary. Repo ICM artifacts
+may be edited via Git; live operation runs on the Hostinger Gateway.
+
+See `.ai/shared/references/openclaw-runtime.md` and `OPENCLAW.md`.

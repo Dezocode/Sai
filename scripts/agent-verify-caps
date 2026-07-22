@@ -199,8 +199,27 @@ if gh workflow view agent-audit --repo monaecode/Sai >/dev/null 2>&1; then
   add_cap "gh-fork-workflow-view" "shell" "github" "gh workflow view (fork)" "verified" "gh workflow view agent-audit --repo monaecode/Sai succeeded"
 fi
 
-# Cursor Slack MCP — required for SAI reporting
-if [ "${SAI_SLACK_VIA_CURSOR:-1}" = "1" ]; then
+if scripts/verify-agent-setup >/dev/null 2>&1; then
+  add_cap "verify-agent-setup" "script" "sai" "scripts/verify-agent-setup" "verified" "scripts/verify-agent-setup returned OK"
+fi
+
+if [ "$ENV_LABEL" = "openclaw-gateway-vps" ]; then
+  if [ -f ".ai/shared/references/openclaw-runtime.md" ]; then
+    add_cap "openclaw-runtime-ref" "reference" "sai" ".ai/shared/references/openclaw-runtime.md" "verified" "OpenClaw runtime reference present"
+  fi
+  if command -v openclaw >/dev/null 2>&1; then
+    if ver=$(openclaw --version 2>/dev/null || openclaw version 2>/dev/null); then
+      add_cap "openclaw-cli" "shell" "openclaw" "openclaw" "verified" "openclaw CLI present: $ver"
+    else
+      add_cap "openclaw-cli" "shell" "openclaw" "openclaw" "unverified" "openclaw in PATH but --version failed"
+    fi
+  else
+    add_cap "openclaw-cli" "shell" "openclaw" "openclaw" "unverified" "openclaw not in PATH — survey on Hostinger VPS"
+  fi
+fi
+
+# Cursor Slack MCP — required for SAI reporting (Cursor-primary environments only)
+if [ "$ENV_LABEL" != "openclaw-gateway-vps" ] && [ "${SAI_SLACK_VIA_CURSOR:-1}" = "1" ]; then
   add_cap "slack-send-message" "cursor-mcp" "Slack" "slack_send_message" "verified" "Cursor Slack MCP; message param required (not text); channel C0BH15HDN2Z"
   add_cap "slack-read-channel" "cursor-mcp" "Slack" "slack_read_channel" "verified" "Cursor Slack MCP; Phase 3 orientation reads #agentupdates"
   add_cap "slack-search-channels" "cursor-mcp" "Slack" "slack_search_channels" "verified" "Returned #agentupdates C0BH15HDN2Z and #help-newagents C0BH8LCJLDS"

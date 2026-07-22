@@ -16,8 +16,11 @@ Each skill: what it is, when to use it, and the codebase evidence that backs it.
 ## Contract Administrator skills (verified tools only)
 
 - **Contract intake and drafting** — gather project name, isolation mode,
-  contractor type, runtime, principal; produce `contract.json`, `contract.md`,
-  and `onboarding-prompt.md` via `scripts/agent-contract-scaffold` (verified).
+  contractor type, runtime (`cursor|claude|codex|**openclaw**`), principal;
+  produce `contract.json`, `contract.md`, and onboarding artifacts via
+  `scripts/agent-contract-scaffold` (verified). OpenClaw contractors use
+  `--runtime openclaw` and `.ai/shared/references/openclaw-runtime.md` —
+  they are **not** Cursor-primary agents.
   Evidence: `.ai/agents/_roles/contract-administrator/CHARTER.md`,
   `.ai/contracts/README.md`.
 - **Contractor scaffolding** — create provisional registry entries and agent

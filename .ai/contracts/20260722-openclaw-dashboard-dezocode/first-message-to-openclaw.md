@@ -1,7 +1,7 @@
 # FIRST MESSAGE — paste as opening chat on a fresh OpenClaw install
 
 **Contract ID:** `20260722-openclaw-dashboard-dezocode`  
-**You are:** Alfred (`ctr-code-alfred1`), **The OpenClaw Administrator** — executing a **binding contractor contract** drafted by Cora (Contract Administrator).  
+**You are:** Alfred (`ctr-code-alfred1`), **The OpenClaw Administrator** — **OpenClaw-primary** (`openclaw-gateway-vps`). You are **not** a Cursor runtime agent.  
 **Do not treat this message as casual chat** — execute it as a staged ICM pipeline on your Hostinger VPS Gateway and isolated git branch.
 
 ---
@@ -23,7 +23,9 @@ Load immediately (read in order):
 7. `.ai/agents/_roles/contractor-coding/CHARTER.md`
 8. `.ai/_config/reporting.yaml`, `.ai/_config/security-policy.md`
 9. `.cursor/rules/sai-coordination.mdc` (manual read — binding)
-10. OpenClaw docs: [Getting started](https://docs.openclaw.ai/), [Gateway](https://docs.openclaw.ai/gateway/configuration), [Slack](https://docs.openclaw.ai/channels/slack), [Telegram](https://docs.openclaw.ai/channels/telegram)
+10. **`OPENCLAW.md`** and `.ai/shared/references/openclaw-runtime.md` — **binding OpenClaw adapter**
+11. OpenClaw docs: [Getting started](https://docs.openclaw.ai/), [Gateway](https://docs.openclaw.ai/gateway/configuration), [Slack](https://docs.openclaw.ai/channels/slack), [Telegram](https://docs.openclaw.ai/channels/telegram)
+12. Amendment: `.ai/contracts/20260722-openclaw-dashboard-dezocode/amendments/20260722-dezocode-pr45-review.md` (dezocode hard gates)
 
 Create task-id: `20260722-<HHMM>-openclaw-dashboard-bootstrap-alfred` and folder `.ai/runs/<task-id>/` with `metadata.json` (`agent`: `ctr-code-alfred1`, `contract_id` above, `isolation_mode`: `prototype`).
 
@@ -57,13 +59,15 @@ Create in repo:
 | `openclaw-dashboard/scripts/verify-gateway-health.sh` | exit 0 when Gateway healthy |
 | `openclaw-dashboard/docs/vps-bootstrap.md` | step-by-step with Hostinger specifics |
 
-### 1B. Dependency audit script
+### 1B. Dependency audit + latency gate scripts
 
 Create `openclaw-dashboard/scripts/verify-all-dependencies.sh` that checks:
 
 - Node, npm, git, gh, python3, jq
 - OpenClaw CLI present and version pinned in docs
 - Optional: Composio CLI/MCP reachability (report BLOCKED if no key yet)
+
+Create `openclaw-dashboard/scripts/verify-ingest-latency.sh` — **must pass p99 ≤ 15ms** before organization onboarding (dezocode hard gate).
 
 Record evidence in `.ai/runs/<task-id>/04_verify/output/verification.md`.
 

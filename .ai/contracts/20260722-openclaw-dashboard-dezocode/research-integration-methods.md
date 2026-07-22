@@ -174,13 +174,27 @@ Composio provides unified OAuth and MCP tool-router ([existing Mimi pattern](.ai
 
 **UI:** Desktop tab uses WebSocket `wss://vps/activity/stream` — chart library e.g. lightweight-charts (TradingView-style candle/line hybrid). Bucket to 1ms display where source allows; aggregate to 100ms for Slack/GitHub if API limits apply (document honest resolution in UI legend).
 
+### Latency SLO (dezocode hard gate — organization onboarding)
+
+**Requirement:** p99 **≤ 15ms** from host admin CLI event emission to dashboard tab render.
+
+| Layer | Implementation |
+|---|---|
+| Emitter | Host admin CLI on VPS → `activity-ingest` service |
+| Transport | WebSocket `wss://<vps>/activity/stream` |
+| Measurement | `openclaw-dashboard/scripts/verify-ingest-latency.sh` |
+| Pass criteria | p99 ≤ 15ms on synthetic burst; fail blocks onboarding |
+
+External sources (Slack/GitHub APIs) may be coarser — label in UI — but **CLI-native live feed** must meet 15ms.
+
 ### Performance note
 
-True millisecond granularity requires webhook timestamps + local monotonic clock sync (NTP on VPS). Label graph: *"Source resolution: Slack ~ms, GitHub ~s unless App hook configured"*.
+True millisecond display requires NTP-synced VPS clock. Host CLI is the authoritative low-latency source for the stock-market meter.
 
 ### Verification
 
-- Synthetic event generator produces visible tick on graph < 500ms
+- `verify-ingest-latency.sh` PASS (p99 ≤ 15ms)
+- Synthetic event generator produces visible tick on graph
 - 24h retention minimum; export CSV for audit
 
 ---

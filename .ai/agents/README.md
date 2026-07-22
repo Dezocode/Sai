@@ -6,7 +6,7 @@ initialized agent. It implements Layer 1 of the ICM workspace (see
 
 Multi-runtime adapters: `.ai/shared/references/agent-runtimes.md` (decision
 `0002-multi-runtime-agent-adapters.md`). **One registry row per agent**;
-runtime suites live under `runtimes/{cursor,claude,codex}/`.
+runtime suites live under `runtimes/{cursor,claude,codex,openclaw}/`.
 
 ## Layout
 
@@ -35,6 +35,7 @@ runtime suites live under `runtimes/{cursor,claude,codex}/`.
       cursor/            <- Cursor Desktop / Cloud suite
       claude/            <- Claude Code CLI suite
       codex/             <- OpenAI Codex Desktop suite (stub until live init)
+      openclaw/            <- OpenClaw Gateway VPS suite
     memory/              <- per-agent audit memory (contractors required)
       manifest.json
       contracts/         <- active contract references
@@ -84,7 +85,7 @@ that agent's complete profile to your session.
 
 1. Execute `.ai/INITIALIZE.md` in full (Phases 0–9).
 2. Ask your principal for a **name** and **role title** (Phase 6).
-3. Run `scripts/agent-scaffold --primary-runtime <cursor|claude|codex> …`.
+3. Run `scripts/agent-scaffold --primary-runtime <cursor|claude|codex|openclaw> …`.
 4. Fill `skills.md` and runtime `tools.json` from Phase 5B survey.
 5. Run `scripts/agent-automation-spec` into `runtimes/<suite>/automation/profile.md`.
 6. Add registry entry with `primary_runtime`, `entry_points`, `folder`, etc.
@@ -102,6 +103,6 @@ that agent's complete profile to your session.
 | `charter` | yes | Path to role charter under `_roles/` |
 | `principal` | yes | Human the agent works under |
 | `status` | yes | `provisional`, `active`, or `retired` |
-| `primary_runtime` | active only | `cursor-desktop`, `cursor-cloud-vm`, `claude-code-cli`, or `codex-desktop` |
+| `primary_runtime` | active only | `cursor-desktop`, `cursor-cloud-vm`, `claude-code-cli`, `codex-desktop`, or `openclaw-gateway-vps` |
 | `entry_points` | active only | Map of runtime → how to invoke this agent |
 | `automation` | yes | Real automation name or `delegated: <spec path>` |

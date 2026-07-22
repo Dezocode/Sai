@@ -6,8 +6,8 @@
   "principal": "dezocode (U0BHYH0NMCY) and monaecode (U0BGNS7F0T1)",
   "contractor_type": "coding",
   "isolation_mode": "prototype",
-  "primary_runtime": "cursor-cloud-vm",
-  "effective_runtime": "openclaw-gateway-hostinger-vps",
+  "primary_runtime": "openclaw-gateway-vps",
+  "runtime_reference": ".ai/shared/references/openclaw-runtime.md",
   "compatibility_layer": "sai-mac-ios-android-openclaw-vps",
   "repository_canonical": "Dezocode/Sai",
   "repository_fork": "monaecode/Sai",
@@ -35,12 +35,26 @@
     "cto": {"agent_id": "dezo-sec-codex1", "name": "Saul", "gate": "CTO review on architecture, VPS security, CI wiring"},
     "humans": ["dezocode (U0BHYH0NMCY)", "monaecode (U0BGNS7F0T1)"]
   },
+  "organization_onboarding_gate": {
+    "description": "Hard must-complete criteria for Alfred to join SAI organization (dezocode PR #45 review 4751008157)",
+    "criteria": [
+      "primary_runtime is openclaw-gateway-vps — Alfred is NOT a Cursor runtime agent",
+      "100% production completion: dashboard + OpenClaw CLI host dependencies + auth regulation on VPS",
+      "Host admin dashboard CLI live-feeds all monitoring/reporting tabs",
+      "Live data latency: p99 <= 15ms from host CLI event to dashboard tab render",
+      "All ICM verifiers PASS: verify-semantic-hierarchy, verify-agent-setup, verify-agent-audit, verify-merge-handoff",
+      "Sai [SAI][VERIFY] PASS + Saul CTO review + both co-founders authorize merge to main"
+    ],
+    "latency_slo_ms_p99": 15,
+    "production_completion_percent": 100
+  },
   "fulfillment_gate": {
     "description": "Alfred gains final organization approval only when all are true",
     "conditions": [
       "All A0–A12 deliverables evidenced on bootstrap branch with ICM run artifacts",
       "OpenClaw Gateway healthy on Hostinger VPS with documented health checks",
-      "Mac desktop app and iPhone Whisper companion pass smoke tests (no blocking errors on approved flows)",
+      "Host admin CLI live-feeds dashboard tabs with p99 latency <= 15ms (organization_onboarding_gate)",
+      "100% production smoke: zero blocking errors on Mac desktop + iPhone Whisper approved flows",
       "Composio auth flows for Telegram, Google Drive, and Gemini Notebook reachable from dashboard auth hub",
       "Every registered SAI agent has verified Telegram inbox path documented (or honest BLOCKED with remediation plan)",
       "Sai posts [SAI][VERIFY] PASS referencing this contract_id",
@@ -154,7 +168,10 @@
     "OpenClaw Gateway + dashboard health checks pass on Hostinger VPS",
     "No secrets committed; auth tokens in env/VPS secret store only",
     "Agent activity SOP posts to approved public Slack channels per reporting.yaml",
-    "Mac desktop + iPhone companion: zero blocking errors on documented smoke flows",
+    "OpenClaw-primary runtime scaffold present (runtimes/openclaw/gateway/) — not Cursor-primary",
+    "Host CLI ingest p99 <= 15ms evidenced (openclaw-dashboard/scripts/verify-ingest-latency.sh)",
+    "100% production smoke flows pass — zero blocking errors",
+    "All scripts/verify-* ICM gates PASS on PR branch",
     "scripts/agent-contract-pr-review PASS on every PR",
     "Work isolated to proj/openclaw-dashboard/* until fulfillment_gate complete",
     "Every commit: Task-ID, Agent: Alfred, Report-Event trailers"

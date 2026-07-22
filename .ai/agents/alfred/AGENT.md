@@ -8,7 +8,7 @@
 | **Principal** | dezocode (U0BHYH0NMCY) and monaecode (U0BGNS7F0T1) |
 | **Charter** | `.ai/agents/_roles/contractor-coding/CHARTER.md` |
 | **Folder** | `.ai/agents/alfred/` |
-| **Primary runtime** | `cursor-cloud-vm` |
+| **Primary runtime** | `openclaw-gateway-vps` (Hostinger VPS — **not Cursor**) |
 | **Initialized** | 2026-07-22 |
 
 ## Purpose and scope
@@ -25,9 +25,8 @@ identity card — see `runtimes/README.md` and
 
 | Runtime | Entry |
 |---|---|
-| Cursor | `@alfred` in Cursor Desktop |
-| Claude Code | `CLAUDE.md` → this folder |
-| Codex Desktop | `CODEX.md` → this folder |
+| **OpenClaw Gateway** | `OPENCLAW.md` → this folder; VPS `openclaw gateway`; first message in contract |
+| Cursor (non-primary) | `@alfred` optional for repo-only edits — not Alfred's dispatch runtime |
 
 Slack bots (@Claude, ChatGPT) are not registered agents unless listed in
 `.ai/agents/registry.json`.

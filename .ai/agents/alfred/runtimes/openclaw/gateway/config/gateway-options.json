@@ -1,0 +1,29 @@
+{
+  "$comment": "OpenClaw Gateway config skeleton — Alfred fills on Hostinger VPS after onboard",
+  "reference": ".ai/shared/references/openclaw-runtime.md",
+  "agent_id": "ctr-code-alfred1",
+  "contract_id": "20260722-openclaw-dashboard-dezocode",
+  "gateway": {
+    "port": 18789,
+    "host": "0.0.0.0",
+    "remote_access": ["tailscale", "reverse_proxy_tls"],
+    "config_path": "~/.openclaw/openclaw.json"
+  },
+  "dashboard_ingest": {
+    "enabled": true,
+    "latency_slo_ms_p99": 15,
+    "websocket_path": "/activity/stream",
+    "feeds_tabs": ["tracking", "github", "config", "chat-room"]
+  },
+  "host_admin_cli": {
+    "enabled": true,
+    "description": "SAI admin dashboard CLI live-feeds activity data into all dependent tabs"
+  },
+  "channels": {
+    "slack": {"enabled": true, "mode": "socket"},
+    "telegram": {"enabled": true, "dmPolicy": "pairing"}
+  },
+  "models": {
+    "note": "Configure via dashboard config mirror (A7); secrets in VPS env only"
+  }
+}
