@@ -3,7 +3,7 @@
 ## Done
 - Registry: `ctr-code-splunk1` status `provisional` → `superseded`; purpose/notes updated.
 - `alpha/AGENT.md`: retirement banner; invoke paths marked historical.
-- PR #21 closed as superseded by PR #27 (dezocode triage authorization).
+- PR #21 close attempted — blocked (integration lacks `closePullRequest` permission); dezocode or monaecode must close manually.
 
 ## Not done (requires separate gate)
 - Delete `origin/proj/splunk-clone/ctr-code-splunk1/pilot-intake` — branch deletion is a shared-resource gate per security-policy.md; needs explicit owner approval.
