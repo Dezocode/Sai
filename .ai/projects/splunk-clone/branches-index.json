@@ -11,10 +11,13 @@
     {
       "branch": "proj/splunk-clone/ctr-code-splunk1/pilot-intake",
       "contract_id": "20260715-splunk-clone-monaecode",
+      "contractor_agent_id": "ctr-code-splunk1",
+      "status": "retired",
       "review_id": "20260715T215324Z",
       "overall": "pending_manual",
-      "updated_at": "2026-07-15T21:53:24Z"
+      "note": "Contractor retired 20260722; superseded by Splunky — archive branch pending owner approval",
+      "updated_at": "2026-07-22T23:05:00Z"
     }
   ],
-  "updated_at": "2026-07-15T21:53:24Z"
+  "updated_at": "2026-07-22T23:05:00Z"
 }

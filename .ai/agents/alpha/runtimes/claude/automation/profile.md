@@ -1,5 +1,8 @@
 # Cursor automation profile — Alpha (ctr-code-splunk1)
 
+> **RETIRED 2026-07-22** — do not create or run automations for this agent.
+> Historical profile only; superseded by Splunky (`ctr-code-splunky`).
+
 > Generated 2026-07-15 by `scripts/agent-automation-spec` for principal
 > **monaecode (U0BGNS7F0T1)**. This is the default automation profile every initialized
 > SAI agent offers its principal. The **Purpose** is specific to this agent's
