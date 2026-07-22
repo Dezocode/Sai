@@ -78,6 +78,24 @@
       "notes": "Named Cora, Contract Administrator by dezocode and monaecode 2026-07-15. Phase 5B-9 complete 20260715-2152-cora-init-complete-ctr-admin: 25 verified capabilities, automation profile offered. Alpha (ctr-code-splunk1) remains provisional NO-GO until deliverables, capabilities, persona gate, and human approval."
     },
     {
+      "agent_id": "ctr-code-alfred1",
+      "name": "Alfred",
+      "role_title": "OpenClaw Administrator",
+      "purpose": "The OpenClaw Administrator: manage OpenClaw Gateway on Hostinger VPS; build SAI coordination dashboard (Mac + iPhone Whisper); integrate Dezocode/Sai and monaecode/Sai with Slack, GitHub, Composio; agent activity tracking, second-brain MCP, research tab, Habbo-style chat; contract 20260722-openclaw-dashboard-dezocode.",
+      "folder": ".ai/agents/alfred",
+      "charter": ".ai/agents/_roles/contractor-coding/CHARTER.md",
+      "principal": "dezocode (U0BHYH0NMCY) and monaecode (U0BGNS7F0T1)",
+      "status": "provisional",
+      "initialized": "2026-07-22",
+      "primary_runtime": "cursor-cloud-vm",
+      "entry_points": {
+        "openclaw-gateway": "Hostinger VPS: openclaw gateway; first message .ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md",
+        "cursor": "@alfred in Cursor Desktop → .ai/agents/alfred/"
+      },
+      "automation": "delegated: .ai/agents/alfred/automation/profile.md",
+      "notes": "Named Alfred, OpenClaw Administrator by dezocode/monaecode intake 2026-07-22. Provisional until fulfillment_gate: Sai VERIFY, Saul CTO review, human merge to main. Work isolated to proj/openclaw-dashboard/*."
+    },
+    {
       "agent_id": "ctr-code-splunk1",
       "name": "Alpha",
       "role_title": "Coding Contractor",

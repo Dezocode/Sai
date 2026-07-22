@@ -1,0 +1,184 @@
+{
+  "contract_id": "20260722-openclaw-dashboard-dezocode",
+  "contract_type": "openclaw_platform_contractor",
+  "project_slug": "openclaw-dashboard",
+  "project_name": "OpenClaw SAI Dashboard (Alfred — The OpenClaw Administrator)",
+  "principal": "dezocode (U0BHYH0NMCY) and monaecode (U0BGNS7F0T1)",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "primary_runtime": "cursor-cloud-vm",
+  "effective_runtime": "openclaw-gateway-hostinger-vps",
+  "compatibility_layer": "sai-mac-ios-android-openclaw-vps",
+  "repository_canonical": "Dezocode/Sai",
+  "repository_fork": "monaecode/Sai",
+  "repository": "Dezocode/Sai",
+  "branch_prefix": "proj/openclaw-dashboard/",
+  "bootstrap_branch": "proj/openclaw-dashboard/ctr-code-alfred1/bootstrap",
+  "product_root": "openclaw-dashboard/",
+  "hosting": {
+    "provider": "Hostinger VPS",
+    "gateway_port_default": 18789,
+    "config_path": "~/.openclaw/openclaw.json",
+    "remote_access": ["Tailscale", "SSH tunnel", "reverse proxy with TLS"]
+  },
+  "slack_channel_primary": "#agentupdates",
+  "slack_channel_project": "#proj-openclaw-dashboard",
+  "notebooklm_source": {
+    "title": "Beyond the Chatbox: 6 Surprising Lessons from Building a Self-Hosted AI Space Lobster",
+    "url": "https://notebooklm.google.com/notebook/89dadba9-7fba-4b0f-9960-65998062e865/artifact/adb6128d-8029-4192-873d-d0a43d815f80",
+    "note": "Owner-provided research notebook; Alfred must ingest exported sources into second-brain after auth"
+  },
+  "research_doc": ".ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md",
+  "first_message": ".ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md",
+  "reviewers": {
+    "ceo": {"agent_id": "ceo", "name": "Sai", "gate": "VERIFY PASS on ICM + registry + dashboard integration plan"},
+    "cto": {"agent_id": "dezo-sec-codex1", "name": "Saul", "gate": "CTO review on architecture, VPS security, CI wiring"},
+    "humans": ["dezocode (U0BHYH0NMCY)", "monaecode (U0BGNS7F0T1)"]
+  },
+  "fulfillment_gate": {
+    "description": "Alfred gains final organization approval only when all are true",
+    "conditions": [
+      "All A0–A12 deliverables evidenced on bootstrap branch with ICM run artifacts",
+      "OpenClaw Gateway healthy on Hostinger VPS with documented health checks",
+      "Mac desktop app and iPhone Whisper companion pass smoke tests (no blocking errors on approved flows)",
+      "Composio auth flows for Telegram, Google Drive, and Gemini Notebook reachable from dashboard auth hub",
+      "Every registered SAI agent has verified Telegram inbox path documented (or honest BLOCKED with remediation plan)",
+      "Sai posts [SAI][VERIFY] PASS referencing this contract_id",
+      "Saul posts acceptable CTO review (no blocking P1 on security/VPS/auth)",
+      "Both co-founders explicitly authorize merge to Dezocode/Sai:main",
+      "scripts/agent-contract-pr-review PASS (no pending_manual)",
+      "Until gate complete: work ONLY on proj/openclaw-dashboard/* branches — no direct main edits"
+    ]
+  },
+  "deliverables": [
+    {
+      "id": "A0-openclaw-gateway-bootstrap",
+      "title": "Fresh OpenClaw install + Hostinger VPS Gateway",
+      "paths": ["openclaw-dashboard/host/", "openclaw-dashboard/docs/vps-bootstrap.md"],
+      "research_ref": "research-integration-methods.md#1-openclaw-gateway-hostinger-vps",
+      "description": "npm install -g openclaw@latest; openclaw onboard --install-daemon; gateway on VPS; health endpoint; dependency verification script"
+    },
+    {
+      "id": "A1-sai-icm-integration",
+      "title": "SAI ICM integration + agent reporting SOP",
+      "paths": ["openclaw-dashboard/docs/sai-icm-integration.md", ".ai/agents/alfred/hooks.json"],
+      "research_ref": "research-integration-methods.md#2-sai-icm-integration",
+      "description": "Registry sync, [SAI][EVENT] template enforcement, public Slack channel routing, session run SOP for all agents"
+    },
+    {
+      "id": "A2-composio-connections",
+      "title": "Composio: Telegram, Gemini Notebook, Google Drive",
+      "paths": ["openclaw-dashboard/integrations/composio/", "openclaw-dashboard/docs/composio-auth.md"],
+      "research_ref": "research-integration-methods.md#3-composio-integrations",
+      "description": "Composio MCP/tool-router on VPS; OAuth flows surfaced in dashboard auth hub; no secrets in repo"
+    },
+    {
+      "id": "A3-tracking-tab",
+      "title": "Live activity tracking (stock-market meter)",
+      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/tracking/", "openclaw-dashboard/services/activity-ingest/"],
+      "research_ref": "research-integration-methods.md#4-tracking-tab-live-activity-meter",
+      "description": "Millisecond-resolution ingest from Slack, GitHub (both repos), agent registry, automations; live graph UI"
+    },
+    {
+      "id": "A4-second-brain",
+      "title": "Second brain — Obsidian-class vault + graph",
+      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/second-brain/", "openclaw-dashboard/services/vault-mcp/"],
+      "research_ref": "research-integration-methods.md#5-second-brain-obsidian-clone",
+      "description": "Editable/searchable files; backlinks; hierarchy + vector graph; GitHub OAuth for human users"
+    },
+    {
+      "id": "A5-research-tab-mcp",
+      "title": "Research tab + second-brain MCP gateway",
+      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/research/", "openclaw-dashboard/services/research-mcp/"],
+      "research_ref": "research-integration-methods.md#6-research-tab-and-mcp-server",
+      "description": "Research agent sessions; source compilation; verified improvements pipeline into vault; MCP server for all SAI agents"
+    },
+    {
+      "id": "A6-habbo-chat-room",
+      "title": "Habbo-style 2D agent chat room + Telegram PM",
+      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/chat-room/", "openclaw-dashboard/services/agent-presence/"],
+      "research_ref": "research-integration-methods.md#7-habbo-clone-chat-room",
+      "description": "2D avatars per registered agent; walk-up chat; private rooms → Telegram via OpenClaw messaging"
+    },
+    {
+      "id": "A7-openclaw-config-mirror",
+      "title": "OpenClaw config mirror + config expert subagent",
+      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/config/", "openclaw-dashboard/.openclaw/agents/config-expert.md"],
+      "research_ref": "research-integration-methods.md#8-openclaw-config-mirror",
+      "description": "Dashboard mirror of ~/.openclaw/openclaw.json; config-expert on agent team; model configuration UI"
+    },
+    {
+      "id": "A8-github-branch-ci",
+      "title": "GitHub branch + CI status dashboard",
+      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/github/", "openclaw-dashboard/services/github-watch/"],
+      "research_ref": "research-integration-methods.md#9-github-branch-and-ci-tracking",
+      "description": "Live branch tracking for Dezocode/Sai and monaecode/Sai; CI status; failure rate metrics per project"
+    },
+    {
+      "id": "A9-mac-ios-apps",
+      "title": "Mac desktop app + iPhone Whisper companion",
+      "paths": ["openclaw-dashboard/apps/desktop/", "openclaw-dashboard/apps/ios-whisper/"],
+      "research_ref": "research-integration-methods.md#10-mac-desktop-and-iphone-whisper",
+      "description": "Native Mac client; Whisper Flow iPhone app; VPS command execution; browser MCP bridge to desktop"
+    },
+    {
+      "id": "A10-telegram-inbox-verification",
+      "title": "Telegram inbox verification for all agents",
+      "paths": ["openclaw-dashboard/docs/agent-telegram-registry.md", "openclaw-dashboard/scripts/verify-agent-telegram.sh"],
+      "research_ref": "research-integration-methods.md#11-agent-telegram-inbox-verification",
+      "description": "Register and verify Telegram inbox for present and future registry agents; block activation without verification or BLOCKED record"
+    },
+    {
+      "id": "A11-auth-hub",
+      "title": "Dashboard auth hub (100% reachable flows)",
+      "paths": ["openclaw-dashboard/apps/desktop/src/auth/", "openclaw-dashboard/docs/auth-matrix.md"],
+      "research_ref": "research-integration-methods.md#12-dashboard-auth-hub",
+      "description": "GitHub account linking; Composio and native OAuth; permission handling; live browser MCP for auth completion"
+    },
+    {
+      "id": "A12-review-package",
+      "title": "Review package for Sai + Saul + co-founders",
+      "paths": [".ai/runs/<task-id>/handoff.md", "openclaw-dashboard/docs/fulfillment-evidence.md"],
+      "research_ref": "research-integration-methods.md#13-fulfillment-and-merge-gate",
+      "description": "ICM handoff; demo recordings; verify-agent-setup PASS on PR branch; PR to main only after human gate"
+    }
+  ],
+  "subagents": [
+    {"name": "config-expert", "role": "OpenClaw configuration specialist", "path": "openclaw-dashboard/.openclaw/agents/config-expert.md"},
+    {"name": "research-coordinator", "role": "Research tab session lead", "path": "openclaw-dashboard/.openclaw/agents/research-coordinator.md"}
+  ],
+  "acceptance_criteria": [
+    "All A0–A12 deliverables exist on bootstrap branch with ICM run artifacts",
+    "first-message-to-openclaw.md executed as binding opening session",
+    "research-integration-methods.md cited in every deliverable README",
+    "OpenClaw Gateway + dashboard health checks pass on Hostinger VPS",
+    "No secrets committed; auth tokens in env/VPS secret store only",
+    "Agent activity SOP posts to approved public Slack channels per reporting.yaml",
+    "Mac desktop + iPhone companion: zero blocking errors on documented smoke flows",
+    "scripts/agent-contract-pr-review PASS on every PR",
+    "Work isolated to proj/openclaw-dashboard/* until fulfillment_gate complete",
+    "Every commit: Task-ID, Agent: Alfred, Report-Event trailers"
+  ],
+  "approved_capabilities": [],
+  "proposed_capabilities": [
+    {"name": "openclaw-gateway-cli", "type": "dependency", "mandatory": true, "status": "proposed"},
+    {"name": "composio-telegram", "type": "mcp", "mandatory": true, "status": "proposed"},
+    {"name": "composio-googledrive", "type": "mcp", "mandatory": true, "status": "proposed"},
+    {"name": "composio-gemini-notebook", "type": "mcp", "mandatory": true, "status": "proposed"},
+    {"name": "github-mcp", "type": "mcp", "mandatory": true, "status": "proposed"},
+    {"name": "slack-openclaw-channel", "type": "hook", "mandatory": true, "status": "proposed"},
+    {"name": "browser-mcp", "type": "mcp", "mandatory": true, "status": "proposed"}
+  ],
+  "assigned_contractors": [
+    {
+      "agent_id": "ctr-code-alfred1",
+      "folder": ".ai/agents/alfred",
+      "branch": "proj/openclaw-dashboard/ctr-code-alfred1/bootstrap",
+      "status": "provisional"
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-07-22T04:12:48Z",
+  "created_by": "ctr-admin",
+  "contract_admin_agent_id": "ctr-admin"
+}

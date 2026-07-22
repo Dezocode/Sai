@@ -1,0 +1,10 @@
+{
+  "agent_id": "ctr-code-alfred1",
+  "folder": ".ai/agents/alfred",
+  "primary_runtime": "cursor-cloud-vm",
+  "canonical_capabilities_path": "runtimes/cursor/tools.json",
+  "surveyed_at": "2026-07-22",
+  "environment": "cursor-cloud-vm",
+  "note": "Manifest only — run scripts/agent-verify-caps against canonical_capabilities_path in Phase 5B",
+  "capabilities": []
+}
