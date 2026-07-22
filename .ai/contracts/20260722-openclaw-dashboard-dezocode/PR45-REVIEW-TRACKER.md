@@ -66,6 +66,7 @@ Slack task-IDs posted to `#agentupdates` (`C0BH15HDN2Z`):
 | Telegram session + fleet A13 | `BEHAVIORS.md`, `fleet-coherence-gate`, `c1195f1` |
 | Activation & merge checklist | `ACTIVATION-AND-MERGE-CHECKLIST.md` |
 | Saul review 4751481118 fixes | `amendments/20260722-saul-review-4751481118.md`, CI negative regression |
+| Saul P1-D BLOCKED bypass fix | `verify-agent-telegram.sh` always validates Telegram+Slack; blocked row schema |
 
 ### Open — Alfred VPS / fulfillment (L4, not scaffold PR)
 

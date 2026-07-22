@@ -1,0 +1,11 @@
+{
+  "task_id": "20260722-0630-saul-blocked-bypass-ctr-admin",
+  "agent": "ctr-admin",
+  "agent_id": "ctr-admin",
+  "purpose": "Saul P1-D — BLOCKED path must not bypass Telegram/Slack evidence",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/alfred-openclaw-contract-f1d6",
+  "contract_id": "20260722-openclaw-dashboard-dezocode",
+  "status": "verify",
+  "review": "https://github.com/Dezocode/Sai/pull/45#pullrequestreview-4751481118"
+}

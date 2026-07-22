@@ -37,7 +37,8 @@ openclaw-dashboard/tests/smoke/subagent-connection-gate.sh           # delegates
 ```
 
 **Fail-closed (Saul P1):** scripts exit **1** until each in-scope row has valid
-`telegram_dm_link`, `slack_intro_permalink`, and `habbo_presence` (or BLOCKED row
-in [blocked-agents.md](./blocked-agents.md)). No stub PASS.
+`telegram_dm_link`, `slack_intro_permalink`, and `habbo_presence` (`connected`,
+or `blocked` with a complete row in [blocked-agents.md](./blocked-agents.md)).
+BLOCKED **never** skips Telegram/Slack validation. No stub PASS.
 
 100% coverage: every `registry.json` agent + every row in `.openclaw/agents/*.md` subagent file.

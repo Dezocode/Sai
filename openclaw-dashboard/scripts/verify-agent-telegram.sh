@@ -80,6 +80,33 @@ def run_self_test():
         errors.append("self-test: habbo must reject pending")
     if not valid_habbo_presence("connected"):
         errors.append("self-test: habbo must accept connected")
+    if valid_blocked_record(
+        {
+            "blocked_gate": "habbo_presence",
+            "reason": "awaiting pipeline",
+            "remediation_owner": "alfred",
+            "mcq_ticket": "MCQ-20260722-001",
+        }
+    ) is not True:
+        errors.append("self-test: valid blocked record must pass")
+    for bad in (
+        {},
+        {"blocked_gate": "habbo_presence"},
+        {
+            "blocked_gate": "habbo_presence",
+            "reason": "x",
+            "remediation_owner": "alfred",
+            "mcq_ticket": "—",
+        },
+        {
+            "blocked_gate": "",
+            "reason": "x",
+            "remediation_owner": "alfred",
+            "mcq_ticket": "MCQ-1",
+        },
+    ):
+        if valid_blocked_record(bad):
+            errors.append(f"self-test: malformed blocked record must fail ({bad!r})")
     if errors:
         print("verify-agent-telegram.sh --self-test: FAIL")
         for e in errors:
@@ -107,16 +134,43 @@ def valid_habbo_presence(val):
     return (val or "").strip().lower() == "connected"
 
 
+BLOCKED_REQUIRED = ("blocked_gate", "reason", "remediation_owner", "mcq_ticket")
+
+
+def nonempty_field(val):
+    v = (val or "").strip()
+    return bool(v) and v.lower() not in INVALID
+
+
+def valid_blocked_record(rec):
+    if not rec:
+        return False
+    return all(nonempty_field(rec.get(field)) for field in BLOCKED_REQUIRED)
+
+
 def load_blocked():
-    blocked = set()
+    """Return agent_id -> row dict from blocked-agents.md (excludes _example_)."""
+    blocked = {}
     if not os.path.isfile(BLOCKED):
         return blocked
+    headers = []
     for line in open(BLOCKED):
-        line = line.strip()
-        if line.startswith("|") and "agent_id" not in line and "---" not in line:
-            cols = [c.strip() for c in line.split("|")[1:-1]]
-            if cols and cols[0] and cols[0] != "_example_":
-                blocked.add(cols[0])
+        if not line.startswith("|"):
+            continue
+        cols = [c.strip() for c in line.split("|")[1:-1]]
+        if not cols:
+            continue
+        if "agent_id" in cols[0]:
+            headers = cols
+            continue
+        if "---" in line or not headers:
+            continue
+        if len(cols) < len(headers):
+            cols += [""] * (len(headers) - len(cols))
+        row = dict(zip(headers, cols))
+        aid = row.get("agent_id", "")
+        if aid and aid != "_example_":
+            blocked[aid] = row
     return blocked
 
 
@@ -165,7 +219,7 @@ if not os.path.isfile(REGISTRY):
     print(f"FAIL missing {REGISTRY}")
     sys.exit(1)
 
-blocked_ids = load_blocked()
+blocked_records = load_blocked()
 table = parse_registry_table(REG)
 registry_data = json.load(open(REGISTRY))
 agent_ids = scope_agent_ids(registry_data)
@@ -181,31 +235,50 @@ for aid in agent_ids:
     slack = row.get("slack_intro_permalink", "")
     habbo = row.get("habbo_presence", "")
     connected = row.get("connected", "no").strip().lower()
+    habbo_lower = habbo.strip().lower()
 
-    is_blocked = aid in blocked_ids or habbo.strip().lower() == "blocked"
+    # Telegram + Slack always required — BLOCKED only waives Habbo connected (Saul P1)
+    if not valid_telegram_dm(tg):
+        errors.append(
+            f"{aid}: telegram_dm_link invalid — require https://t.me/... or https://telegram.me/... ({tg!r})"
+        )
+    if not valid_slack_intro(slack):
+        errors.append(
+            f"{aid}: slack_intro_permalink invalid — require https://*.slack.com/archives/.../p... ({slack!r})"
+        )
 
-    if not is_blocked:
-        if not valid_telegram_dm(tg):
-            errors.append(
-                f"{aid}: telegram_dm_link invalid — require https://t.me/... or https://telegram.me/... ({tg!r})"
-            )
-        if not valid_slack_intro(slack):
-            errors.append(
-                f"{aid}: slack_intro_permalink invalid — require https://*.slack.com/archives/.../p... ({slack!r})"
-            )
-        if not valid_habbo_presence(habbo):
-            errors.append(
-                f"{aid}: habbo_presence must be 'connected' or documented BLOCKED ({habbo!r})"
-            )
-    else:
-        if aid not in blocked_ids:
+    blocked_row = blocked_records.get(aid)
+    is_habbo_blocked = habbo_lower == "blocked"
+
+    if is_habbo_blocked:
+        if not blocked_row:
             errors.append(f"{aid}: habbo_presence=blocked but no row in docs/blocked-agents.md")
+        elif not valid_blocked_record(blocked_row):
+            missing = [
+                f
+                for f in BLOCKED_REQUIRED
+                if not nonempty_field(blocked_row.get(f))
+            ]
+            errors.append(
+                f"{aid}: blocked-agents.md row invalid — require nonempty {', '.join(BLOCKED_REQUIRED)}; missing/invalid: {', '.join(missing) or 'unknown'}"
+            )
+    elif not valid_habbo_presence(habbo):
+        errors.append(
+            f"{aid}: habbo_presence must be 'connected' or 'blocked' with valid BLOCKED row ({habbo!r})"
+        )
+
+    if blocked_row and not is_habbo_blocked:
+        errors.append(
+            f"{aid}: listed in blocked-agents.md but habbo_presence is not 'blocked' ({habbo!r})"
+        )
 
     if connected == "yes":
-        if not (
+        if is_habbo_blocked:
+            errors.append(f"{aid}: connected=yes not allowed while habbo_presence is blocked")
+        elif not (
             valid_telegram_dm(tg)
             and valid_slack_intro(slack)
-            and (valid_habbo_presence(habbo) or is_blocked)
+            and valid_habbo_presence(habbo)
         ):
             errors.append(f"{aid}: connected=yes without valid three-connection evidence")
 
