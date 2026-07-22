@@ -1,0 +1,10 @@
+{
+  "task_id": "20260722-0549-secrets-security-scaffold-ctr-admin",
+  "agent": "ctr-admin",
+  "contract_id": "20260722-openclaw-dashboard-dezocode",
+  "purpose": "PR #45 secrets control: doctrine, auth-matrix, settings/secrets, VPS schema, activation checklist",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/alfred-openclaw-contract-f1d6",
+  "status": "publish_sync",
+  "started_at": "2026-07-22T05:49:00Z"
+}

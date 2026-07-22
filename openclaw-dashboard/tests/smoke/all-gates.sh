@@ -13,6 +13,7 @@ run scripts/verify-agent-setup
 run openclaw-dashboard/tests/smoke/design-tokens.sh
 run openclaw-dashboard/tests/smoke/design-compliance.sh
 run openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh
+run openclaw-dashboard/tests/smoke/secrets-compliance.sh
 # Fulfillment-only (expect exit 2 until proof run):
 # run openclaw-dashboard/tests/smoke/telegram-session-reporting.sh
 run openclaw-dashboard/scripts/verify-ingest-latency.sh || true

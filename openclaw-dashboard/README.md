@@ -30,6 +30,7 @@ Each folder contains **CONTEXT.md** (requirements) + **BUILD.md** (how to build)
 
 | Folder | Surface |
 |---|---|
+| [settings/secrets/](./settings/secrets/CONTEXT.md) | Secrets structure + masked status (no values in Git) |
 | [settings/auth/](./settings/auth/CONTEXT.md) | Auth hub (100% reachable) |
 | [settings/host-health/](./settings/host-health/CONTEXT.md) | VPS + Gateway health |
 | [settings/reporting-sop/](./settings/reporting-sop/CONTEXT.md) | Agent Slack reporting SOP |
@@ -48,4 +49,6 @@ Contract research: [research-integration-methods.md](../.ai/contracts/20260722-o
 
 **Design (all tabs):** [design/DESIGN-LANGUAGE.md](./design/DESIGN-LANGUAGE.md) — unified Cursor + Activity Monitor + Robinhood; Chat tab full-screen immersive.
 
-**Reviews:** [PR45-REVIEW-TRACKER.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/PR45-REVIEW-TRACKER.md) | [LAYERED-LOAD-ORDER.md](./docs/LAYERED-LOAD-ORDER.md)
+| Layered load order for Alfred | `openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md` |
+| **Secrets security (PR #45 controls)** | `openclaw-dashboard/docs/secrets-security.md`, `settings/secrets/` |
+| **Activation & merge PR #45** | `.ai/contracts/.../ACTIVATION-AND-MERGE-CHECKLIST.md` |

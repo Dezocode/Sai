@@ -35,6 +35,7 @@
     "telegram_mcq": "openclaw-dashboard/tests/smoke/telegram-mcq.sh",
     "telegram_session_reporting": "openclaw-dashboard/tests/smoke/telegram-session-reporting.sh",
     "fleet_coherence": "openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh",
+    "secrets_compliance": "openclaw-dashboard/tests/smoke/secrets-compliance.sh",
     "subagent_connection_gate": "openclaw-dashboard/tests/smoke/subagent-connection-gate.sh"
   },
   "ci_enforcement": {

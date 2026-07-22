@@ -62,7 +62,9 @@ Slack task-IDs posted to `#agentupdates` (`C0BH15HDN2Z`):
 | Gateway loopback default (Saul P1) | `gateway-options.json` `127.0.0.1`; `gateway-exposure-policy.md` |
 | Subagent gate fail-closed (Saul P1) | `verify-agent-telegram.sh`, `subagent-connection-gate.sh` |
 | first-message load-order numbering | Renumbered list in `first-message-to-openclaw.md` |
-| Layered load order for Alfred | `openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md` |
+| Secrets structure (PR #45 controlling) | `ec6635c+` | `secrets-security.md`, `auth-matrix.md`, `settings/secrets/`, `verify-secrets-compliance.sh` |
+| Telegram session + fleet A13 | `c1195f1` | BEHAVIORS.md, fleet-coherence-gate |
+| Activation & merge checklist | this commit | `ACTIVATION-AND-MERGE-CHECKLIST.md` |
 
 ### Open — Alfred VPS / fulfillment (L4, not scaffold PR)
 
@@ -101,7 +103,7 @@ See [amendments/20260722-saul-cto-review.md](./amendments/20260722-saul-cto-revi
 
 ## Next safe actions
 
-1. **Humans:** Review PR #45 scaffold; merge if acceptable (contract stays `draft`).
+1. **Humans:** Review PR #45 scaffold; merge if acceptable (contract stays `draft`). See [ACTIVATION-AND-MERGE-CHECKLIST.md](./ACTIVATION-AND-MERGE-CHECKLIST.md) Part A.
 2. **dezocode/monaecode:** Activate contract when terms confirmed.
 3. **Alfred:** Paste `first-message-to-openclaw.md` on VPS **after** contract activation.
 4. **Alfred:** Build on `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap` only until fulfillment evidence complete.

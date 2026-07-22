@@ -55,11 +55,31 @@
     ],
     "settings_folders": [
       "openclaw-dashboard/settings/auth/",
+      "openclaw-dashboard/settings/secrets/",
       "openclaw-dashboard/settings/host-health/",
       "openclaw-dashboard/settings/reporting-sop/",
       "openclaw-dashboard/settings/models/"
     ]
   },
+  "secrets_security": {
+    "doctrine": "openclaw-dashboard/docs/secrets-security.md",
+    "auth_matrix": "openclaw-dashboard/docs/auth-matrix.md",
+    "settings_panel": "openclaw-dashboard/settings/secrets/",
+    "vps_schema": ".ai/agents/alfred/runtimes/openclaw/gateway/config/secrets-store.schema.json",
+    "verify_script": "openclaw-dashboard/scripts/verify-secrets-compliance.sh",
+    "smoke_gate": "openclaw-dashboard/tests/smoke/secrets-compliance.sh",
+    "repo_policy": ".ai/_config/security-policy.md",
+    "pr45_controls": true,
+    "rules": [
+      "No secret values in Git — env names and status only in auth-matrix.md",
+      "VPS store: /etc/openclaw/sai.env (0600) + ~/.openclaw/openclaw.json env references",
+      "Dashboard /settings/secrets shows masked status only — no export",
+      "OpenClaw config mirror uses ${ENV_VAR} placeholders — config-expert rejects literals",
+      "Rotation requires dezocode/monaecode MCQ via Telegram + Slack CHANGE event",
+      "ICM runs and telegram-session.jsonl remain redacted per agent-report patterns"
+    ]
+  },
+  "activation_checklist": ".ai/contracts/20260722-openclaw-dashboard-dezocode/ACTIVATION-AND-MERGE-CHECKLIST.md",
   "design_system": {
     "language": "openclaw-dashboard/design/DESIGN-LANGUAGE.md",
     "tokens": "openclaw-dashboard/design/tokens.json",
@@ -80,6 +100,7 @@
     "gateway_exposure_policy": ".ai/agents/alfred/runtimes/openclaw/gateway/config/gateway-exposure-policy.md",
     "telegram_session_protocol": "openclaw-dashboard/docs/telegram-session-protocol.md",
     "fleet_coherence_gate": "openclaw-dashboard/docs/fleet-coherence-gate.md",
+    "secrets_security": "openclaw-dashboard/docs/secrets-security.md",
     "smoke_orchestrator": "openclaw-dashboard/tests/smoke/all-gates.sh"
   },
   "hosting": {
@@ -128,6 +149,7 @@
       "Every OpenClaw subagent (Alfred- or dashboard-created) passes three-connection gate: Telegram inbox, Slack intro with DM link, Habbo presence in rolodex",
       "Every session run: Telegram updates to contract sender (dezocode) for INTAKE/PLAN/CHANGE/VERIFY/BLOCKED/HANDOFF within 60s; Slack mirror to #agentupdates",
       "Fleet coherence proof gate PASS — all fleet agents inherit Alfred Telegram+ICM+Slack protocols",
+      "Secrets compliance PASS — VPS /etc/openclaw/sai.env provisioned; auth-matrix connected statuses; no values in Git",
       "Sai posts [SAI][VERIFY] PASS referencing this contract_id",
       "Saul posts acceptable CTO review (no blocking P1 on security/VPS/auth)",
       "Both co-founders explicitly authorize merge to Dezocode/Sai:main",
@@ -216,7 +238,7 @@
     {
       "id": "A11-auth-hub",
       "title": "Dashboard auth hub (100% reachable flows)",
-      "paths": ["openclaw-dashboard/settings/auth/", "openclaw-dashboard/docs/auth-matrix.md", "openclaw-dashboard/integrations/composio/"],
+      "paths": ["openclaw-dashboard/settings/auth/", "openclaw-dashboard/settings/secrets/", "openclaw-dashboard/docs/auth-matrix.md", "openclaw-dashboard/docs/secrets-security.md", "openclaw-dashboard/integrations/composio/"],
       "research_ref": "research-integration-methods.md#12-dashboard-auth-hub",
       "description": "GitHub account linking; Composio and native OAuth; permission handling; live browser MCP for auth completion"
     },
@@ -251,7 +273,8 @@
     "first-message-to-openclaw.md executed as binding opening session",
     "research-integration-methods.md cited in every deliverable README",
     "OpenClaw Gateway + dashboard health checks pass on Hostinger VPS",
-    "No secrets committed; auth tokens in env/VPS secret store only",
+    "No secrets in Git; VPS secret store per secrets-security.md; auth-matrix status-only",
+    "secrets-compliance.sh PASS on bootstrap branch",
     "Agent activity SOP posts to approved public Slack channels per reporting.yaml",
     "OpenClaw-primary runtime scaffold present (runtimes/openclaw/gateway/) — not Cursor-primary",
     "Unified design language v2 — Cursor + Activity Monitor + Robinhood; one token source; 28px controls; CursorSelect on all dropdowns; design-compliance.sh PASS",

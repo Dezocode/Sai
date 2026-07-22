@@ -69,8 +69,19 @@ Alfred joins the SAI organization only when:
 
 See [amendments/20260722-dezocode-pr45-review.md](./amendments/20260722-dezocode-pr45-review.md) and [amendments/20260722-saul-cto-review.md](./amendments/20260722-saul-cto-review.md).
 
-**Review status (#agentupdates + GitHub):** [PR45-REVIEW-TRACKER.md](./PR45-REVIEW-TRACKER.md)  
-**Alfred load order:** [openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md](../../openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md)
+## Secrets security (PR #45 controlling)
+
+PR #45 governs credential **structure** for OpenClaw + dashboard — values on VPS only:
+
+→ [secrets-security.md](../../openclaw-dashboard/docs/secrets-security.md)  
+→ [auth-matrix.md](../../openclaw-dashboard/docs/auth-matrix.md)  
+→ [settings/secrets/](../../openclaw-dashboard/settings/secrets/CONTEXT.md)
+
+## Activation & merge checklist
+
+→ [ACTIVATION-AND-MERGE-CHECKLIST.md](./ACTIVATION-AND-MERGE-CHECKLIST.md)
+
+**Review status:** [PR45-REVIEW-TRACKER.md](./PR45-REVIEW-TRACKER.md)
 
 ## Fulfillment gate
 
