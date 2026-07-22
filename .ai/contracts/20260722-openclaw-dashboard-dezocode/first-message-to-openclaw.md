@@ -16,8 +16,11 @@ Load immediately (read in order):
 
 1. `.ai/contracts/20260722-openclaw-dashboard-dezocode/contract.json`
 2. `.ai/contracts/20260722-openclaw-dashboard-dezocode/contract.md`
-3. `.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md` (**read every section — this is your integration bible**)
-4. `.ai/contracts/20260722-openclaw-dashboard-dezocode/notebooklm-context.md`
+3. `openclaw-dashboard/CONTEXT.md` — **product Layer 0**
+4. `openclaw-dashboard/ICM-HANDBOOK.md` — **master build handbook (every tab/settings folder)**
+5. `openclaw-dashboard/docs/icm-protocol-handbook.md` — **repo `.ai` protocol for dashboard builders**
+6. `.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md`
+7. `.ai/contracts/20260722-openclaw-dashboard-dezocode/notebooklm-context.md`
 5. `.ai/CONTEXT.md`
 6. `.ai/agents/alfred/AGENT.md`, `skills.md`, `hooks.json`
 7. `.ai/agents/_roles/contractor-coding/CHARTER.md`

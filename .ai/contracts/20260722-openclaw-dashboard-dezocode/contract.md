@@ -45,6 +45,18 @@ and coordination platform:
 6. **Clients** — Mac desktop app + iPhone Whisper companion
 7. **Agent team** — config-expert subagent; Telegram inbox verification for all registry agents
 
+## Dashboard ICM scaffold (product filesystem)
+
+Each tab and settings page has **`CONTEXT.md` + `BUILD.md`** under `openclaw-dashboard/`:
+
+| Path | Surface |
+|---|---|
+| `openclaw-dashboard/ICM-HANDBOOK.md` | Master handbook |
+| `openclaw-dashboard/tabs/*/` | Dashboard tabs (tracking, second-brain, research, chat-room, github, config) |
+| `openclaw-dashboard/settings/*/` | Auth, host-health, reporting-sop, models |
+
+Linked in `contract.json` → `dashboard_icm`.
+
 ## Organization onboarding gate (dezocode hard requirements)
 
 Alfred joins the SAI organization only when:

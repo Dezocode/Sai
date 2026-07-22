@@ -2,34 +2,46 @@
 
 **Contract:** `20260722-openclaw-dashboard-dezocode`  
 **Agent:** Alfred (`ctr-code-alfred1`) — The OpenClaw Administrator  
-**Status:** Scaffold only — implementation on `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap`
+**Branch:** `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap`
 
-## Start
+## Start (binding order)
 
-1. Paste [first-message-to-openclaw.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md) into fresh OpenClaw session.
-2. Read [research-integration-methods.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md).
+1. [first-message-to-openclaw.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md) — paste on VPS OpenClaw
+2. [CONTEXT.md](./CONTEXT.md) — product Layer 0
+3. [ICM-HANDBOOK.md](./ICM-HANDBOOK.md) — master build handbook
+4. [docs/icm-protocol-handbook.md](./docs/icm-protocol-handbook.md) — repo `.ai` protocol
 
-## Planned layout
+## Scaffold layout (one folder per tab / settings page)
 
-```
-openclaw-dashboard/
-  host/              # VPS systemd, gateway templates
-  scripts/           # verify-gateway-health.sh, verify-all-dependencies.sh
-  docs/              # vps-bootstrap, sai-icm-integration, composio-auth
-  apps/
-    desktop/         # Mac dashboard (Tauri/Electron)
-    ios-whisper/     # iPhone Whisper companion
-  services/
-    activity-ingest/ # Tracking tab backend
-    vault-mcp/       # Second brain MCP
-    research-mcp/    # Research tab MCP
-    github-watch/    # Branch + CI ingest
-    agent-presence/  # Habbo chat room presence
-  integrations/
-    composio/        # Telegram, Drive, Notebook connectors
-  vault/             # Git-backed second brain (runtime data, not committed secrets)
-  tests/smoke/       # Merge gate smoke suite
-  .openclaw/agents/  # config-expert, research-coordinator subagents
-```
+Each folder contains **CONTEXT.md** (requirements) + **BUILD.md** (how to build).
 
-Alfred creates these paths during bootstrap (deliverable A0).
+### Tabs
+
+| Folder | Surface |
+|---|---|
+| [tabs/tracking/](./tabs/tracking/CONTEXT.md) | Live stock-market activity meter (15ms SLO) |
+| [tabs/second-brain/](./tabs/second-brain/CONTEXT.md) | Obsidian-class vault + graph |
+| [tabs/research/](./tabs/research/CONTEXT.md) | Research sessions + MCP |
+| [tabs/chat-room/](./tabs/chat-room/CONTEXT.md) | Habbo 2D + Telegram PM |
+| [tabs/github/](./tabs/github/CONTEXT.md) | Branch + CI failure rates |
+| [tabs/config/](./tabs/config/CONTEXT.md) | OpenClaw config mirror |
+
+### Settings
+
+| Folder | Surface |
+|---|---|
+| [settings/auth/](./settings/auth/CONTEXT.md) | Auth hub (100% reachable) |
+| [settings/host-health/](./settings/host-health/CONTEXT.md) | VPS + Gateway health |
+| [settings/reporting-sop/](./settings/reporting-sop/CONTEXT.md) | Agent Slack reporting SOP |
+| [settings/models/](./settings/models/CONTEXT.md) | Model / Telegram config |
+
+### Apps & services
+
+| Path | Role |
+|---|---|
+| [apps/desktop/](./apps/desktop/CONTEXT.md) | Mac client |
+| [apps/ios-whisper/](./apps/ios-whisper/CONTEXT.md) | iPhone Whisper |
+| [services/](./services/) | VPS backends (ingest, MCP, watch) |
+| [integrations/composio/](./integrations/composio/README.md) | Composio toolkits |
+
+Contract research: [research-integration-methods.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md)

@@ -1,0 +1,10 @@
+{
+  "task_id": "20260722-0435-dashboard-icm-scaffold-ctr-admin",
+  "agent": "ctr-admin",
+  "contract_id": "20260722-openclaw-dashboard-dezocode",
+  "purpose": "Scaffold openclaw-dashboard ICM handbook + per-tab/settings CONTEXT/BUILD filesystem",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/alfred-openclaw-contract-f1d6",
+  "status": "publish_sync",
+  "started_at": "2026-07-22T04:35:00Z"
+}

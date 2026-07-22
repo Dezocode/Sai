@@ -15,6 +15,27 @@
   "branch_prefix": "proj/openclaw-dashboard/",
   "bootstrap_branch": "proj/openclaw-dashboard/ctr-code-alfred1/bootstrap",
   "product_root": "openclaw-dashboard/",
+  "dashboard_icm": {
+    "context": "openclaw-dashboard/CONTEXT.md",
+    "handbook": "openclaw-dashboard/ICM-HANDBOOK.md",
+    "protocol_handbook": "openclaw-dashboard/docs/icm-protocol-handbook.md",
+    "tabs_root": "openclaw-dashboard/tabs/",
+    "settings_root": "openclaw-dashboard/settings/",
+    "tab_folders": [
+      "openclaw-dashboard/tabs/tracking/",
+      "openclaw-dashboard/tabs/second-brain/",
+      "openclaw-dashboard/tabs/research/",
+      "openclaw-dashboard/tabs/chat-room/",
+      "openclaw-dashboard/tabs/github/",
+      "openclaw-dashboard/tabs/config/"
+    ],
+    "settings_folders": [
+      "openclaw-dashboard/settings/auth/",
+      "openclaw-dashboard/settings/host-health/",
+      "openclaw-dashboard/settings/reporting-sop/",
+      "openclaw-dashboard/settings/models/"
+    ]
+  },
   "hosting": {
     "provider": "Hostinger VPS",
     "gateway_port_default": 18789,
@@ -75,7 +96,7 @@
     {
       "id": "A1-sai-icm-integration",
       "title": "SAI ICM integration + agent reporting SOP",
-      "paths": ["openclaw-dashboard/docs/sai-icm-integration.md", ".ai/agents/alfred/hooks.json"],
+      "paths": ["openclaw-dashboard/docs/sai-icm-integration.md", "openclaw-dashboard/ICM-HANDBOOK.md", "openclaw-dashboard/settings/reporting-sop/", ".ai/agents/alfred/hooks.json"],
       "research_ref": "research-integration-methods.md#2-sai-icm-integration",
       "description": "Registry sync, [SAI][EVENT] template enforcement, public Slack channel routing, session run SOP for all agents"
     },
@@ -89,63 +110,63 @@
     {
       "id": "A3-tracking-tab",
       "title": "Live activity tracking (stock-market meter)",
-      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/tracking/", "openclaw-dashboard/services/activity-ingest/"],
+      "paths": ["openclaw-dashboard/tabs/tracking/", "openclaw-dashboard/services/activity-ingest/", "openclaw-dashboard/scripts/verify-ingest-latency.sh"],
       "research_ref": "research-integration-methods.md#4-tracking-tab-live-activity-meter",
       "description": "Millisecond-resolution ingest from Slack, GitHub (both repos), agent registry, automations; live graph UI"
     },
     {
       "id": "A4-second-brain",
       "title": "Second brain — Obsidian-class vault + graph",
-      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/second-brain/", "openclaw-dashboard/services/vault-mcp/"],
+      "paths": ["openclaw-dashboard/tabs/second-brain/", "openclaw-dashboard/services/vault-mcp/"],
       "research_ref": "research-integration-methods.md#5-second-brain-obsidian-clone",
       "description": "Editable/searchable files; backlinks; hierarchy + vector graph; GitHub OAuth for human users"
     },
     {
       "id": "A5-research-tab-mcp",
       "title": "Research tab + second-brain MCP gateway",
-      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/research/", "openclaw-dashboard/services/research-mcp/"],
+      "paths": ["openclaw-dashboard/tabs/research/", "openclaw-dashboard/services/research-mcp/", "openclaw-dashboard/.openclaw/agents/research-coordinator.md"],
       "research_ref": "research-integration-methods.md#6-research-tab-and-mcp-server",
       "description": "Research agent sessions; source compilation; verified improvements pipeline into vault; MCP server for all SAI agents"
     },
     {
       "id": "A6-habbo-chat-room",
       "title": "Habbo-style 2D agent chat room + Telegram PM",
-      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/chat-room/", "openclaw-dashboard/services/agent-presence/"],
+      "paths": ["openclaw-dashboard/tabs/chat-room/", "openclaw-dashboard/services/agent-presence/"],
       "research_ref": "research-integration-methods.md#7-habbo-clone-chat-room",
       "description": "2D avatars per registered agent; walk-up chat; private rooms → Telegram via OpenClaw messaging"
     },
     {
       "id": "A7-openclaw-config-mirror",
       "title": "OpenClaw config mirror + config expert subagent",
-      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/config/", "openclaw-dashboard/.openclaw/agents/config-expert.md"],
+      "paths": ["openclaw-dashboard/tabs/config/", "openclaw-dashboard/settings/models/", "openclaw-dashboard/.openclaw/agents/config-expert.md"],
       "research_ref": "research-integration-methods.md#8-openclaw-config-mirror",
       "description": "Dashboard mirror of ~/.openclaw/openclaw.json; config-expert on agent team; model configuration UI"
     },
     {
       "id": "A8-github-branch-ci",
       "title": "GitHub branch + CI status dashboard",
-      "paths": ["openclaw-dashboard/apps/desktop/src/tabs/github/", "openclaw-dashboard/services/github-watch/"],
+      "paths": ["openclaw-dashboard/tabs/github/", "openclaw-dashboard/services/github-watch/"],
       "research_ref": "research-integration-methods.md#9-github-branch-and-ci-tracking",
       "description": "Live branch tracking for Dezocode/Sai and monaecode/Sai; CI status; failure rate metrics per project"
     },
     {
       "id": "A9-mac-ios-apps",
       "title": "Mac desktop app + iPhone Whisper companion",
-      "paths": ["openclaw-dashboard/apps/desktop/", "openclaw-dashboard/apps/ios-whisper/"],
+      "paths": ["openclaw-dashboard/apps/desktop/", "openclaw-dashboard/apps/ios-whisper/", "openclaw-dashboard/tests/smoke/"],
       "research_ref": "research-integration-methods.md#10-mac-desktop-and-iphone-whisper",
       "description": "Native Mac client; Whisper Flow iPhone app; VPS command execution; browser MCP bridge to desktop"
     },
     {
       "id": "A10-telegram-inbox-verification",
       "title": "Telegram inbox verification for all agents",
-      "paths": ["openclaw-dashboard/docs/agent-telegram-registry.md", "openclaw-dashboard/scripts/verify-agent-telegram.sh"],
+      "paths": ["openclaw-dashboard/docs/agent-telegram-registry.md", "openclaw-dashboard/scripts/verify-agent-telegram.sh", "openclaw-dashboard/tabs/chat-room/"],
       "research_ref": "research-integration-methods.md#11-agent-telegram-inbox-verification",
       "description": "Register and verify Telegram inbox for present and future registry agents; block activation without verification or BLOCKED record"
     },
     {
       "id": "A11-auth-hub",
       "title": "Dashboard auth hub (100% reachable flows)",
-      "paths": ["openclaw-dashboard/apps/desktop/src/auth/", "openclaw-dashboard/docs/auth-matrix.md"],
+      "paths": ["openclaw-dashboard/settings/auth/", "openclaw-dashboard/docs/auth-matrix.md", "openclaw-dashboard/integrations/composio/"],
       "research_ref": "research-integration-methods.md#12-dashboard-auth-hub",
       "description": "GitHub account linking; Composio and native OAuth; permission handling; live browser MCP for auth completion"
     },
