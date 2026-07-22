@@ -16,26 +16,36 @@
 | **Primary runtime** | `claude-code-cli` |
 | **Initialized** | 2026-07-15 |
 
-## Purpose and scope
+## Purpose and scope (historical)
 
-Contracted coding work on Cybersecurity Splunk Clone under contract 20260715-splunk-clone-monaecode.
+**Retired 2026-07-22 — do not assign new work.** This section records the
+pilot contractor scope for audit only. Active `splunk-clone` coding work is
+owned by **Splunky** (`ctr-code-splunky`) under contract
+`20260715-splunk-clone-monaecode`.
+
+Original scope (historical): Cybersecurity Splunk Clone prototype under that
+contract while Alpha held the pilot slot (`ctr-code-splunk1`).
 
 ## Description
 
-SAI agent operating under the coordinated development system. Runtime-neutral
+Historical SAI contractor profile retained for audit. Runtime-neutral
 identity card — see `runtimes/README.md` and
-`.ai/shared/references/agent-runtimes.md` for per-runtime invoke paths.
+`.ai/shared/references/agent-runtimes.md` for archived capability records.
 
-## How to invoke
+## How to invoke (historical — do not use)
 
-| Runtime | Entry |
+These paths applied while Alpha was active or provisional. They are **not**
+valid for new work; do not attach `@alpha`, run ONBOARDING, or create
+automations against this slot.
+
+| Runtime | Entry (historical) |
 |---|---|
-| Cursor | `@alpha` in Cursor Desktop |
-| Claude Code | `CLAUDE.md` → this folder |
-| Codex Desktop | `CODEX.md` → this folder |
+| Cursor | `@alpha` in Cursor Desktop (retired) |
+| Claude Code | `CLAUDE.md` → this folder (retired) |
+| Codex Desktop | `CODEX.md` → this folder (retired) |
 
-Slack bots (@Claude, ChatGPT) are not registered agents unless listed in
-`.ai/agents/registry.json`.
+For active contractor work on `splunk-clone`, use the registered successor
+(`ctr-code-splunky` / Splunky) per `.ai/agents/registry.json`.
 
 ## Files in this folder
 
