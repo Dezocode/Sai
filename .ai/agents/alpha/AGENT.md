@@ -1,9 +1,14 @@
 # Alpha
 
+> **SUPERSEDED — do not assign new work.** This pilot slot was retired on
+> 2026-07-22. Active contractor for `splunk-clone` is **Splunky**
+> (`ctr-code-splunky`) under contract `20260715-splunk-clone-monaecode`.
+> Profile retained for audit history only.
+
 | | |
 |---|---|
 | **Name** | Alpha |
-| **Role title** | Coding Contractor |
+| **Role title** | Coding Contractor (superseded) |
 | **Agent ID** | `ctr-code-splunk1` |
 | **Principal** | monaecode (U0BGNS7F0T1) |
 | **Charter** | `.ai/agents/_roles/contractor-coding/CHARTER.md` |

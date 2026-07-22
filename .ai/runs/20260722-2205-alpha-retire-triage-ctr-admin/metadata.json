@@ -1,0 +1,19 @@
+{
+  "task_id": "20260722-2205-alpha-retire-triage-ctr-admin",
+  "agent": "ctr-admin",
+  "agent_name": "Cora",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/contractor-contract-compliance-aba9",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "project_slug": "splunk-clone",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "purpose": "Retire superseded Alpha registry row per dezocode contractor triage; close stale PR #21",
+  "status": "in_progress",
+  "requested_by": "dezocode (U0BHYH0NMCY)",
+  "claimed_files": [
+    ".ai/agents/registry.json",
+    ".ai/agents/alpha/AGENT.md",
+    ".ai/runs/20260722-2205-alpha-retire-triage-ctr-admin/"
+  ]
+}
