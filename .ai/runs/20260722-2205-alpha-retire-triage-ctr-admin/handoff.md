@@ -15,5 +15,8 @@
 - PR #45: CEO `904070f` landed after Saul review @ `e32bf4e`; fresh Saul review required before merge decision.
 - PR #21: closed/superseded.
 
+## Lifecycle
+Run status is `published-awaiting-review` — implementation and handoff are complete; ownership claim is released pending human merge review.
+
 ## Next safe action
 Merge Alpha retirement PR after CI; request Saul re-review on PR #45; pursue PR #27 fulfillment gates (Sai VERIFY + Saul + cofounders).

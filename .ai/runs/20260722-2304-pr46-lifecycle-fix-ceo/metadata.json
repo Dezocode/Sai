@@ -1,0 +1,16 @@
+{
+  "task_id": "20260722-2304-pr46-lifecycle-fix-ceo",
+  "agent": "ceo-automation",
+  "agent_name": "Sai",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/contractor-contract-compliance-aba9",
+  "purpose": "PR #46 review: align run 20260722-2205-alpha-retire-triage-ctr-admin metadata lifecycle with handoff",
+  "status": "published-awaiting-review",
+  "requested_by": "dezocode (U0BHYH0NMCY)",
+  "claimed_files": [
+    ".ai/runs/20260722-2205-alpha-retire-triage-ctr-admin/metadata.json",
+    ".ai/runs/20260722-2205-alpha-retire-triage-ctr-admin/handoff.md",
+    ".ai/runs/README.md",
+    ".ai/runs/20260722-2304-pr46-lifecycle-fix-ceo/"
+  ]
+}
