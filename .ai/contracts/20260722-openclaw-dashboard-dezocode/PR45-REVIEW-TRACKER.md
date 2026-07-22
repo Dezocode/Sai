@@ -60,11 +60,10 @@ Slack task-IDs posted to `#agentupdates` (`C0BH15HDN2Z`):
 | Handoff for commit `159b079` | `ec6635c`, `.ai/runs/20260722-0451-*` |
 | INITIALIZE.md OpenClaw Phase 5B cross-link | `ec6635c`, `.ai/INITIALIZE.md` |
 | Gateway loopback default (Saul P1) | `gateway-options.json` `127.0.0.1`; `gateway-exposure-policy.md` |
-| Subagent gate fail-closed (Saul P1) | `verify-agent-telegram.sh`, `subagent-connection-gate.sh` |
-| first-message load-order numbering | Renumbered list in `first-message-to-openclaw.md` |
-| Secrets structure (PR #45 controlling) | `ec6635c+` | `secrets-security.md`, `auth-matrix.md`, `settings/secrets/`, `verify-secrets-compliance.sh` |
-| Telegram session + fleet A13 | `c1195f1` | BEHAVIORS.md, fleet-coherence-gate |
-| Activation & merge checklist | this commit | `ACTIVATION-AND-MERGE-CHECKLIST.md` |
+| Layered load order for Alfred | `LAYERED-LOAD-ORDER.md` |
+| Secrets structure (PR #45 controlling) | `secrets-security.md`, `auth-matrix.md`, `settings/secrets/`, `verify-secrets-compliance.sh` |
+| Telegram session + fleet A13 | `BEHAVIORS.md`, `fleet-coherence-gate`, `c1195f1` |
+| Activation & merge checklist | `ACTIVATION-AND-MERGE-CHECKLIST.md` |
 
 ### Open — Alfred VPS / fulfillment (L4, not scaffold PR)
 
