@@ -80,7 +80,7 @@
     {
       "agent_id": "ctr-code-splunk1",
       "name": "Alpha",
-      "role_title": "Coding Contractor (superseded)",
+      "role_title": "Coding Contractor (retired)",
       "purpose": "RETIRED — pilot slot superseded by Splunky (ctr-code-splunky) per contract amendment 20260716-splunky-intake-monaecode. No new work.",
       "folder": ".ai/agents/alpha",
       "charter": ".ai/agents/_roles/contractor-coding/CHARTER.md",

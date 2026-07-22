@@ -1,0 +1,22 @@
+{
+  "task_id": "20260722-2305-pr46-contract-lifecycle-ceo",
+  "agent": "ceo",
+  "agent_name": "Sai",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/contractor-contract-compliance-aba9",
+  "purpose": "PR #46 P1: reconcile Alpha lifecycle — contract assigned_contractors status, registry, profiles, and authoritative mapping",
+  "status": "in_progress",
+  "requested_by": "dezocode (U0BHYH0NMCY) via PR #46 review",
+  "claimed_files": [
+    ".ai/contracts/20260715-splunk-clone-monaecode/contract.json",
+    ".ai/agents/registry.json",
+    ".ai/agents/alpha/AGENT.md",
+    ".ai/agents/alpha/automation/profile.md",
+    ".ai/agents/alpha/runtimes/claude/automation/profile.md",
+    ".ai/projects/splunk-clone/branches-index.json",
+    ".ai/shared/references/agent-lifecycle.md",
+    ".ai/agents/README.md",
+    "scripts/verify-agent-setup",
+    ".ai/runs/20260722-2305-pr46-contract-lifecycle-ceo/"
+  ]
+}
