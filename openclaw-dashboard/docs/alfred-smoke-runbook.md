@@ -19,6 +19,7 @@ openclaw-dashboard/tests/smoke/all-gates.sh
 | Design language | `tests/smoke/design-tokens.sh` | no inline hex; tokens present |
 | Ingest SLO | `scripts/verify-ingest-latency.sh` | p99 ≤ 15ms |
 | Telegram MCQ | `tests/smoke/telegram-mcq.sh` | dezocode ack ≤ 60s |
+| Subagent connection | `tests/smoke/subagent-connection-gate.sh` | TG + Slack intro + Habbo per agent |
 | Tab smoke | `tests/smoke/run-all.sh` | zero blocking errors |
 | Contract review | `scripts/agent-contract-pr-review` | no pending_manual |
 

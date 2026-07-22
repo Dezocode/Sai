@@ -49,6 +49,8 @@
     "shared_research_workspaces": "openclaw-dashboard/tabs/research/shared-workspaces.md",
     "auth_providers": "openclaw-dashboard/settings/auth/providers.md",
     "telegram_mcq": "openclaw-dashboard/integrations/telegram/mcq-actions.md",
+    "subagent_protocol": "openclaw-dashboard/docs/subagent-onboarding-protocol.md",
+    "agent_rolodex": "openclaw-dashboard/tabs/chat-room/agent-rolodex.md",
     "smoke_orchestrator": "openclaw-dashboard/tests/smoke/all-gates.sh"
   },
   "hosting": {
@@ -93,6 +95,7 @@
       "100% production smoke: zero blocking errors on Mac desktop + iPhone Whisper approved flows",
       "Composio auth flows for Telegram, Google Drive, and Gemini Notebook reachable from dashboard auth hub",
       "Every registered SAI agent has verified Telegram inbox path documented (or honest BLOCKED with remediation plan)",
+      "Every OpenClaw subagent (Alfred- or dashboard-created) passes three-connection gate: Telegram inbox, Slack intro with DM link, Habbo presence in rolodex",
       "Sai posts [SAI][VERIFY] PASS referencing this contract_id",
       "Saul posts acceptable CTO review (no blocking P1 on security/VPS/auth)",
       "Both co-founders explicitly authorize merge to Dezocode/Sai:main",
@@ -146,7 +149,7 @@
     {
       "id": "A6-habbo-chat-room",
       "title": "Habbo-style 2D agent chat room + Telegram PM",
-      "paths": ["openclaw-dashboard/tabs/chat-room/", "openclaw-dashboard/services/agent-presence/"],
+      "paths": ["openclaw-dashboard/tabs/chat-room/", "openclaw-dashboard/tabs/chat-room/agent-rolodex.md", "openclaw-dashboard/docs/subagent-onboarding-protocol.md", "openclaw-dashboard/services/agent-presence/"],
       "research_ref": "research-integration-methods.md#7-habbo-clone-chat-room",
       "description": "2D avatars per registered agent; walk-up chat; private rooms → Telegram via OpenClaw messaging"
     },
@@ -174,7 +177,7 @@
     {
       "id": "A10-telegram-inbox-verification",
       "title": "Telegram inbox verification for all agents",
-      "paths": ["openclaw-dashboard/docs/agent-telegram-registry.md", "openclaw-dashboard/scripts/verify-agent-telegram.sh", "openclaw-dashboard/tabs/chat-room/"],
+      "paths": ["openclaw-dashboard/docs/agent-telegram-registry.md", "openclaw-dashboard/docs/subagent-onboarding-protocol.md", "openclaw-dashboard/scripts/verify-agent-telegram.sh", "openclaw-dashboard/tests/smoke/subagent-connection-gate.sh"],
       "research_ref": "research-integration-methods.md#11-agent-telegram-inbox-verification",
       "description": "Register and verify Telegram inbox for present and future registry agents; block activation without verification or BLOCKED record"
     },
@@ -211,6 +214,8 @@
     "Habbo room generator operational in chat tab (Phaser desktop / SpriteKit or WebView iOS)",
     "Shared research workspaces for dezocode and monaecode GitHub-authed users",
     "Telegram MCQ smoke PASS for dezocode approval path",
+    "Every subagent (Alfred- or user-created): Telegram inbox + Slack intro with DM link + Habbo avatar (three-connection gate)",
+    "Agent Rolodex lists all agents with activity age; friends + personal rooms; Cursor-identical typography on Mac and iOS",
     "Host CLI ingest p99 <= 15ms evidenced (openclaw-dashboard/scripts/verify-ingest-latency.sh)",
     "100% production smoke flows pass — zero blocking errors",
     "All scripts/verify-* ICM gates PASS on PR branch",

@@ -62,6 +62,18 @@ States: default, hover, disabled, loading
 - Research tab: dezocode vs monaecode shared workspace picker
 - Filtered by GitHub OAuth org membership
 
+## AgentRolodex + FriendsList
+
+- **Mandatory** chat tab sidebar — lists every registry + subagent
+- Row: 28px height; name 13px medium; activity age 11px mono (`2m`, `1h`)
+- Status dot 6px: connected green / disconnected gray / busy amber
+- Actions: Telegram link icon, room door icon, Add friend (Cursor secondary button)
+- **iOS:** `AgentRolodexView` — identical spacing (4px grid) and fonts from `DesignTokens.swift`
+- Data: [agent-rolodex.md](../tabs/chat-room/agent-rolodex.md)
+
+Subagents require three-connection gate before `connected`:
+[subagent-onboarding-protocol.md](../docs/subagent-onboarding-protocol.md)
+
 ## InboxPanel
 
 - Unified Telegram DMs + agent messages

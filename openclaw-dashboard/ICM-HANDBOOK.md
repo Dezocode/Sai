@@ -63,6 +63,8 @@ Full integration research:
 | Habbo game generator | `tabs/chat-room/game-engine.md` |
 | Shared research workspaces | `tabs/research/shared-workspaces.md` |
 | Telegram MCQ approvals | `integrations/telegram/mcq-actions.md` |
+| Subagent Telegram + Slack + Habbo gate | `docs/subagent-onboarding-protocol.md` |
+| Agent Rolodex + friends | `tabs/chat-room/agent-rolodex.md` |
 | Smoke all gates | `tests/smoke/all-gates.sh`, `docs/alfred-smoke-runbook.md` |
 
 ---

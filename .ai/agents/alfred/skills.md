@@ -16,6 +16,8 @@
 - **Shared research workspaces** — GitHub-gated dezocode/monaecode ACL ([shared-workspaces.md](../../openclaw-dashboard/tabs/research/shared-workspaces.md))
 - **Smoke gate orchestration** — `tests/smoke/all-gates.sh`; evidence in verify output ([alfred-smoke-runbook.md](../../openclaw-dashboard/docs/alfred-smoke-runbook.md))
 - **Telegram MCQ actions** — responsive approvals to dezocode/users ([mcq-actions.md](../../openclaw-dashboard/integrations/telegram/mcq-actions.md))
+- **Subagent three-connection gate** — Telegram inbox + Slack intro with DM link + Habbo avatar ([subagent-onboarding-protocol.md](../../openclaw-dashboard/docs/subagent-onboarding-protocol.md))
+- **Agent Rolodex** — all agents, activity age, friends, personal rooms ([agent-rolodex.md](../../openclaw-dashboard/tabs/chat-room/agent-rolodex.md))
 
 ## Role-specific skills
 

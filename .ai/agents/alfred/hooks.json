@@ -25,7 +25,8 @@
     "orchestrator": "openclaw-dashboard/tests/smoke/all-gates.sh",
     "runbook": "openclaw-dashboard/docs/alfred-smoke-runbook.md",
     "design_compliance": "openclaw-dashboard/tests/smoke/design-tokens.sh",
-    "telegram_mcq": "openclaw-dashboard/tests/smoke/telegram-mcq.sh"
+    "telegram_mcq": "openclaw-dashboard/tests/smoke/telegram-mcq.sh",
+    "subagent_connection_gate": "openclaw-dashboard/tests/smoke/subagent-connection-gate.sh"
   },
   "ci_enforcement": {
     "workflow": ".github/workflows/agent-audit.yml",
