@@ -71,6 +71,7 @@ Product-specific:
 ```bash
 openclaw-dashboard/scripts/verify-gateway-health.sh
 openclaw-dashboard/scripts/verify-all-dependencies.sh
+openclaw-dashboard/scripts/verify-agent-telegram.sh   # fail-closed A10
 openclaw-dashboard/scripts/verify-ingest-latency.sh   # p99 <= 15ms
 openclaw-dashboard/tests/smoke/run-all.sh
 ```

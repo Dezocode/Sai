@@ -67,7 +67,10 @@ Alfred joins the SAI organization only when:
 4. **Latency SLO** — p99 **≤ 15ms** from CLI event to dashboard tab render
 5. **ICM + Sai** — all `.ai` verifiers PASS; Sai VERIFY; Saul review; cofounder merge auth
 
-See [amendments/20260722-dezocode-pr45-review.md](./amendments/20260722-dezocode-pr45-review.md).
+See [amendments/20260722-dezocode-pr45-review.md](./amendments/20260722-dezocode-pr45-review.md) and [amendments/20260722-saul-cto-review.md](./amendments/20260722-saul-cto-review.md).
+
+**Review status (#agentupdates + GitHub):** [PR45-REVIEW-TRACKER.md](./PR45-REVIEW-TRACKER.md)  
+**Alfred load order:** [openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md](../../openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md)
 
 ## Fulfillment gate
 

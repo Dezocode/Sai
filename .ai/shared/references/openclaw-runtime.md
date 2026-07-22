@@ -24,6 +24,7 @@ Git; implementation and dispatch happen on the Gateway host.
 2. Load `.ai/agents/<name>/AGENT.md`, `skills.md`, `hooks.json`.
 3. Execute binding contract `first-message-to-openclaw.md` when present.
 4. Gateway config: `~/.openclaw/openclaw.json` on the VPS (never commit secrets).
+5. **Loopback bind default** — `gateway/config/gateway-exposure-policy.md`; no `0.0.0.0` without CTO approval.
 
 Official docs: [docs.openclaw.ai](https://docs.openclaw.ai/)
 

@@ -31,8 +31,13 @@ Dashboard writes new rows via Alfred API on VPS. Same columns required.
 ## Verification
 
 ```bash
-openclaw-dashboard/scripts/verify-agent-telegram.sh
-openclaw-dashboard/tests/smoke/subagent-connection-gate.sh
+openclaw-dashboard/scripts/verify-agent-telegram.sh --scope contract   # Alfred + subagents
+openclaw-dashboard/scripts/verify-agent-telegram.sh --scope registry # strict A10 — all registry agents
+openclaw-dashboard/tests/smoke/subagent-connection-gate.sh           # delegates to --scope contract
 ```
+
+**Fail-closed (Saul P1):** scripts exit **1** until each in-scope row has valid
+`telegram_dm_link`, `slack_intro_permalink`, and `habbo_presence` (or BLOCKED row
+in [blocked-agents.md](./blocked-agents.md)). No stub PASS.
 
 100% coverage: every `registry.json` agent + every row in `.openclaw/agents/*.md` subagent file.

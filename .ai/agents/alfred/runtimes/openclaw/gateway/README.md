@@ -7,9 +7,13 @@ Required for `primary_runtime: openclaw-gateway-vps`. See `.ai/shared/references
 ```bash
 npm install -g openclaw@latest
 openclaw onboard --install-daemon
-openclaw gateway --port 18789
+# Bind loopback only — see config/gateway-exposure-policy.md (Saul P1)
+openclaw gateway --port 18789 --host 127.0.0.1
 openclaw doctor
 ```
+
+**Security:** Default `gateway-options.json` uses `127.0.0.1`. Remote dashboard
+clients use Tailscale or TLS reverse proxy — never `0.0.0.0` without CTO approval.
 
 ## Host admin CLI → dashboard ingest (hard gate)
 

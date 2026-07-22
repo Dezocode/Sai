@@ -1,18 +1,25 @@
 {
   "$comment": "OpenClaw Gateway config skeleton — Alfred fills on Hostinger VPS after onboard",
   "reference": ".ai/shared/references/openclaw-runtime.md",
+  "security_policy": ".ai/agents/alfred/runtimes/openclaw/gateway/config/gateway-exposure-policy.md",
   "agent_id": "ctr-code-alfred1",
   "contract_id": "20260722-openclaw-dashboard-dezocode",
   "gateway": {
     "port": 18789,
-    "host": "0.0.0.0",
-    "remote_access": ["tailscale", "reverse_proxy_tls"],
+    "host": "127.0.0.1",
+    "bind_policy": "loopback_default",
+    "remote_access": {
+      "allowed_modes": ["tailscale", "reverse_proxy_tls"],
+      "forbidden_without_documentation": ["0.0.0.0", "public_internet_direct"],
+      "approval_required_from": ["dezocode", "saul_cto_review"]
+    },
     "config_path": "~/.openclaw/openclaw.json"
   },
   "dashboard_ingest": {
     "enabled": true,
     "latency_slo_ms_p99": 15,
     "websocket_path": "/activity/stream",
+    "bind": "127.0.0.1",
     "feeds_tabs": ["tracking", "github", "config", "chat-room"]
   },
   "host_admin_cli": {

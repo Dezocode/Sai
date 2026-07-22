@@ -19,16 +19,19 @@ Load immediately (read in order):
 3. `openclaw-dashboard/CONTEXT.md` — **product Layer 0**
 4. `openclaw-dashboard/ICM-HANDBOOK.md` — **master build handbook (every tab/settings folder)**
 5. `openclaw-dashboard/docs/icm-protocol-handbook.md` — **repo `.ai` protocol for dashboard builders**
-6. `.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md`
-7. `.ai/contracts/20260722-openclaw-dashboard-dezocode/notebooklm-context.md`
-5. `.ai/CONTEXT.md`
-6. `.ai/agents/alfred/AGENT.md`, `skills.md`, `hooks.json`
-7. `.ai/agents/_roles/contractor-coding/CHARTER.md`
-8. `.ai/_config/reporting.yaml`, `.ai/_config/security-policy.md`
-9. `.cursor/rules/sai-coordination.mdc` (manual read — binding)
-10. **`OPENCLAW.md`** and `.ai/shared/references/openclaw-runtime.md` — **binding OpenClaw adapter**
-11. OpenClaw docs: [Getting started](https://docs.openclaw.ai/), [Gateway](https://docs.openclaw.ai/gateway/configuration), [Slack](https://docs.openclaw.ai/channels/slack), [Telegram](https://docs.openclaw.ai/channels/telegram)
-12. Amendment: `.ai/contracts/20260722-openclaw-dashboard-dezocode/amendments/20260722-dezocode-pr45-review.md` (dezocode hard gates)
+6. `openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md` — **ICM layer map (why each file loads)**
+7. `.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md`
+8. `.ai/contracts/20260722-openclaw-dashboard-dezocode/notebooklm-context.md`
+9. `.ai/CONTEXT.md`
+10. `.ai/agents/alfred/AGENT.md`, `skills.md`, `hooks.json`
+11. `.ai/agents/_roles/contractor-coding/CHARTER.md`
+12. `.ai/_config/reporting.yaml`, `.ai/_config/security-policy.md`
+13. `.cursor/rules/sai-coordination.mdc` (manual read — binding)
+14. **`OPENCLAW.md`** and `.ai/shared/references/openclaw-runtime.md` — **binding OpenClaw adapter**
+15. `.ai/agents/alfred/runtimes/openclaw/gateway/config/gateway-exposure-policy.md` — **loopback default (Saul P1)**
+16. OpenClaw docs: [Getting started](https://docs.openclaw.ai/), [Gateway](https://docs.openclaw.ai/gateway/configuration), [Slack](https://docs.openclaw.ai/channels/slack), [Telegram](https://docs.openclaw.ai/channels/telegram)
+17. Amendments: `amendments/20260722-dezocode-pr45-review.md`, `amendments/20260722-saul-cto-review.md`
+18. Review tracker: `PR45-REVIEW-TRACKER.md` — **#agentupdates + GitHub status matrix**
 
 Create task-id: `20260722-<HHMM>-openclaw-dashboard-bootstrap-alfred` and folder `.ai/runs/<task-id>/` with `metadata.json` (`agent`: `ctr-code-alfred1`, `contract_id` above, `isolation_mode`: `prototype`).
 

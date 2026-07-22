@@ -51,6 +51,9 @@
     "telegram_mcq": "openclaw-dashboard/integrations/telegram/mcq-actions.md",
     "subagent_protocol": "openclaw-dashboard/docs/subagent-onboarding-protocol.md",
     "agent_rolodex": "openclaw-dashboard/tabs/chat-room/agent-rolodex.md",
+    "review_tracker": ".ai/contracts/20260722-openclaw-dashboard-dezocode/PR45-REVIEW-TRACKER.md",
+    "layered_load_order": "openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md",
+    "gateway_exposure_policy": ".ai/agents/alfred/runtimes/openclaw/gateway/config/gateway-exposure-policy.md",
     "smoke_orchestrator": "openclaw-dashboard/tests/smoke/all-gates.sh"
   },
   "hosting": {
@@ -216,6 +219,8 @@
     "Habbo room generator operational in chat tab (Phaser desktop / SpriteKit or WebView iOS)",
     "Shared research workspaces for dezocode and monaecode GitHub-authed users",
     "Telegram MCQ smoke PASS for dezocode approval path",
+    "Gateway binds loopback (127.0.0.1) by default; remote exposure documented per gateway-exposure-policy.md",
+    "verify-agent-telegram.sh fail-closed per agent; subagent-connection-gate.sh delegates (no stub PASS)",
     "Every subagent (Alfred- or user-created): Telegram inbox + Slack intro with DM link + Habbo avatar (three-connection gate)",
     "Agent Rolodex lists all agents with activity age; friends + personal rooms; Cursor-identical typography on Mac and iOS",
     "Host CLI ingest p99 <= 15ms evidenced (openclaw-dashboard/scripts/verify-ingest-latency.sh)",

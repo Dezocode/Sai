@@ -46,4 +46,6 @@ Each folder contains **CONTEXT.md** (requirements) + **BUILD.md** (how to build)
 
 Contract research: [research-integration-methods.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md)
 
-**Design (all tabs):** [design/DESIGN-LANGUAGE.md](./design/DESIGN-LANGUAGE.md) — Cursor Desktop + iOS unified clone.
+**Design (all tabs):** [design/DESIGN-LANGUAGE.md](./design/DESIGN-LANGUAGE.md) — unified Cursor + Activity Monitor + Robinhood; Chat tab full-screen immersive.
+
+**Reviews:** [PR45-REVIEW-TRACKER.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/PR45-REVIEW-TRACKER.md) | [LAYERED-LOAD-ORDER.md](./docs/LAYERED-LOAD-ORDER.md)
