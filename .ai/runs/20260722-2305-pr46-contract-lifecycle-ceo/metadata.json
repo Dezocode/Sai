@@ -5,7 +5,7 @@
   "repository": "Dezocode/Sai",
   "branch": "cursor/contractor-contract-compliance-aba9",
   "purpose": "PR #46 P1: reconcile Alpha lifecycle — contract assigned_contractors status, registry, profiles, and authoritative mapping",
-  "status": "in_progress",
+  "status": "published-awaiting-review",
   "requested_by": "dezocode (U0BHYH0NMCY) via PR #46 review",
   "claimed_files": [
     ".ai/contracts/20260715-splunk-clone-monaecode/contract.json",
