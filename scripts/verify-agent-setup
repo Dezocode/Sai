@@ -141,12 +141,33 @@ if strict_contracts:
         if c.get("status") != "active":
             continue
         contractors = c.get("assigned_contractors") or []
+        valid_ctr_status = ("provisional", "active", "retired")
+        for j, ctr in enumerate(contractors):
+            st = ctr.get("status")
+            if st not in valid_ctr_status:
+                fail(f"{cpath}: assigned_contractors[{j}] status '{st}' must be one of {valid_ctr_status} (see .ai/shared/references/agent-lifecycle.md)")
         live = [x for x in contractors if x.get("status") in ("provisional", "active")]
         if not live:
             continue
         dels = c.get("deliverables") or []
         if not dels:
             fail(f"{cpath}: active contract with assigned contractors must have non-empty deliverables[] (Cora intake gate)")
+
+# Registry vs contract assigned_contractors status must match
+reg_by_id = {a.get("agent_id"): a for a in reg.get("agents", [])}
+for cpath in sorted(glob.glob(".ai/contracts/*/contract.json")):
+    try:
+        c = json.load(open(cpath))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        continue
+    for j, ctr in enumerate(c.get("assigned_contractors") or []):
+        aid = ctr.get("agent_id")
+        if not aid or aid not in reg_by_id:
+            continue
+        reg_st = reg_by_id[aid].get("status")
+        ctr_st = ctr.get("status")
+        if reg_st != ctr_st:
+            fail(f"{cpath}: assigned_contractors[{j}] ({aid}) status '{ctr_st}' != registry status '{reg_st}' (see .ai/shared/references/agent-lifecycle.md)")
 
 # Dispatcher bootstrap contract: if present, must include M0 SDK deliverable
 boot = ".ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/contract.json"

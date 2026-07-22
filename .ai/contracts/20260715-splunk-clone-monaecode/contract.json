@@ -144,13 +144,13 @@
       "agent_id": "ctr-code-splunk1",
       "name": "Alpha",
       "folder": ".ai/agents/alpha",
-      "status": "superseded",
-      "note": "Pilot slot; superseded by Splunky intake 20260716 — do not assign new work"
+      "status": "retired",
+      "note": "Pilot slot retired 2026-07-22; superseded in role by Splunky (ctr-code-splunky) per amendment 20260716 — do not assign new work"
     }
   ],
   "status": "active",
   "created_at": "2026-07-15T16:24:14Z",
   "created_by": "ctr-admin",
   "contract_admin_agent_id": "ctr-admin",
-  "last_amended": "2026-07-16T06:43:00Z"
+  "last_amended": "2026-07-22T23:05:00Z"
 }
