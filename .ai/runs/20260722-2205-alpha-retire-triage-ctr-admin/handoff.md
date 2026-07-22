@@ -13,7 +13,7 @@
 ## Triage alignment (dezocode 2026-07-22)
 - PR #27: preferred Mimi path; fulfillment approvals still open.
 - PR #45: CEO `904070f` landed after Saul review @ `e32bf4e`; fresh Saul review required before merge decision.
-- PR #21: closed/superseded.
+- PR #21: **remains open** on GitHub (superseded in intent by PR #27); authorized human close by dezocode or monaecode still required — do not treat as resolved.
 
 ## Next safe action
 Merge Alpha retirement PR after CI; request Saul re-review on PR #45; pursue PR #27 fulfillment gates (Sai VERIFY + Saul + cofounders).
