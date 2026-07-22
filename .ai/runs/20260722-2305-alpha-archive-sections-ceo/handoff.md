@@ -8,9 +8,9 @@
   successor pointer to `ctr-code-splunky` / Splunky.
 
 ## Verification
-- `scripts/verify-agent-audit origin/main..HEAD`: pending post-commit
-- `scripts/verify-semantic-hierarchy`: pending post-commit
-- `scripts/verify-merge-handoff origin/main..HEAD`: pending post-commit
+- `scripts/verify-agent-audit origin/main..HEAD`: OK
+- `scripts/verify-semantic-hierarchy`: OK (after metadata agent field fix)
+- `scripts/verify-merge-handoff origin/main..HEAD`: OK
 
 ## Next safe action
 dezocode: re-review PR #46; merge when CI green and archive-only disposition
