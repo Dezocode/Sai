@@ -8,9 +8,10 @@ dezocode PR #46 review: handoff audit record stated registry status `superseded`
 - Clarified that "superseded by Splunky" is lifecycle/contract semantics, not the registry `status` field.
 
 ## Verification
-- `scripts/verify-agent-audit origin/main..HEAD` — pending post-commit
-- `scripts/verify-semantic-hierarchy` — pending post-commit
-- `scripts/verify-merge-handoff origin/main..HEAD` — pending post-commit
+- `scripts/verify-agent-audit origin/main..HEAD` — OK
+- `scripts/verify-semantic-hierarchy` — OK
+- `scripts/verify-merge-handoff origin/main..HEAD` — OK (4 task-ids)
+- Remote SHA: 452bee5 verified on origin/cursor/contractor-contract-compliance-aba9
 
 ## Next safe action
 Merge PR #46 after CI green; Saul re-review on PR #45 remains separate gate.
