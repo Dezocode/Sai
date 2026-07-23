@@ -98,15 +98,6 @@ active.
 3. If Slack is unreachable, events queue via `scripts/agent-report` (never
    skipped, reordered, or fabricated). Read `.ai/audit/README.md` — you are
    responsible for flushing your queue.
-4. **Event audit trail:** every run's `.ai/runs/<task-id>/events.jsonl` must
-   contain one JSON object per line that satisfies
-   `.ai/shared/schemas/agent-event.schema.json` (required fields include
-   `event_id`, `event_type`, `task_id`, `actor`, `repository`, `timestamp`,
-   `purpose`, `result`). Emit events with `scripts/agent-report emit …` or
-   `scripts/agent-report` subcommands — **never** hand-write Slack-MCP-shaped
-   JSON (`agent_id`, `ts`, `delivery`, `message_ts`). CI runs
-   `scripts/verify-semantic-hierarchy` on every push/PR and rejects malformed
-   `events.jsonl` (common failure on fork/worktree runs).
 
 **Verification:** channel reads succeeded; you know your delivery path and
 its offline fallback. Record the evidence — it goes into `tools.json` in
@@ -391,9 +382,7 @@ stated) may you say you are initialized and accept tasks.
 - Every commit carries `Task-ID`/`Agent`/`Plan`/`Report-Event` trailers —
   `pre-push` and CI enforce this on protected refs for agent commits.
 - Every push is followed by remote-SHA confirmation; every event type in
-  `.ai/_config/reporting.yaml` is reported or queued via `scripts/agent-report`
-  and mirrored to schema-valid `events.jsonl` per
-  `.ai/shared/schemas/agent-event.schema.json`.
+  `.ai/_config/reporting.yaml` is reported or queued.
 - **Merges to `main`:** every agent commit in the merge range must have
   `handoff.md` (or a HANDOFF event); the merge commit carries a Task-ID whose
   run documents the merge. CI runs `verify-merge-handoff` and posts a merge

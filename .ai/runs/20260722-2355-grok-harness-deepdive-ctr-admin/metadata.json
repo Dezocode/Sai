@@ -37,6 +37,8 @@
     "Handoff names next safe action for decision acceptance vs scaffold implementation"
   ],
   "created_at": "2026-07-22T23:55:00Z",
-  "updated_at": "2026-07-22T23:59:30Z",
-  "head_sha": "b578ef8ef29655069d499a67ed80302db1bac7c1"
+  "updated_at": "2026-07-23T00:17:09Z",
+  "head_sha": "739b3f4ffe12d98e6dd4fd65a9475ed91e8f78e4",
+  "head_sha_note": "PR tip at Saul CTO review (2026-07-23); research-completion provenance. Later branch tip for P1 remediation is recorded under task 20260723-0016-pr47-cto-p1-remediation-ctr-admin.",
+  "cto_p1_remediation_task": "20260723-0016-pr47-cto-p1-remediation-ctr-admin"
 }
