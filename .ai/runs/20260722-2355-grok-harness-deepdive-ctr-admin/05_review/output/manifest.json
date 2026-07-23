@@ -1,0 +1,7 @@
+{
+  "stage": "05_review",
+  "task_id": "20260722-2355-grok-harness-deepdive-ctr-admin",
+  "outputs": ["review.md"],
+  "status": "complete",
+  "human_decision_pending": true
+}

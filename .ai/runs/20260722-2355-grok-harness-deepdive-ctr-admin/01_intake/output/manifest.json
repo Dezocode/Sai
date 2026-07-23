@@ -1,0 +1,6 @@
+{
+  "stage": "01_intake",
+  "task_id": "20260722-2355-grok-harness-deepdive-ctr-admin",
+  "outputs": ["intake.md"],
+  "status": "complete"
+}
