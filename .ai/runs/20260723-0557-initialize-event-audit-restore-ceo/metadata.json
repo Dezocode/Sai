@@ -1,0 +1,9 @@
+{
+  "task_id": "20260723-0557-initialize-event-audit-restore-ceo",
+  "agent": "Sai (ceo-automation)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/initialize-event-audit-restore-ceo",
+  "status": "active",
+  "purpose": "Restore INITIALIZE.md event-audit guidance removed from main by PR #47 P1 remediation",
+  "trigger": "dezocode review summary on PR #47; prior VERIFY 20260723-0018-ceo-pr47-init-verify-ceo"
+}
