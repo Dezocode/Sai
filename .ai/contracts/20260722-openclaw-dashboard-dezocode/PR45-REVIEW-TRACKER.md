@@ -2,7 +2,7 @@
 
 **PR:** https://github.com/Dezocode/Sai/pull/45  
 **Branch:** `cursor/alfred-openclaw-contract-f1d6`  
-**Head SHA:** `5a1cd5d` (Saul head-specific M2 confirmation)  
+**Head SHA:** `9154feb` (Saul head-specific M2 confirmation)  
 **Contract:** `20260722-openclaw-dashboard-dezocode`  
 **Maintainer:** Cora (`ctr-admin`)
 
@@ -38,7 +38,7 @@ Scaffold PR #45 may merge when **L0–L3** review items are addressed, **Saul AP
 
 ---
 
-## Addressed in PR #45 (scaffold) — complete at `5a1cd5d`
+## Addressed in PR #45 (scaffold) — complete at `9154feb`
 
 | Item | Evidence |
 |---|---|
@@ -63,7 +63,7 @@ Scaffold PR #45 may merge when **L0–L3** review items are addressed, **Saul AP
 
 | # | Item | Owner | Status |
 |---|---|---|---|
-| M2 | **Saul head-specific M2 confirmation** @ `5a1cd5d` | Saul | **Requested** — P2 repaired |
+| M2 | **Saul head-specific M2 confirmation** @ `9154feb` | Saul | **Requested** — P2 repaired |
 | M3 | Cofounder merge authorization | dezocode + monaecode | Pending Saul APPROVE |
 | M4 | Merge click | dezocode or monaecode | Pending M2+M3 |
 
@@ -99,7 +99,7 @@ Same as [20260724-saul-re-review-request.md](./amendments/20260724-saul-re-revie
 
 ## Next safe actions
 
-1. **Saul:** Head-specific M2 confirmation @ `5a1cd5d` → APPROVE or COMMENT (P1 only)
+1. **Saul:** Head-specific M2 confirmation @ `9154feb` → APPROVE or COMMENT (P1 only)
 2. **dezocode + monaecode:** M3/M4 merge after Saul APPROVE
 3. **dezocode:** VPS prep + paste prompt (Part B deploy)
 4. **Alfred:** A0 per `vps-bootstrap.md`; BLOCKED → MCQ complete plans
