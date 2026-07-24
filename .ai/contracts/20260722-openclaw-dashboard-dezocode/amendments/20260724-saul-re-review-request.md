@@ -128,7 +128,7 @@ A0 runbook: [vps-bootstrap.md](../../../../openclaw-dashboard/docs/vps-bootstrap
 
 ## Requested Saul verdict
 
-- [ ] **APPROVE** Part A scaffold merge (L0–L3)
+- [x] **APPROVE** Part A scaffold merge (L0–L3) — [4770216982](https://github.com/Dezocode/Sai/pull/45#pullrequestreview-4770216982) @ `0976697`
 - [ ] **COMMENT** with any remaining P1 (specify SHA and path)
 
 Contract remains `draft`. No activation or Alfred promotion authorized without separate human gate.
