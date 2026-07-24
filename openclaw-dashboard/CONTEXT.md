@@ -1,5 +1,12 @@
 # OpenClaw SAI Dashboard — Layer 0 (product ICM)
 
+> **PROTOTYPE ONLY — not accepted SAI core architecture.**  
+> This tree is an **isolated prototype scaffold** (Markdown/JSON spec). Stack
+> choices (Tauri 2, React 19, Tailwind 4, Phaser, SwiftUI) are **proposed
+> experiment inputs**, not canonical parent-app decisions.  
+> **Decision record:** [DR-20260724-openclaw-dashboard-prototype-boundary.md](../.ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md)  
+> Promotion requires a superseding DR + stack CI + green full smoke.
+
 You are inside the **OpenClaw SAI Dashboard** product tree (`openclaw-dashboard/`),
 contract **`20260722-openclaw-dashboard-dezocode`**, agent **Alfred**
 (`ctr-code-alfred1`).

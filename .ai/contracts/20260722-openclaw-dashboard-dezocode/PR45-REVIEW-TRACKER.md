@@ -67,6 +67,14 @@ Slack task-IDs posted to `#agentupdates` (`C0BH15HDN2Z`):
 | Activation & merge checklist | `ACTIVATION-AND-MERGE-CHECKLIST.md` |
 | Saul review 4751481118 fixes | `amendments/20260722-saul-review-4751481118.md`, CI negative regression |
 | Saul P1-D BLOCKED bypass fix | `verify-agent-telegram.sh` always validates Telegram+Slack; blocked row schema |
+| Sai CEO architecture gate (2026-07-24) | DR-20260724, `architecture_classification: isolated_prototype`, checklist/banners |
+
+### Open — merge path (post-amendments)
+
+| Item | Owner | Blocker for |
+|---|---|---|
+| Saul confirm architecture gate + amendments | Saul | Part A merge (M2) |
+| Cofounder merge authorization M3/M4 | dezocode + monaecode | Part A merge click |
 
 ### Open — Alfred VPS / fulfillment (L4, not scaffold PR)
 
@@ -81,8 +89,8 @@ Slack task-IDs posted to `#agentupdates` (`C0BH15HDN2Z`):
 | Contract `status: active` | dezocode + monaecode | First-message paste on VPS |
 | NotebookLM export to `docs/sources/` | Human owner | A4/A5 ingest |
 | `#proj-openclaw-dashboard` Slack channel | Human approval | Project channel |
-| Saul formal APPROVE after P1 fixes verified | Saul | Merge authorization |
-| Sai `[SAI][VERIFY] PASS` on bootstrap branch | Sai automation | Merge authorization |
+| Saul formal APPROVE (architecture gate + amendments) | Saul | Merge authorization (M2) |
+| Sai architecture classification | Sai — `[SAI][VERIFY][20260724-0311-pr45-architecture-decision-ceo]` | **Done** — amendments on branch |
 
 ### CI / protocol (ongoing discipline)
 

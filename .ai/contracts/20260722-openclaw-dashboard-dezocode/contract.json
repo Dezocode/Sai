@@ -30,6 +30,9 @@
   },
   "contractor_type": "coding",
   "isolation_mode": "prototype",
+  "architecture_classification": "isolated_prototype",
+  "architecture_decision_record": ".ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md",
+  "stack_criteria_status": "proposed-not-canonical",
   "primary_runtime": "openclaw-gateway-vps",
   "runtime_reference": ".ai/shared/references/openclaw-runtime.md",
   "compatibility_layer": "sai-mac-ios-android-openclaw-vps",
@@ -86,6 +89,8 @@
     "components": "openclaw-dashboard/design/components.md",
     "intent": "One unified design language for entire dashboard: Cursor shell + Activity Monitor lists + Robinhood live metrics + Notion block UX; Chat tab immersive full-screen Habbo game; all live data VPS-hosted; Mac Tauri + SwiftUI iOS parity",
     "tech_stack": {
+      "status": "proposed-not-canonical",
+      "decision_record": ".ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md",
       "mac": "openclaw-dashboard/apps/desktop/tech-stack.md",
       "ios": "openclaw-dashboard/apps/ios-whisper/tech-stack.md"
     },
@@ -268,6 +273,7 @@
     {"name": "config-expert", "role": "OpenClaw configuration specialist", "path": "openclaw-dashboard/.openclaw/agents/config-expert.md"},
     {"name": "research-coordinator", "role": "Research tab session lead", "path": "openclaw-dashboard/.openclaw/agents/research-coordinator.md"}
   ],
+  "acceptance_criteria_note": "Stack-related criteria (Tauri, React, SwiftUI, Phaser, native apps) are proposed-not-canonical per DR-20260724 until a superseding decision record + stack CI + green full smoke promote them.",
   "acceptance_criteria": [
     "All A0–A13 deliverables exist on bootstrap branch with ICM run artifacts",
     "first-message-to-openclaw.md executed as binding opening session",

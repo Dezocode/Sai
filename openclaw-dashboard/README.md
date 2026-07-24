@@ -1,5 +1,9 @@
 # OpenClaw SAI Dashboard
 
+> **PROTOTYPE ONLY** — documentation and experiment spec; not accepted core
+> architecture for `Dezocode/Sai`. See
+> [DR-20260724](../.ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md).
+
 **Contract:** `20260722-openclaw-dashboard-dezocode`  
 **Agent:** Alfred (`ctr-code-alfred1`) — The OpenClaw Administrator  
 **Branch:** `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap`

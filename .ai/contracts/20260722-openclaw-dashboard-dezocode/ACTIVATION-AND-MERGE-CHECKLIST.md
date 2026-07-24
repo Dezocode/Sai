@@ -2,7 +2,9 @@
 
 **PR:** https://github.com/Dezocode/Sai/pull/45  
 **Branch:** `cursor/alfred-openclaw-contract-f1d6`  
-**Contract status:** `draft` (as of last scaffold commit)
+**Contract status:** `draft` (as of last scaffold commit)  
+**Architecture classification:** `isolated_prototype` — see [DR-20260724-openclaw-dashboard-prototype-boundary.md](../../shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md)  
+**CEO gate:** `[SAI][VERIFY][20260724-0311-pr45-architecture-decision-ceo]` — Part A authorized conditional on DR + amendments below
 
 This checklist separates **merging PR #45 into `main`** (scaffold/intake) from
 **activating the contract** and **Alfred organization onboarding** (production).
@@ -14,6 +16,11 @@ This checklist separates **merging PR #45 into `main`** (scaffold/intake) from
 PR #45 adds the OpenClaw dashboard **contract, Alfred profile, product ICM scaffold,
 design system, secrets structure, and smoke gates** — not production dashboard code.
 
+**Prototype boundary (Sai CEO 2026-07-24):** agent infrastructure (Alfred, OpenClaw
+runtime, contract, ICM/CI extensions) may land on `main`. `openclaw-dashboard/` is
+**prototype documentation only** — stack choices are proposed, not accepted core
+architecture. See DR-20260724.
+
 ### Ready now (evidence)
 
 | Gate | Status |
@@ -24,6 +31,8 @@ design system, secrets structure, and smoke gates** — not production dashboard
 | `verify-merge-handoff` | PASS (all Task-IDs have handoffs) |
 | `verify-scaffold-safety` | PASS |
 | Saul P1 gateway loopback + fail-closed subagent gate | Addressed in branch |
+| Saul P1 subagent discovery + P2 links | Closed at `904070f` |
+| Sai CEO architecture gate | PASS — DR-20260724 + this checklist update |
 | Secrets structure (PR #45 controlling) | `secrets-security.md`, `auth-matrix.md`, `settings/secrets/` |
 | Design language v2 + Telegram fleet A13 | Documented |
 
@@ -31,8 +40,9 @@ design system, secrets structure, and smoke gates** — not production dashboard
 
 | # | Action | Owner |
 |---|---|---|
+| M0 | Confirm DR-20260724 + contract/checklist/banner amendments on PR branch | Cora / ctr-admin |
 | M1 | Review PR #45 diff on GitHub | dezocode + monaecode |
-| M2 | Saul CTO re-review — confirm P1 fixes acceptable | Saul / dezocode |
+| M2 | Saul CTO re-review — confirm architecture gate + P1 fixes acceptable | Saul / dezocode |
 | M3 | Explicit **merge authorization** for scaffold PR to `main` | dezocode + monaecode |
 | M4 | Click merge on GitHub (or authorize agent merge) | dezocode or monaecode |
 
@@ -40,7 +50,8 @@ design system, secrets structure, and smoke gates** — not production dashboard
 
 - Alfred VPS bootstrap
 - Contract `status: active`
-- Production smoke PASS
+- Production smoke PASS (fulfillment stubs may exit **2** — expected pre-activation)
+- `tests/smoke/all-gates.sh` exit 0 (orchestrator may exit **1** while contract-scope gates fail-closed on pending registry — expected)
 - Real Telegram registry links
 - `activity-ingest` p99 ≤ 15ms
 
@@ -116,4 +127,5 @@ Alfred active + product on main?
 | Contract JSON | [contract.json](./contract.json) |
 | Secrets control | [secrets-security.md](../../../openclaw-dashboard/docs/secrets-security.md) |
 | Review tracker | [PR45-REVIEW-TRACKER.md](./PR45-REVIEW-TRACKER.md) |
+| Prototype boundary DR | [DR-20260724-openclaw-dashboard-prototype-boundary.md](../../shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md) |
 | First prompt | [first-prompt-attach-contract.md](./first-prompt-attach-contract.md) |
