@@ -2,7 +2,7 @@
 
 **Integrations:** Composio Telegram + OpenClaw Telegram channel  
 **UI mirror:** `McqActionCard` in dashboard bottom panel + iOS inbox  
-**Continuation:** [BLOCKED-MCQ-CONTINUATION.md](../../.ai/agents/alfred/runtimes/openclaw/telegram/BLOCKED-MCQ-CONTINUATION.md)
+**Continuation:** [BLOCKED-MCQ-CONTINUATION.md](../../../.ai/agents/alfred/runtimes/openclaw/telegram/BLOCKED-MCQ-CONTINUATION.md)
 
 ## Purpose
 

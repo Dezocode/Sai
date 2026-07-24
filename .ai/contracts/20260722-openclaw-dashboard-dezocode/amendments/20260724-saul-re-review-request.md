@@ -1,21 +1,22 @@
-# Saul CTO re-review request — PR #45 head `e1c2104`
+# Saul CTO re-review request — PR #45 head `__HEAD_SHA__`
 
 | Field | Value |
 |---|---|
 | **Date** | 2026-07-24 |
 | **PR** | https://github.com/Dezocode/Sai/pull/45 |
 | **Branch** | `cursor/alfred-openclaw-contract-f1d6` |
-| **Head SHA** | `e1c2104` |
+| **Head SHA** | `__HEAD_SHA__` |
 | **Base SHA** | `8da8530` |
 | **Requested by** | Cora (ctr-admin) on behalf of dezocode merge prep |
+| **Prior Saul review** | [4769987198](https://github.com/Dezocode/Sai/pull/45#pullrequestreview-4769987198) — no P1; P2 links repaired |
 
 ---
 
 ## Executive summary
 
-All **security/evidence P1** items from [review 4751481118](https://github.com/Dezocode/Sai/pull/45#pullrequestreview-4751481118) and the **2026-07-24 architecture gate** are addressed. Sai CEO classified the scaffold as **`isolated_prototype`** ([DR-20260724](../../shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md)). Deploy model is **merge + paste** with A0 scaffolds in repo.
+All **security/evidence P1** items from [review 4751481118](https://github.com/Dezocode/Sai/pull/45#pullrequestreview-4751481118) and the **2026-07-24 architecture gate** are addressed. Sai CEO classified the scaffold as **`isolated_prototype`** ([DR-20260724](../../../shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md)). Deploy model is **merge + paste** with A0 scaffolds in repo.
 
-**Request:** Saul CTO **APPROVE** (or COMMENT with any remaining P1) for Part A scaffold merge.
+**Request:** Saul CTO **APPROVE** Part A scaffold merge (head-specific M2 @ `__HEAD_SHA__`), or **COMMENT** with remaining P1 only.
 
 ---
 
@@ -37,6 +38,7 @@ All **security/evidence P1** items from [review 4751481118](https://github.com/D
 |---|---|---|---|
 | P1-E | Fixed 3-agent scope; no `.openclaw/agents/*.md` discovery | **Fixed** | `904070f`; dynamic discovery + self-test regression |
 | P2-E | 33 broken relative Markdown links | **Fixed** | `904070f`; link audit clean |
+| P2-F | 4 broken links + stale SHA (4769987198) | **Fixed** | [20260724-saul-p2-link-repair-4769987198.md](./20260724-saul-p2-link-repair-4769987198.md) |
 | P1-F | Architecture/promotion gate | **Fixed** | DR-20260724; Sai `[SAI][VERIFY][20260724-0311-…]`; `architecture_classification: isolated_prototype`; checklist + banners |
 
 ### dezocode requirements (2026-07-24, post-Sai)
@@ -97,7 +99,7 @@ GitHub `icm-enforcement`: verify on latest push.
 | 2 | Paste `first-prompt-attach-contract.md` on OpenClaw VPS |
 
 Guide: [DEPLOY-MERGE-AND-PASTE.md](../DEPLOY-MERGE-AND-PASTE.md)  
-A0 runbook: [vps-bootstrap.md](../../../openclaw-dashboard/docs/vps-bootstrap.md)
+A0 runbook: [vps-bootstrap.md](../../../../openclaw-dashboard/docs/vps-bootstrap.md)
 
 ---
 
@@ -133,4 +135,4 @@ Contract remains `draft`. No activation or Alfred promotion authorized without s
 
 ---
 
-*Amendments index: `20260722-saul-review-4751481118.md`, `20260724-openclaw-binding-contract-upgrade.md`, `20260724-merge-and-paste-deploy.md`, `20260724-blocked-mcq-continuation.md`*
+*Amendments index: `20260722-saul-review-4751481118.md`, `20260724-openclaw-binding-contract-upgrade.md`, `20260724-merge-and-paste-deploy.md`, `20260724-blocked-mcq-continuation.md`, `20260724-saul-p2-link-repair-4769987198.md`*

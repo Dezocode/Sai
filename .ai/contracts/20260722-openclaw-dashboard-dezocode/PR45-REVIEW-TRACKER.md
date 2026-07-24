@@ -2,11 +2,12 @@
 
 **PR:** https://github.com/Dezocode/Sai/pull/45  
 **Branch:** `cursor/alfred-openclaw-contract-f1d6`  
-**Head SHA:** `e1c2104` (Saul re-review request)  
+**Head SHA:** `__HEAD_SHA__` (Saul head-specific M2 confirmation)  
 **Contract:** `20260722-openclaw-dashboard-dezocode`  
 **Maintainer:** Cora (`ctr-admin`)
 
-**Saul re-review package:** [amendments/20260724-saul-re-review-request.md](./amendments/20260724-saul-re-review-request.md)
+**Saul re-review package:** [amendments/20260724-saul-re-review-request.md](./amendments/20260724-saul-re-review-request.md)  
+**P2 link repair:** [amendments/20260724-saul-p2-link-repair-4769987198.md](./amendments/20260724-saul-p2-link-repair-4769987198.md)
 
 ---
 
@@ -33,10 +34,11 @@ Scaffold PR #45 may merge when **L0–L3** review items are addressed, **Saul AP
 | 2026-07-22 | Saul | [4751481118](https://github.com/Dezocode/Sai/pull/45#pullrequestreview-4751481118) | P1 fail-closed gates; P2 tools.json |
 | 2026-07-24 | Saul | PR comment @ `904070f` | P1 discovery + P2 links; then architecture gate |
 | 2026-07-24 | Sai CEO | `[SAI][VERIFY][20260724-0311-pr45-architecture-decision-ceo]` | `(a) isolated_prototype`; Part A merge YES conditional |
+| 2026-07-24 | Saul | [4769987198](https://github.com/Dezocode/Sai/pull/45#pullrequestreview-4769987198) @ `84d406c` | **COMMENT** — no P1; P2 links + stale SHA provenance |
 
 ---
 
-## Addressed in PR #45 (scaffold) — complete at `e1c2104`
+## Addressed in PR #45 (scaffold) — complete at `__HEAD_SHA__`
 
 | Item | Evidence |
 |---|---|
@@ -46,6 +48,7 @@ Scaffold PR #45 may merge when **L0–L3** review items are addressed, **Saul AP
 | Saul P1-D BLOCKED bypass fix | Always validate Telegram+Slack |
 | Saul P2 tools.json | `runtimes/openclaw/tools.json` |
 | Saul P2 broken links (33) | Fixed @ `904070f` |
+| Saul P2 links (4) + provenance | Fixed per [4769987198](./amendments/20260724-saul-p2-link-repair-4769987198.md) |
 | Sai architecture gate | DR-20260724; `isolated_prototype`; prototype banners |
 | Binding contract (OpenClaw) | `contract.md`, `binding_documents[]` |
 | Merge + paste deploy | `DEPLOY-MERGE-AND-PASTE.md`; A0 scripts; systemd template |
@@ -60,8 +63,8 @@ Scaffold PR #45 may merge when **L0–L3** review items are addressed, **Saul AP
 
 | # | Item | Owner | Status |
 |---|---|---|---|
-| M2 | **Saul CTO re-review** @ `e1c2104` | Saul | **Requested** — see amendment |
-| M3 | Cofounder merge authorization | dezocode + monaecode | Pending Saul |
+| M2 | **Saul head-specific M2 confirmation** @ `__HEAD_SHA__` | Saul | **Requested** — P2 repaired |
+| M3 | Cofounder merge authorization | dezocode + monaecode | Pending Saul APPROVE |
 | M4 | Merge click | dezocode or monaecode | Pending M2+M3 |
 
 ---
@@ -96,7 +99,7 @@ Same as [20260724-saul-re-review-request.md](./amendments/20260724-saul-re-revie
 
 ## Next safe actions
 
-1. **Saul:** Re-review @ `e1c2104`; APPROVE or COMMENT with P1 only
+1. **Saul:** Head-specific M2 confirmation @ `__HEAD_SHA__` → APPROVE or COMMENT (P1 only)
 2. **dezocode + monaecode:** M3/M4 merge after Saul APPROVE
 3. **dezocode:** VPS prep + paste prompt (Part B deploy)
 4. **Alfred:** A0 per `vps-bootstrap.md`; BLOCKED → MCQ complete plans
