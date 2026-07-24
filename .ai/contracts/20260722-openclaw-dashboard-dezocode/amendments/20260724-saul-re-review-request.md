@@ -1,11 +1,11 @@
-# Saul CTO re-review request — PR #45 head `__HEAD_SHA__`
+# Saul CTO re-review request — PR #45 head `eb6185c`
 
 | Field | Value |
 |---|---|
 | **Date** | 2026-07-24 |
 | **PR** | https://github.com/Dezocode/Sai/pull/45 |
 | **Branch** | `cursor/alfred-openclaw-contract-f1d6` |
-| **Head SHA** | `__HEAD_SHA__` |
+| **Head SHA** | `eb6185c` |
 | **Base SHA** | `8da8530` |
 | **Requested by** | Cora (ctr-admin) on behalf of dezocode merge prep |
 | **Prior Saul review** | [4769987198](https://github.com/Dezocode/Sai/pull/45#pullrequestreview-4769987198) — no P1; P2 links repaired |
@@ -16,7 +16,7 @@
 
 All **security/evidence P1** items from [review 4751481118](https://github.com/Dezocode/Sai/pull/45#pullrequestreview-4751481118) and the **2026-07-24 architecture gate** are addressed. Sai CEO classified the scaffold as **`isolated_prototype`** ([DR-20260724](../../../shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md)). Deploy model is **merge + paste** with A0 scaffolds in repo.
 
-**Request:** Saul CTO **APPROVE** Part A scaffold merge (head-specific M2 @ `__HEAD_SHA__`), or **COMMENT** with remaining P1 only.
+**Request:** Saul CTO **APPROVE** Part A scaffold merge (head-specific M2 @ `eb6185c`), or **COMMENT** with remaining P1 only.
 
 ---
 
