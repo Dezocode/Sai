@@ -1,0 +1,12 @@
+{
+  "task_id": "20260724-0357-saul-p2-link-repair-ctr-admin",
+  "agent": "ctr-admin",
+  "purpose": "Repair Saul P2 broken links and stale M2 provenance on PR #45",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/alfred-openclaw-contract-f1d6",
+  "contract_id": "20260722-openclaw-dashboard-dezocode",
+  "saul_review": "4769987198",
+  "head_sha": "b92e7ee",
+  "scaffold_repair_sha": "eb6185c",
+  "status": "handoff"
+}

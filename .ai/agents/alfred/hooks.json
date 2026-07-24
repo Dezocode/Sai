@@ -1,0 +1,54 @@
+{
+  "agent_id": "ctr-code-alfred1",
+  "git_hooks": {
+    "path": ".githooks",
+    "install": "scripts/install-agent-hooks",
+    "hooks": ["post-checkout", "post-commit", "post-merge", "post-rewrite", "pre-push", "post-push-equivalent.sh"]
+  },
+  "cursor_rules": [".cursor/rules/sai-coordination.mdc"],
+  "reporting_channels": {
+    "agentupdates": "C0BH15HDN2Z",
+    "help_newagents": "C0BH8LCJLDS"
+  },
+  "telegram_session": {
+    "behaviors": ".ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md",
+    "contract_sender_slack_id": "U0BHYH0NMCY",
+    "report_events": ["INTAKE", "PLAN", "CHANGE", "VERIFY", "BLOCKED", "HANDOFF"],
+    "session_memory_path": "~/.openclaw/sessions/ctr-code-alfred1/"
+  },
+  "automation_triggers": {
+    "required": [
+      {"type": "scheduled", "note": "Gateway health + smoke gate sweep on VPS", "status": "building"},
+      {"type": "ingest_slo", "note": "alert when p99 > 15ms", "status": "building"},
+      {"type": "telegram_session_report", "note": "ICM stage → Telegram to contract sender + Slack mirror", "status": "building"}
+    ],
+    "optional": [
+      {"type": "slack", "note": "run on mention in #agentupdates"},
+      {"type": "github", "note": "PR events on bootstrap branch"},
+      {"type": "telegram_mcq", "note": "inline keyboard approvals — integrations/telegram/mcq-actions.md", "status": "building"}
+    ]
+  },
+  "smoke_gates": {
+    "orchestrator": "openclaw-dashboard/tests/smoke/all-gates.sh",
+    "runbook": "openclaw-dashboard/docs/alfred-smoke-runbook.md",
+    "design_compliance": "openclaw-dashboard/tests/smoke/design-tokens.sh",
+    "telegram_mcq": "openclaw-dashboard/tests/smoke/telegram-mcq.sh",
+    "telegram_session_reporting": "openclaw-dashboard/tests/smoke/telegram-session-reporting.sh",
+    "fleet_coherence": "openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh",
+    "secrets_compliance": "openclaw-dashboard/tests/smoke/secrets-compliance.sh",
+    "subagent_connection_gate": "openclaw-dashboard/tests/smoke/subagent-connection-gate.sh",
+    "subagent_connection_gate_negative": "openclaw-dashboard/tests/smoke/subagent-connection-gate-negative.sh",
+    "gateway_bind": "openclaw-dashboard/scripts/verify-gateway-bind.sh"
+  },
+  "ci_enforcement": {
+    "workflow": ".github/workflows/agent-audit.yml",
+    "verifiers": [
+      "scripts/verify-agent-audit",
+      "scripts/verify-semantic-hierarchy",
+      "scripts/verify-merge-handoff",
+      "scripts/verify-agent-setup"
+    ],
+    "merge_handoff": "scripts/ci-merge-handoff-slack",
+    "icm_reference": "https://arxiv.org/abs/2603.16021"
+  }
+}

@@ -34,12 +34,13 @@ def fail(msg): fails.append(msg)
 
 STAGES = ["01_intake", "02_plan", "03_implement", "04_verify", "05_review", "06_publish_sync"]
 TASK_ID = re.compile(r"^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$")
-VALID_RUNTIMES = {"cursor-desktop", "cursor-cloud-vm", "claude-code-cli", "codex-desktop"}
+VALID_RUNTIMES = {"cursor-desktop", "cursor-cloud-vm", "claude-code-cli", "codex-desktop", "openclaw-gateway-vps"}
 RUNTIME_SUITE = {
     "cursor-desktop": "cursor",
     "cursor-cloud-vm": "cursor",
     "claude-code-cli": "claude",
     "codex-desktop": "codex",
+    "openclaw-gateway-vps": "openclaw",
 }
 
 def load_capabilities_tools(agent_dir, manifest):

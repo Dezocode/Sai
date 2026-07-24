@@ -1,0 +1,61 @@
+# OpenClaw SAI Dashboard
+
+> **PROTOTYPE ONLY** — documentation and experiment spec; not accepted core
+> architecture for `Dezocode/Sai`. See
+> [DR-20260724](../.ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md).
+
+**Contract:** `20260722-openclaw-dashboard-dezocode`  
+**Agent:** Alfred (`ctr-code-alfred1`) — The OpenClaw Administrator  
+**Branch:** `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap`
+
+## Start (binding order)
+
+**Deploy:** merge PR #45 → paste [first-prompt-attach-contract.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/first-prompt-attach-contract.md)
+
+1. [DEPLOY-MERGE-AND-PASTE.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/DEPLOY-MERGE-AND-PASTE.md) — two steps for dezocode
+2. [vps-bootstrap.md](./docs/vps-bootstrap.md) — VPS prep + Alfred A0
+3. [first-message-to-openclaw.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md) — full pipeline
+4. [CONTEXT.md](./CONTEXT.md) — product Layer 0
+5. [ICM-HANDBOOK.md](./ICM-HANDBOOK.md) — master build handbook
+
+## Scaffold layout (one folder per tab / settings page)
+
+Each folder contains **CONTEXT.md** (requirements) + **BUILD.md** (how to build).
+
+### Tabs
+
+| Folder | Surface |
+|---|---|
+| [tabs/tracking/](./tabs/tracking/CONTEXT.md) | Live stock-market activity meter (15ms SLO) |
+| [tabs/second-brain/](./tabs/second-brain/CONTEXT.md) | Obsidian-class vault + graph |
+| [tabs/research/](./tabs/research/CONTEXT.md) | Research sessions + MCP |
+| [tabs/chat-room/](./tabs/chat-room/CONTEXT.md) | Habbo 2D + Telegram PM |
+| [tabs/github/](./tabs/github/CONTEXT.md) | Branch + CI failure rates |
+| [tabs/config/](./tabs/config/CONTEXT.md) | OpenClaw config mirror |
+
+### Settings
+
+| Folder | Surface |
+|---|---|
+| [settings/secrets/](./settings/secrets/CONTEXT.md) | Secrets structure + masked status (no values in Git) |
+| [settings/auth/](./settings/auth/CONTEXT.md) | Auth hub (100% reachable) |
+| [settings/host-health/](./settings/host-health/CONTEXT.md) | VPS + Gateway health |
+| [settings/reporting-sop/](./settings/reporting-sop/CONTEXT.md) | Agent Slack reporting SOP |
+| [settings/models/](./settings/models/CONTEXT.md) | Model / Telegram config |
+
+### Apps & services
+
+| Path | Role |
+|---|---|
+| [apps/desktop/](./apps/desktop/CONTEXT.md) | Mac client |
+| [apps/ios-whisper/](./apps/ios-whisper/CONTEXT.md) | iPhone Whisper |
+| [services/](./services/) | VPS backends (ingest, MCP, watch) |
+| [integrations/composio/](./integrations/composio/README.md) | Composio toolkits |
+
+Contract research: [research-integration-methods.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md)
+
+**Design (all tabs):** [design/DESIGN-LANGUAGE.md](./design/DESIGN-LANGUAGE.md) — unified Cursor + Activity Monitor + Robinhood; Chat tab full-screen immersive.
+
+| Layered load order for Alfred | `openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md` |
+| **Secrets security (PR #45 controls)** | `openclaw-dashboard/docs/secrets-security.md`, `settings/secrets/` |
+| **Activation & merge PR #45** | `.ai/contracts/.../ACTIVATION-AND-MERGE-CHECKLIST.md` |

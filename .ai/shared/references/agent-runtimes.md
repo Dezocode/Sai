@@ -22,6 +22,8 @@
 | `runtimes/claude/` | `claude-code-cli` | `CLAUDE.md` | Claude Code scheduled tasks / MCP connectors |
 | `runtimes/claude/agent-sdk/` | (same) | `.ai/shared/references/claude-agent-sdk.md` | **Agent SDK** `@anthropic-ai/claude-agent-sdk` / `claude-agent-sdk` — dispatch, hooks, MCP |
 | `runtimes/codex/` | `codex-desktop` | `CODEX.md` | Codex Desktop app (stub until live init) |
+| `runtimes/openclaw/` | `openclaw-gateway-vps` | `OPENCLAW.md` | OpenClaw Gateway on VPS + host admin CLI |
+| `runtimes/openclaw/gateway/` | (same) | `.ai/shared/references/openclaw-runtime.md` | Gateway bootstrap, dashboard ingest, channel plugins |
 
 ## Registry fields (active agents)
 

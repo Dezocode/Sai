@@ -1,0 +1,23 @@
+# OpenClaw dashboard — Git ignore (secrets)
+
+# Never commit secret material
+.env
+.env.*
+*.pem
+*.key
+sai.env
+**/openclaw.json.local
+**/credentials*.json
+**/*-secrets.json
+
+# VPS mirrors / local dev
+vault/.local/
+.hostinger/
+/etc/openclaw/
+
+# Build artifacts that may embed env
+apps/desktop/dist/
+apps/ios-whisper/DerivedData/
+
+# Session transcripts with potential PII
+**/.openclaw/sessions/

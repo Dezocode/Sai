@@ -1,0 +1,26 @@
+{
+  "contract_id": "YYYYMMDD-<project-slug>-<principal-slug>",
+  "project_slug": "<project-slug>",
+  "project_name": "<Project Name>",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "primary_runtime": "openclaw-gateway-vps",
+  "compatibility_layer": "sai-mac-ios-android-openclaw-vps",
+  "repository": "Dezocode/Sai",
+  "branch_prefix": "proj/<project-slug>/",
+  "slack_channel": "#proj-<project-slug>",
+  "acceptance_criteria": [
+    "Deliverables match contract scope and claimed files",
+    "ICM run artifacts complete for every executed stage",
+    "scripts/agent-contract-pr-review PASS on every PR (no pending_manual)",
+    "OpenClaw host CLI live feed p99 latency <= 15ms to dashboard tabs",
+    "100% production smoke flows pass (zero blocking errors)"
+  ],
+  "deliverables": [],
+  "approved_capabilities": [],
+  "assigned_contractors": [],
+  "status": "draft",
+  "created_by": "ctr-admin",
+  "contract_admin_agent_id": "ctr-admin"
+}
