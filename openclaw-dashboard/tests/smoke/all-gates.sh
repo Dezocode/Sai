@@ -15,6 +15,8 @@ run openclaw-dashboard/tests/smoke/design-compliance.sh
 run openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh
 run openclaw-dashboard/tests/smoke/secrets-compliance.sh
 run openclaw-dashboard/scripts/verify-gateway-bind.sh
+run openclaw-dashboard/scripts/verify-all-dependencies.sh --self-test
+run openclaw-dashboard/scripts/verify-gateway-health.sh --self-test
 run openclaw-dashboard/tests/smoke/subagent-connection-gate-negative.sh
 # Fulfillment-only — fail-closed until registry has valid evidence (expect exit 1 until Alfred):
 # run openclaw-dashboard/tests/smoke/subagent-connection-gate.sh

@@ -3,6 +3,14 @@
 Read this when operating a **registered OpenClaw-primary SAI agent** on a
 self-hosted Gateway (VPS), not when using Cursor or Claude Code as primary.
 
+## Deploy Alfred (two steps)
+
+1. Merge PR #45 to `main`
+2. Paste `.ai/contracts/20260722-openclaw-dashboard-dezocode/first-prompt-attach-contract.md`
+
+Full guide: `.ai/contracts/20260722-openclaw-dashboard-dezocode/DEPLOY-MERGE-AND-PASTE.md`  
+VPS prep + A0: `openclaw-dashboard/docs/vps-bootstrap.md`
+
 ## Read first
 
 1. `.ai/CONTEXT.md` — workspace identity

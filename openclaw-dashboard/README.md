@@ -10,10 +10,13 @@
 
 ## Start (binding order)
 
-1. [first-message-to-openclaw.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md) — paste on VPS OpenClaw
-2. [CONTEXT.md](./CONTEXT.md) — product Layer 0
-3. [ICM-HANDBOOK.md](./ICM-HANDBOOK.md) — master build handbook
-4. [docs/icm-protocol-handbook.md](./docs/icm-protocol-handbook.md) — repo `.ai` protocol
+**Deploy:** merge PR #45 → paste [first-prompt-attach-contract.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/first-prompt-attach-contract.md)
+
+1. [DEPLOY-MERGE-AND-PASTE.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/DEPLOY-MERGE-AND-PASTE.md) — two steps for dezocode
+2. [vps-bootstrap.md](./docs/vps-bootstrap.md) — VPS prep + Alfred A0
+3. [first-message-to-openclaw.md](../.ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md) — full pipeline
+4. [CONTEXT.md](./CONTEXT.md) — product Layer 0
+5. [ICM-HANDBOOK.md](./ICM-HANDBOOK.md) — master build handbook
 
 ## Scaffold layout (one folder per tab / settings page)
 

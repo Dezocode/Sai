@@ -7,7 +7,7 @@ summary — machine gates live in JSON and smoke scripts.
 | Field | Value |
 |---|---|
 | **Contract ID** | `20260722-openclaw-dashboard-dezocode` |
-| **Status** | `draft` — activate only per Part B below |
+| **Status** | `draft` in JSON — paste after merge authorizes A0; formal `active` after A0 evidence |
 | **Project** | OpenClaw SAI Dashboard (`openclaw-dashboard/`) |
 | **Contractor** | Alfred — The OpenClaw Administrator (`ctr-code-alfred1`) |
 | **Principals** | dezocode (U0BHYH0NMCY) and monaecode (U0BGNS7F0T1) |
@@ -22,7 +22,7 @@ summary — machine gates live in JSON and smoke scripts.
 | **Bootstrap branch** | `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap` |
 | **Product root** | `openclaw-dashboard/` (**prototype scaffold** — Markdown/JSON spec until promotion) |
 | **Slack** | `#agentupdates` (primary); `#proj-openclaw-dashboard` (project — owner approval) |
-| **Registry** | Alfred `provisional` until Part C organization onboarding completes |
+| **Deploy model** | `merge_and_paste` — see DEPLOY-MERGE-AND-PASTE.md |
 
 ## Architecture decision (binding — read before building)
 
@@ -43,13 +43,11 @@ Also read: [ACTIVATION-AND-MERGE-CHECKLIST.md](./ACTIVATION-AND-MERGE-CHECKLIST.
 
 ## Binding first message (OpenClaw session entry)
 
-Paste into a **fresh OpenClaw session** on the Hostinger VPS:
+**Two-step deploy:** merge PR #45 → paste [first-prompt-attach-contract.md](./first-prompt-attach-contract.md)
 
-→ **[first-message-to-openclaw.md](./first-message-to-openclaw.md)**
-
-Short attach prompt (same contract):
-
-→ **[first-prompt-attach-contract.md](./first-prompt-attach-contract.md)**
+→ **[DEPLOY-MERGE-AND-PASTE.md](./DEPLOY-MERGE-AND-PASTE.md)** — dezocode procedure (2 steps)  
+→ **[first-prompt-attach-contract.md](./first-prompt-attach-contract.md)** — paste into OpenClaw  
+→ **[first-message-to-openclaw.md](./first-message-to-openclaw.md)** — full Alfred pipeline (A0–A13)
 
 ## Contract JSON (machine-readable gates)
 

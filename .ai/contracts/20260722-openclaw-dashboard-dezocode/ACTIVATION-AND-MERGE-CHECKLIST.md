@@ -60,18 +60,19 @@ Alfred remains `registry status: provisional`.
 
 ---
 
-## Part B — Activate contract (`draft` → `active`)
+## Part B — Deploy (merge + paste) and formal activation
 
-Activation authorizes Alfred to execute `first-message-to-openclaw.md` on Hostinger VPS.
+**Two-step deploy:** [DEPLOY-MERGE-AND-PASTE.md](./DEPLOY-MERGE-AND-PASTE.md) — merge PR #45, paste `first-prompt-attach-contract.md`. No activation commit required before paste.
+
+Formal `contract.json` → `"status": "active"` after Alfred A0 PASS (recommended, not a paste blocker).
 
 | # | Action | Owner |
 |---|---|---|
-| A1 | Review final [contract.json](./contract.json) + [contract.md](./contract.md) | dezocode + monaecode |
-| A2 | Confirm secrets doctrine: [secrets-security.md](../../../openclaw-dashboard/docs/secrets-security.md) | dezocode + Saul |
-| A3 | Set `contract.json` → `"status": "active"` (commit on `main` or activation PR) | dezocode + monaecode |
-| A4 | Post `[SAI][CONTRACT][task-id]` to #agentupdates announcing activation | Cora or dezocode |
-| A5 | Provision VPS secrets per [auth-matrix.md](../../../openclaw-dashboard/docs/auth-matrix.md) — **values on VPS only** | dezocode + Alfred |
-| A6 | Paste [first-prompt-attach-contract.md](./first-prompt-attach-contract.md) into OpenClaw Gateway | dezocode triggers Alfred |
+| A1 | VPS prep: Node 24+, `openclaw onboard`, clone `Dezocode/Sai` @ `main` | dezocode |
+| A2 | **Paste** [first-prompt-attach-contract.md](./first-prompt-attach-contract.md) into OpenClaw | dezocode |
+| A3 | Alfred runs A0 per [vps-bootstrap.md](../../../openclaw-dashboard/docs/vps-bootstrap.md) | Alfred |
+| A4 | Set `contract.json` → `"status": "active"` after A0 evidence | dezocode + monaecode |
+| A5 | Provision secrets in `/etc/openclaw/sai.env` (Alfred MCQ if missing) | dezocode + Alfred |
 
 ---
 
@@ -111,8 +112,11 @@ Blocks `registry status: active` and product merge from bootstrap → `main`.
 Merge PR #45 now?
   → CI green + human review + cofounder merge auth → YES (scaffold only)
 
-Activate contract now?
-  → After PR #45 merged + terms confirmed + VPS secrets planned → YES
+Deploy Alfred (2 steps)?
+  → Merge → VPS prep (vps-bootstrap § dezocode) → paste first-prompt-attach → YES
+
+Activate contract.json status formally?
+  → After Alfred A0 PASS evidence → recommended, not required before paste
 
 Alfred active + product on main?
   → After Part C complete → YES
@@ -129,3 +133,5 @@ Alfred active + product on main?
 | Review tracker | [PR45-REVIEW-TRACKER.md](./PR45-REVIEW-TRACKER.md) |
 | Prototype boundary DR | [DR-20260724-openclaw-dashboard-prototype-boundary.md](../../shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md) |
 | First prompt | [first-prompt-attach-contract.md](./first-prompt-attach-contract.md) |
+| Deploy (2 steps) | [DEPLOY-MERGE-AND-PASTE.md](./DEPLOY-MERGE-AND-PASTE.md) |
+| VPS bootstrap | [vps-bootstrap.md](../../../openclaw-dashboard/docs/vps-bootstrap.md) |

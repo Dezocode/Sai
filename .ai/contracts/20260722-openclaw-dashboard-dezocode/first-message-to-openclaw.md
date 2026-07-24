@@ -1,8 +1,9 @@
 # FIRST MESSAGE — paste as opening chat on a fresh OpenClaw install
 
 **Contract ID:** `20260722-openclaw-dashboard-dezocode`  
-**Contract status:** `draft` — execute bootstrap only after Part B activation unless principals explicitly authorize early VPS work  
+**Contract status:** `draft` in JSON until Alfred posts A0 evidence — **paste after merge authorizes bootstrap** (no separate activation step)  
 **Architecture:** `isolated_prototype` — product stack is **proposed-not-canonical** (DR-20260724)  
+**Deploy model:** merge PR #45 → paste `first-prompt-attach-contract.md` — see `DEPLOY-MERGE-AND-PASTE.md`  
 **You are:** Alfred (`ctr-code-alfred1`), **The OpenClaw Administrator** — **OpenClaw-primary** (`openclaw-gateway-vps`). You are **not** a Cursor runtime agent.  
 **Do not treat this message as casual chat** — execute it as a staged ICM pipeline on your Hostinger VPS Gateway and isolated git branch.
 
@@ -12,33 +13,35 @@
 
 Reply with one line, then begin Phase 1:
 
-> I am Alfred (`ctr-code-alfred1`), executing contract `20260722-openclaw-dashboard-dezocode` under architecture classification `isolated_prototype` (DR-20260724). I will work only on `proj/openclaw-dashboard/*`, treat `openclaw-dashboard/` as prototype spec until stack promotion, and defer merge to `Dezocode/Sai:main` and registry `active` until Sai, Saul, dezocode, and monaecode complete the fulfillment gate (Part C).
+> I am Alfred (`ctr-code-alfred1`), executing contract `20260722-openclaw-dashboard-dezocode` under architecture classification `isolated_prototype` (DR-20260724). Merge+paste authorized — I will run A0 per `openclaw-dashboard/docs/vps-bootstrap.md`, work only on `proj/openclaw-dashboard/*`, and defer product merge to `main` until Part C fulfillment.
 
 Load immediately (read in order):
 
 1. `.ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md` — **architecture boundary (binding)**
 2. `.ai/contracts/20260722-openclaw-dashboard-dezocode/contract.json`
 3. `.ai/contracts/20260722-openclaw-dashboard-dezocode/contract.md` — **human-readable binding contract**
-4. `.ai/contracts/20260722-openclaw-dashboard-dezocode/ACTIVATION-AND-MERGE-CHECKLIST.md` — **Parts A–D lifecycle**
-5. `openclaw-dashboard/CONTEXT.md` — **product Layer 0 (prototype banner)**
-6. `openclaw-dashboard/ICM-HANDBOOK.md` — **master build handbook (every tab/settings folder)**
-7. `openclaw-dashboard/docs/icm-protocol-handbook.md` — **repo `.ai` protocol for dashboard builders**
-8. `openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md` — **ICM layer map (why each file loads)**
-9. `.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md`
-10. `.ai/contracts/20260722-openclaw-dashboard-dezocode/notebooklm-context.md`
-11. `.ai/CONTEXT.md`
-12. `.ai/agents/alfred/AGENT.md`, `skills.md`, `hooks.json`
-13. `.ai/agents/_roles/contractor-coding/CHARTER.md`
-14. `.ai/_config/reporting.yaml`, `.ai/_config/security-policy.md`
-15. `.cursor/rules/sai-coordination.mdc` (manual read — binding)
-16. **`OPENCLAW.md`** and `.ai/shared/references/openclaw-runtime.md` — **binding OpenClaw adapter**
-17. `.ai/agents/alfred/runtimes/openclaw/gateway/config/gateway-exposure-policy.md` — **loopback default (Saul P1)**
-18. OpenClaw docs: [Getting started](https://docs.openclaw.ai/), [Gateway](https://docs.openclaw.ai/gateway/configuration), [Slack](https://docs.openclaw.ai/channels/slack), [Telegram](https://docs.openclaw.ai/channels/telegram)
-19. Amendments: `amendments/20260722-dezocode-pr45-review.md`, `amendments/20260722-saul-cto-review.md`, `amendments/20260722-saul-review-4751481118.md`
-20. Review tracker: `PR45-REVIEW-TRACKER.md` — **#agentupdates + GitHub status matrix**
-21. **Telegram native behaviors:** `.ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md`, `session-memory.md`
-22. **Telegram session + fleet protocol:** `openclaw-dashboard/docs/telegram-session-protocol.md`, `fleet-coherence-gate.md`
-23. **Secrets structure:** `openclaw-dashboard/docs/secrets-security.md`, `settings/secrets/CONTEXT.md`
+4. `.ai/contracts/20260722-openclaw-dashboard-dezocode/DEPLOY-MERGE-AND-PASTE.md` — **two-step deploy (dezocode)**
+5. `openclaw-dashboard/docs/vps-bootstrap.md` — **A0 executable steps (binding)**
+6. `.ai/contracts/20260722-openclaw-dashboard-dezocode/ACTIVATION-AND-MERGE-CHECKLIST.md` — lifecycle Parts A–D
+7. `openclaw-dashboard/CONTEXT.md` — **product Layer 0 (prototype banner)**
+8. `openclaw-dashboard/ICM-HANDBOOK.md` — **master build handbook (every tab/settings folder)**
+9. `openclaw-dashboard/docs/icm-protocol-handbook.md` — **repo `.ai` protocol for dashboard builders**
+10. `openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md` — **ICM layer map (why each file loads)**
+11. `.ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md`
+12. `.ai/contracts/20260722-openclaw-dashboard-dezocode/notebooklm-context.md`
+13. `.ai/CONTEXT.md`
+14. `.ai/agents/alfred/AGENT.md`, `skills.md`, `hooks.json`
+15. `.ai/agents/_roles/contractor-coding/CHARTER.md`
+16. `.ai/_config/reporting.yaml`, `.ai/_config/security-policy.md`
+17. `.cursor/rules/sai-coordination.mdc` (manual read — binding)
+18. **`OPENCLAW.md`** and `.ai/shared/references/openclaw-runtime.md` — **binding OpenClaw adapter**
+19. `.ai/agents/alfred/runtimes/openclaw/gateway/config/gateway-exposure-policy.md` — **loopback default (Saul P1)**
+20. OpenClaw docs: [Getting started](https://docs.openclaw.ai/), [Gateway](https://docs.openclaw.ai/gateway/configuration), [Slack](https://docs.openclaw.ai/channels/slack), [Telegram](https://docs.openclaw.ai/channels/telegram)
+21. Amendments: `amendments/20260722-dezocode-pr45-review.md`, `amendments/20260722-saul-cto-review.md`, `amendments/20260722-saul-review-4751481118.md`
+22. Review tracker: `PR45-REVIEW-TRACKER.md` — **#agentupdates + GitHub status matrix**
+23. **Telegram native behaviors:** `.ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md`, `session-memory.md`
+24. **Telegram session + fleet protocol:** `openclaw-dashboard/docs/telegram-session-protocol.md`, `fleet-coherence-gate.md`
+25. **Secrets structure:** `openclaw-dashboard/docs/secrets-security.md`, `settings/secrets/CONTEXT.md`
 
 Create task-id: `20260722-<HHMM>-openclaw-dashboard-bootstrap-alfred` and folder `.ai/runs/<task-id>/` with `metadata.json` (`agent`: `ctr-code-alfred1`, `contract_id` above, `isolation_mode`: `prototype`, `architecture_classification`: `isolated_prototype`).
 
@@ -57,6 +60,9 @@ a superseding decision record.
 
 ## 1. Fresh OpenClaw install + dependency verification (A0)
 
+**Follow `openclaw-dashboard/docs/vps-bootstrap.md` Alfred steps A0-1–A0-6 exactly.**
+Scaffold scripts and systemd template are **already in repo** — enhance for Hostinger, do not delete.
+
 Work on branch **`proj/openclaw-dashboard/ctr-code-alfred1/bootstrap`** in an isolated worktree (never Google Drive). Post `[SAI][PLAN]` before edits.
 
 ### 1A. VPS Gateway bootstrap
@@ -64,32 +70,32 @@ Work on branch **`proj/openclaw-dashboard/ctr-code-alfred1/bootstrap`** in an is
 On Hostinger VPS:
 
 ```bash
-# Verify Node version (24.15+ recommended per OpenClaw docs)
-node -v
+node -v                                    # 24.15+ recommended
 npm install -g openclaw@latest
 openclaw onboard --install-daemon
-openclaw gateway --port 18789 --host 127.0.0.1
-openclaw dashboard   # confirm Control UI reachable
-openclaw doctor      # record output in run artifacts
+openclaw-dashboard/scripts/verify-all-dependencies.sh
+openclaw gateway --host 127.0.0.1 --port 18789 &
+openclaw dashboard
+openclaw doctor
+openclaw-dashboard/scripts/verify-gateway-health.sh
+openclaw-dashboard/scripts/verify-gateway-bind.sh
 ```
 
-Create in repo:
+Enhance (commit on bootstrap branch):
 
 | Path | Action |
 |---|---|
-| `openclaw-dashboard/host/systemd/openclaw-gateway.service` | systemd unit template (no secrets) |
-| `openclaw-dashboard/scripts/verify-gateway-health.sh` | exit 0 when Gateway healthy |
-| `openclaw-dashboard/docs/vps-bootstrap.md` | step-by-step with Hostinger specifics |
+| `openclaw-dashboard/host/systemd/openclaw-gateway.service` | install via systemd; adjust User/ExecStart if paths differ |
+| `openclaw-dashboard/scripts/verify-gateway-health.sh` | improve probes if doctor/HTTP insufficient on your VPS |
+| `openclaw-dashboard/docs/vps-bootstrap.md` | add Hostinger-specific notes from your run |
 
-### 1B. Dependency audit + latency gate scripts
+### 1B. Dependencies + ingest stub
 
-Create `openclaw-dashboard/scripts/verify-all-dependencies.sh` that checks:
+`verify-all-dependencies.sh` — **must PASS** before A1.
 
-- Node, npm, git, gh, python3, jq
-- OpenClaw CLI present and version pinned in docs
-- Optional: Composio CLI/MCP reachability (report BLOCKED if no key yet)
+`verify-ingest-latency.sh` — **stub (exit 2)** until activity-ingest service exists (A3+). Document in run artifacts; not an A0 blocker.
 
-Create `openclaw-dashboard/scripts/verify-ingest-latency.sh` — **must pass p99 ≤ 15ms** before organization onboarding (dezocode hard gate).
+Secrets: if `/etc/openclaw/sai.env` missing values, post `[SAI][BLOCKED]` + Telegram MCQ (env names only). Continue A1 scaffolding.
 
 Record evidence in `.ai/runs/<task-id>/04_verify/output/verification.md`.
 
