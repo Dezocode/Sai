@@ -16,11 +16,23 @@
   "telegram_session": {
     "protocol": "openclaw-dashboard/docs/telegram-session-protocol.md",
     "behaviors": ".ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md",
+    "blocked_mcq_continuation": ".ai/agents/alfred/runtimes/openclaw/telegram/BLOCKED-MCQ-CONTINUATION.md",
     "session_memory": ".ai/agents/alfred/runtimes/openclaw/telegram/session-memory.md",
     "service": "openclaw-dashboard/services/telegram-session/",
     "fleet_coherence": "openclaw-dashboard/docs/fleet-coherence-gate.md",
     "smoke_session_reporting": "openclaw-dashboard/tests/smoke/telegram-session-reporting.sh",
     "smoke_fleet_coherence": "openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh"
+  },
+  "blocked_mcq_policy": {
+    "mandatory": true,
+    "protocol": ".ai/agents/alfred/runtimes/openclaw/telegram/BLOCKED-MCQ-CONTINUATION.md",
+    "mcq_format": "openclaw-dashboard/integrations/telegram/mcq-actions.md",
+    "min_complete_plans": 2,
+    "max_complete_plans": 4,
+    "continuation_checkpoint_required": true,
+    "resume_train_of_thought": true,
+    "telegram_first": true,
+    "slack_mirror_only": false
   },
   "fleet_coherence": {
     "description": "Alfred + all subagents and dashboard-created OpenClaw agents follow identical ICM, Telegram session, and Slack mirror protocols; Alfred is the template agent",
@@ -140,7 +152,9 @@
     ".ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md",
     ".ai/contracts/20260722-openclaw-dashboard-dezocode/first-prompt-attach-contract.md",
     ".ai/contracts/20260722-openclaw-dashboard-dezocode/ACTIVATION-AND-MERGE-CHECKLIST.md",
-    "openclaw-dashboard/docs/vps-bootstrap.md"
+    "openclaw-dashboard/docs/vps-bootstrap.md",
+    ".ai/agents/alfred/runtimes/openclaw/telegram/BLOCKED-MCQ-CONTINUATION.md",
+    "openclaw-dashboard/integrations/telegram/mcq-actions.md"
   ],
   "reviewers": {
     "ceo": {"agent_id": "ceo", "name": "Sai", "gate": "VERIFY PASS on ICM + registry + dashboard integration plan"},

@@ -15,7 +15,7 @@
 
 Manage OpenClaw Gateway on Hostinger VPS; build SAI coordination dashboard (Mac desktop + iPhone companion); integrate Dezocode/Sai and monaecode/Sai with Slack, GitHub, Composio (Telegram, Google Drive, Gemini Notebook); operate agent activity tracking, second-brain MCP, research tab, and Habbo-style agent chat under contract 20260722-openclaw-dashboard-dezocode.
 
-**Telegram-native:** Alfred messages contract sender (dezocode) on Telegram for every ICM session run update, maintains session memory on VPS, and builds a fleet of subagents that follow the same Telegram + Slack + ICM coherence protocols.
+**Telegram-native:** Alfred messages contract sender (dezocode) on Telegram for every ICM session run update, maintains session memory on VPS, and on **BLOCKED** sends MCQ with **complete plans** + continuation checkpoint (resumes train of thought on reply). Fleet agents inherit the same protocol.
 
 ## Description
 
@@ -41,4 +41,4 @@ Slack bots (@Claude, ChatGPT) are not registered agents unless listed in
 | `skills.md` | Role skills + best practices |
 | `tools.json` | Manifest → `runtimes/openclaw/tools.json` (canonical — OpenClaw-primary) |
 | `hooks.json` | Git hooks, reporting, triggers |
-| `runtimes/` | Per-runtime capability suites |
+| `runtimes/openclaw/telegram/` | BEHAVIORS, session-memory, **BLOCKED-MCQ-CONTINUATION** |

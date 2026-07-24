@@ -157,6 +157,12 @@ Do **not** self-promote to `registry status: active`.
 **dezocode** (`U0BHYH0NMCY`) originated this contract and receives **every Alfred session
 run update on Telegram** (INTAKE through HANDOFF), with Slack mirror to `#agentupdates`.
 
+**When BLOCKED:** Alfred **must** Telegram MCQ you with **2–4 complete plans**, persist a
+continuation checkpoint, and resume his full train of thought when you select a plan —
+never Slack-only, never vague asks.
+
+→ [BLOCKED-MCQ-CONTINUATION.md](../../agents/alfred/runtimes/openclaw/telegram/BLOCKED-MCQ-CONTINUATION.md)  
+→ [mcq-actions.md](../../../openclaw-dashboard/integrations/telegram/mcq-actions.md)  
 → [telegram-session-protocol.md](../../../openclaw-dashboard/docs/telegram-session-protocol.md)  
 → [BEHAVIORS.md](../../agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md)  
 → [session-memory.md](../../agents/alfred/runtimes/openclaw/telegram/session-memory.md)

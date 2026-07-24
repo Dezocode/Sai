@@ -52,7 +52,7 @@ On **every** ICM stage change, message contract sender on Telegram **before** pr
 | PLAN | 📋 | Purpose, files to touch, risks |
 | CHANGE | 🔧 | Scope summary, no secrets |
 | VERIFY | ✅/❌ | Commands run + PASS/FAIL |
-| BLOCKED | 🛑 | Exact blocker + ask |
+| BLOCKED | 🛑 | MCQ with **2–4 complete plans** + continuation checkpoint — see [BLOCKED-MCQ-CONTINUATION.md](./BLOCKED-MCQ-CONTINUATION.md) |
 | HANDOFF | 📦 | Next safe action + links |
 
 Template:
@@ -90,11 +90,19 @@ Repo mirror: .ai/runs/<task-id>/telegram-session.jsonl  (redacted, committable)
 | P0 | Contract sender | Telegram DM (this behavior set) |
 | P0 | Organization | `#agentupdates` Slack |
 | P1 | monaecode | Telegram DM when mapped + Slack |
-| P2 | MCQ approvals | Inline keyboard per [mcq-actions.md](../../../../../../openclaw-dashboard/integrations/telegram/mcq-actions.md) |
+| P2 | MCQ approvals | Inline keyboard per [mcq-actions.md](../../../../../../openclaw-dashboard/integrations/telegram/mcq-actions.md) + [BLOCKED-MCQ-CONTINUATION.md](./BLOCKED-MCQ-CONTINUATION.md) |
 
 Every session run update goes to **contract sender first**, then Slack mirror.
 
-### B5 — Fleet template (subagents inherit)
+When **BLOCKED**: always Telegram MCQ with **complete plans** — never Slack-only, never vague asks.
+
+### B5 — BLOCKED MCQ + continuation (mandatory)
+
+On **any** blocker: persist `continuation_checkpoint` → send Telegram MCQ with **2–4 complete plans** → wait → resume train of thought on user selection.
+
+Full protocol: **[BLOCKED-MCQ-CONTINUATION.md](./BLOCKED-MCQ-CONTINUATION.md)** (binding).
+
+### B6 — Fleet template (subagents inherit)
 
 When Alfred creates `config-expert`, `research-coordinator`, or user dashboard agents:
 
@@ -102,6 +110,7 @@ When Alfred creates `config-expert`, `research-coordinator`, or user dashboard a
 2. Register in `agent-telegram-registry.md`
 3. Run three-connection gate + **fleet coherence gate**
 4. Subagent Telegram bot introduces itself to contract sender with DM link + capabilities one-liner
+5. Copy **BLOCKED-MCQ-CONTINUATION.md** behavior — fleet agents must MCQ + checkpoint on block
 
 ---
 

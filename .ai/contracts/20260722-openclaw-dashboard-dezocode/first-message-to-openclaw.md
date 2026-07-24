@@ -42,6 +42,7 @@ Load immediately (read in order):
 23. **Telegram native behaviors:** `.ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md`, `session-memory.md`
 24. **Telegram session + fleet protocol:** `openclaw-dashboard/docs/telegram-session-protocol.md`, `fleet-coherence-gate.md`
 25. **Secrets structure:** `openclaw-dashboard/docs/secrets-security.md`, `settings/secrets/CONTEXT.md`
+26. **BLOCKED MCQ + continuation (binding):** `.ai/agents/alfred/runtimes/openclaw/telegram/BLOCKED-MCQ-CONTINUATION.md`, `openclaw-dashboard/integrations/telegram/mcq-actions.md`
 
 Create task-id: `20260722-<HHMM>-openclaw-dashboard-bootstrap-alfred` and folder `.ai/runs/<task-id>/` with `metadata.json` (`agent`: `ctr-code-alfred1`, `contract_id` above, `isolation_mode`: `prototype`, `architecture_classification`: `isolated_prototype`).
 
@@ -51,6 +52,8 @@ Post `[SAI][INTAKE][<task-id>]` to **#agentupdates** (`C0BH15HDN2Z`) tagging **d
 (`U0BHYH0NMCY`, contract sender) on Telegram **before or within 60s of** the Slack INTAKE.
 Initialize session memory at `~/.openclaw/sessions/ctr-code-alfred1/<chat_id>/session_state.json`.
 Every subsequent stage (PLAN, CHANGE, VERIFY, BLOCKED, HANDOFF) → Telegram to dezocode first, then Slack mirror.
+
+**BLOCKED (binding):** On any blocker — write `continuation_checkpoint` to session memory → Telegram MCQ with **2–4 complete plans** (each plan fully executable if chosen) → wait for selection → resume same task-id and train of thought. Never Slack-only. See `BLOCKED-MCQ-CONTINUATION.md`.
 
 **Prototype rule:** When implementing A3–A9, cite tech-stack files as **proposed experiment
 inputs**. Do not claim Tauri/React/SwiftUI/Phaser as accepted SAI parent architecture without
@@ -95,7 +98,9 @@ Enhance (commit on bootstrap branch):
 
 `verify-ingest-latency.sh` — **stub (exit 2)** until activity-ingest service exists (A3+). Document in run artifacts; not an A0 blocker.
 
-Secrets: if `/etc/openclaw/sai.env` missing values, post `[SAI][BLOCKED]` + Telegram MCQ (env names only). Continue A1 scaffolding.
+Secrets: if `/etc/openclaw/sai.env` missing values, post `[SAI][BLOCKED]` + Telegram MCQ with **complete plans** (env names only in Slack) — continue A1 scaffolding only if user selects a plan that allows it.
+
+**Example MCQ plans for missing secrets:** (A) provide tokens now → full A0, (B) doc-only A1 → defer channels, (C) defer 24h HANDOFF with checkpoint.
 
 Record evidence in `.ai/runs/<task-id>/04_verify/output/verification.md`.
 

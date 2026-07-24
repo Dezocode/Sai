@@ -39,6 +39,8 @@ is a continuous agent session — not stateless one-shot replies. Memory aligns 
   "last_slack_mirror_at": "2026-07-22T05:00:00Z",
   "last_telegram_update_at": "2026-07-22T05:00:00Z",
   "open_blockers": [],
+  "pending_mcq": false,
+  "continuation_checkpoint": null,
   "memory_revision": 3,
   "context_summary_hash": "sha256:..."
 }
@@ -52,7 +54,9 @@ is a continuous agent session — not stateless one-shot replies. Memory aligns 
 |---|---|
 | New `task-id` | Reset stage to `intake`; append prior task to `archived_tasks[]` |
 | Stage transition | Bump `icm_stage`; append to `session_transcript.jsonl` |
-| User Telegram reply | Load `context_summary.md` + last 10 transcript lines into prompt |
+| User Telegram reply | Load `context_summary.md` + `continuation_checkpoint` + last 10 transcript lines |
+| BLOCKED / MCQ sent | Set `pending_mcq: true`; write full `continuation_checkpoint` |
+| MCQ answered | Set `pending_mcq: false`; resume from checkpoint — see BLOCKED-MCQ-CONTINUATION.md |
 | HANDOFF | Write final summary; sync redacted copy to `.ai/runs/<task-id>/telegram-session.jsonl` |
 | Gateway restart | Reload `session_state.json`; send "session resumed" to contract sender |
 
@@ -68,7 +72,9 @@ Contract: 20260722-openclaw-dashboard-dezocode
 Stage: <stage> | Branch: <branch>
 Done this session: <bullets>
 Open: <blockers or none>
-Next: <one action>
+Pending MCQ: <yes — plan titles | no>
+Checkpoint: <step_label if pending_mcq>
+Next: <one action — or "awaiting your plan selection">
 ```
 
 Max 4KB. Never store tokens, env vars, or private paths.

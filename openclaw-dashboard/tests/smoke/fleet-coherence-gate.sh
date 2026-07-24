@@ -11,6 +11,8 @@ check() { if "$@"; then echo "PASS $1"; else echo "FAIL $1"; FAIL=1; fi }
 [ -f "$REPO/.ai/agents/alfred/runtimes/openclaw/telegram/BEHAVIORS.md" ] || { echo "FAIL missing Alfred BEHAVIORS.md"; FAIL=1; }
 [ -f "$REPO/.ai/agents/alfred/runtimes/openclaw/telegram/session-memory.md" ] || { echo "FAIL missing session-memory.md"; FAIL=1; }
 [ -f "$ROOT/docs/telegram-session-protocol.md" ] || { echo "FAIL missing telegram-session-protocol.md"; FAIL=1; }
+[ -f "$REPO/.ai/agents/alfred/runtimes/openclaw/telegram/BLOCKED-MCQ-CONTINUATION.md" ] || { echo "FAIL missing BLOCKED-MCQ-CONTINUATION.md"; FAIL=1; }
+[ -f "$ROOT/integrations/telegram/mcq-actions.md" ] || { echo "FAIL missing mcq-actions.md"; FAIL=1; }
 [ -f "$ROOT/docs/fleet-coherence-gate.md" ] || { echo "FAIL missing fleet-coherence-gate.md"; FAIL=1; }
 
 CONTRACT="$REPO/.ai/contracts/20260722-openclaw-dashboard-dezocode/contract.json"
@@ -23,7 +25,10 @@ if not c.get("contract_sender", {}).get("telegram_reporting"):
     raise SystemExit("FAIL contract_sender.telegram_reporting not mandatory")
 if "telegram_session" not in c:
     raise SystemExit("FAIL contract.json missing telegram_session")
-print("PASS contract telegram_session + contract_sender fields")
+p = c.get("blocked_mcq_policy", {})
+if not p.get("mandatory") or not p.get("continuation_checkpoint_required"):
+    raise SystemExit("FAIL contract.json blocked_mcq_policy incomplete")
+print("PASS contract telegram_session + blocked_mcq_policy fields")
 PY
 
 # Fleet roster: Alfred + every .openclaw/agents/*.md subagent (dashboard-created)

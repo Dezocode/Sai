@@ -87,12 +87,16 @@ sudo systemctl start openclaw-gateway
 openclaw-dashboard/scripts/verify-gateway-health.sh
 ```
 
-### Step A0-5 — Secrets (BLOCKED path OK)
+### Step A0-5 — Secrets (BLOCKED → MCQ, not dead stop)
 
-Read `openclaw-dashboard/docs/secrets-security.md` and `docs/auth-matrix.md`.
+Read `secrets-security.md` and `auth-matrix.md`.
 
-- If `/etc/openclaw/sai.env` empty: post `[SAI][BLOCKED]` + Telegram MCQ to dezocode listing required env **names** (never values in Slack/Git).
-- Continue A1 scaffolding while awaiting credentials; do not skip secret structure docs.
+- If `/etc/openclaw/sai.env` missing required values:
+  1. Write `continuation_checkpoint` (see BLOCKED-MCQ-CONTINUATION.md)
+  2. Telegram MCQ to dezocode with **2–4 complete plans** (e.g. provide tokens now / doc-only continue / defer with HANDOFF)
+  3. Mirror `[SAI][BLOCKED]` to Slack (plan titles only)
+  4. **Wait** for plan selection → resume from checkpoint
+- Do not guess secrets; do not proceed on blocked path without selected plan
 
 ### Step A0-6 — Verify + commit A0 evidence
 

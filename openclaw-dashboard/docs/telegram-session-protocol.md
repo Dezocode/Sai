@@ -37,7 +37,9 @@ flowchart LR
 | Material edit | CHANGE checkpoint | `[SAI][CHANGE][task-id]` |
 | Verify complete | VERIFY result | `[SAI][VERIFY][task-id]` |
 | Session end | HANDOFF summary | `[SAI][HANDOFF][task-id]` |
-| Blocked | BLOCKED + ask | `[SAI][BLOCKED][task-id]` |
+| Blocked | BLOCKED + **Telegram MCQ (2–4 complete plans)** | `[SAI][BLOCKED][task-id]` |
+
+**BLOCKED rule:** Never Slack-only. Persist `continuation_checkpoint` → MCQ contract sender → resume on selection. See [BLOCKED-MCQ-CONTINUATION.md](../../.ai/agents/alfred/runtimes/openclaw/telegram/BLOCKED-MCQ-CONTINUATION.md).
 
 **Latency:** Telegram to contract sender within **60s** of stage transition; Slack within **60s** after Telegram (or queued via `agent-report`).
 
