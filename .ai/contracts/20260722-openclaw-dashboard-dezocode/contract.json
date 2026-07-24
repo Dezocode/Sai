@@ -124,6 +124,14 @@
   "research_doc": ".ai/contracts/20260722-openclaw-dashboard-dezocode/research-integration-methods.md",
   "first_message": ".ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md",
   "first_prompt_attach": ".ai/contracts/20260722-openclaw-dashboard-dezocode/first-prompt-attach-contract.md",
+  "binding_documents": [
+    ".ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md",
+    ".ai/contracts/20260722-openclaw-dashboard-dezocode/contract.json",
+    ".ai/contracts/20260722-openclaw-dashboard-dezocode/contract.md",
+    ".ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md",
+    ".ai/contracts/20260722-openclaw-dashboard-dezocode/first-prompt-attach-contract.md",
+    ".ai/contracts/20260722-openclaw-dashboard-dezocode/ACTIVATION-AND-MERGE-CHECKLIST.md"
+  ],
   "reviewers": {
     "ceo": {"agent_id": "ceo", "name": "Sai", "gate": "VERIFY PASS on ICM + registry + dashboard integration plan"},
     "cto": {"agent_id": "dezo-sec-codex1", "name": "Saul", "gate": "CTO review on architecture, VPS security, CI wiring"},

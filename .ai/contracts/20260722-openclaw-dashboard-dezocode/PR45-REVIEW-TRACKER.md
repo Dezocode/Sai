@@ -68,6 +68,7 @@ Slack task-IDs posted to `#agentupdates` (`C0BH15HDN2Z`):
 | Saul review 4751481118 fixes | `amendments/20260722-saul-review-4751481118.md`, CI negative regression |
 | Saul P1-D BLOCKED bypass fix | `verify-agent-telegram.sh` always validates Telegram+Slack; blocked row schema |
 | Sai CEO architecture gate (2026-07-24) | DR-20260724, `architecture_classification: isolated_prototype`, checklist/banners |
+| OpenClaw binding contract full upgrade | `contract.md`, `first-message`, `first-prompt-attach`, `onboarding-prompt`, `binding_documents[]` |
 
 ### Open — merge path (post-amendments)
 
