@@ -1,10 +1,11 @@
 # PR #45 review tracker — #agentupdates + GitHub
 
-**PR:** https://github.com/Dezocode/Sai/pull/45  
-**Branch:** `cursor/alfred-openclaw-contract-f1d6`  
-**Head SHA:** `0976697` (Saul M2 APPROVE)  
+**PR:** https://github.com/Dezocode/Sai/pull/45 — **MERGED**  
+**Merge commit:** `3e8913d` (2026-07-25)  
 **Contract:** `20260722-openclaw-dashboard-dezocode`  
 **Maintainer:** Cora (`ctr-admin`)
+
+**Merged:** [amendments/20260725-pr45-merged-main.md](./amendments/20260725-pr45-merged-main.md)
 
 **Saul M2 APPROVE:** [amendments/20260724-saul-m2-approve-4770216982.md](./amendments/20260724-saul-m2-approve-4770216982.md)  
 **Saul re-review package:** [amendments/20260724-saul-re-review-request.md](./amendments/20260724-saul-re-review-request.md)  
@@ -62,13 +63,24 @@ Scaffold PR #45 may merge when **L0–L3** review items are addressed, **Saul AP
 
 ---
 
-## Open — merge path
+## Merge path — complete
 
 | # | Item | Owner | Status |
 |---|---|---|---|
-| M2 | Saul CTO Part A review @ `0976697` | Saul | **APPROVE — cleared** |
-| M3 | Cofounder merge authorization | dezocode + monaecode | **Pending** |
-| M4 | Merge click | dezocode or monaecode | Pending M3 |
+| M2 | Saul CTO Part A @ `0976697` | Saul | **APPROVE — cleared** |
+| M3 | Cofounder merge authorization | dezocode + monaecode | **Done** |
+| M4 | Merge PR #45 → `main` | dezocode | **Done** @ `3e8913d` |
+
+---
+
+## Active — Part B deploy
+
+| Step | Action | Owner | Status |
+|---|---|---|---|
+| B1 | VPS prep (Node 24+, `openclaw onboard`, clone `main`) | dezocode | Pending |
+| B2 | Paste [first-prompt-attach-contract.md](./first-prompt-attach-contract.md) | dezocode | **Next** |
+
+→ [DEPLOY-MERGE-AND-PASTE.md](./DEPLOY-MERGE-AND-PASTE.md)
 
 ---
 
@@ -85,9 +97,9 @@ Scaffold PR #45 may merge when **L0–L3** review items are addressed, **Saul AP
 
 ---
 
-## Deploy after merge (dezocode — 2 steps)
+## Deploy after merge (dezocode — step 2 remaining)
 
-1. Merge PR #45 → `main`
+1. ~~Merge PR #45 → `main`~~ **Done** @ `3e8913d`
 2. Paste [first-prompt-attach-contract.md](./first-prompt-attach-contract.md)
 
 → [DEPLOY-MERGE-AND-PASTE.md](./DEPLOY-MERGE-AND-PASTE.md)
@@ -102,9 +114,8 @@ Same as [20260724-saul-re-review-request.md](./amendments/20260724-saul-re-revie
 
 ## Next safe actions
 
-1. **dezocode + monaecode:** Explicit M3 merge authorization
-2. **Authorized human:** M4 merge PR #45 → `main`
-3. **dezocode:** VPS prep + paste prompt (Part B deploy)
-4. **Alfred:** A0 per `vps-bootstrap.md`; BLOCKED → MCQ complete plans
+1. **dezocode:** VPS prep + **paste** `first-prompt-attach-contract.md` (Part B)
+2. **Alfred:** A0 per `vps-bootstrap.md`; BLOCKED → MCQ complete plans
+3. **L4:** Production smoke, fleet links, ingest p99 before activation
 
-**Do not:** activate Alfred, promote prototype stack, or set contract `active` until Part B/C evidence passes.
+**Do not:** set contract `active` or promote Alfred until Part B/C evidence passes.

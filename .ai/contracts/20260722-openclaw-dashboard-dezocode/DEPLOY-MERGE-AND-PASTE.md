@@ -1,11 +1,11 @@
 # Deploy — merge + paste (two steps)
 
-**For dezocode:** this is the only deployment procedure after PR #45 review.
+**For dezocode:** Part A (merge) is **complete**. Proceed to step 2.
 
-| Step | Action | Who |
-|---|---|---|
-| **1** | Merge [PR #45](https://github.com/Dezocode/Sai/pull/45) to `Dezocode/Sai:main` | dezocode + monaecode |
-| **2** | Paste [first-prompt-attach-contract.md](./first-prompt-attach-contract.md) into fresh OpenClaw on VPS | dezocode |
+| Step | Action | Who | Status |
+|---|---|---|---|
+| **1** | Merge [PR #45](https://github.com/Dezocode/Sai/pull/45) to `Dezocode/Sai:main` | dezocode | **Done** @ `3e8913d` (2026-07-25) |
+| **2** | Paste [first-prompt-attach-contract.md](./first-prompt-attach-contract.md) into fresh OpenClaw on VPS | dezocode | **Next** |
 
 **One-time VPS prep (~10 min, before step 2):** [vps-bootstrap.md](../../../openclaw-dashboard/docs/vps-bootstrap.md) § dezocode
 
