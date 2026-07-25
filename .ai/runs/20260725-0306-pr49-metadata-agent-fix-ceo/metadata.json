@@ -1,0 +1,16 @@
+{
+  "task_id": "20260725-0306-pr49-metadata-agent-fix-ceo",
+  "agent": "Sai",
+  "agent_id": "ceo",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-standards-5ff7",
+  "base_sha": "8da8530",
+  "status": "active",
+  "purpose": "Remediate Saul P1 on PR #49 — add required metadata.json agent field + INITIALIZE guidance",
+  "claimed_files": [
+    ".ai/runs/20260724-0352-ceo-scheduled-verify-ceo/metadata.json",
+    ".ai/INITIALIZE.md",
+    ".ai/runs/20260725-0306-pr49-metadata-agent-fix-ceo/"
+  ],
+  "trigger": "Saul CTO REQUEST_CHANGES on PR #49; automation 8d962ddf-7f4e-11f1-ba66-0e7d0216e441"
+}
