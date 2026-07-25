@@ -102,12 +102,7 @@ that agent's complete profile to your session.
 | `folder` | yes | Repo-relative path, e.g. `.ai/agents/my-name/` |
 | `charter` | yes | Path to role charter under `_roles/` |
 | `principal` | yes | Human the agent works under |
-<<<<<<< HEAD
-| `status` | yes | `provisional`, `active`, or `retired` |
-| `primary_runtime` | active only | `cursor-desktop`, `cursor-cloud-vm`, `claude-code-cli`, `codex-desktop`, or `openclaw-gateway-vps` |
-=======
 | `status` | yes | `provisional`, `active`, or `retired` (see `.ai/shared/references/agent-lifecycle.md`; "superseded" is narrative, not a status enum) |
-| `primary_runtime` | active only | `cursor-desktop`, `cursor-cloud-vm`, `claude-code-cli`, or `codex-desktop` |
->>>>>>> d34b518 (fix(lifecycle): reconcile Alpha contract status with registry retired)
+| `primary_runtime` | active only | `cursor-desktop`, `cursor-cloud-vm`, `claude-code-cli`, `codex-desktop`, or `openclaw-gateway-vps` |
 | `entry_points` | active only | Map of runtime → how to invoke this agent |
 | `automation` | yes | Real automation name or `delegated: <spec path>` |
