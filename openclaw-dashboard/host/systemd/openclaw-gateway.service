@@ -1,0 +1,27 @@
+# openclaw-gateway.service — A0 systemd template (no secrets in unit file)
+#
+# Install on Hostinger VPS:
+#   sudo cp openclaw-dashboard/host/systemd/openclaw-gateway.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now openclaw-gateway
+#
+# Secrets: EnvironmentFile=/etc/openclaw/sai.env (0600, not in Git)
+
+[Unit]
+Description=OpenClaw Gateway (SAI Alfred — loopback default)
+Documentation=https://docs.openclaw.ai/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=openclaw
+Group=openclaw
+EnvironmentFile=-/etc/openclaw/sai.env
+ExecStart=/usr/bin/env openclaw gateway --host 127.0.0.1 --port 18789
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

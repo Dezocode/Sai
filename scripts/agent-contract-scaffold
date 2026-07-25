@@ -56,7 +56,8 @@ case "$RUNTIME" in
   cursor) PRIMARY_RUNTIME="cursor-cloud-vm"; RUNTIME_SUITE="cursor" ;;
   claude) PRIMARY_RUNTIME="claude-code-cli"; RUNTIME_SUITE="claude" ;;
   codex)  PRIMARY_RUNTIME="codex-desktop"; RUNTIME_SUITE="codex" ;;
-  *) echo "agent-contract-scaffold: --runtime must be cursor, claude, or codex" >&2; exit 1;;
+  openclaw) PRIMARY_RUNTIME="openclaw-gateway-vps"; RUNTIME_SUITE="openclaw" ;;
+  *) echo "agent-contract-scaffold: --runtime must be cursor, claude, codex, or openclaw" >&2; exit 1;;
 esac
 
 case "$ISOLATION_MODE" in
@@ -163,6 +164,11 @@ $(if [ "$RUNTIME" = "claude" ]; then cat <<'SDKONB'
 9. **Claude Agent SDK (required):** read `.ai/shared/references/claude-agent-sdk.md`; implement `.ai/agents/<your-folder>/runtimes/claude/agent-sdk/` (`query()` smoke test + `config/agent-options.json` for hooks/MCP/subagents); record verified `claude-agent-sdk` in tools.json.
 10. `.claude/agents/*.md` subagents complement the SDK — they do **not** replace SDK-based @Slack/@GitHub dispatch.
 SDKONB
+elif [ "$RUNTIME" = "openclaw" ]; then cat <<'OCONB'
+
+9. **OpenClaw Gateway (required):** read `OPENCLAW.md` and `.ai/shared/references/openclaw-runtime.md`; implement `.ai/agents/<your-folder>/runtimes/openclaw/gateway/` on Hostinger VPS; **not** a Cursor runtime agent.
+10. Host admin CLI must live-feed dashboard tabs with p99 latency ≤ 15ms; 100% production smoke before organization onboarding.
+OCONB
 fi)
 
 Do not begin implementation work until Phase 6 persona gate and Sai audit PASS.

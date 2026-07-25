@@ -5,7 +5,7 @@
 #   agent-scaffold --name NAME --agent-id ID --role-title TITLE \
 #                  --principal HUMAN --purpose TEXT --charter PATH \
 #                  [--folder-name slug]   # defaults to slugified --name
-#                  [--primary-runtime cursor|claude|codex]  # default: cursor
+#                  [--primary-runtime cursor|claude|codex|openclaw]  # default: cursor
 set -euo pipefail
 
 NAME="" AGENT_ID="" ROLE_TITLE="" PRINCIPAL="" PURPOSE="" CHARTER=""
@@ -33,7 +33,8 @@ case "$PRIMARY_RUNTIME" in
   cursor) RUNTIME_ENV="cursor-cloud-vm"; RUNTIME_SUITE="cursor" ;;
   claude) RUNTIME_ENV="claude-code-cli"; RUNTIME_SUITE="claude" ;;
   codex)  RUNTIME_ENV="codex-desktop"; RUNTIME_SUITE="codex" ;;
-  *) echo "agent-scaffold: --primary-runtime must be cursor, claude, or codex" >&2; exit 2;;
+  openclaw) RUNTIME_ENV="openclaw-gateway-vps"; RUNTIME_SUITE="openclaw" ;;
+  *) echo "agent-scaffold: --primary-runtime must be cursor, claude, codex, or openclaw" >&2; exit 1;;
 esac
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -62,8 +63,18 @@ AGENT_DIR="$REPO_ROOT/.ai/agents/$FOLDER"
 guard_under_ai_subtree "$REPO_ROOT" ".ai/agents/$FOLDER" "agents"
 CANONICAL_TOOLS="runtimes/${RUNTIME_SUITE}/tools.json"
 mkdir -p "$AGENT_DIR/automation" "$AGENT_DIR/runtimes/cursor/automation" \
-         "$AGENT_DIR/runtimes/claude/automation" "$AGENT_DIR/runtimes/codex/automation"
+         "$AGENT_DIR/runtimes/claude/automation" "$AGENT_DIR/runtimes/codex/automation" \
+         "$AGENT_DIR/runtimes/openclaw/automation" "$AGENT_DIR/runtimes/openclaw/gateway/config"
 TODAY=$(date -u +%Y-%m-%d)
+
+if [ "$PRIMARY_RUNTIME" = "openclaw" ]; then
+  INVOKE_TABLE="| OpenClaw Gateway | \\\`OPENCLAW.md\\\` → this folder; VPS \\\`openclaw gateway\\\` |
+| Repo edits | Git + ICM runs; not Cursor-primary |"
+else
+  INVOKE_TABLE="| Cursor | \\\`@${FOLDER}\\\` in Cursor Desktop |
+| Claude Code | \\\`CLAUDE.md\\\` → this folder |
+| Codex Desktop | \\\`CODEX.md\\\` → this folder |"
+fi
 
 # AGENT.md — runtime-neutral identity card
 cat > "$AGENT_DIR/AGENT.md" <<EOF
@@ -94,9 +105,7 @@ identity card — see \`runtimes/README.md\` and
 
 | Runtime | Entry |
 |---|---|
-| Cursor | \`@${FOLDER}\` in Cursor Desktop |
-| Claude Code | \`CLAUDE.md\` → this folder |
-| Codex Desktop | \`CODEX.md\` → this folder |
+${INVOKE_TABLE}
 
 Slack bots (@Claude, ChatGPT) are not registered agents unless listed in
 \`.ai/agents/registry.json\`.
@@ -158,7 +167,7 @@ cat > "$AGENT_DIR/runtimes/${RUNTIME_SUITE}/tools.json" <<EOF
 }
 EOF
 
-for suite in cursor claude codex; do
+for suite in cursor claude codex openclaw; do
   if [ ! -f "$AGENT_DIR/runtimes/$suite/README.md" ]; then
     cat > "$AGENT_DIR/runtimes/$suite/README.md" <<EOF
 # ${suite} runtime suite
@@ -233,6 +242,57 @@ EOF
   "allowedTools": ["Read", "Glob", "Grep"],
   "settingSources": [".claude/settings.json"]
 }
+EOF
+fi
+
+# OpenClaw Gateway scaffold (required for openclaw-primary agents)
+if [ "$PRIMARY_RUNTIME" = "openclaw" ]; then
+  cat > "$AGENT_DIR/runtimes/openclaw/gateway/README.md" <<'EOF'
+# OpenClaw Gateway — this agent
+
+Required for `primary_runtime: openclaw-gateway-vps`. See `.ai/shared/references/openclaw-runtime.md`.
+
+1. Bootstrap VPS: `npm install -g openclaw@latest`, `openclaw onboard --install-daemon`.
+2. Configure `config/gateway-options.json` (channels, dashboard bind, ingest SLO).
+3. Run host admin CLI feeding live activity to dashboard tabs (contract latency gate).
+4. Record smoke evidence in `runtimes/openclaw/tools.json` on the Gateway host.
+
+Alfred and OpenClaw-primary contractors are **not** Cursor runtime agents.
+EOF
+  cat > "$AGENT_DIR/runtimes/openclaw/gateway/config/gateway-options.json" <<EOF
+{
+  "\$comment": "OpenClaw Gateway skeleton — fill on VPS after onboard",
+  "reference": ".ai/shared/references/openclaw-runtime.md",
+  "agent_id": "${AGENT_ID}",
+  "gateway": {
+    "port": 18789,
+    "host": "127.0.0.1",
+    "remote_access": ["tailscale", "reverse_proxy_tls"]
+  },
+  "dashboard_ingest": {
+    "enabled": true,
+    "latency_slo_ms_p99": 15,
+    "websocket_path": "/activity/stream"
+  },
+  "channels": {
+    "slack": {"enabled": false},
+    "telegram": {"enabled": false}
+  }
+}
+EOF
+  cat > "$AGENT_DIR/runtimes/openclaw/automation/profile.md" <<EOF
+# OpenClaw Gateway automation — ${NAME:-$AGENT_ID}
+
+Primary runtime: \`openclaw-gateway-vps\`. **Not** Cursor Automations.
+
+Document real mechanisms:
+
+- systemd unit for \`openclaw gateway\`
+- Gateway cron / webhooks per https://docs.openclaw.ai/
+- Host admin CLI → dashboard live feed (p99 ≤ 15ms SLO)
+- \`scripts/agent-report\` or OpenClaw Slack channel for \`[SAI][EVENT]\`
+
+Regenerate after Phase 5B capability survey on VPS.
 EOF
 fi
 

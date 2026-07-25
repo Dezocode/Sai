@@ -1,0 +1,14 @@
+{
+  "project_slug": "openclaw-dashboard",
+  "branches": [
+    {
+      "branch": "proj/openclaw-dashboard/ctr-code-alfred1/bootstrap",
+      "agent_id": "ctr-code-alfred1",
+      "contract_id": "20260722-openclaw-dashboard-dezocode",
+      "purpose": "Alfred OpenClaw dashboard bootstrap — isolated prototype",
+      "status": "claimed",
+      "updated_at": "2026-07-22T04:20:00Z"
+    }
+  ],
+  "updated_at": "2026-07-22T04:20:00Z"
+}

@@ -1,0 +1,12 @@
+{
+  "project_slug": "openclaw-dashboard",
+  "contracts": [
+    {
+      "contract_id": "20260722-openclaw-dashboard-dezocode",
+      "path": ".ai/contracts/20260722-openclaw-dashboard-dezocode/contract.json",
+      "status": "draft",
+      "primary_contractor": "ctr-code-alfred1"
+    }
+  ],
+  "updated_at": "2026-07-22T04:20:00Z"
+}

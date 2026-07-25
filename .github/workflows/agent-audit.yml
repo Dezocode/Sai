@@ -74,6 +74,19 @@ jobs:
             scripts/verify-merge-handoff --main-tip
           fi
 
+      - name: Verify OpenClaw gateway loopback bind (Saul P1)
+        run: |
+          chmod +x openclaw-dashboard/scripts/verify-gateway-bind.sh \
+                   openclaw-dashboard/scripts/verify-all-dependencies.sh \
+                   openclaw-dashboard/scripts/verify-gateway-health.sh \
+                   openclaw-dashboard/scripts/verify-agent-telegram.sh \
+                   openclaw-dashboard/tests/smoke/subagent-connection-gate-negative.sh
+          openclaw-dashboard/scripts/verify-gateway-bind.sh
+          openclaw-dashboard/scripts/verify-all-dependencies.sh --self-test
+          openclaw-dashboard/scripts/verify-gateway-health.sh --self-test
+          openclaw-dashboard/scripts/verify-agent-telegram.sh --self-test
+          openclaw-dashboard/tests/smoke/subagent-connection-gate-negative.sh
+
       - name: Validate event and schema JSON
         run: |
           set -e

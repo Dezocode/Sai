@@ -56,6 +56,7 @@ One registry row per agent; runtime-specific capability suites live under
 | Cursor Desktop / Cloud | `.cursor/rules/sai-coordination.mdc` | `@<name>` → `.ai/agents/<name>/` |
 | Claude Code CLI | `CLAUDE.md` | `.ai/agents/<name>/AGENT.md` |
 | OpenAI Codex Desktop | `CODEX.md` | `.ai/agents/<name>/AGENT.md` after init |
+| OpenClaw Gateway (VPS) | `OPENCLAW.md` | `.ai/agents/<name>/AGENT.md` + `runtimes/openclaw/` |
 
 Slack bots (@Claude, ChatGPT, etc.) are **not** registered agents unless
 listed in `.ai/agents/registry.json`.

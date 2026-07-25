@@ -189,7 +189,13 @@ of every Cursor tool, MCP server, integration, and skill you will claim:
    SAI_AGENT_ID=<your-agent-id> scripts/agent-verify-caps \
      --tools-file .ai/agents/<folder>/runtimes/codex/tools.json \
      --environment codex-desktop
+   # OpenClaw Gateway (VPS — not Cursor):
+   SAI_AGENT_ID=<your-agent-id> scripts/agent-verify-caps \
+     --tools-file .ai/agents/<folder>/runtimes/openclaw/tools.json \
+     --environment openclaw-gateway-vps
    ```
+   OpenClaw-primary agents: see `.ai/shared/references/openclaw-runtime.md`
+   for gateway bootstrap, ingest SLO, and Phase 5B evidence requirements.
    Root `tools.json` is a **manifest** (`primary_runtime`,
    `canonical_capabilities_path`). `scripts/agent-automation-spec` embeds only
    `verified` entries from the canonical path. The script **refuses**

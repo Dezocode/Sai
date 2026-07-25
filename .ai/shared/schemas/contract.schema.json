@@ -49,7 +49,7 @@
     },
     "primary_runtime": {
       "type": "string",
-      "enum": ["cursor-cloud-vm", "cursor-desktop", "claude-code-cli", "codex-desktop"]
+      "enum": ["cursor-cloud-vm", "cursor-desktop", "claude-code-cli", "codex-desktop", "openclaw-gateway-vps"]
     },
     "compatibility_layer": {
       "type": "string",
