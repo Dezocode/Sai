@@ -23,10 +23,10 @@
 
 ## Next step — Part B deploy (dezocode)
 
-**Step 2 only:** paste [first-prompt-attach-contract.md](./first-prompt-attach-contract.md) into OpenClaw on VPS.
+**Step 2 only:** paste [first-prompt-attach-contract.md](../first-prompt-attach-contract.md) into OpenClaw on VPS.
 
-Guide: [DEPLOY-MERGE-AND-PASTE.md](./DEPLOY-MERGE-AND-PASTE.md)  
-Runbook: [vps-bootstrap.md](../../../openclaw-dashboard/docs/vps-bootstrap.md)
+Guide: [DEPLOY-MERGE-AND-PASTE.md](../DEPLOY-MERGE-AND-PASTE.md)  
+Runbook: [vps-bootstrap.md](../../../../openclaw-dashboard/docs/vps-bootstrap.md)
 
 ## L4 fulfillment (Alfred on VPS)
 

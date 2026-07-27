@@ -1,13 +1,13 @@
 # FIRST PROMPT — paste into OpenClaw (step 2 of 2)
 
-**Deploy model:** merge PR #45 to `main`, then paste **this entire file** into a fresh
+**Deploy model:** PR #45 is **merged** to `main` @ `3e8913d` (2026-07-25). Paste **this entire file** into a fresh
 OpenClaw Gateway session on your Hostinger VPS. No separate activation commit required —
-paste after merge authorizes A0 bootstrap.
+paste authorizes A0 bootstrap.
 
-**Human step 1:** Merge https://github.com/Dezocode/Sai/pull/45 → `main`  
+**Human step 1:** ~~Merge PR #45~~ **Done** @ `3e8913d` (2026-07-25)  
 **Human step 2:** Paste everything below the `---` line into OpenClaw
 
-**One-time VPS prep (≈10 min before paste):** see `openclaw-dashboard/docs/vps-bootstrap.md` § dezocode — Node 24+, `openclaw onboard`, clone `Dezocode/Sai` @ `main`.
+**One-time VPS prep (≈10 min before paste):** see [vps-bootstrap.md](../../../openclaw-dashboard/docs/vps-bootstrap.md) § dezocode — Node 24+, `openclaw onboard`, clone `Dezocode/Sai` @ `main`.
 
 ---
 

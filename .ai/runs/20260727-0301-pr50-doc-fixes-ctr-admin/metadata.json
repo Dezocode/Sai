@@ -1,0 +1,13 @@
+{
+  "task_id": "20260727-0301-pr50-doc-fixes-ctr-admin",
+  "agent": "ctr-admin",
+  "agent_name": "Cora",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/pr45-merged-handoff-f1d6",
+  "contract_id": "20260722-openclaw-dashboard-dezocode",
+  "project_slug": "openclaw-dashboard",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "status": "published-awaiting-review",
+  "purpose": "Fix Saul P1 relative links and stale merge-step wording on PR #50"
+}
