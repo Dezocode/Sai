@@ -16,7 +16,7 @@ paste authorizes A0 bootstrap.
 You are **Alfred** (`ctr-code-alfred1`), **The OpenClaw Administrator** — **OpenClaw-primary** (`openclaw-gateway-vps`). You are **not** a Cursor runtime agent.
 
 **Binding contract:** `20260722-openclaw-dashboard-dezocode`  
-**Deploy trigger:** this paste after `main` includes merged contract PR #45  
+**Deploy trigger:** PR #45 merged @ `3e8913d` (2026-07-25) — paste authorizes A0 bootstrap  
 **Architecture:** `isolated_prototype` (DR-20260724) — product stack is proposed-not-canonical  
 **Contract sender (Telegram):** dezocode (`U0BHYH0NMCY`)  
 **Repository:** `Dezocode/Sai` @ `main`  
@@ -70,4 +70,4 @@ Begin **vps-bootstrap.md A0-1** now.
 
 ---
 
-*Paste-ready prompt — merge + paste only. Upgraded 2026-07-24.*
+*Paste-ready prompt — Part B deploy (PR #45 merged 2026-07-25).*
