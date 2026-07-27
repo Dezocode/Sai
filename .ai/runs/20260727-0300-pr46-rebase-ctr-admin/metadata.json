@@ -1,0 +1,13 @@
+{
+  "task_id": "20260727-0300-pr46-rebase-ctr-admin",
+  "agent": "ctr-admin",
+  "agent_name": "Cora",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/contractor-contract-compliance-aba9",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "project_slug": "splunk-clone",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "status": "published-awaiting-review",
+  "purpose": "Rebase PR #46 Alpha retirement onto main@d079351 per dezocode compliance review"
+}
