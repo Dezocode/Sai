@@ -1,0 +1,13 @@
+{
+  "task_id": "20260727-0302-splunky-least-privilege-ctr-admin",
+  "agent": "ctr-admin",
+  "agent_name": "Cora",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/splunky-claude-contract-f1d6",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "project_slug": "splunk-clone",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "status": "published-awaiting-review",
+  "purpose": "Strip Splunky over-permissions; document repo-target BLOCKED on PR #15"
+}

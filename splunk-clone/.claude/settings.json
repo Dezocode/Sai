@@ -7,8 +7,6 @@
       "Bash(scripts/agent-report *)",
       "Bash(scripts/agent-contract-pr-review *)",
       "Read",
-      "Write",
-      "Edit",
       "Glob",
       "Grep",
       "Skill"
