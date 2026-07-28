@@ -133,6 +133,45 @@ Commit A0 enhancements on bootstrap branch with Task-ID trailers. Post `[SAI][VE
 
 ---
 
+## Hostinger notes (from Alfred A0 bootstrap run)
+
+### Container environment
+- Hostinger VPS uses **containerd**, not Docker CE directly
+- Docker socket is NOT available inside the container
+- Containers run under the `node` user (UID 1000)
+- `sudo` is available for container-level privileged operations
+- `/data` is mounted from the host (`/dev/sda1`) — persisted across restarts
+
+### OpenClaw specifics
+- Gateway config: `~/.openclaw/openclaw.json`
+- Plugin install is persistent: `openclaw plugins install @openclaw/<name>` writes to `/data/.openclaw/npm/`
+- Config changes via `openclaw config patch` hot-reload; some changes require SIGUSR1
+- Log output: `/tmp/openclaw-<uid>/openclaw-<date>.log`
+- Gateway bind is loopback-only at `127.0.0.1:18789` — verify with `verify-gateway-bind.sh`
+- Slack Socket Mode plugin: `@openclaw/slack`
+
+### Secrets
+- `/etc/openclaw/sai.env` must be created with `sudo mkdir -p`; does not exist by default
+- Mode `0600`, owner `root:root` per security doctrine
+- `OPENCLAW_GATEWAY_TOKEN` is auto-generated in the Gateway config — extract with `jq '.gateway.auth.token'`
+- `SLACK_BOT_TOKEN` may be provided via Telegram; `SLACK_APP_TOKEN`, `TELEGRAM_BOT_TOKEN`, `COMPOSIO_API_KEY` are deferred
+
+### Tailscale
+- Inside container: install via Homebrew (`brew install tailscale`)
+- No `/dev/net/tun` device — must use `--tun=userspace-networking` mode
+- Socket must be in a writable path: `--socket=/tmp/tailscaled.sock`
+- SSH key generation: `ssh-keygen -t ed25519` for container-to-host access
+- `sudo env "PATH=$PATH"` needed when running system-wide commands
+
+### Git & GitHub
+- Remote uses HTTPS — push via `gh auth token` when interactive auth unavailable:
+  ```bash
+  git remote set-url origin https://x-access-token:$(gh auth token)@github.com/Dezocode/Sai.git
+  git push ...
+  git remote set-url origin https://github.com/Dezocode/Sai.git
+  ```
+- `gh` CLI is authenticated as `Dezocode` with `repo` scope
+
 ## Links
 
 - Binding paste prompt: `.ai/contracts/20260722-openclaw-dashboard-dezocode/first-prompt-attach-contract.md`
