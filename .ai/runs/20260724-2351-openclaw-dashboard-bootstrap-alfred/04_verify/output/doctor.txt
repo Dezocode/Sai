@@ -1,0 +1,51 @@
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+██░▄▄▄░██░▄▄░██░▄▄▄██░▀██░██░▄▄▀██░████░▄▄▀██░███░██
+██░███░██░▀▀░██░▄▄▄██░█░█░██░█████░████░▀▀░██░█░█░██
+██░▀▀▀░██░█████░▀▀▀██░██▄░██░▀▀▄██░▀▀░█░██░██▄▀▄▀▄██
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+                       OPENCLAW                       
+ 
+┌  OpenClaw doctor
+│
+◇  Startup optimization ────────────────────────────────────────────────╮
+│                                                                       │
+│  - NODE_COMPILE_CACHE is not set; repeated CLI runs can be slower on  │
+│    small hosts (Raspberry Pi/VM).                                     │
+│  - OPENCLAW_NO_RESPAWN is not set to 1; set it when you want routine  │
+│    gateway restarts to stay in-process instead of handing off to a    │
+│    managed supervisor.                                                │
+│  - Suggested env for low-power hosts:                                 │
+│    export NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache          │
+│    mkdir -p /var/tmp/openclaw-compile-cache                           │
+│    export OPENCLAW_NO_RESPAWN=1                                       │
+│                                                                       │
+├───────────────────────────────────────────────────────────────────────╯
+│
+◇  Doctor changes preview ─────────────────────────────────────────────────╮
+│                                                                          │
+│  google/gemini-3.1-pro-preview model configured, enabled automatically.  │
+│  xai/grok-4.3 model configured, enabled automatically.                   │
+│  opencode-go/kimi-k2.7-code model configured, enabled automatically.     │
+│  browser configured, enabled automatically.                              │
+│  telegram plugin config present, added to plugin allowlist.              │
+│                                                                          │
+├──────────────────────────────────────────────────────────────────────────╯
+[plugins] oxylabs-ai-studio-openclaw: registered oxylabs_web_search and oxylabs_web_fetch tools
+│
+◇  Doctor warnings ───────────────────────────────────────────────────────╮
+│                                                                         │
+│  - channels.telegram: Telegram is in first-time setup mode. DMs use     │
+│    pairing mode, so new senders must start a chat and be approved       │
+│    before regular messages are accepted. Group messages stay blocked    │
+│    until you add allowed chats under channels.telegram.groups (and      │
+│    optional sender IDs under channels.telegram.groupAllowFrom), or set  │
+│    channels.telegram.groupPolicy to "open" if you want broad group      │
+│    access.                                                              │
+│                                                                         │
+├─────────────────────────────────────────────────────────────────────────╯
+│
+◇  Doctor ──────────────────────────────────────────────╮
+│                                                       │
+│  Run "openclaw doctor --fix" to apply these changes.  │
+│                                                       │
+├───────────────────────────────────────────────────────╯

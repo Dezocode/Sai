@@ -5,12 +5,12 @@
 
 | provider | env_var(s) | vps_store | dashboard_route | status | owner | last_rotated | notes |
 |---|---|---|---|---|---|---|---|
-| openclaw_gateway | `OPENCLAW_GATEWAY_TOKEN` | `/etc/openclaw/sai.env` | /settings/secrets | pending | alfred | — | Loopback bind 127.0.0.1 |
+| openclaw_gateway | `OPENCLAW_GATEWAY_TOKEN` | `/etc/openclaw/sai.env` | /settings/secrets | connected | alfred | 2026-07-27 | Loopback bind 127.0.0.1 |
 | telegram_bot | `TELEGRAM_BOT_TOKEN` | `/etc/openclaw/sai.env` | /settings/auth | pending | alfred | — | Pairing per agent_id |
-| slack_socket | `SLACK_APP_TOKEN`, `SLACK_BOT_TOKEN` | `/etc/openclaw/sai.env` | /settings/secrets | pending | alfred | — | Socket Mode |
+| slack_socket | `SLACK_APP_TOKEN`, `SLACK_BOT_TOKEN` | `/etc/openclaw/sai.env` | /settings/secrets | pending | alfred | — | SLACK_BOT_TOKEN on file; SLACK_APP_TOKEN pending — Socket Mode deferred to A2 |
 | composio | `COMPOSIO_API_KEY` | Composio cloud | /settings/auth | pending | dezocode | — | MCQ before enable |
 | github_oauth | `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET` | `/etc/openclaw/sai.env` | /settings/auth | pending | dezocode | — | Secret VPS-only |
-| sai_reporting | `SAI_SLACK_BOT_TOKEN` | VPS + GitHub Actions secret | — | pending | dezocode | — | Not in repo |
+| sai_reporting | `SAI_SLACK_BOT_TOKEN` | VPS + GitHub Actions secret | — | pending | dezocode | — | Not provisioned; A0 VERIFY will use queued agent-report |
 | tailscale | `TAILSCALE_AUTH_KEY` | `/etc/openclaw/sai.env` | /settings/secrets | optional | dezocode | — | Remote dashboard |
 | gemini_notebook | via Composio Google AI | Composio | /settings/auth | pending | dezocode | — | Export ingest only |
 
