@@ -1,0 +1,11 @@
+=== A0-2: verify-all-dependencies ===
+verify-all-dependencies.sh: checking A0 toolchain...
+  OK node (v24.18.0)
+  OK npm (11.16.0)
+  OK git (git version 2.47.3)
+  OK python3 (Python 3.13.5)
+  OK jq (jq-1.7)
+  OK gh (gh version 2.96.0 (2026-07-02))
+  OK openclaw (OpenClaw 2026.7.1 (2d2ddc4))
+verify-all-dependencies.sh: PASS
+EXIT: 0

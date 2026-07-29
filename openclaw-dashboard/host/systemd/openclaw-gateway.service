@@ -1,11 +1,30 @@
 # openclaw-gateway.service — A0 systemd template (no secrets in unit file)
 #
-# Install on Hostinger VPS:
+# Install on Hostinger VPS (bare-metal / LXC):
 #   sudo cp openclaw-dashboard/host/systemd/openclaw-gateway.service /etc/systemd/system/
 #   sudo systemctl daemon-reload
 #   sudo systemctl enable --now openclaw-gateway
 #
 # Secrets: EnvironmentFile=/etc/openclaw/sai.env (0600, not in Git)
+#
+# =============================================================================
+# CONTAINERIZED DEPLOYMENT (Hostinger Docker — Alfred's current environment)
+# =============================================================================
+# No systemd available inside Docker container. Gateway is started by the
+# Docker ENTRYPOINT or via supervisor (containerd restart policy).
+#
+# Startup:
+#   # In container startup script or Dockerfile ENTRYPOINT:
+#   export NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
+#   export OPENCLAW_NO_RESPAWN=1
+#   openclaw gateway --host 127.0.0.1 --port 18789
+#
+# Container env vars (from /etc/openclaw/sai.env or Docker --env-file):
+#   SAI_SLACK_BOT_TOKEN, SLACK_BOT_TOKEN, OPENCLAW_GATEWAY_TOKEN,
+#   TELEGRAM_BOT_TOKEN (A2), SLACK_APP_TOKEN (A2), COMPOSIO_API_KEY (A2)
+#
+# Health: openclaw-dashboard/scripts/verify-gateway-health.sh
+# =============================================================================
 
 [Unit]
 Description=OpenClaw Gateway (SAI Alfred — loopback default)
@@ -18,6 +37,8 @@ Type=simple
 User=openclaw
 Group=openclaw
 EnvironmentFile=-/etc/openclaw/sai.env
+Environment=NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
+Environment=OPENCLAW_NO_RESPAWN=1
 ExecStart=/usr/bin/env openclaw gateway --host 127.0.0.1 --port 18789
 Restart=on-failure
 RestartSec=5

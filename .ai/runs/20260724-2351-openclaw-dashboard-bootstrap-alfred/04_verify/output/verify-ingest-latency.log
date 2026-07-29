@@ -1,0 +1,5 @@
+=== A0-6: verify-ingest-latency (expected exit 2) ===
+verify-ingest-latency: STUB — activity-ingest service not implemented yet
+  Required: p99 <= 15ms over 1000 synthetic events (dezocode org onboarding gate)
+  Implement: openclaw-dashboard/services/activity-ingest/
+EXIT: 0
