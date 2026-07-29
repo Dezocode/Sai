@@ -1,0 +1,48 @@
+{
+  "review_id": "20260729T1803Z-sai-remediation-routing",
+  "contract_id": "20260722-openclaw-dashboard-dezocode",
+  "reviewer": "ctr-admin",
+  "trigger": "sai_contractor_compliance_acknowledgment",
+  "timestamp": "2026-07-29T18:03:00Z",
+  "aligned_with": "20260729-1701-contractor-compliance-review-ctr-admin",
+  "findings_acknowledged": [
+    "Alfred A0/A1 Slack delivery and events.jsonl are meaningful progress",
+    "b52ccf5 missing Agent trailer is a valid CI blocker",
+    "metadata head_sha stale at 8893a46 vs branch head b52ccf5",
+    "A1 mixed into A0 gap closure without separate 02_plan artifacts",
+    "Alpha retirement absent from main until PR #46 merged with fresh CTO review",
+    "Splunky blocked by repo boundary, agent-sdk scaffold, and Mimi fulfillment gate",
+    "Mergeability must not be read as governance approval",
+    "Alfred operational language must not imply draft contract activation"
+  ],
+  "remediation_routing": [
+    {
+      "action": 1,
+      "owner": "ctr-code-alfred1",
+      "task": "Fix commit audit on bootstrap branch",
+      "detail": "b52ccf5 has Task-ID but lacks Agent trailer. verify-agent-audit cannot pass without history correction on that commit. Remediation requires either (a) authorized git commit --amend + force-push to proj/openclaw-dashboard/ctr-code-alfred1/bootstrap (security gate — cofounder approval), or (b) revert b52ccf5 and recommit identical tree with Agent: alfred + Report-Event trailers (still leaves failing sha in range — amend+force-push is the clean fix). Update metadata.json head_sha to corrected head. Remaining A1 deliverables (skills.md agent-report, Settings Reporting doc) require separate PLAN → CHANGE → VERIFY with 02_plan artifacts.",
+      "gate": "Do not advance to A2 until branch CI green and stage evidence complete"
+    },
+    {
+      "action": 2,
+      "owner": "ctr-admin + ceo",
+      "task": "Keep Alfred provisional",
+      "detail": "contract.json status remains draft; registry status provisional. No activation language until Part B/C fulfillment gates evidenced."
+    },
+    {
+      "action": 3,
+      "owner": "dezo-sec-codex1",
+      "task": "Fresh CTO review PR #46 @ 87d11ae",
+      "detail": "Prior CHANGES_REQUESTED on 92ba562 obsolete. Cora posted CONTRACT_REVIEW comment requesting rereview.",
+      "pr": "https://github.com/Dezocode/Sai/pull/46"
+    },
+    {
+      "action": 4,
+      "owner": "ctr-admin + mimi",
+      "task": "Splunky fork port",
+      "detail": "Recreate scaffold on monaecode/Sai per contract.repository. Add runtimes/claude/agent-sdk/. Do not dispatch until Mimi dispatcher fulfillment_gate passes. Close or supersede Dezocode/Sai PR #15 after fork PR opens.",
+      "blocked_by": "20260717-mimi-dispatcher-bootstrap-monaecode fulfillment_gate"
+    }
+  ],
+  "status": "routing_complete"
+}
