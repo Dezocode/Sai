@@ -56,7 +56,8 @@ SAI/
    `diverged`. Never claim atomic equality across GitHub and Drive.
 6. Retry transient failures, but never hide divergence.
 7. Update the Drive mirror only **after** GitHub verification of the pushed
-   commit SHA.
+   commit SHA **and** only when that SHA is on `origin/main` (reviewed/merged
+   gate). Run `scripts/agent-drive-scaffold --check-only` before upload.
 8. Reconcile any Drive-originated memory edits through a Git branch and PR —
    never edit canonical memory directly from Drive.
 9. Never copy credentials, environment files, caches, dependencies, build

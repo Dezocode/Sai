@@ -6,6 +6,8 @@
 #
 # Does not require Drive credentials. Use before first agent-sync-drive run
 # to confirm every registered agent has .ai/agents/<name>/memory/.
+# Fails closed on missing scaffolds, malformed manifest JSON, or registry
+# identity drift (agent_id / folder mismatch).
 set -euo pipefail
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -23,7 +25,10 @@ from pathlib import Path
 registry_path, repo_root, check_only = sys.argv[1], Path(sys.argv[2]), int(sys.argv[3])
 agents = json.load(open(registry_path))["agents"]
 missing = []
+errors = []
 rows = []
+
+REQUIRED_MANIFEST = ("agent_id", "folder", "drive_mirror_path")
 
 for a in agents:
     aid = a["agent_id"]
@@ -34,9 +39,31 @@ for a in agents:
         status = "MISSING"
         drive_path = f"SAI/agents/{aid}/memory/"
     else:
-        m = json.load(open(mem))
-        drive_path = m.get("drive_mirror_path", f"SAI/agents/{aid}/memory/")
         status = "OK"
+        try:
+            m = json.load(open(mem))
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            errors.append(f"{aid}: {mem}: invalid JSON ({e})")
+            status = "INVALID"
+            drive_path = f"SAI/agents/{aid}/memory/"
+        else:
+            for key in REQUIRED_MANIFEST:
+                if not m.get(key):
+                    errors.append(f"{aid}: {mem}: missing required field '{key}'")
+                    status = "INVALID"
+            if m.get("agent_id") != aid:
+                errors.append(
+                    f"{aid}: {mem}: agent_id '{m.get('agent_id')}' != registry '{aid}'"
+                )
+                status = "INVALID"
+            reg_folder = folder.rstrip("/")
+            man_folder = (m.get("folder") or "").rstrip("/")
+            if man_folder != reg_folder:
+                errors.append(
+                    f"{aid}: {mem}: folder '{man_folder}' != registry '{reg_folder}'"
+                )
+                status = "INVALID"
+            drive_path = m.get("drive_mirror_path", f"SAI/agents/{aid}/memory/")
     rows.append((aid, a.get("name", "?"), status, drive_path))
 
 print("SAI Drive memory bank (mirrors .ai/ after agent-sync-drive):\n")
@@ -60,6 +87,12 @@ if missing:
     print("MISSING memory scaffolds (run agent-memory-scaffold):", file=sys.stderr)
     for aid, folder in missing:
         print(f"  --agent-id {aid} --folder {folder}", file=sys.stderr)
+
+if errors:
+    for err in errors:
+        print(f"FAIL {err}", file=sys.stderr)
+
+if missing or errors:
     sys.exit(1)
 
 print("agent-drive-scaffold: all registered agents have memory/ manifests.")

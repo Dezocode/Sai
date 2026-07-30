@@ -95,10 +95,16 @@ cd /path/to/Sai
 scripts/agent-drive-scaffold
 ```
 
-### 5. First sync (after push)
+### 5. First sync (after merge to main)
+
+Drive mirroring is **fail-closed** to reviewed/merged Git state: `agent-sync-drive`
+refuses upload unless `HEAD` is on `origin/main`. Feature-branch pushes record
+`pending` when credentials are absent, but will **fail** if you attempt a live
+sync before merge.
 
 ```bash
-git push origin main   # HEAD must exist on remote
+git checkout main && git pull origin main
+scripts/agent-drive-scaffold --check-only   # all registry agents must pass
 scripts/agent-sync-drive --repo-key dezocode-sai
 ```
 
@@ -182,7 +188,9 @@ On Hostinger after `COMPOSIO_API_KEY` is in `/etc/openclaw/sai.env`:
 
 1. **Never** edit canonical memory only on Drive — changes must return via Git PR.
 2. **Never** store secrets, tokens, or `.git` on Drive.
-3. Drive sync runs **only after** GitHub verifies the pushed commit SHA.
+3. Drive sync runs **only after** the commit is on `origin/main` (reviewed/merged
+   gate) **and** `scripts/agent-drive-scaffold --check-only` passes for every
+   registry agent.
 4. Reconcile Drive-originated edits through a branch + PR (sync-policy rule 8).
 
 ---

@@ -41,6 +41,24 @@ if ! git branch -r --contains "$SHA" 2>/dev/null | grep -q .; then
   exit 1
 fi
 
+# Fail-closed reviewed/merged gate: Drive mirrors only commits on origin/main.
+git fetch origin main 2>/dev/null || true
+MAIN_SHA=$(git rev-parse origin/main 2>/dev/null || echo "")
+if [ -n "$MAIN_SHA" ]; then
+  if [ "$SHA" != "$MAIN_SHA" ] && ! git merge-base --is-ancestor "$SHA" "$MAIN_SHA" 2>/dev/null; then
+    echo "agent-sync-drive: HEAD $SHORT_SHA is not on origin/main ($MAIN_SHA); merge to main before mirroring (fail-closed reviewed/merged gate)." >&2
+    report "failed" ""
+    exit 1
+  fi
+fi
+
+# Registry-complete memory scaffolds required before any upload.
+if ! "$REPO_ROOT/scripts/agent-drive-scaffold" --check-only; then
+  echo "agent-sync-drive: agent-drive-scaffold failed; fix memory manifests before mirroring." >&2
+  report "failed" ""
+  exit 1
+fi
+
 if [ -z "$DRIVE_REMOTE" ]; then
   echo "agent-sync-drive: SAI_DRIVE_REMOTE not configured; recording sync as pending." >&2
   report "pending" ""
@@ -79,7 +97,10 @@ if [ -d "$REPO_ROOT/.ai/contracts" ]; then
 fi
 for agent_mem in "$REPO_ROOT"/.ai/agents/*/memory; do
   [ -d "$agent_mem" ] || continue
-  aid=$(python3 -c "import json; print(json.load(open('$agent_mem/manifest.json')).get('agent_id','unknown'))" 2>/dev/null || echo "unknown")
+  manifest="$agent_mem/manifest.json"
+  [ -f "$manifest" ] || { echo "agent-sync-drive: missing $manifest" >&2; report "failed" ""; exit 1; }
+  aid=$(python3 -c "import json; m=json.load(open('$manifest')); print(m['agent_id'])" 2>/dev/null) || {
+    echo "agent-sync-drive: malformed manifest $manifest" >&2; report "failed" ""; exit 1; }
   rclone copy "$agent_mem" "$DRIVE_REMOTE/agents/$aid/memory" --checksum
 done
 
@@ -103,13 +124,16 @@ agents = []
 for mem in sorted(root.glob(".ai/agents/*/memory/manifest.json")):
     try:
         m = json.loads(mem.read_text())
-        agents.append({
-            "agent_id": m.get("agent_id"),
-            "folder": m.get("folder"),
-            "drive_mirror_path": m.get("drive_mirror_path"),
-        })
-    except Exception:
-        pass
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise SystemExit(f"agent-sync-drive: malformed manifest {mem}: {e}")
+    aid = m.get("agent_id")
+    if not aid:
+        raise SystemExit(f"agent-sync-drive: manifest missing agent_id: {mem}")
+    agents.append({
+        "agent_id": aid,
+        "folder": m.get("folder"),
+        "drive_mirror_path": m.get("drive_mirror_path"),
+    })
 doc = {
     "repository_key": repo_key,
     "commit_sha": sha,
