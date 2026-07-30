@@ -1,0 +1,9 @@
+{
+  "task_id": "20260730-0210-drive-memory-bank-scaffold-ctr-admin",
+  "agent": "ctr-admin",
+  "purpose": "Drive memory bank scaffold — memory/ for Sai, Mimi, Saul + operator setup guide",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/drive-memory-bank-scaffold-f1d6",
+  "head_sha": "66d1d5a",
+  "status": "handoff"
+}
