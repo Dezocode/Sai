@@ -38,19 +38,36 @@ for sha in $(git rev-list --no-merges $RANGE 2>/dev/null); do
   fi
 done
 
-# Validate any queued/committed event JSON against basic well-formedness.
+# Validate queued events and tracked events.jsonl against agent-event.schema.json.
+validate_event_file() {
+  local label=$1
+  python3 scripts/lib/validate-agent-event.py "$label" >/dev/null 2>&1 \
+    || { echo "FAIL: $label does not satisfy agent-event.schema.json" >&2; FAIL=1; }
+}
+
+validate_event_line() {
+  local jsonl=$1 line_no=$2
+  local tmp
+  tmp=$(mktemp)
+  printf '%s' "$line" > "$tmp"
+  python3 scripts/lib/validate-agent-event.py "$tmp" >/dev/null 2>&1 \
+    || { echo "FAIL: $jsonl line $line_no does not satisfy agent-event.schema.json" >&2; FAIL=1; }
+  rm -f "$tmp"
+}
+
 GIT_DIR=$(git rev-parse --git-common-dir)
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
 for f in "$GIT_DIR"/agent-events/queue/*.json; do
   [ -e "$f" ] || break
-  python3 -m json.tool "$f" >/dev/null 2>&1 || { echo "FAIL: malformed queued event $f" >&2; FAIL=1; }
+  validate_event_file "$f"
 done
 for jsonl in $(git ls-files '.ai/runs/*/events.jsonl'); do
   n=0
   while IFS= read -r line; do
     n=$((n+1))
     [ -z "$line" ] && continue
-    printf '%s' "$line" | python3 -m json.tool >/dev/null 2>&1 \
-      || { echo "FAIL: $jsonl line $n is not valid JSON" >&2; FAIL=1; }
+    validate_event_line "$jsonl" "$n"
   done < "$jsonl"
 done
 

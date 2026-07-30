@@ -16,8 +16,9 @@
 #   4. Stage ordering provenance: a run with 03_implement output has a plan
 #      (02_plan output or an explicit plan reference in metadata.json);
 #      a run with 06_publish_sync output also has 04_verify and 05_review.
-#   5. events.jsonl files are valid JSON-per-line with required fields and
-#      task_id consistent with their run.
+#   5. events.jsonl lines validate fully against
+#      .ai/shared/schemas/agent-event.schema.json (via validate-agent-event.py)
+#      with task_id consistent with their run directory.
 #   6. Registry (.ai/agents/registry.json) is valid and every charter
 #      folder it references exists.
 #   7. No obvious secrets inside .ai/ (defense in depth; hooks also redact).
@@ -26,8 +27,10 @@ set -u
 ROOT=${1:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
 cd "$ROOT" || { echo "verify-semantic-hierarchy: cannot cd to $ROOT" >&2; exit 2; }
 
-python3 - <<'PY'
-import json, os, re, sys, glob
+python3 - <<PY
+import json, os, re, sys, glob, subprocess
+
+ROOT = ${ROOT@Q}
 
 fails = []
 def fail(msg): fails.append(msg)
@@ -140,9 +143,10 @@ if os.path.isdir(".ai/runs"):
             for req in ("04_verify", "05_review"):
                 if req not in present:
                     fail(f"{run}: has 06_publish_sync output but missing {req}")
-        # events.jsonl
+        # events.jsonl — full agent-event.schema.json validation
         ev = f"{path}/events.jsonl"
         if os.path.exists(ev):
+            import subprocess
             for i, line in enumerate(open(ev), 1):
                 line = line.strip()
                 if not line:
@@ -152,11 +156,18 @@ if os.path.isdir(".ai/runs"):
                 except json.JSONDecodeError as e:
                     fail(f"{run}: events.jsonl line {i} invalid JSON ({e})")
                     continue
-                for key in ("event_id", "event_type", "task_id", "actor", "timestamp"):
-                    if key not in d:
-                        fail(f"{run}: events.jsonl line {i} missing '{key}'")
                 if d.get("task_id") != run:
                     fail(f"{run}: events.jsonl line {i} task_id '{d.get('task_id')}' != run")
+                proc = subprocess.run(
+                    ["python3", "scripts/lib/validate-agent-event.py"],
+                    input=line + "\n",
+                    text=True,
+                    capture_output=True,
+                    cwd=ROOT,
+                )
+                if proc.returncode != 0:
+                    detail = proc.stderr.strip().splitlines()[-1] if proc.stderr.strip() else "schema validation failed"
+                    fail(f"{run}: events.jsonl line {i} {detail}")
 
 # 6. Registry
 if os.path.exists(".ai/agents/registry.json"):

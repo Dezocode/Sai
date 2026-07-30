@@ -61,6 +61,9 @@ jobs:
             echo "OK bash -n $f"
           done
 
+      - name: Validate agent event schema (negative regression self-test)
+        run: python3 scripts/lib/validate-agent-event.py --self-test
+
       - name: Verify agent audit metadata
         run: scripts/verify-agent-audit "${{ steps.range.outputs.range }}"
 
