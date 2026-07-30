@@ -89,3 +89,33 @@
 ### A0 status
 
 Governance: **not closed** — pending semantic-hierarchy CI PASS on bootstrap branch.
+-e 
+---
+### ⛩️ A0 governance gate — 2026-07-29T23:09Z
+
+| Check | Result |
+|---|---|
+| `verify-semantic-hierarchy` | ✅ PASS (exit 0) |
+| All 5 verify scripts | ✅ PASS |
+| metadata.json (repository, branch, contractor_type) | ✅ Added |
+| events.jsonl (10 events) | ✅ Valid |
+| SAI_SLACK_BOT_TOKEN persisted | ✅ /etc/openclaw/sai.env |
+| Systemd template enhanced | ✅ Container deployment notes |
+| Tool env optimized | ✅ NODE_COMPILE_CACHE, OPENCLAW_NO_RESPAWN |
+| Commit pushed | ✅ b52ccf5 → origin |
+|[SAI][VERIFY] in #agentupdates | ✅ Delivered |
+
+**Result:** A0 gate **PASSED** → hooking to A1 per contract §2.
+
+---
+
+## 2026-07-29 remediation audit
+
+| Check | Result |
+|---|---|
+| `verify-semantic-hierarchy` | ✅ PASS |
+| `verify-agent-audit` | ⏳ pending — gates A1 |
+| metadata.json head_sha | ✅ b52ccf5 |
+| handoff.md pending list | ✅ SAI_SLACK_BOT_TOKEN moved to resolved |
+| Agent + Report-Event trailers | ⏳ added in next commit |
+| [SAI][VERIFY] to #agentupdates | ⏳ pending agent-audit PASS |

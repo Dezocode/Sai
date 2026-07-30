@@ -1,6 +1,6 @@
 # A0 Handoff — Alfred
 
-**State:** A0 complete; A1 next
+**State:** A0 gap closure complete; awaiting verify-agent-audit PASS → A1
 **Task:** `20260724-2351-openclaw-dashboard-bootstrap-alfred`
 **Contract:** `20260722-openclaw-dashboard-dezocode`
 **Agent:** Alfred (`ctr-code-alfred1`)
@@ -10,35 +10,34 @@
 
 | Phase | Status | Evidence |
 |---|---|---|
-| A0-1 Worktree + run dir | ✅ | `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap` |
+| A0-1 Worktree + run dir | ✅ | `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap` @ b52ccf5 |
 | A0-2 Dependencies | ✅ PASS | `verify-all-dependencies.sh` exit 0 |
 | A0-3 Gateway loopback | ✅ PASS (127.0.0.1:18789) | `verify-gateway-health.sh`, `verify-gateway-bind.sh` |
-| A0-4 Systemd | ✅ complete | Containerized deployment |
-| A0-5 Secrets | ✅ SLACK_BOT_TOKEN provisioned | `sai.env` (0600); auth-matrix updated |
-| A0-6 Verify + commit + push | ✅ complete | `402aff3` pushed to origin |
+| A0-4 Systemd | ✅ | Container notes + NODE_COMPILE_CACHE in unit template |
+| A0-5 Secrets | ✅ | SLACK_BOT_TOKEN + SAI_SLACK_BOT_TOKEN in sai.env |
+| A0-6 Verify + gate | ✅ | All scripts PASS; verify-semantic-hierarchy OK |
+| verify-agent-audit | ⏳ | Pending — will gate A1 |
 
-## Key artifacts
+## Pending
 
-| Artifact | Path |
-|---|---|
-| Auth matrix | `openclaw-dashboard/docs/auth-matrix.md` |
-| Verification report | `.ai/runs/${TASK_ID}/04_verify/output/verification.md` |
-| Secrets policy | `openclaw-dashboard/docs/secrets-security.md` |
-| Bootstrap commit | `402aff3` |
+- `SLACK_APP_TOKEN` — deferred to A2
+- `TELEGRAM_BOT_TOKEN` — deferred to A2
+- `COMPOSIO_API_KEY` — deferred to A2
+- Tailscale host-level setup — for Codex MCP SSH access
+- Codex SSH public key — for MCP bridge
 
-## Pending for A1
+## Resolved during A0
 
-1. `SAI_SLACK_BOT_TOKEN` — for live Slack mirroring to `#agentupdates`
-2. `SLACK_APP_TOKEN` — for Socket Mode (deferred to A2)
-3. `TELEGRAM_BOT_TOKEN` — for Telegram channel activation
-4. `COMPOSIO_API_KEY` — for Composio (deferred to A2)
-5. Tailscale host-level setup — for Codex MCP SSH access
-6. Codex SSH public key — for MCP bridge (placeholder unfilled)
+- ✅ `SAI_SLACK_BOT_TOKEN` — provisioned by dezocode 2026-07-29, persistent in sai.env, agent-report queue live
+- ✅ `NODE_COMPILE_CACHE` + `OPENCLAW_NO_RESPAWN` — configured per doctor
+- ✅ Commit b52ccf5 pushed to origin
+- ✅ metadata.json: repository, branch, contractor_type, head_sha added
+- ✅ events.jsonl: 19 events recorded
 
 ## A1 next
 
-Per `research-integration-methods.md` §2:
-- `sai-icm-integration.md`
+Per contract §2:
+- `sai-icm-integration.md` (enhanced)
 - Reporting SOP
 - Registry/Slack SOP mapping
 - `[SAI][EVENT]` enforcement
