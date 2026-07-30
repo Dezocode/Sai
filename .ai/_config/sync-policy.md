@@ -73,3 +73,6 @@ checksum (SHA-256), timestamp (UTC ISO-8601), and status.
 Drive remote (e.g. an `rclone` remote named in `SAI_DRIVE_REMOTE`); when
 credentials are absent it records the sync as `pending` and exits without
 error, so missing Drive access never blocks Git work.
+
+**Operator setup:** `.ai/shared/references/drive-memory-bank-setup.md`  
+**Scaffold check:** `scripts/agent-drive-scaffold`

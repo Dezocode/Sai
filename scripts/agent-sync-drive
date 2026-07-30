@@ -91,5 +91,39 @@ fi
 echo "$CHECKSUM  $(basename "$BUNDLE")" > "$WORK/checksum.txt"
 rclone copy "$WORK/checksum.txt" "$DRIVE_REMOTE/checksums/" --checksum
 
+# Update top-level manifest (sync-policy layout).
+MANIFEST="$WORK/manifest.json"
+python3 - "$MANIFEST" "$REPO_KEY" "$SHA" "$SHORT_SHA" "$BRANCH" "$TS" "$CHECKSUM" "$REPO_ROOT" <<'PY'
+import json, sys
+from pathlib import Path
+
+out, repo_key, sha, short_sha, branch, ts, checksum, repo_root = sys.argv[1:9]
+root = Path(repo_root)
+agents = []
+for mem in sorted(root.glob(".ai/agents/*/memory/manifest.json")):
+    try:
+        m = json.loads(mem.read_text())
+        agents.append({
+            "agent_id": m.get("agent_id"),
+            "folder": m.get("folder"),
+            "drive_mirror_path": m.get("drive_mirror_path"),
+        })
+    except Exception:
+        pass
+doc = {
+    "repository_key": repo_key,
+    "commit_sha": sha,
+    "commit_sha_short": short_sha,
+    "branch": branch,
+    "synced_at": ts,
+    "bundle_checksum_sha256": checksum,
+    "drive_layout_version": 1,
+    "agents_mirrored": agents,
+    "policy": ".ai/_config/sync-policy.md",
+}
+Path(out).write_text(json.dumps(doc, indent=2) + "\n")
+PY
+rclone copy "$MANIFEST" "$DRIVE_REMOTE/" --checksum
+
 report "synced" "$CHECKSUM"
 echo "agent-sync-drive: synced $REPO_KEY@$SHORT_SHA bundle sha256=$CHECKSUM -> $DEST"

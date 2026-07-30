@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# agent-drive-scaffold — validate per-agent memory trees and print the Drive
+# memory-bank layout that agent-sync-drive will mirror.
+#
+# Usage: agent-drive-scaffold [--check-only]
+#
+# Does not require Drive credentials. Use before first agent-sync-drive run
+# to confirm every registered agent has .ai/agents/<name>/memory/.
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+CHECK_ONLY=0
+[ "${1:-}" = "--check-only" ] && CHECK_ONLY=1
+
+REGISTRY="$REPO_ROOT/.ai/agents/registry.json"
+[ -f "$REGISTRY" ] || { echo "agent-drive-scaffold: missing $REGISTRY" >&2; exit 1; }
+
+python3 - "$REGISTRY" "$REPO_ROOT" "$CHECK_ONLY" <<'PY'
+import json, sys
+from pathlib import Path
+
+registry_path, repo_root, check_only = sys.argv[1], Path(sys.argv[2]), int(sys.argv[3])
+agents = json.load(open(registry_path))["agents"]
+missing = []
+rows = []
+
+for a in agents:
+    aid = a["agent_id"]
+    folder = a.get("folder", "")
+    mem = repo_root / folder / "memory" / "manifest.json"
+    if not mem.is_file():
+        missing.append((aid, folder))
+        status = "MISSING"
+        drive_path = f"SAI/agents/{aid}/memory/"
+    else:
+        m = json.load(open(mem))
+        drive_path = m.get("drive_mirror_path", f"SAI/agents/{aid}/memory/")
+        status = "OK"
+    rows.append((aid, a.get("name", "?"), status, drive_path))
+
+print("SAI Drive memory bank (mirrors .ai/ after agent-sync-drive):\n")
+print("SAI/")
+print("  manifest.json                    <- repo sync manifest (written on sync)")
+print("  repositories/dezocode-sai/")
+print("    memory/                        <- .ai/shared/memory/")
+print("    audit/                         <- .ai/audit/")
+print("    bundles/                       <- immutable git bundles")
+print("  contracts/                       <- .ai/contracts/")
+print("  projects/                        <- .ai/projects/")
+print("  agents/")
+for aid, name, status, drive_path in rows:
+    mark = "✓" if status == "OK" else "✗"
+    rel = drive_path.removeprefix("SAI/").rstrip("/")
+    print(f"    {rel:<40} # {name} ({aid}) [{mark}]")
+print("  checksums/")
+print()
+
+if missing:
+    print("MISSING memory scaffolds (run agent-memory-scaffold):", file=sys.stderr)
+    for aid, folder in missing:
+        print(f"  --agent-id {aid} --folder {folder}", file=sys.stderr)
+    sys.exit(1)
+
+print("agent-drive-scaffold: all registered agents have memory/ manifests.")
+PY
