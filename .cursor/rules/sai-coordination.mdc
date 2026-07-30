@@ -14,7 +14,8 @@ matches your role in `.ai/agents/_roles/` (`ceo`, `secretary-dezocode`,
 **Contractor agents** (`ctr-code-*`, `ctr-design-*`): if your agent ID matches,
 execute `.ai/ONBOARDING.md` (not `INITIALIZE.md` alone). Include `contract_id`,
 `project_slug`, `contractor_type`, and `isolation_mode` in every run's
-`metadata.json`. Run `scripts/agent-contract-pr-review` on every PR.
+`metadata.json`. Run `scripts/agent-contract-pr-review` on every PR. Do not
+begin implementation until ONBOARDING persona gate and Sai CONTRACT audit PASS.
 
 **@agentname convention:** when a user attaches `.ai/agents/<name>/` or types
 `@<name>` in Cursor Desktop, load that agent's `AGENT.md` first, then

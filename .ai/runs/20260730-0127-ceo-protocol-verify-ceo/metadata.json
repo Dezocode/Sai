@@ -1,0 +1,16 @@
+{
+  "task_id": "20260730-0127-ceo-protocol-verify-ceo",
+  "agent": "ceo",
+  "agent_name": "Sai",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-standards-9be2",
+  "head_sha": "pending",
+  "status": "in_progress",
+  "purpose": "Scheduled CEO protocol verify + INITIALIZE.md hardening from contractor audit findings",
+  "claimed_files": [
+    ".ai/INITIALIZE.md",
+    ".ai/shared/memory/known-issues.md",
+    ".cursor/rules/sai-coordination.mdc",
+    ".ai/runs/20260730-0127-ceo-protocol-verify-ceo/"
+  ]
+}

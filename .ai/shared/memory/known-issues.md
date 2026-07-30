@@ -5,6 +5,12 @@
 
 ## Open
 
+- **Alfred bootstrap CI — missing `Agent:` trailer** (Cora audit 2026-07-29,
+  run 30467627826): commit `b52ccf5` on
+  `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap` has `Task-ID` but no
+  `Agent:` trailer; `verify-agent-audit` fails. Remediation: amend with
+  `Agent: alfred` and update `metadata.json` `head_sha` to match remote tip.
+  INITIALIZE.md standing obligations now include an explicit example.
 - **Contract shell allowlist `git branch` wildcards** (CTO P1 PR #15, 2026-07-17):
   `Bash(git branch proj/…/*)` in Phase-5B allowlists can match destructive
   `git branch <prefix> -D <victim>`. Remediation: use `--list` / `checkout -b`
