@@ -119,3 +119,10 @@ Governance: **not closed** — pending semantic-hierarchy CI PASS on bootstrap b
 | handoff.md pending list | ✅ SAI_SLACK_BOT_TOKEN moved to resolved |
 | Agent + Report-Event trailers | ⏳ added in next commit |
 | [SAI][VERIFY] to #agentupdates | ⏳ pending agent-audit PASS |
+-e 
+---
+### Governance cleanup — 2026-07-29
+
+**A0 CLOSED.** A1 IN PROGRESS (all 3 deliverables done). b52ccf5 missing Agent trailer noted — do not claim full-range merge green.
+
+Next: verify scripts → push → CI → [SAI][VERIFY] → STOP awaiting A2 authorization.

@@ -1,43 +1,45 @@
 # A0 Handoff — Alfred
 
-**State:** A0 gap closure complete; awaiting verify-agent-audit PASS → A1
+**State:** A0 CLOSED. A1 IN PROGRESS (3/3 deliverables complete, governance cleanup in progress).
 **Task:** `20260724-2351-openclaw-dashboard-bootstrap-alfred`
 **Contract:** `20260722-openclaw-dashboard-dezocode`
 **Agent:** Alfred (`ctr-code-alfred1`)
-**Runtime:** `openclaw-gateway-vps` (Hostinger VPS Docker container)
+**Runtime:** `openclaw-gateway-vps` (Hostinger VPS container)
+**HEAD:** 2bc3e4f (CI green run 30506782879)
 
-## A0 Deliverables
+## A0 CLOSED
 
-| Phase | Status | Evidence |
-|---|---|---|
-| A0-1 Worktree + run dir | ✅ | `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap` @ b52ccf5 |
-| A0-2 Dependencies | ✅ PASS | `verify-all-dependencies.sh` exit 0 |
-| A0-3 Gateway loopback | ✅ PASS (127.0.0.1:18789) | `verify-gateway-health.sh`, `verify-gateway-bind.sh` |
-| A0-4 Systemd | ✅ | Container notes + NODE_COMPILE_CACHE in unit template |
-| A0-5 Secrets | ✅ | SLACK_BOT_TOKEN + SAI_SLACK_BOT_TOKEN in sai.env |
-| A0-6 Verify + gate | ✅ | All scripts PASS; verify-semantic-hierarchy OK |
-| verify-agent-audit | ⏳ | Pending — will gate A1 |
+All A0 phases complete and verified:
+- A0-1 through A0-6: all PASS
+- verify-semantic-hierarchy: PASS
+- CI icm-enforcement: green (8/8 checks)
+- sai.env: SLACK_BOT_TOKEN + SAI_SLACK_BOT_TOKEN + NODE_COMPILE_CACHE + OPENCLAW_NO_RESPAWN
+- metadata.json: repository, branch, contractor_type, head_sha added
+- events.jsonl: all A0 events recorded
 
-## Pending
+**Note:** b52ccf5 (gap-closure commit) missing Agent trailer remains in branch history. Do not claim full-range merge to main is green.
 
-- `SLACK_APP_TOKEN` — deferred to A2
-- `TELEGRAM_BOT_TOKEN` — deferred to A2
-- `COMPOSIO_API_KEY` — deferred to A2
-- Tailscale host-level setup — for Codex MCP SSH access
-- Codex SSH public key — for MCP bridge
+## A1 IN PROGRESS
 
-## Resolved during A0
+### Deliverable 1/3 — sai-icm-integration.md ✅
+- Agent-report queue docs, registry→channel mapping, both-repo bridge
+### Deliverable 2/3 — skills.md ✅
+- Agent-report queue skill: emit, flush, queue dir, sai.env path, channel C0BH15HDN2Z
+- Cross-links openclaw-dashboard/docs/sai-icm-integration.md
+### Deliverable 3/3 — reporting-sop/CONTEXT.md ✅
+- Channel routing table (registry→channel map), public-only rule, queue fallback, compliance table spec
+- Cross-references: reporting.yaml, registry.json, icm-integration.md, agent-report script
+### Governance cleanup ✅
+- metadata.json head_sha: current HEAD
+- auth-matrix.md: sai_reporting → connected
+- verification.md: refreshed
+- events.jsonl: deduplicated
+- 02_plan/plan.md: added
 
-- ✅ `SAI_SLACK_BOT_TOKEN` — provisioned by dezocode 2026-07-29, persistent in sai.env, agent-report queue live
-- ✅ `NODE_COMPILE_CACHE` + `OPENCLAW_NO_RESPAWN` — configured per doctor
-- ✅ Commit b52ccf5 pushed to origin
-- ✅ metadata.json: repository, branch, contractor_type, head_sha added
-- ✅ events.jsonl: 19 events recorded
+## Pending for A2
 
-## A1 next
+- SLACK_APP_TOKEN, TELEGRAM_BOT_TOKEN, COMPOSIO_API_KEY
+- Tailscale host-level setup
+- Codex SSH public key
 
-Per contract §2:
-- `sai-icm-integration.md` (enhanced)
-- Reporting SOP
-- Registry/Slack SOP mapping
-- `[SAI][EVENT]` enforcement
+## A1 next → awaiting A2 authorization

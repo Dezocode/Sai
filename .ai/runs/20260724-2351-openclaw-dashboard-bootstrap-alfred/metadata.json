@@ -5,7 +5,7 @@
   "repository": "Dezocode/Sai",
   "branch": "proj/openclaw-dashboard/ctr-code-alfred1/bootstrap",
   "contractor_type": "code-agent",
-  "head_sha": "b52ccf5",
+  "head_sha": "2bc3e4f",
   "isolation_mode": "prototype",
   "architecture_classification": "isolated_prototype",
   "stack_criteria_status": "proposed-not-canonical",

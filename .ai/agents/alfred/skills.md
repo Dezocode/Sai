@@ -7,6 +7,7 @@
 - **Telegram session bot** — message **contract sender (dezocode)** every run stage within 60s; on BLOCKED send MCQ with **complete plans** + continuation checkpoint; resume train of thought on reply ([BEHAVIORS.md](./runtimes/openclaw/telegram/BEHAVIORS.md), [BLOCKED-MCQ-CONTINUATION.md](./runtimes/openclaw/telegram/BLOCKED-MCQ-CONTINUATION.md), [telegram-session-protocol.md](../../../openclaw-dashboard/docs/telegram-session-protocol.md))
 - **Fleet coherence** — provision subagents with identical ICM+Telegram+Slack protocols; prove via `fleet-coherence-gate.sh`
 - **OpenClaw Gateway ops** — VPS bootstrap, channels, host CLI ingest
+- **Agent-report queue** — \`scripts/agent-report\` emit/flush; queue dir \`.git/agent-events/queue/\`; token path \`/etc/openclaw/sai.env\` (\`SAI_SLACK_BOT_TOKEN\`); channel \`C0BH15HDN2Z\` (#agentupdates); idempotent FIFO delivery; cross-ref \`openclaw-dashboard/docs/sai-icm-integration.md\`
 - **Product ICM** — `openclaw-dashboard/ICM-HANDBOOK.md`; per-tab CONTEXT/BUILD
 
 ## Dashboard-specific skills
