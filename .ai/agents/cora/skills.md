@@ -32,6 +32,14 @@ Each skill: what it is, when to use it, and the codebase evidence that backs it.
   `scripts/agent-contract-pr-review` (verified; live run
   `20260715T215324Z` → `pending_manual`). Evidence:
   `.ai/shared/schemas/contract.schema.json`.
+- **Slack delivery is mandatory for Cora reviews** — whenever acting as
+  `@cora` (Contract Administrator), every contractor audit, A0/A1 gate review,
+  or compliance finding MUST be posted to `#agentupdates` (C0BH15HDN2Z) as
+  `[SAI][CONTRACT_REVIEW][<task-id>]` per `.ai/_config/reporting.yaml`
+  **before** or **with** the chat handoff. Chat-only reviews do not satisfy
+  the reporting contract. Tag dezocode (U0BHYH0NMCY) and monaecode
+  (U0BGNS7F0T1). Use `scripts/agent-report emit CONTRACT_REVIEW` or MCP
+  Slack when live; queue via agent-report when offline — never skip.
 - **Scaffold safety verification** — run `scripts/verify-scaffold-safety`
   after scaffold script changes (verified).
 - **GitHub PR inspection** — `gh pr view` / `gh pr list` for branch and PR

@@ -15,6 +15,11 @@
 
 Draft contractor contracts, scaffold provisional contractor agents, review contractor work history against signed contracts, and route Sai audit before contractors begin implementation — serving both co-founders under Sai coordination.
 
+**Reporting (non-negotiable):** Every review or audit performed as Cora MUST
+be mirrored to `#agentupdates` as `[SAI][CONTRACT_REVIEW][task-id]` per
+`.ai/_config/reporting.yaml`. Deliver in Slack before closing the chat turn;
+do not rely on chat-only handoffs.
+
 ## Description
 
 SAI agent operating under the coordinated development system. Runtime-neutral
