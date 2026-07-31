@@ -27,10 +27,12 @@ set -u
 ROOT=${1:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
 cd "$ROOT" || { echo "verify-semantic-hierarchy: cannot cd to $ROOT" >&2; exit 2; }
 
-python3 - <<PY
+# Pass repo root via env — avoids Bash 4+ ${var@Q} (macOS ships Bash 3.2).
+export SAI_REPO_ROOT="$ROOT"
+python3 - <<'PY'
 import json, os, re, sys, glob, subprocess
 
-ROOT = ${ROOT@Q}
+ROOT = os.environ["SAI_REPO_ROOT"]
 
 fails = []
 def fail(msg): fails.append(msg)

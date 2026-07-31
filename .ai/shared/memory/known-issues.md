@@ -5,6 +5,9 @@
 
 ## Open
 
+- **PR #54 agent-init standards — pending Saul re-review** (2026-07-31):
+  Remediation pushed to `cursor/agent-initialization-standards-9991`; awaits
+  fresh CTO review at new head before merge.
 - **Alfred bootstrap CI — missing `Agent:` trailer** (Cora audit 2026-07-29,
   run 30467627826): commit `b52ccf5` on
   `proj/openclaw-dashboard/ctr-code-alfred1/bootstrap` has `Task-ID` but no

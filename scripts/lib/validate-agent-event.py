@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Validate one agent event dict against agent-event.schema.json (stdlib only).
 
+Loads .ai/shared/schemas/agent-event.schema.json at startup and validates
+events against its required fields, enums, patterns, and additionalProperties.
+
 Usage:
   validate-agent-event.py [--self-test]
   echo '{"event_id":...}' | validate-agent-event.py
@@ -16,31 +19,39 @@ import json
 import re
 import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
-SCHEMA_PATH = ".ai/shared/schemas/agent-event.schema.json"
+SCHEMA_REL = ".ai/shared/schemas/agent-event.schema.json"
 
-EVENT_TYPES = {
-    "INTAKE", "PLAN", "WORKTREE", "CHANGE", "COMMIT", "PUSH", "PR",
-    "VERIFY", "SYNC", "CONFLICT", "BLOCKED", "HANDOFF", "BYPASS",
-    "CONTRACT", "CONTRACT_REVIEW", "PERSONA_GATE",
-}
-DRIVE_STATUSES = {"pending", "synced", "failed", "diverged", "not-applicable"}
-TASK_ID = re.compile(r"^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$")
-REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+
+def _repo_root() -> Path:
+    here = Path(__file__).resolve().parent
+    for parent in [here, *here.parents]:
+        candidate = parent / SCHEMA_REL
+        if candidate.is_file():
+            return parent
+    return Path.cwd()
+
+
+def _load_schema() -> dict[str, Any]:
+    path = _repo_root() / SCHEMA_REL
+    if not path.is_file():
+        raise FileNotFoundError(f"schema not found: {path}")
+    with path.open(encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+SCHEMA = _load_schema()
+EVENT_TYPES = set(SCHEMA["properties"]["event_type"]["enum"])
+DRIVE_STATUSES = set(SCHEMA["properties"]["drive_status"]["enum"])
+REQUIRED = tuple(SCHEMA["required"])
+ALLOWED_TOP = set(SCHEMA["properties"])
+TASK_ID = re.compile(SCHEMA["properties"]["task_id"]["pattern"])
+REPOSITORY = re.compile(SCHEMA["properties"]["repository"]["pattern"])
 SHA = re.compile(r"^[0-9a-f]{7,40}$")
-ISO8601_Z = re.compile(
-    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$"
-)
-
-ALLOWED_TOP = {
-    "event_id", "event_type", "task_id", "actor", "repository", "branch",
-    "worktree", "base_sha", "commit_sha", "timestamp", "purpose",
-    "justification", "scope", "result", "verification", "git_refs",
-    "drive_status", "drive_checksum", "risks", "review_gate",
-    "parent_event_id", "contract_id", "project_slug",
-}
-ALLOWED_GIT_REFS = {"commit_url", "push_range", "pr_url"}
+ISO8601_Z = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$")
+ALLOWED_GIT_REFS = set(SCHEMA["properties"]["git_refs"]["properties"])
 
 
 def _fail(errors: list[str], path: str, msg: str) -> None:
@@ -64,16 +75,13 @@ def validate_event(doc: Any, *, path: str = "$") -> list[str]:
     if extra:
         _fail(errors, path, f"additional properties not allowed: {sorted(extra)}")
 
-    required = (
-        "event_id", "event_type", "task_id", "actor", "repository",
-        "timestamp", "purpose", "result",
-    )
-    for key in required:
+    for key in REQUIRED:
         if key not in doc:
             _fail(errors, path, f"missing required field '{key}'")
 
     if "event_id" in doc:
-        _check_str(errors, f"{path}.event_id", doc["event_id"], min_len=8)
+        min_len = SCHEMA["properties"]["event_id"].get("minLength", 0)
+        _check_str(errors, f"{path}.event_id", doc["event_id"], min_len=min_len)
 
     if "event_type" in doc:
         _check_str(errors, f"{path}.event_type", doc["event_type"])
@@ -163,6 +171,10 @@ def _valid_sample() -> dict[str, Any]:
 def self_test() -> int:
     failures = 0
 
+    if not (_repo_root() / SCHEMA_REL).is_file():
+        print(f"SELF-TEST FAIL: schema missing at {SCHEMA_REL}", file=sys.stderr)
+        return 1
+
     if validate_event(_valid_sample()):
         print("SELF-TEST FAIL: valid sample rejected", file=sys.stderr)
         failures += 1
@@ -188,7 +200,7 @@ def self_test() -> int:
     if failures:
         print(f"validate-agent-event: SELF-TEST FAILED ({failures} problem(s))", file=sys.stderr)
         return 1
-    print("validate-agent-event: SELF-TEST OK")
+    print(f"validate-agent-event: SELF-TEST OK (schema loaded from {SCHEMA_REL})")
     return 0
 
 
