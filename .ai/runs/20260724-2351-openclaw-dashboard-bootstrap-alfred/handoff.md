@@ -1,11 +1,11 @@
-# A0 Handoff — Alfred
+# A2 Handoff — Alfred
 
-**State:** A0 CLOSED. A1 IN PROGRESS (3/3 deliverables complete, governance cleanup in progress).
+**State:** A0 CLOSED. A1 CLOSED @ cb90ed2. A2 IN PROGRESS.
 **Task:** `20260724-2351-openclaw-dashboard-bootstrap-alfred`
 **Contract:** `20260722-openclaw-dashboard-dezocode`
 **Agent:** Alfred (`ctr-code-alfred1`)
 **Runtime:** `openclaw-gateway-vps` (Hostinger VPS container)
-**HEAD:** 2bc3e4f (CI green run 30506782879)
+**HEAD:** cb90ed2
 
 ## A0 CLOSED
 
@@ -19,13 +19,12 @@ All A0 phases complete and verified:
 
 **Note:** b52ccf5 (gap-closure commit) missing Agent trailer remains in branch history. Do not claim full-range merge to main is green.
 
-## A1 IN PROGRESS
+## A1 CLOSED
 
 ### Deliverable 1/3 — sai-icm-integration.md ✅
 - Agent-report queue docs, registry→channel mapping, both-repo bridge
 ### Deliverable 2/3 — skills.md ✅
 - Agent-report queue skill: emit, flush, queue dir, sai.env path, channel C0BH15HDN2Z
-- Cross-links openclaw-dashboard/docs/sai-icm-integration.md
 ### Deliverable 3/3 — reporting-sop/CONTEXT.md ✅
 - Channel routing table (registry→channel map), public-only rule, queue fallback, compliance table spec
 - Cross-references: reporting.yaml, registry.json, icm-integration.md, agent-report script
@@ -36,10 +35,18 @@ All A0 phases complete and verified:
 - events.jsonl: deduplicated
 - 02_plan/plan.md: added
 
-## Pending for A2
+## A2 IN PROGRESS
 
-- SLACK_APP_TOKEN, TELEGRAM_BOT_TOKEN, COMPOSIO_API_KEY
-- Tailscale host-level setup
-- Codex SSH public key
+### Scope
+1. Composio MCP/tool-router on VPS (`COMPOSIO_API_KEY` present in sai.env).
+2. Scaffold `openclaw-dashboard/integrations/composio/{telegram,googledrive,notebook}/` with README + connector stubs.
+3. Write `openclaw-dashboard/docs/composio-auth.md` (Connect Link flow, sai.env vars, dual-path Telegram).
+4. Wire Auth hub stub: `openclaw-dashboard/settings/auth/` toolkit tiles Connected|Pending|Blocked.
+5. Update `openclaw-dashboard/docs/auth-matrix.md` status-only.
 
-## A1 next → awaiting A2 authorization
+### Pending
+- OAuth approval for toolkits: googledrive, notebook/Google AI, telegram-dashboard.
+- Live test calls after dezocode approval.
+- Do not start A3 until A2 VERIFY confirmed by human.
+
+## A3 next → awaiting A2 verify
