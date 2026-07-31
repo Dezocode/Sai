@@ -2,7 +2,8 @@
 """Validate one agent event dict against agent-event.schema.json (stdlib only).
 
 Loads .ai/shared/schemas/agent-event.schema.json at startup and validates
-events against its required fields, enums, patterns, and additionalProperties.
+events by walking the schema — required fields, enums, patterns, formats,
+and additionalProperties are all derived from the loaded schema.
 
 Usage:
   validate-agent-event.py [--self-test]
@@ -43,116 +44,86 @@ def _load_schema() -> dict[str, Any]:
 
 
 SCHEMA = _load_schema()
-EVENT_TYPES = set(SCHEMA["properties"]["event_type"]["enum"])
-DRIVE_STATUSES = set(SCHEMA["properties"]["drive_status"]["enum"])
-REQUIRED = tuple(SCHEMA["required"])
-ALLOWED_TOP = set(SCHEMA["properties"])
-TASK_ID = re.compile(SCHEMA["properties"]["task_id"]["pattern"])
-REPOSITORY = re.compile(SCHEMA["properties"]["repository"]["pattern"])
-SHA = re.compile(r"^[0-9a-f]{7,40}$")
-ISO8601_Z = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$")
-ALLOWED_GIT_REFS = set(SCHEMA["properties"]["git_refs"]["properties"])
 
 
 def _fail(errors: list[str], path: str, msg: str) -> None:
     errors.append(f"{path}: {msg}")
 
 
-def _check_str(errors: list[str], path: str, value: Any, *, min_len: int = 0) -> None:
-    if not isinstance(value, str):
-        _fail(errors, path, "must be a string")
+def _parse_rfc3339(value: str) -> bool:
+    """Return True when value is a parseable RFC3339 / ISO8601 date-time."""
+    candidate = value
+    if candidate.endswith("Z"):
+        candidate = candidate[:-1] + "+00:00"
+    try:
+        datetime.fromisoformat(candidate)
+    except ValueError:
+        return False
+    return True
+
+
+def _validate_schema(value: Any, schema: dict[str, Any], path: str, errors: list[str]) -> None:
+    schema_type = schema.get("type")
+
+    if schema_type == "object":
+        if not isinstance(value, dict):
+            _fail(errors, path, "must be a JSON object")
+            return
+        props = schema.get("properties", {})
+        allowed = set(props)
+        if schema.get("additionalProperties") is False:
+            extra = set(value) - allowed
+            if extra:
+                _fail(errors, path, f"additional properties not allowed: {sorted(extra)}")
+        for key in schema.get("required", []):
+            if key not in value:
+                _fail(errors, path, f"missing required field '{key}'")
+        for key, subschema in props.items():
+            if key in value:
+                _validate_schema(value[key], subschema, f"{path}.{key}", errors)
         return
-    if len(value) < min_len:
-        _fail(errors, path, f"must be at least {min_len} characters")
+
+    if schema_type == "array":
+        if not isinstance(value, list):
+            _fail(errors, path, "must be an array")
+            return
+        item_schema = schema.get("items", {})
+        for i, item in enumerate(value):
+            _validate_schema(item, item_schema, f"{path}[{i}]", errors)
+        return
+
+    if schema_type == "string":
+        if not isinstance(value, str):
+            _fail(errors, path, "must be a string")
+            return
+        min_len = schema.get("minLength")
+        if min_len is not None and len(value) < min_len:
+            _fail(errors, path, f"must be at least {min_len} characters")
+        pattern = schema.get("pattern")
+        if pattern and not re.fullmatch(pattern, value):
+            _fail(errors, path, "does not match required pattern")
+        fmt = schema.get("format")
+        if fmt == "date-time" and not _parse_rfc3339(value):
+            _fail(errors, path, "must be a valid RFC3339 date-time")
+        enum = schema.get("enum")
+        if enum is not None and value not in enum:
+            _fail(errors, path, f"must be one of {sorted(enum)}")
+        return
+
+    if schema_type is not None:
+        _fail(errors, path, f"unsupported schema type '{schema_type}'")
 
 
 def validate_event(doc: Any, *, path: str = "$") -> list[str]:
     errors: list[str] = []
-    if not isinstance(doc, dict):
-        return [f"{path}: must be a JSON object"]
-
-    extra = set(doc) - ALLOWED_TOP
-    if extra:
-        _fail(errors, path, f"additional properties not allowed: {sorted(extra)}")
-
-    for key in REQUIRED:
-        if key not in doc:
-            _fail(errors, path, f"missing required field '{key}'")
-
-    if "event_id" in doc:
-        min_len = SCHEMA["properties"]["event_id"].get("minLength", 0)
-        _check_str(errors, f"{path}.event_id", doc["event_id"], min_len=min_len)
-
-    if "event_type" in doc:
-        _check_str(errors, f"{path}.event_type", doc["event_type"])
-        if isinstance(doc["event_type"], str) and doc["event_type"] not in EVENT_TYPES:
-            _fail(errors, f"{path}.event_type", f"must be one of {sorted(EVENT_TYPES)}")
-
-    if "task_id" in doc:
-        _check_str(errors, f"{path}.task_id", doc["task_id"])
-        if isinstance(doc["task_id"], str) and not TASK_ID.match(doc["task_id"]):
-            _fail(errors, f"{path}.task_id", "does not match task-id grammar")
-
-    if "actor" in doc:
-        _check_str(errors, f"{path}.actor", doc["actor"])
-
-    if "repository" in doc:
-        _check_str(errors, f"{path}.repository", doc["repository"])
-        if isinstance(doc["repository"], str) and not REPOSITORY.match(doc["repository"]):
-            _fail(errors, f"{path}.repository", "must match owner/repo pattern")
-
-    for key in ("branch", "worktree", "purpose", "justification", "result",
-                "verification", "drive_checksum", "risks", "review_gate",
-                "parent_event_id", "contract_id", "project_slug"):
-        if key in doc:
-            _check_str(errors, f"{path}.{key}", doc[key])
-
-    for key in ("base_sha", "commit_sha"):
-        if key in doc:
-            _check_str(errors, f"{path}.{key}", doc[key])
-            if isinstance(doc[key], str) and not SHA.match(doc[key]):
-                _fail(errors, f"{path}.{key}", "must be a git sha (7-40 hex chars)")
-
-    if "timestamp" in doc:
-        _check_str(errors, f"{path}.timestamp", doc["timestamp"])
-        if isinstance(doc["timestamp"], str):
-            if not ISO8601_Z.match(doc["timestamp"]):
-                _fail(errors, f"{path}.timestamp", "must be ISO8601 UTC (…Z)")
-            else:
-                ts = doc["timestamp"].rstrip("Z")
-                if "." in ts:
-                    ts = ts.split(".")[0]
-                try:
-                    datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
-                except ValueError:
-                    _fail(errors, f"{path}.timestamp", "invalid date-time")
-
-    if "scope" in doc:
-        scope = doc["scope"]
-        if not isinstance(scope, list):
-            _fail(errors, f"{path}.scope", "must be an array")
-        else:
-            for i, item in enumerate(scope):
-                if not isinstance(item, str):
-                    _fail(errors, f"{path}.scope[{i}]", "must be a string")
-
-    if "drive_status" in doc:
-        _check_str(errors, f"{path}.drive_status", doc["drive_status"])
-        if isinstance(doc["drive_status"], str) and doc["drive_status"] not in DRIVE_STATUSES:
-            _fail(errors, f"{path}.drive_status", f"must be one of {sorted(DRIVE_STATUSES)}")
-
-    if "git_refs" in doc:
-        refs = doc["git_refs"]
-        if not isinstance(refs, dict):
-            _fail(errors, f"{path}.git_refs", "must be an object")
-        else:
-            ref_extra = set(refs) - ALLOWED_GIT_REFS
-            if ref_extra:
-                _fail(errors, f"{path}.git_refs", f"additional properties not allowed: {sorted(ref_extra)}")
-            for key in refs:
-                _check_str(errors, f"{path}.git_refs.{key}", refs[key])
-
+    _validate_schema(doc, SCHEMA, path, errors)
     return errors
+
+
+def _schema_pattern(field: str) -> str | None:
+    props = SCHEMA.get("properties", {})
+    field_schema = props.get(field, {})
+    return field_schema.get("pattern")
 
 
 def _valid_sample() -> dict[str, Any]:
@@ -179,6 +150,17 @@ def self_test() -> int:
         print("SELF-TEST FAIL: valid sample rejected", file=sys.stderr)
         failures += 1
 
+    offset_sample = dict(_valid_sample(), timestamp="2026-07-30T03:13:00+00:00")
+    if validate_event(offset_sample):
+        print("SELF-TEST FAIL: RFC3339 offset timestamp rejected", file=sys.stderr)
+        failures += 1
+
+    base_sha_pattern = _schema_pattern("base_sha")
+    commit_sha_pattern = _schema_pattern("commit_sha")
+    if not base_sha_pattern or base_sha_pattern != commit_sha_pattern:
+        print("SELF-TEST FAIL: schema drift — base_sha/commit_sha patterns differ or missing", file=sys.stderr)
+        failures += 1
+
     negative_cases = [
         ({}, "empty object"),
         ({"event_id": "short", "event_type": "VERIFY", "task_id": "20260730-0313-x-ceo",
@@ -190,6 +172,7 @@ def self_test() -> int:
         (dict(_valid_sample(), agent_id="slack-mcp-shape"), "additional property agent_id"),
         (dict(_valid_sample(), purpose=None), "null purpose"),
         ({k: v for k, v in _valid_sample().items() if k != "result"}, "missing result"),
+        (dict(_valid_sample(), timestamp="not-a-date"), "invalid timestamp"),
     ]
 
     for doc, label in negative_cases:
