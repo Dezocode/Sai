@@ -1,0 +1,18 @@
+{
+  "task_id": "20260804-1802-pr46-lifecycle-metadata-ctr-admin",
+  "agent": "ctr-admin",
+  "agent_name": "Cora",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/contractor-contract-compliance-aba9",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "project_slug": "splunk-clone",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "status": "published-awaiting-review",
+  "purpose": "Fix PR #46 P1: release false in_progress ownership on completed pr21-handoff CEO run",
+  "requested_by": "dezocode (U0BHYH0NMCY) via Codex PR review thread",
+  "claimed_files": [
+    ".ai/runs/20260722-2304-pr21-handoff-contradiction-ceo/metadata.json",
+    ".ai/runs/20260804-1802-pr46-lifecycle-metadata-ctr-admin/"
+  ]
+}
