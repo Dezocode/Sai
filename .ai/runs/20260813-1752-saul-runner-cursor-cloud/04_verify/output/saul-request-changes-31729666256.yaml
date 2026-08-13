@@ -1,0 +1,33 @@
+reviewer: saul
+runtime: codex
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: 1
+implementation_head: 34b26f5e17c280dc760422fb74a9c8892e606954
+review_type: implementation
+disposition: REQUEST_CHANGES
+findings:
+  - id: CTO-001
+    severity: P1
+    contract_field: human_gate
+    action: add
+    requested_change: "Require every Saul approval used by human_gate() to have codex_invoked: true and synthetic: false explicitly. The current logic checks only disposition, runtime, and a truthy synthetic value, so an APPROVE document with runtime: codex and omitted codex_invoked/synthetic can satisfy the gate without Codex execution. Make these schema-required for Saul reviews and add negative fixtures."
+    authority_expanding: false
+  - id: CTO-002
+    severity: P1
+    contract_field: bootstrap
+    action: narrow
+    requested_change: "Make bootstrap authorization single-use or bind it to an explicit commit/range and automatically disable it after landing. bootstrap.enabled remains true and accepts reusable task IDs with unbound cursor-cloud trailers across broad .ai/, scripts/, .github/, hooks, and tests paths, creating a standing control-plane write bypass contrary to Decision 0006."
+    authority_expanding: false
+  - id: CTO-003
+    severity: P1
+    contract_field: saul_review_workflow
+    action: narrow
+    requested_change: "Skip fork pull requests at the job or workflow level before assigning the self-hosted runner and before checkout. The current if condition protects only the Invoke Codex step; fork PRs still acquire the dedicated self-hosted runner and run checkout, dependency preparation, artifact, comment, and status steps. Add a job-level same-repository condition and a regression check."
+    authority_expanding: false
+codex_invoked: true
+synthetic: false
+idempotency_key: cc2534985593b9ec
+github_run_id: "31729666256"
+github_event: pull_request
+source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5284640842"
+runner_name: hostinger-saul-codex

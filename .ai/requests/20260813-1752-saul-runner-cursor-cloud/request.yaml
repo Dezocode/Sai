@@ -1,0 +1,9 @@
+task_id: 20260813-1752-saul-runner-cursor-cloud
+requested_by: dezocode (U0BHYH0NMCY)
+repository: Dezocode/Sai
+runtime: cursor-cloud-vm
+purpose: 'PR #62 Saul production smoke after real Codex REQUEST_CHANGES'
+required_role: contractor-coding
+state: IMPLEMENTING
+resolved_agent: ctr-code-pr62smoke
+contract_id: 20260813-pr62-saul-smoke

@@ -282,8 +282,10 @@ def human_gate(root, cid=None, sha=None, ci_green=False):
                 if head != sha:
                     fails.append(f"{who} implementation SHA stale ({head} vs {sha})")
         if who == "saul":
-            if revw.get("synthetic"):
+            if revw.get("synthetic") is not False:
                 fails.append("Saul synthetic/fixture approval is not valid")
+            if revw.get("codex_invoked") is not True:
+                fails.append("Saul approval must have codex_invoked: true")
             if revw.get("runtime") != "codex":
                 fails.append("Saul approval must have runtime: codex")
 

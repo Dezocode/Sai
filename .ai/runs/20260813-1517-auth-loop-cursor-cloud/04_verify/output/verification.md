@@ -1,5 +1,9 @@
 # Verification — authorization loop
 
+Continued in `.ai/runs/20260813-1752-saul-runner-cursor-cloud/04_verify/output/verification.md`.
+Production Codex REQUEST_CHANGES: GitHub run **31729666256** on runner
+`hostinger-saul-codex`, `codex_invoked: true`. Not READY.
+
 ## Local commands
 
 ```

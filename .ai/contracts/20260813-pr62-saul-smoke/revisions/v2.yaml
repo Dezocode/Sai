@@ -1,0 +1,36 @@
+contract_id: 20260813-pr62-saul-smoke
+revision: 2
+revision_label: v2
+supersedes_revision: 1
+agent_id: ctr-code-pr62smoke
+contractor_name: ctr-code-pr62smoke
+requested_task: 20260813-1752-saul-runner-cursor-cloud
+allowed_repository: Dezocode/Sai
+allowed_branch_or_worktree: cursor/codebase-health-90ba
+allowed_paths:
+- .ai/runs/**
+- tests/authorization/**
+denied_paths:
+- .ai/agents/saul/**
+- .ai/shared/memory/decisions/**
+capabilities:
+- git-commit
+- git-push
+verification_requirements:
+- scripts/verify-agent-authorization
+- scripts/verify-contract-authorization
+execution_mode: provisional
+amendment_ids:
+- A-002
+review_state:
+  saul:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+  sai:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+cora_admin_complete: false
+created_by: ctr-admin
+created_at: '2026-08-13T18:21:41Z'

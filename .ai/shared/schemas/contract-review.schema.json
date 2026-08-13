@@ -25,5 +25,12 @@
     "github_run_id": { "type": ["string", "integer", "null"] },
     "idempotency_key": { "type": "string" },
     "reason": { "type": "string" }
+  },
+  "if": {
+    "properties": { "reviewer": { "const": "saul" } },
+    "required": ["reviewer"]
+  },
+  "then": {
+    "required": ["codex_invoked", "synthetic"]
   }
 }

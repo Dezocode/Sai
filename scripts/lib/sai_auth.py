@@ -350,7 +350,7 @@ def class_paths(cfg, write_class):
 
 def bootstrap_ok(cfg, trailers, paths):
     boot = cfg.get("bootstrap") or {}
-    if not boot.get("enabled"):
+    if boot.get("standing") is True:
         return False
     task = trailers.get("Task-ID") or trailers.get("Task-Id")
     agent = trailers.get("Agent")

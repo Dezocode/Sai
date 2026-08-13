@@ -1,0 +1,10 @@
+agent_id: ctr-code-pr62smoke
+name: ctr-code-pr62smoke
+role_title: Coding Contractor
+status: provisional
+primary_runtime: cursor-cloud-vm
+contract_id: 20260813-pr62-saul-smoke
+created_by: ctr-admin
+created_at: '2026-08-13T18:21:41Z'
+note: Provisional identity; not a standing officer. Cora must not implement product
+  code as this identity.

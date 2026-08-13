@@ -1,0 +1,25 @@
+{
+  "contract_id": "20260813-pr62-saul-smoke",
+  "project_slug": "pr62-saul-smoke",
+  "project_name": "PR #62 Saul production smoke after real Codex REQUEST_CHANGES",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "primary_runtime": "cursor-cloud-vm",
+  "compatibility_layer": "sai-mac-ios-android",
+  "repository": "Dezocode/Sai",
+  "branch_prefix": "proj/auth/",
+  "status": "draft",
+  "schema_version": 2,
+  "current_revision": "v2",
+  "execution_mode": "provisional",
+  "created_by": "ctr-admin",
+  "contract_admin_agent_id": "ctr-admin",
+  "assigned_contractors": [
+    {
+      "agent_id": "ctr-code-pr62smoke",
+      "status": "provisional",
+      "branch": "cursor/codebase-health-90ba"
+    }
+  ]
+}

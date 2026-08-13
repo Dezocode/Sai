@@ -352,6 +352,39 @@ def run_saul_fixtures():
         if doc3.get("disposition") == "APPROVE":
             raise RuntimeError("fixture APPROVE must not stand")
         print("SELFTEST PASS  saul-refuse-fake-approve")
+        from sai_auth_verify import human_gate
+        d2 = Path(tmp) / "gate"
+        _init(d2)
+        cid2 = _contract(d2)
+        _lease(d2, cid2)
+        fake_ok = {
+            "reviewer": "saul", "runtime": "codex", "disposition": "APPROVE",
+            "contract_id": cid2, "contract_revision": 1, "review_type": "implementation",
+            "implementation_head": a.head_sha(d2), "findings": [],
+        }
+        a.write_yaml(a.reviews_dir(d2, cid2) / "saul-implementation-omit.yaml", fake_ok)
+        a.write_yaml(a.reviews_dir(d2, cid2) / "sai-implementation.yaml", {
+            "reviewer": "sai", "runtime": "cursor-cloud-vm", "disposition": "APPROVE",
+            "contract_id": cid2, "contract_revision": 1, "review_type": "implementation",
+            "implementation_head": a.head_sha(d2),
+        })
+        a.write_yaml(a.reviews_dir(d2, cid2) / "saul-contract.yaml", dict(fake_ok, review_type="contract"))
+        a.write_yaml(a.reviews_dir(d2, cid2) / "sai-contract.yaml", {
+            "reviewer": "sai", "runtime": "cursor-cloud-vm", "disposition": "APPROVE",
+            "contract_id": cid2, "contract_revision": 1, "review_type": "contract",
+        })
+        fails, state = human_gate(d2, cid2, ci_green=True)
+        executed.add("saul-omitted-codex-invoked-blocked")
+        if state == "READY" or not any("codex_invoked" in x for x in fails):
+            raise RuntimeError(f"omitted codex_invoked must block human_gate, got {state} {fails}")
+        print("SELFTEST PASS  saul-omitted-codex-invoked-blocked")
+        wf = Path(__file__).resolve().parents[2] / ".github/workflows/saul-review.yml"
+        text = wf.read_text(encoding="utf-8")
+        job = text.split("invoke-saul:", 1)[1].split("steps:", 1)[0]
+        executed.add("saul-workflow-job-if-same-repo")
+        if "head.repo.full_name" not in job or "github.repository" not in job:
+            raise RuntimeError("saul-review.yml job must skip fork PRs before runs-on")
+        print("SELFTEST PASS  saul-workflow-job-if-same-repo")
     return executed
 
 

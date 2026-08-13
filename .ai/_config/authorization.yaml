@@ -25,6 +25,10 @@ activation:
 
 bootstrap:
   enabled: true
+  standing: false
+  bound_pr: 62
+  disable_after_human_review: true
+  reuse_policy: listed-task-ids-only
   task_ids:
     - "20260813-1517-auth-loop-cursor-cloud"
     - "20260813-1752-saul-runner-cursor-cloud"

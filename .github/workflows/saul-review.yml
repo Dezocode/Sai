@@ -42,6 +42,7 @@ jobs:
     # hostname=c775b2b0df55, /.dockerenv present, docker CLI absent,
     # codex-cli 0.147.0 at /usr/bin/codex, ~/.codex present.
     # Jobs API did not return extra custom labels; do not guess saul-codex.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted]
     timeout-minutes: 45
     steps:
@@ -93,7 +94,6 @@ jobs:
 
       - name: Invoke Codex as Saul
         id: saul
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
