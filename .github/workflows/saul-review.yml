@@ -74,30 +74,18 @@ jobs:
 
       - name: Ensure PyYAML
         run: |
-          set +e
           if python3 -c 'import yaml' 2>/dev/null; then
             python3 -c 'import yaml; print("pyyaml=present", getattr(yaml, "__version__", ""))'
             exit 0
           fi
-          python3 -m ensurepip --user
-          python3 -m pip install --user PyYAML
-          if python3 -c 'import yaml' 2>/dev/null; then
-            python3 -c 'import yaml; print("pyyaml=installed-pip", yaml.__version__)'
-            exit 0
-          fi
-          if command -v sudo >/dev/null 2>&1; then
-            sudo -n apt-get update -qq
-            sudo -n apt-get install -y -qq python3-yaml python3-pip
-          fi
-          if python3 -c 'import yaml' 2>/dev/null; then
-            python3 -c 'import yaml; print("pyyaml=installed-apt", getattr(yaml, "__version__", ""))'
-            exit 0
-          fi
-          curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
-          python3 /tmp/get-pip.py --user
-          python3 -m pip install --user PyYAML
-          python3 -c 'import yaml; print("pyyaml=installed-getpip", yaml.__version__)'
-          set -e
+          mkdir -p /tmp/saul-yaml
+          curl -sS -L -o /tmp/pyyaml.tgz \
+            "https://files.pythonhosted.org/packages/05/8e/961c0007c59b8dd7729d542c61a4d537767a59645b82a0b521206e1e25c2/pyyaml-6.0.3.tar.gz"
+          tar -xzf /tmp/pyyaml.tgz -C /tmp
+          cp -a /tmp/pyyaml-6.0.3/lib/yaml /tmp/saul-yaml/yaml
+          echo "PYTHONPATH=/tmp/saul-yaml${PYTHONPATH:+:$PYTHONPATH}" >> "$GITHUB_ENV"
+          PYTHONPATH="/tmp/saul-yaml${PYTHONPATH:+:$PYTHONPATH}" \
+            python3 -c 'import yaml; print("pyyaml=sdist", yaml.__version__)'
 
       - name: Invoke Codex as Saul
         id: saul
@@ -106,6 +94,7 @@ jobs:
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
           SAI_SAUL_PACKAGE_DIR: /tmp/saul/package
           SAI_SAUL_REVIEW_SCOPE: final
+          PYTHONPATH: /tmp/saul-yaml${{ env.PYTHONPATH && format(':{0}', env.PYTHONPATH) || '' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
         run: |
