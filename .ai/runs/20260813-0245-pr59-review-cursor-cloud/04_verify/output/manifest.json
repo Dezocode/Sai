@@ -1,0 +1,16 @@
+{
+  "task_id": "20260813-0245-pr59-review-cursor-cloud",
+  "stage": "04_verify",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T02:50:00Z",
+  "inputs": [
+    ".ai/shared/references/testing.md",
+    ".ai/runs/20260813-0245-pr59-review-cursor-cloud/05_review/output/review.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-0245-pr59-review-cursor-cloud/04_verify/output/verification.md"
+  ],
+  "status": "complete",
+  "human_edits": "none",
+  "notes": "Subject G00-G15 execution skipped (review-only). Local ICM checks run after commit."
+}

@@ -1,0 +1,17 @@
+{
+  "task_id": "20260813-0245-pr59-review-cursor-cloud",
+  "stage": "06_publish_sync",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T02:52:00Z",
+  "inputs": [
+    ".ai/runs/20260813-0245-pr59-review-cursor-cloud/05_review/output/review.md",
+    ".ai/shared/references/git-workflow.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-0245-pr59-review-cursor-cloud/06_publish_sync/output/publish.md",
+    ".ai/runs/20260813-0245-pr59-review-cursor-cloud/handoff.md"
+  ],
+  "status": "partial",
+  "human_edits": "none",
+  "notes": "Push SHA and review-record PR URL filled after git push."
+}
