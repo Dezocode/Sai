@@ -26,7 +26,8 @@
 
 Under `.ai/runs/<task-id>/`: `metadata.json`, `events.jsonl`, `handoff.md`,
 and one `NN_stage/output/` directory per executed stage. Do not commit large
-generated artifacts, secrets, machine-specific paths, or noisy transcripts.
+generated artifacts, secrets, machine-specific paths, noisy transcripts, or
+personal email addresses. Identify people by username and Slack ID only.
 
 ## Cursor plugins
 

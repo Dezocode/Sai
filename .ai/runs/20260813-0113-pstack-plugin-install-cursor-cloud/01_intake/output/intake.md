@@ -2,7 +2,7 @@
 
 - Task-ID: `20260813-0113-pstack-plugin-install-cursor-cloud`
 - Agent: `cursor-cloud` (unnamed Cloud Agent; not in `registry.json`)
-- Requester: dezocode (`U0BHYH0NMCY`, `dezmondvia@gmail.com`)
+- Requester: dezocode (`U0BHYH0NMCY`)
 - Source: Cursor Cloud Agent run `bc-019ff8a9-0aaa-75f8-806e-b3d9c5f810de` (mobile), prompt: `/add-plugin pstack Install plugin into .ai too make sure it's executable from command input during cloud and local sessions can we do this`
 - Date (UTC): 2026-08-13
 

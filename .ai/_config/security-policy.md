@@ -3,8 +3,9 @@
 ## Secrets and sensitive data
 
 - Never commit, post, mirror, or log credentials, tokens, webhook URLs,
-  private keys, `.env` files, or sensitive diffs. This applies to GitHub,
-  Slack, Google Drive, run artifacts, and durable memory equally.
+  private keys, `.env` files, personal email addresses, or sensitive diffs.
+  This applies to GitHub, Slack, Google Drive, run artifacts, and durable
+  memory equally. Identify people by username and Slack ID.
 - Delivery credentials (Slack tokens, Drive remotes) live outside the
   repository, in environment variables or the operator's tool configuration.
 - `scripts/agent-report` redacts common secret patterns before any event

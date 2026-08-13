@@ -1,0 +1,20 @@
+{
+  "task_id": "20260813-0133-redact-intake-email-cursor-cloud",
+  "stage": "04_verify",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T01:34:30Z",
+  "status": "partial",
+  "inputs": [
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/03_implement/output/changes.md",
+    ".ai/shared/references/testing.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/04_verify/output/verification.md",
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/04_verify/output/manifest.json"
+  ],
+  "decisions": [],
+  "commits": [],
+  "events": [],
+  "human_edits": "none",
+  "notes": "Audit and merge-handoff deferred until the commit exists. Hierarchy and working-tree search passed."
+}
