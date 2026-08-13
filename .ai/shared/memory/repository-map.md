@@ -1,6 +1,8 @@
 # SAI — Repository map
 
-> Verified 2026-07-14 against commit `34827e7` on `Dezocode/Sai:main`.
+> Verified 2026-08-13 against commit on `cursor/pstack-plugin-install-10de`
+> (pstack project plugin + `.ai/plugins/` index). Prior verification:
+> 2026-07-14 against commit `34827e7` on `Dezocode/Sai:main`.
 > Keep current when top-level structure changes.
 
 | Path | Purpose |
@@ -15,9 +17,11 @@
 | `.ai/shared/schemas/` | JSON Schemas for events and stage outputs |
 | `.ai/shared/references/` | Git workflow, testing, release policy, ICM CI policy, **agent-runtimes.md** |
 | `CLAUDE.md` / `CODEX.md` | Layer 0 entry routers for Claude Code and Codex Desktop |
+| `.ai/plugins/` | ICM index of Cursor Marketplace plugins this repo enables (not a Cursor loader) |
 | `.ai/stages/` | Six ICM stage contracts |
 | `.ai/runs/` | Per-task working artifacts (Layer 4) |
 | `.ai/audit/` | Audit trail documentation |
+| `.cursor/settings.json` | Project-scoped Cursor plugins (slash commands for cloud + local) |
 | `.cursor/rules/` | Shared Cursor operating rules |
 | `.githooks/` | Reporting git hooks |
 | `scripts/` | agent-init, agent-scaffold, agent-verify-caps, agent-automation-spec, agent-report, agent-sync-drive, install-agent-hooks, verify-agent-audit, verify-semantic-hierarchy |

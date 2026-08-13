@@ -28,6 +28,17 @@ Under `.ai/runs/<task-id>/`: `metadata.json`, `events.jsonl`, `handoff.md`,
 and one `NN_stage/output/` directory per executed stage. Do not commit large
 generated artifacts, secrets, machine-specific paths, or noisy transcripts.
 
+## Cursor plugins
+
+- Enable marketplace plugins in committed `.cursor/settings.json`
+  (`plugins.<slug>.enabled: true`) so Cloud Agents and local Cursor share
+  the same `/` command input.
+- Index each enabled plugin under `.ai/plugins/<slug>/` (manifest + README).
+  `.ai/plugins/` is documentation, not a Cursor loader.
+- Do not copy plugin skill trees into `.cursor/skills/` (duplicate slash
+  names) or into `.ai/` expecting `/` registration.
+- Do not put plugins in `environment.json`.
+
 ## Documents
 
 - Plain Markdown and JSON as stage interfaces; no binary formats.

@@ -89,6 +89,7 @@ artifacts unless the task explicitly requires it.
   agents/                    <- role charters (_roles/), registry, named agent folders (Layer 1)
   contracts/                 <- versioned contractor contracts (Layer 3)
   projects/                  <- per-project branch indexes and coordination (Layer 3)
+  plugins/                   <- ICM index of Cursor Marketplace plugins this repo enables
   shared/
     memory/                  <- durable architecture, decisions, conventions (Layer 3)
     schemas/                 <- agent-event and stage-output JSON Schemas (Layer 3)
@@ -98,6 +99,7 @@ artifacts unless the task explicitly requires it.
   runs/                      <- per-task artifacts, one folder per task ID (Layer 4)
   audit/                     <- audit trail documentation and committed audit records
 
+.cursor/settings.json                <- project-scoped Cursor plugins (slash commands)
 .cursor/rules/sai-coordination.mdc   <- shared Cursor operating rules
 .githooks/                           <- reporting hooks (install via scripts/install-agent-hooks)
 scripts/                             <- agent-init, agent-report, agent-sync-drive,
