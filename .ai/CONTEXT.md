@@ -87,9 +87,11 @@ artifacts unless the task explicitly requires it.
   CONTEXT.md                 <- you are here (Layer 0)
   INITIALIZE.md              <- read-and-execute protocol for new agents
   ONBOARDING.md              <- read-and-execute protocol for contractor agents
-  _config/                   <- repositories, reporting, sync, security, code-health (Layer 3)
+  _config/                   <- repositories, reporting, sync, security, code-health, authorization (Layer 3)
+  authorizations/            <- tracked officer grants and human authority records
   agents/                    <- role charters (_roles/), registry, named agent folders (Layer 1)
-  contracts/                 <- versioned contractor contracts (Layer 3)
+  contracts/                 <- versioned contractor contracts + remediation queue (Layer 3)
+  requests/                  <- task authorization intake
   projects/                  <- per-project branch indexes and coordination (Layer 3)
   plugins/                   <- ICM index of Cursor Marketplace plugins this repo enables
   shared/

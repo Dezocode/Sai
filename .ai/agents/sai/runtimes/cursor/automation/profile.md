@@ -66,8 +66,17 @@ CONTEXT: read .ai/CONTEXT.md, then .ai/_config/reporting.yaml, then the rule
 SAI_AGENT_ID=ceo-automation for anything you run.
 
 SAI PROTOCOL BLOCK (identical for all SAI automations — do, in order):
+0. CHEAP DISPATCH FIRST (comment 5285843795). Do not reread the whole
+   repo or run CEO protocol until this returns a material transition.
+   Run: `scripts/sai-dispatch-transition --from-file <latest-saul-yaml>`
+   if a real Saul review artifact/comment exists for the current
+   `(contract_revision, implementation_head, findings_digest)`.
+   If output starts with `NOOP` or status is `noop`/`CLAIMED_BY`:
+   post one short `[SAI][VERIFY]` that remediation is already owned,
+   and EXIT. Do not fetch, audit, Drive-sync, or reason over the PR.
+   A repeated trigger is not progress.
 1. git fetch origin main; confirm a clean checkout of Dezocode/Sai. If the
-   repository is unreachable, post BLOCKED (step 5 format) and stop.
+   repository is unreachable, post BLOCKED (step 6 format) and stop.
 2. Run scripts/agent-report flush. Report events delivered vs still queued.
    Never reorder, drop, or fabricate deliveries.
 3. Run scripts/verify-agent-audit origin/main..HEAD and

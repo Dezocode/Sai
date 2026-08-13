@@ -1,0 +1,17 @@
+id: grant-pr62-queue-ceo
+principal: ceo
+principal_name: Sai
+runtime: cursor-cloud-vm
+task_id: 20260813-2015-pr62-queue-ceo
+paths:
+  - ".ai/**"
+  - "AGENTS.md"
+  - "CLAUDE.md"
+  - "CODEX.md"
+  - ".cursor/**"
+actions:
+  - write
+issued_by: dezocode
+issued_at: "2026-08-13T20:15:00Z"
+source: "PR #62 continuation; comments 5285843795 and 5282088737"
+note: Tracked officer grant. Agent trailer alone is not authority (CTO-009).

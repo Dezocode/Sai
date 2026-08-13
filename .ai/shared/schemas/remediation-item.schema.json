@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/remediation-item.schema.json",
+  "title": "SAI remediation queue item",
+  "description": "Durable claimable transition after a real Saul REQUEST_CHANGES. Duplicate eval of the same key is a cheap NOOP.",
+  "type": "object",
+  "required": [
+    "work_item_id", "task_id", "contract_id", "findings_digest",
+    "owner", "state", "source_head"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "work_item_id": { "type": "string" },
+    "task_id": { "type": "string" },
+    "contract_id": { "type": "string" },
+    "source_event_id": { "type": ["string", "null"] },
+    "source_reviewer": { "type": "string" },
+    "source_review_id": { "type": ["string", "null"] },
+    "source_github_run": { "type": "string" },
+    "source_head": { "type": "string" },
+    "source_contract_revision": { "type": ["integer", "string", "null"] },
+    "findings": { "type": "array", "items": { "type": "string" } },
+    "findings_digest": { "type": "string" },
+    "owner": {
+      "type": "string",
+      "enum": ["cora", "contractor", "sai", "human", "external"]
+    },
+    "routing_case": { "type": "string", "enum": ["A", "B", "C", "noop"] },
+    "state": {
+      "type": "string",
+      "enum": [
+        "queued", "claimed", "working", "waiting_external",
+        "completed", "failed", "superseded"
+      ]
+    },
+    "expected_next_state": { "type": "string" },
+    "claimed_by_runtime": { "type": ["string", "null"] },
+    "claim_generation": { "type": "integer" },
+    "attempt": { "type": "integer" },
+    "max_attempts": { "type": "integer" }
+  }
+}

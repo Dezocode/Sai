@@ -22,6 +22,7 @@ scripts, or CI wiring might change. See
 | Code health (bloat, duplicates, orphans, CI coverage) | `scripts/verify-code-health --self-test` then `scripts/verify-code-health` |
 | Agent profiles, Claude SDK scaffold, contracts | `scripts/verify-agent-setup` |
 | Agent authorization (identity, lease, path, revision) | `scripts/verify-agent-authorization --self-test` then `scripts/verify-agent-authorization <range>` |
+| Remediation queue (idempotent claim) | `scripts/sai-dispatch-transition --self-test` |
 | Contract dual-approval human gate | `scripts/verify-contract-authorization --human-gate` |
 | Saul invoke/consume machinery | `scripts/invoke-saul-review --self-test`; `scripts/consume-saul-contract-review --self-test` |
 | Authorization lifecycle A–Y | `tests/authorization/run-e2e` |
