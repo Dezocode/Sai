@@ -49,6 +49,10 @@
         {
           "id": "architecture-selftest",
           "cmd": "python3 scripts/architecture_guard.py self-test"
+        },
+        {
+          "id": "fault-injection-core",
+          "cmd": "python3 scripts/fault_injection.py"
         }
       ]
     },
@@ -67,6 +71,10 @@
         {
           "id": "adapter-integrity",
           "cmd": "python3 scripts/toolchain_manager.py verify-adapters"
+        },
+        {
+          "id": "workflow-pin",
+          "cmd": "python3 scripts/workflow_guard.py"
         }
       ]
     },
@@ -86,7 +94,9 @@
           "id": "tool-lock",
           "cmd": "python3 scripts/toolchain_manager.py verify-lock --allow-unresolved-disabled"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G05",
@@ -104,7 +114,9 @@
           "id": "native-contract",
           "cmd": "python3 scripts/toolchain_manager.py verify-native-contract"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G06",
@@ -126,7 +138,9 @@
           "id": "dep-adapter",
           "cmd": "python3 scripts/toolchain_manager.py check-capability dependency_architecture"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G07",
@@ -139,7 +153,9 @@
           "id": "dead-code-adapter",
           "cmd": "python3 scripts/toolchain_manager.py check-capability dead_code"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G08",
@@ -165,7 +181,9 @@
           "id": "code-budget",
           "cmd": "python3 scripts/code_budget_guard.py"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G09",
@@ -182,7 +200,9 @@
           "id": "secrets",
           "cmd": "python3 scripts/toolchain_manager.py check-capability secrets"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G10",
@@ -199,7 +219,9 @@
           "id": "sbom",
           "cmd": "python3 scripts/toolchain_manager.py verify-sbom"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G11",
@@ -217,7 +239,9 @@
           "id": "sonar",
           "cmd": "python3 scripts/toolchain_manager.py verify-service sonarqube"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G12",
@@ -239,7 +263,9 @@
           "id": "posture",
           "cmd": "python3 scripts/toolchain_manager.py verify-repo-posture"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G13",
@@ -257,7 +283,9 @@
           "id": "dtrack-contract",
           "cmd": "python3 scripts/toolchain_manager.py verify-service dependency-track --contract-only"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G14",
@@ -274,7 +302,9 @@
           "id": "health",
           "cmd": "python3 scripts/health_report.py current"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     },
     {
       "id": "G15",
@@ -291,7 +321,9 @@
           "id": "deep-preunlock",
           "cmd": "python3 scripts/qualityctl.py verify --through G14 --mode deep --no-state-write"
         }
-      ]
+      ],
+      "deferred": true,
+      "deferred_reason": "Supply-chain pin/install (G04+) requires explicit co-founder approval. Executable slice ends at G03."
     }
   ]
 }

@@ -1,0 +1,33 @@
+{
+  "task_id": "20260813-0307-quality-os-improve-cursor-cloud",
+  "agent": "cursor-cloud",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/quality-os-improve-f4b6",
+  "base_sha": "c6736d1b9c967decb9124ed5b8a3d0818d68f3d5",
+  "purpose": "Harden Quality OS executable slice to G03; defer G04+ installs; fix review findings",
+  "status": "implement",
+  "claimed_files": [
+    ".sai-quality/",
+    "scripts/qualityctl.py",
+    "scripts/toolchain_manager.py",
+    "scripts/feature_lock_guard.py",
+    "scripts/fault_injection.py",
+    ".github/workflows/sai-quality-os.yml",
+    ".github/workflows/sai-quality-nightly.yml",
+    ".cursor/rules/95-sai-quality-os.mdc",
+    ".cursor/skills/sai-quality-os/",
+    ".cursor/commands/sai-quality-*.md",
+    ".gitignore",
+    ".ai/shared/memory/decisions/0005-quality-os-control-plane.md",
+    ".ai/shared/memory/architecture.md",
+    "CURSOR_START_PROMPT.md",
+    "MASTER_EXECUTION.md",
+    "BUNDLE_MANIFEST.json",
+    "BUNDLE_SHA256SUMS.txt",
+    ".ai/runs/20260813-0307-quality-os-improve-cursor-cloud/"
+  ],
+  "plan_reference": ".ai/runs/20260813-0307-quality-os-improve-cursor-cloud/02_plan/output/plan.md",
+  "trigger": "dezocode: How do we improve it (Quality OS executable plan after PR 59 review)",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)"
+}

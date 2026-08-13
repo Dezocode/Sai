@@ -1,5 +1,7 @@
 {
   "schema_version": 1,
+  "executable_through": "G03",
+  "g04_plus": "deferred_pending_cofounder_approval",
   "feature_lock": {
     "marker": ".sai-quality/FEATURES_LOCKED",
     "unlock_certificate": ".sai-quality/FEATURES_UNLOCKED.json",

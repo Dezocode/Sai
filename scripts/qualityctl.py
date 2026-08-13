@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import json, sys, subprocess, datetime, hashlib, shutil, argparse, os
+import json, sys, subprocess, datetime, hashlib, shutil, argparse, os, shlex
 ROOT=Path(__file__).resolve().parents[1]
 Q=ROOT/'.sai-quality'; STATE=Q/'runtime/state.json'; GATES=Q/'gates.json'; POLICY=Q/'policies/quality-policy.json'; EVID=Q/'runtime/evidence'
 
@@ -19,8 +19,9 @@ def init():
     if not STATE.exists(): shutil.copy2(Q/'state.template.json',STATE)
     print('state:',STATE.relative_to(ROOT))
 def run_cmd(cmd):
-    p=subprocess.run(cmd,cwd=ROOT,shell=True,text=True,capture_output=True)
-    return {'cmd':cmd,'returncode':p.returncode,'stdout':p.stdout[-20000:],'stderr':p.stderr[-20000:]}
+    argv = shlex.split(cmd) if isinstance(cmd, str) else list(cmd)
+    p = subprocess.run(argv, cwd=ROOT, text=True, capture_output=True)
+    return {'cmd': cmd, 'argv': argv, 'returncode': p.returncode, 'stdout': p.stdout[-20000:], 'stderr': p.stderr[-20000:]}
 def evidence(gate,status,commands,mode):
     key=gitsha() or 'working-tree'; d=EVID/key/gate; d.mkdir(parents=True,exist_ok=True)
     stamp=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
@@ -31,6 +32,18 @@ def gate_index(gates,id):
         if g['id']==id:return i
     raise SystemExit('unknown gate '+id)
 def execute_gate(g,write=True,mode='fast',include_build=False):
+    if g.get('deferred'):
+        reason = g.get('deferred_reason', 'deferred pending co-founder approval')
+        ev = evidence(g['id'], 'DEFERRED', [{'id': 'deferred', 'phase': 'skip', 'cmd': reason, 'returncode': 0}], mode)
+        if write:
+            s = load_state()
+            s['status'] = 'DEFERRED'
+            s['current_gate'] = g['id']
+            s['last_evidence'] = ev
+            save(s)
+        print(f"{g['id']} DEFERRED evidence={ev}")
+        print(reason)
+        return 'deferred'
     commands=[]
     if include_build:
         for a in g.get('build',[]):
@@ -62,7 +75,11 @@ def execute_gate(g,write=True,mode='fast',include_build=False):
 def cumulative(through,mode='fast',write=False):
     gates=load_gates(); idx=gate_index(gates,through); ok=True
     for g in gates[:idx+1]:
-        if not execute_gate(g,write=write,mode=mode,include_build=False): ok=False; break
+        result=execute_gate(g,write=write,mode=mode,include_build=False)
+        if result=='deferred':
+            ok=False; break
+        if not result:
+            ok=False; break
     return ok
 
 def cmd_build(through):
@@ -71,7 +88,14 @@ def cmd_build(through):
     for i,g in enumerate(gates[:end+1]):
         if g['id'] in s.get('passed',[]): continue
         print('\n=== BUILD '+g['id']+' '+g['name']+' ===')
-        if not execute_gate(g,write=True,mode='fast',include_build=True):
+        if g.get('deferred'):
+            execute_gate(g, write=True, mode='fast', include_build=False)
+            print('EXECUTABLE SLICE ENDS HERE. Do not pin/install third-party tools or stand up SonarQube/Dependency-Track/Renovate without explicit co-founder approval.')
+            return 3
+        built=execute_gate(g,write=True,mode='fast',include_build=True)
+        if built=='deferred':
+            return 3
+        if not built:
             return 1
         # Recursive prior fast invariants
         if not cumulative(g['id'],mode='fast',write=False): return 1
@@ -100,12 +124,18 @@ def selftest():
     # test a harmless command runner
     r=run_cmd("python3 -c 'print(123)'")
     if r['returncode'] or '123' not in r['stdout']: print('FAIL command runner'); return 1
+    import py_compile
+    for p in sorted((ROOT/'scripts').glob('*.py')):
+        try:
+            py_compile.compile(str(p), doraise=True)
+        except py_compile.PyCompileError as e:
+            print('FAIL python compile', p.name, e); return 1
     print('PASS qualityctl self-test'); return 0
 
 def main():
     ap=argparse.ArgumentParser(); sub=ap.add_subparsers(dest='cmd',required=True)
     sub.add_parser('init'); sub.add_parser('status'); sub.add_parser('next'); sub.add_parser('self-test'); sub.add_parser('unlock')
-    b=sub.add_parser('build'); b.add_argument('--through',default='G15')
+    b=sub.add_parser('build'); b.add_argument('--through',default='G03')
     v=sub.add_parser('verify'); v.add_argument('--through',default=None); v.add_argument('--mode',choices=['fast','deep'],default='fast'); v.add_argument('--no-state-write',action='store_true'); v.add_argument('--current-policy',action='store_true')
     a=ap.parse_args()
     if a.cmd=='init': init(); return 0
@@ -121,5 +151,5 @@ def main():
         if a.current_policy:
             s=load_state(); passed=s.get('passed',[]); through=passed[-1] if passed else 'G02'
         if not through: through='G15'
-        return 0 if cumulative(through,a.mode,write=not a.no_state_write and False) else 1
+        return 0 if cumulative(through,a.mode,write=not a.no_state_write) else 1
 if __name__=='__main__': sys.exit(main())

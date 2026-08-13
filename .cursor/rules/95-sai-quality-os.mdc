@@ -1,14 +1,26 @@
 ---
-description: SAI Quality OS Phase-0 guardrails. Additive to existing SAI coordination rules.
-alwaysApply: true
+description: SAI Quality OS Phase-0 guardrails. Additive to ICM; does not outrank sai-coordination.mdc.
+globs:
+  - .sai-quality/**
+  - scripts/qualityctl.py
+  - scripts/toolchain_manager.py
+  - scripts/*_guard.py
+  - scripts/fault_injection.py
+  - scripts/bootstrap_phase0.sh
+  - scripts/health_report.py
+  - scripts/phase0_preflight.py
+  - scripts/config_integrity.py
+alwaysApply: false
 ---
+
+This rule applies when Quality OS files are in context. It does **not** replace `.cursor/rules/sai-coordination.mdc`, `.ai/` ICM work, or `openclaw-dashboard/` prototype scaffold.
 
 Before creating or editing product architecture, read `.sai-quality/FEATURES_LOCKED` and `.sai-quality/architecture/registry.json`.
 
-If `.sai-quality/FEATURES_LOCKED` exists, do not create product implementation under `apps/`, `services/`, `packages/`, `evals/`, or `infrastructure/`. Phase-0 quality infrastructure is the only build target.
+If `.sai-quality/FEATURES_LOCKED` exists, do not create product implementation under `apps/`, `services/`, `packages/`, `evals/`, or `infrastructure/`. Executable quality work stops at G03 until co-founders approve G04+ tool pinning.
 
 Search before create. Extend canonical owners. Do not create `v2/new/legacy/tmp/copy` parallel paths.
 
-Run `python3 scripts/qualityctl.py status` before material work. Run the owning gate and cumulative verification after material work. Security/architecture/dependency/CI changes force DEEP verification.
+Run `python3 scripts/qualityctl.py status` before material Quality OS work. Do not run `qualityctl unlock` or install SonarQube/Dependency-Track/Renovate without explicit co-founder approval.
 
 Never weaken a gate, add a broad ignore, refresh a baseline, or delete a regression test merely to achieve green CI.

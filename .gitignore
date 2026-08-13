@@ -1,0 +1,8 @@
+# Quality OS runtime (never commit)
+
+.sai-quality/runtime/
+.sai-quality/tooling/node_modules/
+.sai-quality/**/venv/
+.sai-quality/**/.venv/
+**/__pycache__/
+

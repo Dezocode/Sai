@@ -21,18 +21,19 @@ Phase 0 is complete only when:
 
 ## Start
 
-After extracting into the repo root, give Cursor the contents of `CURSOR_START_PROMPT.md` or run the Cursor command `/sai-quality-build`.
+Give Cursor `.sai-quality/docs/CURSOR_START_PROMPT.md` or run `/sai-quality-build`.
 
-The orchestrator is resumable:
+The **executable slice is G03**. G04+ is deferred until co-founder approval of tool pinning (decision 0005).
 
 ```bash
 python3 scripts/qualityctl.py init
 python3 scripts/qualityctl.py status
-python3 scripts/qualityctl.py build --through G15
-python3 scripts/qualityctl.py unlock
+python3 scripts/qualityctl.py build --through G03
 ```
 
-`build` never marks a gate passed because a file exists. Each gate has verification commands and evidence. A failing gate remains failing; after three unsuccessful same-gate attempts the orchestrator blocks and requires a changed strategy.
+`build --through G15` must print `DEFERRED` at G04 and exit 3. Do not run `qualityctl unlock`. `FEATURES_LOCKED` remains.
+
+`build` never marks a gate passed because a file exists. Each executable gate has verification commands and evidence. A failing gate remains failing; after three unsuccessful same-gate attempts the orchestrator blocks and requires a changed strategy.
 
 ## Design principle
 

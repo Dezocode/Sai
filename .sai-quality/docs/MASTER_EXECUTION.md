@@ -6,6 +6,8 @@ Create an indefinitely extensible quality control plane that can govern a monore
 
 The architecture is **registry + adapters + policies + evidence**.
 
+**Current executable slice (decision 0005, proposed):** G00–G03 only. G04–G15 stay in this catalog and remain required for unlock, but `qualityctl` must `DEFERRED` them until co-founders approve tool pinning. Do not treat this document as permission to install SonarQube, Dependency-Track, or Renovate.
+
 ```text
                      existing SAI ICM
                  identity / runs / handoffs

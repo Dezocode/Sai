@@ -29,3 +29,7 @@ decision records once they exist.
 - Reporting to Slack #agentupdates via `scripts/agent-report`, wired through
   `.githooks/` (installed with `scripts/install-agent-hooks`).
 - Google Drive is a replicated recovery layer per `.ai/_config/sync-policy.md`.
+
+## Quality OS (proposed 2026-08-13)
+
+`.sai-quality/` is a proposed additive quality control plane (decision 0005, status proposed). ICM under `.ai/` remains agent governance. The executable slice is G00–G03. G04+ (pinned OSS scanners, SonarQube, Dependency-Track, Renovate) is deferred until co-founder approval. Product roots `apps/`, `services/`, `packages/`, `evals/`, `infrastructure/` stay locked. `openclaw-dashboard/` is still the isolated prototype from DR-20260724, not a Quality OS product root.

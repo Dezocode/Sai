@@ -10,6 +10,6 @@ python3 scripts/toolchain_manager.py detect
 python3 scripts/qualityctl.py status
 cat <<'EOF'
 Phase-0 bootstrap control plane is ready.
-Next: run Cursor command /sai-quality-build.
-Gate G04 intentionally blocks until official tool versions/digests are resolved and pinned.
+Next: python3 scripts/qualityctl.py build --through G03
+G04+ is deferred until co-founder approval. Do not pin or install third-party tools.
 EOF

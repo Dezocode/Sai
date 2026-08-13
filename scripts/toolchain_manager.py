@@ -12,8 +12,12 @@ def detect():
     matches=set()
     for ext,name in [('.ts','javascript-typescript'),('.tsx','javascript-typescript'),('.js','javascript-typescript'),('.jsx','javascript-typescript'),('.py','python'),('.go','go'),('.rs','rust')]:
         for p in ROOT.rglob('*'+ext):
-            if '.sai-quality/runtime' not in str(p) and 'node_modules' not in p.parts:
-                matches.add(name); break
+            if '.git' in p.parts or 'node_modules' in p.parts:
+                continue
+            if '.sai-quality' in p.parts and 'runtime' in p.parts:
+                continue
+            matches.add(name)
+            break
     if (ROOT/'package.json').exists() or (ROOT/'tsconfig.json').exists(): matches.add('javascript-typescript')
     if (ROOT/'pyproject.toml').exists() or (ROOT/'requirements.txt').exists(): matches.add('python')
     if (ROOT/'go.mod').exists(): matches.add('go')
@@ -37,13 +41,16 @@ def main():
         for a in reg['language_adapters']:
             if a['id'] in langs: conditional.update(a['conditional_tools'])
         for name,s in lock['tools'].items():
+            if allow and not s.get('enabled'):
+                continue
             needed=s['enabled'] or name in conditional
             if needed and (s.get('version') in (None,'UNRESOLVED','latest') or s.get('digest_or_checksum') in (None,'UNRESOLVED')):
                 unresolved.append(name)
-        # Gate G04 intentionally blocks until Cursor resolves/pins tools.
         if unresolved:
             print('TOOL LOCK FAIL unresolved required tools: '+', '.join(unresolved))
-            print('Resolve from official sources, pin exact version and digest/checksum, then rerun.'); sys.exit(1)
+            print('G04 is deferred until co-founder approval. Do not resolve/pin/install from this failure.')
+            print('After approval: resolve from official sources, pin exact version and digest/checksum, then rerun.')
+            sys.exit(1)
         print('PASS toolchain lock fully pinned for enabled/detected tools'); return
     if cmd=='render':
         GEN.mkdir(parents=True,exist_ok=True)
@@ -52,19 +59,36 @@ def main():
             if s.exists() and not (GEN/dst).exists(): shutil.copy2(s,GEN/dst)
         print('PASS rendered additive generated configs (existing files preserved)'); return
     if cmd=='verify-native-contract':
-        print('PASS native contract scaffold: adapters are language-conditional; project-native lint/type/build must be registered when product stack is selected'); return
+        import py_compile, subprocess
+        errs=[]
+        for p in sorted((ROOT/'scripts').glob('*.py')):
+            try:
+                py_compile.compile(str(p), doraise=True)
+            except py_compile.PyCompileError as e:
+                errs.append(str(e))
+        sh=ROOT/'scripts'/'bootstrap_phase0.sh'
+        if sh.exists():
+            r=subprocess.run(['bash','-n',str(sh)],capture_output=True,text=True)
+            if r.returncode:
+                errs.append('bash -n bootstrap_phase0.sh: '+r.stderr.strip())
+        if errs:
+            print('NATIVE CONTRACT FAIL'); print('\n'.join(errs)); sys.exit(1)
+        print('PASS native contract: python compile of scripts/*.py and bash -n bootstrap_phase0.sh')
+        return
     if cmd=='check-capability':
         cap=sys.argv[2] if len(sys.argv)>2 else ''
         capability_tools=[(n,s) for n,s in lock['tools'].items() if s.get('capability')==cap]
-        conditional=False
         if cap in ('dependency_architecture','dead_code') and 'javascript-typescript' not in langs:
             print(f'PASS {cap}: not applicable before JS/TS is detected'); return
         if not capability_tools:
             print('FAIL no tool registered for capability '+cap); sys.exit(1)
         unresolved=[n for n,s in capability_tools if s.get('version') in (None,'UNRESOLVED','latest')]
         if unresolved:
-            print('FAIL capability '+cap+' tools unresolved: '+','.join(unresolved)); sys.exit(1)
-        print('PASS capability contract '+cap+' has pinned tool(s): '+','.join(n for n,_ in capability_tools)); return
+            print('FAIL capability '+cap+' tools unresolved: '+','.join(unresolved))
+            print('This check is pin-only; it does not run the scanner. G04+ is deferred.')
+            sys.exit(1)
+        print('PASS pin-only for '+cap+' ('+','.join(n for n,_ in capability_tools)+'); scanner not invoked')
+        return
     if cmd=='verify-sbom':
         p=RUNTIME/'sbom-placeholder.json'
         if not p.exists():
@@ -78,11 +102,12 @@ def main():
         service=sys.argv[2]
         target=GEN/service; target.mkdir(parents=True,exist_ok=True)
         src=ROOT/'.sai-quality/templates'/service
-        if src.exists():
-            for p in src.rglob('*'):
-                if p.is_file():
-                    q=target/p.relative_to(src); q.parent.mkdir(parents=True,exist_ok=True)
-                    if not q.exists(): shutil.copy2(p,q)
+        if not src.exists():
+            print('FAIL service template missing: '+str(src.relative_to(ROOT))); sys.exit(1)
+        for p in src.rglob('*'):
+            if p.is_file():
+                q=target/p.relative_to(src); q.parent.mkdir(parents=True,exist_ok=True)
+                if not q.exists(): shutil.copy2(p,q)
         print('PASS rendered service template '+service); return
     if cmd=='verify-service':
         service=sys.argv[2]; contract='--contract-only' in sys.argv

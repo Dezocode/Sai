@@ -27,7 +27,7 @@
         "jscpd"
       ],
       "fast": [
-        "node .sai-quality/tooling/node_modules/dependency-cruiser/bin/dependency-cruise.mjs --config .sai-quality/generated/dependency-cruiser.cjs -- src apps services packages 2>/dev/null || true"
+        "node .sai-quality/tooling/node_modules/dependency-cruiser/bin/dependency-cruise.mjs --config .sai-quality/generated/dependency-cruiser.cjs -- src apps services packages"
       ],
       "deep": []
     },

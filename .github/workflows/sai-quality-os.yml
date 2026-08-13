@@ -10,15 +10,16 @@ jobs:
   phase0-or-quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
-      - name: Python control-plane integrity
+      - name: Python control-plane integrity (executable slice G00-G03)
         run: |
           python3 scripts/config_integrity.py
           python3 scripts/architecture_guard.py check
           python3 scripts/feature_lock_guard.py
-          python3 scripts/qualityctl.py verify --mode fast --current-policy
-      - name: Explain deeper external-tool gates
+          python3 scripts/fault_injection.py
+          python3 scripts/qualityctl.py verify --mode fast --through G03 --no-state-write
+      - name: G04+ remains deferred
         run: |
-          echo "External tool execution becomes mandatory as its chronological gate is passed and pinned in .sai-quality/toolchain.lock.json."
+          echo "G04+ (tool pins, scanners, SonarQube, Dependency-Track, Renovate) is deferred until explicit co-founder approval."

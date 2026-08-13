@@ -13,9 +13,10 @@ Therefore this bundle:
 - does not replace `AGENTS.md`;
 - does not replace `.ai/`;
 - does not replace `agent-audit.yml`;
-- adds one Cursor rule (`95-sai-quality-os.mdc`);
-- adds separate quality workflows;
-- adds `.sai-quality/` as the code-governance control plane;
-- treats future product roots as reserved while locked.
+- adds one Cursor rule (`95-sai-quality-os.mdc`, glob-scoped, not alwaysApply);
+- adds separate quality workflows (verify `--through G03`; checkout pinned by SHA);
+- adds `.sai-quality/` as the code-governance control plane, with docs under `.sai-quality/docs/`;
+- treats future product roots as reserved while locked;
+- does not outrank ICM or the `openclaw-dashboard/` prototype boundary (DR-20260724).
 
 If the repo changes before installation, Cursor must reconcile additive paths through the architecture registry rather than blindly overwrite files.

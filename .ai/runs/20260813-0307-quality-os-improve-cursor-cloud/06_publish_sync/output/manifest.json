@@ -1,0 +1,10 @@
+{
+  "task_id": "20260813-0307-quality-os-improve-cursor-cloud",
+  "stage": "06_publish_sync",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T03:15:00Z",
+  "inputs": [".ai/runs/20260813-0307-quality-os-improve-cursor-cloud/05_review/output/review.md"],
+  "outputs": [".ai/runs/20260813-0307-quality-os-improve-cursor-cloud/06_publish_sync/output/publish.md"],
+  "status": "partial",
+  "human_edits": "none"
+}
