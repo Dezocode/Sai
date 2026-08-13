@@ -29,9 +29,11 @@ PRs targeting `main`:
    `main` additionally require the tip commit's task-id to have handoff.
 6. **`scripts/verify-code-health`** — registry-driven bloat, duplicate, and
    orphan scans, plus a meta-check that every **active** health check's
-   `command` is an executable `run:` step (not a `grep`/comment mention).
-   CI runs `--self-test` first (runtime evaluation of dispatcher detectors).
-   `live-pass` is not a negative evaluation. Policy: `.ai/shared/references/code-health.md`.
+   `command` is an **unconditional** `run:` step in `icm-enforcement` (not a
+   `grep`/comment mention, and not a `run:` under job/step `if:` such as
+   `merge-handoff-slack`). CI runs `--self-test` first (runtime evaluation
+   of dispatcher detectors). `live-pass` is not a negative evaluation.
+   Policy: `.ai/shared/references/code-health.md`.
 7. **Merge HANDOFF to #agentupdates** — on every push to `main`, CI job
    `merge-handoff-slack` runs `scripts/ci-merge-handoff-slack` (requires
    `SAI_SLACK_BOT_TOKEN` GitHub secret; when absent, agents must post via

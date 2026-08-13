@@ -6,6 +6,11 @@ owner: "Saul (CTO)"
 
 ci:
   workflow: ".github/workflows/agent-audit.yml"
+  # Active commands count only as unconditional `run:` steps in these jobs.
+  # Job- or step-level `if:` does not run on every push/PR (example:
+  # merge-handoff-slack is main-push only) and must not satisfy coverage.
+  coverage_jobs:
+    - icm-enforcement
 
 runtime_evaluation:
   modes: [synthetic, live-pass, none]
@@ -62,7 +67,7 @@ orphans:
     - openclaw-dashboard/scripts
   allowlist: []
 
-# status: active = command must be an executable `run:` invocation in CI
+# status: active = command must be an unconditional `run:` in coverage_jobs
 #         deferred = documented; not wired until activate_when is true.
 # self_test: synthetic | live-pass | none (enum; unknown values fail)
 checks:
@@ -81,6 +86,8 @@ checks:
       - ci-coverage-bad
       - ci-coverage-good
       - ci-coverage-mention-only
+      - ci-coverage-conditional-job
+      - ci-coverage-step-if
       - registry-mode-invalid
       - registry-health-detector-livepass
       - registry-valid

@@ -41,3 +41,11 @@ flowchart LR
    roadmap feed.
 5. Architecture, migrations, releases, and shared-resource deletion stop at the
    applicable human review gate.
+
+## Provenance
+
+Code-health inventory `active` and Semantic tracking `proposed` were
+re-affirmed 2026-08-13 by registered agent Sai (`ceo`) per Decision 0005
+on PR #62. Lane statuses were not changed in that re-affirmation. The
+prior PR #62 landing of these statuses used unregistered `cursor-cloud`
+trailers.

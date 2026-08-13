@@ -16,20 +16,51 @@ SKIP_FIRST = {
     "grep", "test", "echo", ":", "true", "false", "chmod", "printf",
 }
 
-NEGATIVE_FIX = re.compile(r"(?:^|-)(bad|mention-only)(?:-|$)")
+NEGATIVE_FIX = re.compile(
+    r"(?:^|-)(bad|mention-only|conditional|step-if|main-only)(?:-|$)"
+)
 POSITIVE_FIX = re.compile(r"(?:^|-)good(?:-|$)")
+DEFAULT_COVERAGE_JOBS = ("icm-enforcement",)
 
 
-def collect_run_blocks(obj, acc):
-    if isinstance(obj, dict):
-        run = obj.get("run")
-        if isinstance(run, str):
-            acc.append(run)
-        for v in obj.values():
-            collect_run_blocks(v, acc)
-    elif isinstance(obj, list):
-        for item in obj:
-            collect_run_blocks(item, acc)
+def coverage_job_ids(cfg: dict) -> list[str]:
+    raw = (cfg.get("ci") or {}).get("coverage_jobs")
+    if isinstance(raw, list) and raw:
+        return [str(x) for x in raw]
+    return list(DEFAULT_COVERAGE_JOBS)
+
+
+def has_github_if(obj) -> bool:
+    """True when a job or step declares a GitHub Actions `if:` condition."""
+    if not isinstance(obj, dict):
+        return False
+    return "if" in obj and obj.get("if") not in (None,)
+
+
+def always_on_run_blocks(doc, allowed_jobs: list[str]) -> list[str]:
+    """Collect `run:` text only from unconditional steps in allowed jobs.
+
+    Job- or step-level `if:` is treated as non-coverage: those steps do not
+    run on every push/PR (example: merge-handoff-slack is main-push only).
+    Recursing the whole workflow would count those as covered.
+    """
+    jobs = doc.get("jobs") if isinstance(doc, dict) else None
+    if not isinstance(jobs, dict):
+        return []
+    allowed = set(allowed_jobs)
+    blocks = []
+    for job_id, job in jobs.items():
+        if job_id not in allowed or not isinstance(job, dict):
+            continue
+        if has_github_if(job):
+            continue
+        for step in job.get("steps") or []:
+            if not isinstance(step, dict) or has_github_if(step):
+                continue
+            run = step.get("run")
+            if isinstance(run, str):
+                blocks.append(run)
+    return blocks
 
 
 def join_continuations(block: str) -> list[str]:
@@ -112,13 +143,12 @@ def covered_check_ids(invocations: list[list[str]], commands: dict) -> set:
     return covered
 
 
-def workflow_invocations(wf_text: str) -> list[list[str]]:
+def workflow_invocations(wf_text: str, allowed_jobs: list[str] | None = None) -> list[list[str]]:
     if yaml is None:
         raise RuntimeError("PyYAML is required")
     doc = yaml.safe_load(wf_text) or {}
-    blocks = []
-    collect_run_blocks(doc, blocks)
-    return executable_invocations(blocks)
+    jobs = allowed_jobs if allowed_jobs is not None else list(DEFAULT_COVERAGE_JOBS)
+    return executable_invocations(always_on_run_blocks(doc, jobs))
 
 
 def same_family(a: str, b: str, families) -> bool:
@@ -190,7 +220,10 @@ def check_ci_coverage(root: str, cfg: dict, res, git_files, known_fixtures: set)
     if not wf_path.is_file():
         res.fail(f"CI workflow missing: {wf_rel}")
         return
-    invocations = workflow_invocations(wf_path.read_text(encoding="utf-8"))
+    allowed = coverage_job_ids(cfg)
+    invocations = workflow_invocations(
+        wf_path.read_text(encoding="utf-8"), allowed
+    )
     commands = {}
     for check in cfg["checks"]:
         if check.get("status") != "active":
@@ -199,6 +232,7 @@ def check_ci_coverage(root: str, cfg: dict, res, git_files, known_fixtures: set)
         if cmd:
             commands[check["id"]] = command_tokens(cmd)
     covered = covered_check_ids(invocations, commands)
+    jobs_note = ",".join(allowed)
     for check in cfg["checks"]:
         cid = check.get("id", "?")
         if check.get("status") != "active":
@@ -210,7 +244,8 @@ def check_ci_coverage(root: str, cfg: dict, res, git_files, known_fixtures: set)
         else:
             res.fail(
                 f"active check {cid}: command {check.get('command')!r} "
-                f"is not an executable run: step in {wf_rel}"
+                f"is not an unconditional run: step in coverage job(s) "
+                f"{jobs_note} of {wf_rel}"
             )
 
     registered = set()

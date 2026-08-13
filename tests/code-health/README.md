@@ -14,6 +14,8 @@ asserts:
 | workflow missing the command | ci-coverage | FAIL |
 | workflow `run:` actually invokes the command | ci-coverage | PASS |
 | command only in `grep` / comment / `test` / `echo` / `chmod` | ci-coverage | FAIL |
+| command only in a main-only job (`if:` on `merge-handoff-slack`) | ci-coverage | FAIL |
+| command in `icm-enforcement` but the step has `if:` | ci-coverage | FAIL |
 | `self_test: totally-made-up` | registry | FAIL |
 | class `health-detector` with `live-pass` | registry | FAIL |
 

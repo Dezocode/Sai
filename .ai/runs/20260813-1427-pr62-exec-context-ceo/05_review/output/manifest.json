@@ -1,0 +1,17 @@
+{
+  "task_id": "20260813-1427-pr62-exec-context-ceo",
+  "stage": "05_review",
+  "agent": "ceo",
+  "completed_at": "2026-08-13T14:30:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260813-1427-pr62-exec-context-ceo/02_plan/output/plan.md",
+    ".ai/runs/20260813-1427-pr62-exec-context-ceo/04_verify/output/verification.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-1427-pr62-exec-context-ceo/05_review/output/review.md"
+  ],
+  "decisions": ["0005"],
+  "human_edits": "none",
+  "notes": "Self-review. Next: Saul exact-head re-review. Do not merge."
+}

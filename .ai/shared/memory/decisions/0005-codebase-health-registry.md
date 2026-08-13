@@ -1,7 +1,8 @@
 # 0005 — Registry-driven codebase health gates
 
 - Date: 2026-08-13
-- Task-ID: 20260813-1315-codebase-health-cursor-cloud
+- Task-ID: 20260813-1427-pr62-exec-context-ceo
+  (original landing: 20260813-1315-codebase-health-cursor-cloud)
 - Status: accepted
 - Approver: dezocode (requested `/plan` for codebase health, no semantic
   duplicates, no orphans, no bloated files, CI for every check, and runtime
@@ -15,10 +16,12 @@ Enforce codebase health through a versioned **check registry**
 1. Every health check is either `active` (wired in CI, has a self-test) or
    `deferred` (named trigger; not yet a gate).
 2. A meta-check fails unless each **active** check's `command` is an
-   executable `run:` invocation in `.github/workflows/agent-audit.yml`
+   **unconditional** `run:` invocation in a `ci.coverage_jobs` job
+   (default `icm-enforcement`) of `.github/workflows/agent-audit.yml`
    (token-prefix match, longest command wins). Mentions in `grep`,
-   comments, `test -f`, `echo`, or `chmod` do not count. A root
-   `scripts/verify-*` file must be registered.
+   comments, `test -f`, `echo`, or `chmod` do not count. Job- or
+   step-level `if:` (including `merge-handoff-slack`, main-push only)
+   does not count. A root `scripts/verify-*` file must be registered.
 3. Active dispatcher scans cover **bloat** (line/byte limits), **duplicates**
    (exact hash and line-shingle near-copies), and **orphans** (unreferenced
    scripts). Duplicate-family exemptions are YAML `duplicates.families`
@@ -55,9 +58,10 @@ has no accepted product stack (DR-20260724).
 
 A registry is a **health-check inventory**, not Saul's module/interface
 semantic-tracking schema. The meta-check makes "every active check is
-executed in CI" true only if it inspects `run:` invocations, not raw
-workflow text. Synthetic fixtures prove dispatcher detectors fail on bad
-input; `live-pass` does not.
+executed in CI on every push/PR" true only if it inspects unconditional
+`run:` invocations in `icm-enforcement`, not raw workflow text and not
+conditional jobs. Synthetic fixtures prove dispatcher detectors fail on
+bad input; `live-pass` does not.
 
 ## Consequences
 
@@ -77,6 +81,22 @@ Executable `run:` matching replaced substring `ci_marker` search. Self-test
 modes are validated as an enum with required fixtures for `health-detector`.
 Duplicate families are YAML patterns. Duplicate PASS is emitted only when
 that detector recorded zero failures.
+
+## Amendment (2026-08-13, PR #62 CTO re-review — execution context)
+
+Coverage binds to `ci.coverage_jobs` (default `icm-enforcement`). A `run:`
+under job- or step-level `if:` does not satisfy an active check. Fixture
+`ci-coverage-conditional-job` (command only in a main-only job) and
+`ci-coverage-step-if` must fail.
+
+## Provenance (2026-08-13, registered agent Sai / `ceo`)
+
+This decision and the Saul roadmap lane split (Code-health inventory
+`active`; Semantic tracking `proposed`) are re-affirmed by registered
+agent Sai (`ceo`) on PR #62. The original 20260813-1315 landing used
+unregistered `cursor-cloud` / `cursoragent` trailers. This amendment is
+the registered-agent re-execution Saul required. Lane statuses are
+unchanged.
 
 ## Supersedes
 

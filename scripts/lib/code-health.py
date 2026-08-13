@@ -28,6 +28,7 @@ KNOWN_FIXTURES = {
     "dup-bad", "dup-good",
     "orphan-bad", "orphan-good",
     "ci-coverage-bad", "ci-coverage-good", "ci-coverage-mention-only",
+    "ci-coverage-conditional-job", "ci-coverage-step-if",
     "registry-mode-invalid", "registry-health-detector-livepass", "registry-valid",
 }
 
@@ -208,7 +209,10 @@ MINI_RTE = {
     "require_negative_fixtures_for_classes": ["health-detector"],
 }
 MINI_CFG = {
-    "ci": {"workflow": ".github/workflows/agent-audit.yml"},
+    "ci": {
+        "workflow": ".github/workflows/agent-audit.yml",
+        "coverage_jobs": ["icm-enforcement"],
+    },
     "runtime_evaluation": MINI_RTE,
     "scan": {"exclude_prefixes": [], "skip_empty_for_duplicates": True},
     "bloat": {
@@ -244,14 +248,14 @@ MINI_CFG = {
 WF_GOOD = """
 name: x
 jobs:
-  t:
+  icm-enforcement:
     steps:
       - run: scripts/verify-demo
 """
 WF_MENTION = """
 name: x
 jobs:
-  t:
+  icm-enforcement:
     steps:
       - run: |
           grep -q scripts/verify-demo .github/workflows/agent-audit.yml
@@ -263,9 +267,28 @@ jobs:
 WF_NONE = """
 name: x
 jobs:
-  t:
+  icm-enforcement:
     steps:
       - run: echo none
+"""
+WF_CONDITIONAL_JOB = """
+name: x
+jobs:
+  icm-enforcement:
+    steps:
+      - run: echo none
+  merge-handoff-slack:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - run: scripts/verify-demo
+"""
+WF_STEP_IF = """
+name: x
+jobs:
+  icm-enforcement:
+    steps:
+      - if: github.ref == 'refs/heads/main'
+        run: scripts/verify-demo
 """
 
 
@@ -326,6 +349,11 @@ def self_test() -> int:
         expect_fail("ci-coverage-bad", cov(Path(tmp) / "ci-bad", WF_NONE))
         expect_pass("ci-coverage-good", cov(Path(tmp) / "ci-good", WF_GOOD))
         expect_fail("ci-coverage-mention-only", cov(Path(tmp) / "ci-mention", WF_MENTION))
+        expect_fail(
+            "ci-coverage-conditional-job",
+            cov(Path(tmp) / "ci-cond-job", WF_CONDITIONAL_JOB),
+        )
+        expect_fail("ci-coverage-step-if", cov(Path(tmp) / "ci-step-if", WF_STEP_IF))
 
     def check_reg(name, mutate, should_fail):
         cfg = yaml.safe_load(yaml.dump(MINI_CFG))

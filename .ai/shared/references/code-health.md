@@ -12,24 +12,28 @@ scripts/verify-code-health list          # registry dump
 scripts/verify-code-health bloat         # one detector
 ```
 
-CI (`.github/workflows/agent-audit.yml`) runs self-test, then the live scan,
-on every push and every PR to `main`.
+CI (`.github/workflows/agent-audit.yml` job `icm-enforcement`) runs
+self-test, then the live scan, on every push and every PR to `main`. A
+command that exists only in a conditional job (for example
+`merge-handoff-slack`, main-push only) does **not** count as coverage.
 
 ## Adding a check
 
 1. Implement a deterministic command (prefer `scripts/verify-<name>`).
 2. Add a row to `checks:` in `.ai/_config/code-health.yaml` with `status`,
    `command`, `class`, and `self_test` (`synthetic`, `live-pass`, or `none`).
-3. If `active`: the `command` must appear as an executable `run:` step in
-   `agent-audit.yml` (not merely in `grep -q`, a comment, `test -f`, `echo`,
-   or `chmod`). Class `health-detector` requires `self_test: synthetic` and
-   named positive+negative `fixtures` that `--self-test` executes.
+3. If `active`: the `command` must appear as an **unconditional** `run:`
+   step in a `ci.coverage_jobs` job (default `icm-enforcement`). Mentions in
+   `grep -q`, a comment, `test -f`, `echo`, or `chmod` do not count, nor do
+   `run:` steps under a job- or step-level `if:` (those do not execute on
+   every push/PR). Class `health-detector` requires `self_test: synthetic`
+   and named positive+negative `fixtures` that `--self-test` executes.
 4. If the stack does not exist yet, add `status: deferred` and
    `activate_when` instead of a silent skip.
 5. Run `scripts/verify-code-health --self-test` and `scripts/verify-code-health`.
 
-The meta-check **fails CI** when an active `command` is not an executable
-`run:` step.
+The meta-check **fails CI** when an active `command` is not an
+unconditional `run:` step in an allowed coverage job.
 
 ## What each live detector means
 
@@ -38,7 +42,7 @@ The meta-check **fails CI** when an active `command` is not an executable
 | **Bloat** | Tracked file exceeds line/byte limit for its extension | Paths in `bloat.allowlist` (must include a reason in the commit) |
 | **Duplicates** | Unexpected identical content, or Jaccard ≥ threshold on line shingles | Empty files; ICM families (runtime README stubs; mirrored `automation/profile.md`); excluded basenames (`CONTEXT.md`, `tools.json`, …) |
 | **Orphans** | A file under `orphans.roots` is never mentioned by another tracked file | Mentions in docs, CI, hooks, or other scripts; `.ai/runs/` is not a scan corpus |
-| **CI coverage** | An active check's `command` is not an executable `run:` invocation, or a root `scripts/verify-*` is unregistered | `grep`/`test`/`echo`/`chmod`/comment mentions; `deferred` rows with `activate_when` |
+| **CI coverage** | An active check's `command` is not an unconditional `run:` in `ci.coverage_jobs`, or a root `scripts/verify-*` is unregistered | `grep`/`test`/`echo`/`chmod`/comment mentions; job/step `if:` (including main-only jobs); `deferred` rows with `activate_when` |
 
 ## When the app stack is chosen
 
