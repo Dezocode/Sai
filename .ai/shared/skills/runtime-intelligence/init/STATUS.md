@@ -7,7 +7,7 @@ This file must never be flipped to ACTIVE by the subprocess itself.
 | Gate | Status |
 |------|--------|
 | Phase A inventory | DONE (run intake + phase-a-host-summary.md) |
-| Stacked init sub-PR | OPEN https://github.com/Dezocode/Sai/pull/64 |
+| Stacked init sub-PR | OPEN / **draft** https://github.com/Dezocode/Sai/pull/64 (converted to draft while exact-head gates are unsatisfied) |
 | Hooks/rules/ICM artifacts | PARTIAL (ICM run present; full INITIALIZE registry admission blocked) |
 | Dockerized Grok high-reasoning | IN PROGRESS (compose/Dockerfile/entrypoint landed; matrix item 14) |
 | OpenClaw bounded role wiring | IN PROGRESS (policy.yaml + triage bind script) |

@@ -1,11 +1,11 @@
 # Handoff — Runtime Intelligence init (PROVISIONAL + CONTRACT_DRAFTED)
 
 ## Exact state
-- Parent PR: #62 (`cursor/codebase-health-90ba` @ d113fa0)
-- Stacked sub-PR: #64 `cursor/ri-subprocess-init-20260813`
+- Parent PR: #62 (`cursor/codebase-health-90ba` @ de821c7)
+- Stacked sub-PR: #64 `cursor/ri-subprocess-init-20260813` (**draft**)
 - Task-ID: `20260813-1945-ri-subprocess-init`
-- Contract-ID: `20260813-ri-subprocess-init` revision **v1**
-- Contractor: `ctr-code-ri1` (provisional lease `lease-b78e136152e2`)
+- Contract-ID: `20260813-ri-subprocess-init` revision **v2**
+- Contractor: `ctr-code-ri1` (provisional lease `lease-7a92205798c2`; registry-bound)
 - Organizational status: **PROVISIONAL — NOT INITIALIZED**
 
 ## Decision 0006 path (turn 3)
@@ -15,13 +15,21 @@
 4. assume contractor for provisional implementation
 5. Fixed worktree session + `.ai` glob_match lstrip bug in `scripts/lib/sai_auth.py`
 
+## Follow-up 2026-08-13 (ChatGPT/Saul state)
+- Converted PR #64 to draft while exact-head gates are unsatisfied
+- Stripped `=== path ===` banner from tracked Saul disposition YAML
+- SHA-pinned `skip_commits_missing_contract_at_or_before` at `46e73c3` (no force-push)
+- Provisional registry binding for `ctr-code-ri1`; Cora admin marked complete on v2
+- Merged parent PR #62 `de821c7` (Saul CapDrop sandbox + audit grammar pin)
+
 ## Approvals still required
-1. Saul technical APPROVE (formal Codex path)
-2. Sai governance APPROVE
+1. Saul technical APPROVE (formal Codex path) on the new exact head
+2. Sai governance APPROVE of the same SHA
 3. Explicit human admission
 
 ## CI honesty
-Pre-contract commits lack Contract-ID. No force-push. New commits carry full trailers.
+Pre-contract commits lack Contract-ID. No force-push. Replay skip is SHA-pinned
+to `46e73c3` only. New commits carry full trailers.
 
 ## Never
 merge main / force-push / mark-ready / self-declare ACTIVE

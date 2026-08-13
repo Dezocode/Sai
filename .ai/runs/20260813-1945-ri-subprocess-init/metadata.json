@@ -7,10 +7,11 @@
   "organizational_initialized": false,
   "parent_pr": 62,
   "parent_branch": "cursor/codebase-health-90ba",
-  "parent_head": "d113fa0bf75b43491c25723f57cf9dec1e6196de",
+  "parent_head": "de821c737c8ef8fc7dff26ccb15e2ddf6184aa18",
   "stacked_branch": "cursor/ri-subprocess-init-20260813",
   "sub_pr": 64,
   "sub_pr_url": "https://github.com/Dezocode/Sai/pull/64",
+  "sub_pr_draft": true,
   "contract_id": "20260813-ri-subprocess-init",
   "contract_revision": "v2",
   "agent_provenance": "ctr-code-ri1 provisional contractor under Cora contract",
@@ -26,5 +27,5 @@
     "human": "PENDING"
   },
   "created_at": "2026-08-13T19:45:00Z",
-  "updated_at": "2026-08-13T20:11:07Z"
+  "updated_at": "2026-08-13T21:35:00Z"
 }
