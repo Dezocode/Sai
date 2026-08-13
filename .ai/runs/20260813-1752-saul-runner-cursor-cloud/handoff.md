@@ -16,10 +16,17 @@
 ## Not proven
 
 - Saul **APPROVE** of the exact current contract revision + exact HEAD.
+  Second production review run **31730478466** on `1552da5` is still
+  **REQUEST_CHANGES** (CTO-004 P0 officer-trailer trust, CTO-005 P0
+  persistent-runner executes PR checkout, CTO-006 bootstrap expiration,
+  CTO-007 null contract_id on detached PR checkout).
 - Sai independent APPROVE of the same (do not impersonate ceo).
 - Human gate READY, stale-after-new-commit, restored READY.
-- `pull_request_target` trusted-script isolation (CTO-1 P0 from run 31729323810).
+- `pull_request_target` / trusted-scripts-from-main isolation.
 
 ## Next safe action
 
-Push remediations; wait for a second `saul-cto-review` on hostinger-saul-codex. If Saul APPROVE, have registered **Sai (ceo)** record verification of the same SHA/revision. Do not merge. Do not mark ready.
+Do not merge. Have a follow-on implement CTO-004/005/006 with co-founder
+review. Detect-contract now also matches `GITHUB_HEAD_REF` so PR jobs bind
+`20260813-pr62-saul-smoke`. Registered **Sai (ceo)** must record
+verification; this unbound runtime will not assume `ceo`.

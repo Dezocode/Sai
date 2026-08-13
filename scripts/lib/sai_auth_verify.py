@@ -313,13 +313,15 @@ def _detect_contract(root):
     if not base.is_dir():
         return None
     br = a.current_branch(root)
+    aliases = {br, os.environ.get("GITHUB_HEAD_REF") or ""}
+    aliases.discard("")
     for d in sorted(base.iterdir()):
         if not d.is_dir():
             continue
         ptr = a.read_json(d / "contract.json") or {}
         if ptr.get("current_revision"):
             rev = a.read_yaml(d / "revisions" / f"{ptr['current_revision']}.yaml")
-            if rev and rev.get("allowed_branch_or_worktree") == br:
+            if rev and rev.get("allowed_branch_or_worktree") in aliases:
                 return d.name
     return None
 

@@ -1,0 +1,39 @@
+reviewer: saul
+runtime: codex
+contract_id: null
+contract_revision: null
+implementation_head: 1552da5a763fd4db2a91d5c233f7218b5b961014
+review_type: implementation
+disposition: REQUEST_CHANGES
+codex_invoked: true
+synthetic: false
+github_run_id: "31730478466"
+github_event: pull_request
+source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5284755336"
+runner_name: hostinger-saul-codex
+findings:
+  - id: CTO-004
+    severity: P0
+    contract_field: authorization
+    action: add
+    requested_change: Bind officer commits to independently verifiable authorization (not Agent trailer alone).
+    authority_expanding: false
+  - id: CTO-005
+    severity: P0
+    contract_field: saul_review_workflow
+    action: narrow
+    requested_change: Do not execute pull-request checkout code on the persistent Codex runner.
+    authority_expanding: false
+  - id: CTO-006
+    severity: P1
+    contract_field: bootstrap
+    action: narrow
+    requested_change: Enforce bootstrap expiration/range binding; standing false is currently declarative.
+    authority_expanding: false
+  - id: CTO-007
+    severity: P1
+    contract_field: review_schema
+    action: add
+    requested_change: Bind FINAL review to contract revision; null contract_id fails schema.
+    authority_expanding: false
+reason: Final exact-head review found authorization and persistent-runner trust-boundary failures.
