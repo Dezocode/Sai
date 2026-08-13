@@ -86,6 +86,15 @@ for sha in shas:
         continue
     tid = m.group(1)
     if not re.match(r"^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$", tid):
+        sys.path.insert(0, os.path.join(os.getcwd(), "scripts", "lib"))
+        try:
+            import sai_auth as _a
+            preserved = _a.malformed_task_id_preserved(os.getcwd(), sha, tid)
+        except Exception:
+            preserved = False
+        if preserved:
+            print(f"NOTE {sha[:7]}: Task-ID grammar preserved (audit.preserve_malformed_task_id)")
+            continue
         fail(f"{sha[:7]}: invalid Task-ID '{tid}'")
         continue
     task_ids.add(tid)

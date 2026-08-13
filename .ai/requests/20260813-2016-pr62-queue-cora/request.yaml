@@ -1,0 +1,9 @@
+task_id: 20260813-2016-pr62-queue-cora
+requested_by: dezocode (U0BHYH0NMCY)
+repository: Dezocode/Sai
+runtime: cursor-cloud-vm
+purpose: Consume Saul run 31736391403, issue human-approved v3, stale v2 lease, dispatch contractor.
+required_role: contract-administrator
+state: IMPLEMENTING
+resolved_agent: ctr-admin
+contract_id: 20260813-pr62-saul-smoke

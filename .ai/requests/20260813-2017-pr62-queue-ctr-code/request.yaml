@@ -1,0 +1,9 @@
+task_id: 20260813-2017-pr62-queue-ctr-code
+requested_by: dezocode (U0BHYH0NMCY)
+repository: Dezocode/Sai
+runtime: cursor-cloud-vm
+purpose: Contractor remediation of CTO-009/010/011 under contract v3.
+required_role: contractor-coding
+state: AUTHORIZED
+resolved_agent: ctr-code-pr62smoke
+contract_id: 20260813-pr62-saul-smoke

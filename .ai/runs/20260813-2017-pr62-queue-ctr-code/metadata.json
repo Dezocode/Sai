@@ -1,0 +1,24 @@
+{
+  "task_id": "20260813-2017-pr62-queue-ctr-code",
+  "agent": "ctr-code-pr62smoke",
+  "agent_name": "ctr-code-pr62smoke",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/codebase-health-90ba",
+  "base_sha": "d113fa0bf75b43491c25723f57cf9dec1e6196de",
+  "purpose": "Remediate CTO-009/010/011: officer grants, trusted Saul launcher, bootstrap until_sha, idempotent dispatch.",
+  "status": "in-progress",
+  "plan_reference": ".ai/runs/20260813-2017-pr62-queue-ctr-code/02_plan/output/plan.md",
+  "pr": "https://github.com/Dezocode/Sai/pull/62",
+  "contract_id": "20260813-pr62-saul-smoke",
+  "project_slug": "pr62-saul-smoke",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "claimed_files": [
+    "scripts/",
+    ".github/workflows/saul-review.yml",
+    ".github/workflows/agent-audit.yml",
+    "tests/authorization/",
+    ".ai/runs/20260813-2017-pr62-queue-ctr-code/"
+  ]
+}

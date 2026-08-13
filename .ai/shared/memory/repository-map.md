@@ -13,7 +13,8 @@
 | `.ai/INITIALIZE.md` | Read-and-execute initialization protocol for new agents |
 | `.ai/_config/` | Repository, reporting, sync, security, **code-health.yaml**, **authorization.yaml** |
 | `.ai/requests/` | Task authorization intake (`request.yaml` per task-id) |
-| `.ai/shared/schemas/` | JSON Schemas for events, contracts, authorization, reviews |
+| `.ai/authorizations/` | Tracked officer grants and human authority records |
+| `.ai/shared/schemas/` | JSON Schemas for events, contracts, authorization, reviews, remediation items |
 | `.ai/agents/` | Role charters (`_roles/`), `registry.json`, named agent folders |
 | `.ai/shared/memory/` | Durable memory (this folder) |
 | `.ai/shared/references/` | Git workflow, testing, release policy, ICM CI policy, **code-health.md**, **agent-runtimes.md** |

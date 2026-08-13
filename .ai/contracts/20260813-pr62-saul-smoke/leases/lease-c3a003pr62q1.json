@@ -1,0 +1,32 @@
+{
+  "lease_id": "lease-c3a003pr62q1",
+  "contract_id": "20260813-pr62-saul-smoke",
+  "contract_revision": "v3",
+  "agent_id": "ctr-code-pr62smoke",
+  "task_id": "20260813-2017-pr62-queue-ctr-code",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/codebase-health-90ba",
+  "worktree": "workspace",
+  "allowed_paths": [
+    ".ai/runs/**",
+    ".ai/contracts/20260813-pr62-saul-smoke/**",
+    "tests/**",
+    "scripts/**",
+    ".github/workflows/**",
+    ".ai/_config/**",
+    ".ai/shared/schemas/**"
+  ],
+  "denied_paths": [
+    ".ai/agents/saul/**",
+    ".ai/shared/memory/decisions/**"
+  ],
+  "capabilities": [
+    "git-commit",
+    "git-push"
+  ],
+  "status": "active",
+  "execution_mode": "provisional",
+  "issued_at": "2026-08-13T20:20:00Z",
+  "issued_by": "ctr-admin",
+  "base_sha": "d113fa0bf75b43491c25723f57cf9dec1e6196de"
+}

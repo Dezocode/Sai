@@ -1,0 +1,13 @@
+task_id: 20260813-2015-pr62-queue-ceo
+requested_by: dezocode (U0BHYH0NMCY)
+repository: Dezocode/Sai
+runtime: cursor-cloud-vm
+purpose: >
+  Continue PR #62 from d113fa0. Implement comment 5285843795 durable
+  remediation queue so duplicate Sai runs NOOP; route CTO-008..011;
+  close bootstrap; require officer grants.
+required_role: ceo
+state: IMPLEMENTING
+resolved_agent: ceo
+contract_id: 20260813-pr62-saul-smoke
+notes: Sai owns the state machine only. Cora owns v3. Contractor remediates code.

@@ -69,10 +69,51 @@ jobs:
             echo "codex_home_present=false"
           fi
 
+      # Candidate PR is DATA. Reviewer scripts run from a trusted tree.
+      # Residual until this workflow lives on default branch: GitHub still
+      # loads pull_request YAML from the PR head. Runner image
+      # SAI_TRUSTED_REVIEWER_ROOT and origin/main win when present.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Materialize trusted reviewer tree
+        id: trust
+        run: |
+          set -euo pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha || github.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          TRUSTED="${GITHUB_WORKSPACE}/trusted-reviewer"
+          mkdir -p "$TRUSTED"
+          TRUST_MODE=unknown
+          if [ -n "${SAI_TRUSTED_REVIEWER_ROOT:-}" ] && [ -x "${SAI_TRUSTED_REVIEWER_ROOT}/scripts/invoke-saul-review" ]; then
+            cp -a "${SAI_TRUSTED_REVIEWER_ROOT}/." "$TRUSTED/"
+            TRUST_MODE=runner-image
+          elif git cat-file -e "${BASE_SHA}:scripts/invoke-saul-review" 2>/dev/null; then
+            git archive "$BASE_SHA" scripts .ai/agents/saul CODEX.md \
+              .ai/_config/authorization.yaml \
+              .ai/shared/memory/decisions/0006-agent-authorization-loop.md \
+              .ai/shared/schemas/contract-review.schema.json \
+              | tar -x -C "$TRUSTED"
+            TRUST_MODE=base-ref
+          else
+            git archive HEAD scripts .ai/agents/saul CODEX.md \
+              .ai/_config/authorization.yaml \
+              .ai/shared/memory/decisions/0006-agent-authorization-loop.md \
+              .ai/shared/schemas/contract-review.schema.json \
+              | tar -x -C "$TRUSTED"
+            TRUST_MODE=pr-bootstrap-until-main
+            echo "WARN base ref lacks Saul launcher; residual PR-controlled YAML/scripts until merge to main"
+          fi
+          chmod +x "$TRUSTED/scripts/invoke-saul-review" \
+                   "$TRUSTED/scripts/sai-dispatch-transition" 2>/dev/null || true
+          echo "TRUST_MODE=$TRUST_MODE"
+          echo "trust_mode=$TRUST_MODE" >> "$GITHUB_OUTPUT"
+          echo "SAI_TRUST_MODE=$TRUST_MODE" >> "$GITHUB_ENV"
+          echo "SAI_TRUSTED_TREE=$TRUSTED" >> "$GITHUB_ENV"
+          echo "SAI_CANDIDATE_TREE=${GITHUB_WORKSPACE}" >> "$GITHUB_ENV"
+          echo "SAI_REVIEW_NO_TRACKED_WRITE=1" >> "$GITHUB_ENV"
 
       - name: Ensure PyYAML
         run: |
@@ -99,10 +140,13 @@ jobs:
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
           SAI_SAUL_PACKAGE_DIR: ${{ github.workspace }}/.saul-review-package
           SAI_SAUL_REVIEW_SCOPE: final
+          SAI_TRUSTED_TREE: ${{ github.workspace }}/trusted-reviewer
+          SAI_CANDIDATE_TREE: ${{ github.workspace }}
+          SAI_REVIEW_NO_TRACKED_WRITE: "1"
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
         run: |
-          chmod +x scripts/invoke-saul-review
+          chmod +x "$SAI_TRUSTED_TREE/scripts/invoke-saul-review"
           [ -z "${OPENAI_API_KEY:-}" ] && unset OPENAI_API_KEY
           [ -z "${CODEX_API_KEY:-}" ] && unset CODEX_API_KEY
           HEAD_SHA="${{ github.event.inputs.sha || github.event.pull_request.head.sha || github.sha }}"
@@ -111,11 +155,11 @@ jobs:
           REV="${{ github.event.inputs.revision }}"
           FORCE=""
           [ "${{ github.event.inputs.force }}" = "true" ] && FORCE="--force"
-          DETECT=$(scripts/invoke-saul-review --detect-contract || true)
+          DETECT=$(python3 "$SAI_TRUSTED_TREE/scripts/lib/sai_auth_review.py" invoke --detect-contract || true)
           [ -n "$CID" ] || CID="$DETECT"
           mkdir -p /tmp/saul
           set +e
-          scripts/invoke-saul-review \
+          "$SAI_TRUSTED_TREE/scripts/invoke-saul-review" \
             ${CID:+--contract-id "$CID"} \
             ${REV:+--revision "$REV"} \
             --head "$HEAD_SHA" \
@@ -136,6 +180,28 @@ jobs:
             echo "synthetic=False" >> "$GITHUB_OUTPUT"
           fi
           exit 0
+
+      - name: Claim remediation transition
+        if: always()
+        env:
+          SAI_TRUSTED_TREE: ${{ github.workspace }}/trusted-reviewer
+          SAI_CANDIDATE_TREE: ${{ github.workspace }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -f /tmp/saul/review.yaml ]; then
+            echo "NOOP no review artifact"
+            exit 0
+          fi
+          if [ -x "$SAI_TRUSTED_TREE/scripts/sai-dispatch-transition" ]; then
+            chmod +x "$SAI_TRUSTED_TREE/scripts/sai-dispatch-transition"
+            "$SAI_TRUSTED_TREE/scripts/sai-dispatch-transition" \
+              --from-file /tmp/saul/review.yaml \
+              --eval-only \
+              --pr "${{ github.event.pull_request.number }}" \
+              || echo "dispatch non-fatal"
+          else
+            echo "NOOP trusted dispatcher not in this trusted tree yet"
+          fi
 
       - name: Upload Saul review artifact
         uses: actions/upload-artifact@v4
@@ -173,13 +239,17 @@ jobs:
         run: |
           SHA="${{ github.event.pull_request.head.sha || github.sha }}"
           DISP="${{ steps.saul.outputs.disposition }}"
+          REASON="${{ steps.saul.outputs.reason }}"
           STATE=failure
           [ "$DISP" = "APPROVE" ] && STATE=success
           [ "$DISP" = "REQUEST_CHANGES" ] && STATE=failure
           [ "$DISP" = "BLOCKED" ] && STATE=failure
+          # Infrastructure BLOCKED is not a technical APPROVE/REQUEST_CHANGES.
+          DESC="Saul ${DISP} ${REASON}"
+          DESC="${DESC:0:140}"
           gh api repos/${{ github.repository }}/statuses/$SHA -f state="$STATE" \
             -f context="saul-cto-review" \
-            -f description="Saul $DISP ${{ steps.saul.outputs.reason }}" \
+            -f description="$DESC" \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
           if [ "$DISP" = "APPROVE" ]; then
             exit 0

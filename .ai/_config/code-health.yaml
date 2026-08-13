@@ -220,6 +220,9 @@ checks:
       - authorization-revoked-contract-bad
       - authorization-stale-revision-bad
       - authorization-missing-trailer-bad
+      - authorization-forged-officer-trailer-bad
+      - authorization-officer-grant-good
+      - authorization-bootstrap-expired-bad
     note: "Fail-closed identity/lease/path/revision fixtures. live-pass is not enough."
 
   - id: agent-authorization-ci
@@ -245,6 +248,12 @@ checks:
     class: governance
     status: active
     command: "scripts/consume-saul-contract-review --self-test"
+    self_test: live-pass
+
+  - id: sai-dispatch-self-test
+    class: governance
+    status: active
+    command: "scripts/sai-dispatch-transition --self-test"
     self_test: live-pass
 
   - id: app-unit-tests

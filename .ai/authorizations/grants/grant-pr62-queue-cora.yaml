@@ -1,0 +1,16 @@
+id: grant-pr62-queue-cora
+principal: ctr-admin
+principal_name: Cora
+runtime: cursor-cloud-vm
+task_id: 20260813-2016-pr62-queue-cora
+paths:
+  - ".ai/contracts/**"
+  - ".ai/requests/**"
+  - ".ai/agents/**"
+  - ".ai/runs/**"
+actions:
+  - write
+issued_by: dezocode
+issued_at: "2026-08-13T20:16:00Z"
+source: "PR #62 continuation; comment 5285843795"
+note: Cora may write contract/queue/run artifacts only. Not product or control-plane code.

@@ -1,0 +1,15 @@
+reviewer: saul
+runtime: codex
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: 2
+implementation_head: d113fa0bf75b43491c25723f57cf9dec1e6196de
+review_type: implementation
+disposition: REQUEST_CHANGES
+codex_invoked: true
+synthetic: false
+github_run_id: '31736391403'
+idempotency_key: 02362e11c38595d1
+consumed_at: '2026-08-13T20:20:00Z'
+consumed_by: ctr-admin
+amendment_id: A-003
+result_revision: v3

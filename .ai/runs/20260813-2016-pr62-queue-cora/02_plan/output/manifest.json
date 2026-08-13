@@ -1,0 +1,9 @@
+{
+  "task_id": "20260813-2016-pr62-queue-cora",
+  "stage": "02_plan",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-13T20:20:00Z",
+  "status": "complete",
+  "inputs": [".ai/contracts/20260813-pr62-saul-smoke/revisions/v2.yaml"],
+  "outputs": [".ai/runs/20260813-2016-pr62-queue-cora/02_plan/output/plan.md"]
+}

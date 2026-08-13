@@ -58,7 +58,9 @@ is a compact orchestrator.
 
 Bootstrap tasks `20260813-1517-auth-loop-cursor-cloud` and
 `20260813-1752-saul-runner-cursor-cloud` may land this control plane;
-they are not standing implementation identities.
+they are not standing implementation identities. Each is bound to
+`until_sha: d113fa0bf75b43491c25723f57cf9dec1e6196de`. New commits after
+that SHA cannot reuse bootstrap.
 
 ## Context
 
@@ -103,3 +105,26 @@ mechanically true or the commit/push/CI graph fails closed.
 - FINAL CTO reviews must receive a retrievable exact-head package
   (complete changed-file set, complete diff, contract, prior findings,
   CI, schema). Stat/summary context is not a complete review.
+
+## Amendment 2026-08-13 (remediation queue / comment 5285843795)
+
+- Task-ID: `20260813-2015-pr62-queue-ceo`
+- Controlling comment: https://github.com/Dezocode/Sai/issues/62#issuecomment-5285843795
+- Observing the same blocker is not continuing the autonomous loop.
+  Duplicate Sai/GitHub triggers against unchanged
+  `(task, revision, head, reviewer, findings_digest)` MUST cheap-NOOP.
+- Sai owns the state machine and never becomes Cora, contractor, or Saul.
+- Cora owns CASE B contract transitions. Authority expansion (CASE C)
+  stops for a tracked human grant. Cora does not implement product or
+  control-plane code.
+- The authorized contractor owns CASE A/B remediation until a new SHA,
+  a proven-invalid return, or a real human/external dead end.
+- Officer writes after `d113fa0` require a tracked grant under
+  `.ai/authorizations/grants/` (CTO-009). Trailer `Agent:` is provenance.
+- Persistent Saul runner executes trusted reviewer code; the PR tree is
+  data (CTO-010). `pull_request` YAML is still PR-controlled until this
+  workflow exists on default branch; runner image / main ref win when
+  present.
+- dezocode human grant keeps Decision 0007 on this PR and expands
+  contractor paths for CTO-009/010/011. Contractors still cannot write
+  `.ai/shared/memory/decisions/**`.

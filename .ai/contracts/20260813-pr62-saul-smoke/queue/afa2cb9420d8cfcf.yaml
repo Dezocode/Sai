@@ -1,0 +1,33 @@
+work_item_id: afa2cb9420d8cfcf
+task_id: 20260813-2017-pr62-queue-ctr-code
+source_event_id: 02362e11c38595d1
+source_reviewer: saul
+source_review_id: 02362e11c38595d1
+source_github_run: '31736391403'
+source_head: d113fa0bf75b43491c25723f57cf9dec1e6196de
+source_contract_revision: 2
+contract_id: 20260813-pr62-saul-smoke
+findings:
+- CTO-008
+- CTO-009
+- CTO-010
+- CTO-011
+findings_digest: e299cb2fa7f8a19b
+owner: human
+routing_case: C
+state: completed
+expected_next_state: CONTRACTOR_REMEDIATE
+claimed_by_runtime: cursor-cloud-vm
+claim_generation: 1
+attempt: 1
+max_attempts: 5
+created_at: '2026-08-13T20:34:54Z'
+claimed_at: '2026-08-13T20:34:54Z'
+last_material_progress_at: '2026-08-13T20:35:06Z'
+completed_at: '2026-08-13T20:35:06Z'
+result_contract_revision: v3
+result_head_sha: null
+result_artifacts:
+- .ai/authorizations/human/20260813-pr62-keep-0007.yaml
+- .ai/contracts/20260813-pr62-saul-smoke/amendments/A-003.yaml
+- .ai/contracts/20260813-pr62-saul-smoke/revisions/v3.yaml

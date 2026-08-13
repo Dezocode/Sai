@@ -7,8 +7,23 @@ enforcement:
   mode: fail-closed
   # Commits whose trees lack this file predate the control plane.
   skip_commits_missing_policy: true
+  # Human Decision 0007 stack on this PR landed without agent trailers.
+  # Preserve those commits; require identity on descendants of this SHA.
+  skip_commits_missing_identity_at_or_before: "d113fa0bf75b43491c25723f57cf9dec1e6196de"
+  # Optional SHA-pinned window for stacked PRs whose first contractor
+  # commits predate Cora lease issuance. Unset here (PR #62 has none).
+  skip_commits_missing_contract_at_or_before: ""
   session_file: ".git/sai-session.json"
   trust_session: false
+
+audit:
+  # Grammar-only. Does not skip verify-agent-authorization.
+  # Human Decision 0007 commit used Task-ID without HHMM; history is
+  # preserved (no force-push / no authorization weakening).
+  preserve_malformed_task_id:
+    - sha: "d14402e625aad54a5dff5d0f00785291d83c414a"
+      original_task_id: "20260813-runtime-intelligence-plane"
+      reason: "human Decision 0007 docs commit; grammar exception only"
 
 activation:
   mode: lazy-first-write
@@ -32,6 +47,11 @@ bootstrap:
   task_ids:
     - "20260813-1517-auth-loop-cursor-cloud"
     - "20260813-1752-saul-runner-cursor-cloud"
+  task_bindings:
+    "20260813-1517-auth-loop-cursor-cloud":
+      until_sha: "d113fa0bf75b43491c25723f57cf9dec1e6196de"
+    "20260813-1752-saul-runner-cursor-cloud":
+      until_sha: "d113fa0bf75b43491c25723f57cf9dec1e6196de"
   agent_trailers:
     - cursor-cloud
     - cursor-cloud-vm
@@ -49,7 +69,17 @@ bootstrap:
     - "OPENCLAW.md"
   note: >
     One-time landing of this control plane by an unbound Cursor Cloud
-    runtime. Disable after human review. Not a standing implementation identity.
+    runtime. Closed at until_sha (inclusive). New commits cannot reuse
+    bootstrap; they need a tracked officer grant or a Cora lease.
+
+officer_grants:
+  required: true
+  required_after_sha: "d113fa0bf75b43491c25723f57cf9dec1e6196de"
+  dir: ".ai/authorizations/grants"
+  note: >
+    Agent trailers are provenance, not authority. Officer writes after
+    required_after_sha need a tracked grant bound to task, principal,
+    and paths.
 
 runtimes:
   cursor_implementation:
@@ -107,7 +137,6 @@ protected_denied_for_contractors:
   - ".ai/shared/memory/decisions/**"
   - ".ai/agents/registry.json"
   - ".ai/agents/registry.schema.json"
-  - ".github/workflows/**"
 
 contractor:
   require_contract: true
@@ -164,3 +193,14 @@ idempotency:
   key_fields: [contract_id, contract_revision, implementation_head, reviewer, review_type]
   skip_if_unchanged_request_changes: true
   workflow_must_not_amend: true
+
+queue:
+  dir: ".ai/contracts/<id>/queue"
+  claim_marker: "<!-- sai-transition:KEY -->"
+  duplicate_eval_is_noop: true
+  sai_must_not_reread_on_noop: true
+  metrics:
+    - sai_runs_per_material_transition
+    - duplicate_sai_noop_rate
+    - time_REQUEST_CHANGES_to_owner_claim
+    - time_owner_claim_to_new_SHA

@@ -1,0 +1,18 @@
+approval_id: human-pr62-keep-0007-and-path-expansion
+contract_id: 20260813-pr62-saul-smoke
+from_review: "02362e11c38595d1"
+github_run_id: "31736391403"
+implementation_head: d113fa0bf75b43491c25723f57cf9dec1e6196de
+finding_ids:
+  - CTO-008
+resolved: true
+authority_expanding: true
+approved_by: dezocode (U0BHYH0NMCY)
+approved_at: "2026-08-13T20:12:00Z"
+source: "PR #62 continuation prompt + comment 5285843795"
+decision: |
+  Keep Decision 0007 on this branch. Do not revert it.
+  Expand contractor allowed_paths so Cora/contractor can remediate
+  CTO-009/010/011 (scripts, saul-review.yml, tests, _config, schemas).
+  Contractors still cannot write .ai/shared/memory/decisions/**.
+  Cora must not implement the technical fixes.

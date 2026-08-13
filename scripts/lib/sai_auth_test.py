@@ -32,6 +32,8 @@ contractor:
   require_contract: true
   default_denied_paths: [".ai/agents/saul/**"]
 authority_expanding_actions: [expand, grant-capability, remove-denied-path]
+officer_grants:
+  required: true
 idempotency:
   skip_if_unchanged_request_changes: true
 codex:
@@ -76,6 +78,19 @@ def _init(path: Path):
     (path / ".ai/requests").mkdir(parents=True, exist_ok=True)
     a.write_yaml(path / ".ai/_config/authorization.yaml", a.load_yaml(POLICY))
     a.write_json(path / ".ai/agents/registry.json", REGISTRY)
+    (path / ".ai/authorizations/grants").mkdir(parents=True, exist_ok=True)
+    a.write_yaml(path / ".ai/authorizations/grants/grant-test-ctr-admin.yaml", {
+        "id": "grant-test-ctr-admin",
+        "principal": "ctr-admin",
+        "runtime": "cursor-cloud-vm",
+        "task_ids": [
+            "20260813-1517-auth-loop-cursor-cloud",
+            "20260813-9999-auth-test-ctr-code-auth1",
+        ],
+        "paths": [".ai/**"],
+        "actions": ["write"],
+        "issued_by": "test",
+    })
     _git(path, "add", "-A")
     _git(path, "commit", "-m",
          "bootstrap policy\n\nTask-ID: 20260813-1517-auth-loop-cursor-cloud\nAgent: cursor-cloud\n")
@@ -318,6 +333,9 @@ def run_synthetic_fixtures():
         _init(d)
         sai_nv(d)
 
+        from sai_auth_grant import register_grant_fixtures
+        register_grant_fixtures(one, _commit)
+
     return set(names)
 
 
@@ -385,6 +403,39 @@ def run_saul_fixtures():
         if "head.repo.full_name" not in job or "github.repository" not in job:
             raise RuntimeError("saul-review.yml job must skip fork PRs before runs-on")
         print("SELFTEST PASS  saul-workflow-job-if-same-repo")
+        executed.add("saul-trusted-launcher-not-pr-head")
+        if "SAI_TRUSTED_TREE" not in text or "SAI_CANDIDATE_TREE" not in text:
+            raise RuntimeError("saul-review.yml must set trusted vs candidate trees")
+        if '"$SAI_TRUSTED_TREE/scripts/invoke-saul-review"' not in text:
+            raise RuntimeError("invoke must run from SAI_TRUSTED_TREE, not PR-head scripts/")
+        print("SELFTEST PASS  saul-trusted-launcher-not-pr-head")
+        executed.add("saul-status-description-truncated")
+        if 'DESC="${DESC:0:140}"' not in text:
+            raise RuntimeError("saul-review.yml must cap commit status description at 140 chars")
+        print("SELFTEST PASS  saul-status-description-truncated")
+        os.environ.pop("SAI_SKIP_CODEX", None)
+        os.environ["SAI_CODEX_BIN"] = "/bin/true"
+        os.environ.pop("SAI_CODEX_SANDBOX", None)
+        from sai_auth_review import _codex_cmd
+        cmd = _codex_cmd()
+        executed.add("saul-sandbox-default-danger-full-access")
+        if cmd is None or "-s" not in cmd or "danger-full-access" not in cmd:
+            raise RuntimeError(f"default Codex sandbox must be danger-full-access, got {cmd}")
+        print("SELFTEST PASS  saul-sandbox-default-danger-full-access")
+        os.environ["SAI_CODEX_SANDBOX"] = "read-only"
+        cmd_ro = _codex_cmd()
+        executed.add("saul-sandbox-env-override")
+        if "read-only" not in (cmd_ro or []):
+            raise RuntimeError(f"SAI_CODEX_SANDBOX override failed: {cmd_ro}")
+        os.environ.pop("SAI_CODEX_SANDBOX", None)
+        os.environ.pop("SAI_CODEX_BIN", None)
+        print("SELFTEST PASS  saul-sandbox-env-override")
+        banner = "=== /tmp/evidence/review.yaml ===\nreviewer: saul\ndisposition: REQUEST_CHANGES\n"
+        executed.add("saul-yaml-banner-stripped")
+        docb = a.load_yaml(banner)
+        if docb.get("reviewer") != "saul" or docb.get("disposition") != "REQUEST_CHANGES":
+            raise RuntimeError(f"path banner must be stripped, got {docb}")
+        print("SELFTEST PASS  saul-yaml-banner-stripped")
     return executed
 
 
@@ -428,6 +479,14 @@ def run_consume_fixtures():
         if a.load_pointer(d, cid).get("current_revision") != "v2":
             raise RuntimeError("must not auto-bump on expanding finding")
         print("SELFTEST PASS  consume-expand-human-gate")
+        bp = d / "bannered-review.yaml"
+        bp.write_text("=== /root/skill-lab/evidence/review.yaml ===\nreviewer: saul\n"
+                      f"runtime: codex\ncontract_id: {cid}\ncontract_revision: 2\n"
+                      "disposition: BLOCKED\nidempotency_key: banner\nfindings: []\n")
+        executed.add("consume-banner-prefixed-yaml")
+        if consume(d, cid, str(bp)) != 0:
+            raise RuntimeError("consume must parse banner-prefixed YAML")
+        print("SELFTEST PASS  consume-banner-prefixed-yaml")
     return executed
 
 

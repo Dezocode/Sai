@@ -1,0 +1,15 @@
+contract_id: 20260813-pr62-saul-smoke
+from_review: 02362e11c38595d1
+github_run_id: '31736391403'
+implementation_head: d113fa0bf75b43491c25723f57cf9dec1e6196de
+authority_expanding_findings:
+- id: CTO-008
+  contract_field: allowed_paths
+  action: narrow
+resolved: true
+resolved_by: dezocode (U0BHYH0NMCY)
+resolved_at: '2026-08-13T20:12:00Z'
+human_approval_id: human-pr62-keep-0007-and-path-expansion
+created_at: '2026-08-13T20:20:00Z'
+created_by: ctr-admin
+note: Cora did not auto-grant. dezocode continuation kept Decision 0007 and authorized v3 path expansion.

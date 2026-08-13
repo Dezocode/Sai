@@ -1,0 +1,29 @@
+{
+  "task_id": "20260813-2015-pr62-queue-ceo",
+  "agent": "ceo",
+  "agent_name": "Sai",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/codebase-health-90ba",
+  "base_sha": "d113fa0bf75b43491c25723f57cf9dec1e6196de",
+  "purpose": "Continue PR #62: durable remediation queue, officer grants, bootstrap closed range, human grant to keep Decision 0007, route CTO-008..011 without restarting.",
+  "status": "in-progress",
+  "plan_reference": ".ai/runs/20260813-2015-pr62-queue-ceo/02_plan/output/plan.md",
+  "continues": "20260813-1752-saul-runner-cursor-cloud",
+  "pr": "https://github.com/Dezocode/Sai/pull/62",
+  "controlling_comment": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5285843795",
+  "claimed_files": [
+    ".ai/_config/authorization.yaml",
+    ".ai/_config/code-health.yaml",
+    ".ai/authorizations/",
+    ".ai/shared/memory/decisions/0006-agent-authorization-loop.md",
+    ".ai/shared/schemas/remediation-item.schema.json",
+    ".ai/agents/sai/runtimes/cursor/automation/profile.md",
+    ".ai/CONTEXT.md",
+    ".ai/requests/20260813-2015-pr62-queue-ceo/",
+    ".ai/runs/20260813-2015-pr62-queue-ceo/"
+  ],
+  "overlap_note": "Continues same-branch runs 20260813-1517 and 20260813-1752. Not a semantic conflict; this run owns the queue/grant governance layer. Cora and contractor commits follow with their own task IDs.",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "trigger": "dezocode: continue PR #62; comment 5285843795; do not restart or merge"
+}

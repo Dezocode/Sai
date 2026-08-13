@@ -1,0 +1,55 @@
+reviewer: saul
+runtime: codex
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: 2
+implementation_head: d113fa0bf75b43491c25723f57cf9dec1e6196de
+review_type: implementation
+disposition: REQUEST_CHANGES
+codex_invoked: true
+synthetic: false
+github_run_id: '31736391403'
+findings:
+- id: CTO-008
+  severity: P0
+  contract_field: allowed_paths
+  action: narrow
+  requested_change: Remove commit d113fa0bf75b43491c25723f57cf9dec1e6196de from this
+    contractor implementation or obtain an authority-expanding, human-approved contract
+    revision before implementation. The commit modifies .ai/shared/memory/decisions/0007-parallel-runtime-intelligence-plane.md,
+    which is explicitly denied by v2; the complete PR also contains extensive paths
+    outside the contract's .ai/runs/** and tests/authorization/** allowlist.
+  authority_expanding: false
+- id: CTO-009
+  severity: P0
+  contract_field: authorization
+  action: add
+  requested_change: 'Resolve prior CTO-004: officer commits remain authorized from
+    the Agent trailer and path class alone. Bind officer writes to independently verifiable
+    tracked authorization, including task, runtime, and authority provenance; add
+    negative fixtures proving a forged officer trailer cannot authorize a commit.'
+  authority_expanding: false
+- id: CTO-010
+  severity: P0
+  contract_field: saul_review_workflow
+  action: narrow
+  requested_change: 'Resolve prior CTO-005: the persistent authenticated Saul runner
+    still executes actions/checkout@v4 and scripts from the pull-request head. Execute
+    only trusted reviewer code sourced from an immutable trusted ref, while retrieving
+    the candidate head strictly as review data. Add a regression test proving candidate
+    PR code cannot execute on the persistent runner.'
+  authority_expanding: false
+- id: CTO-011
+  severity: P1
+  contract_field: bootstrap
+  action: narrow
+  requested_change: 'Resolve prior CTO-006: bootstrap authorization is still reusable
+    and expiration remains declarative. Bind each bootstrap task to an immutable commit
+    or closed range and enforce automatic expiry or consumption in authorization replay.'
+  authority_expanding: false
+reason: The exact implementation head changes an explicitly denied decision path,
+  the complete final-review diff materially exceeds contract v2 scope, and prior authorization
+  and persistent-runner trust-boundary findings remain unresolved.
+idempotency_key: 02362e11c38595d1
+github_event: pull_request
+source: https://github.com/Dezocode/Sai/issues/62#issuecomment-5285477509
+runner_name: hostinger-saul-codex
