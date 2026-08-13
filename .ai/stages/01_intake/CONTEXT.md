@@ -16,7 +16,9 @@ single intake record that every later stage can trust without re-deriving it.
 
 ## Process
 
-1. Identify the requesting user and the exact requested outcome.
+1. Identify the requesting user and the exact requested outcome. Record
+   the requester as username plus Slack ID (for example `dezocode
+   (U0BHYH0NMCY)`). Do not commit personal email addresses.
 2. Confirm, with command output: current repository, remote URLs, default
    branch, fork relationship, current branch and commit, worktree path, and
    clean/dirty state (`git remote -v`, `git status`, `gh repo view`).

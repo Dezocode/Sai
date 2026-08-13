@@ -1,0 +1,25 @@
+{
+  "task_id": "20260813-0133-redact-intake-email-cursor-cloud",
+  "stage": "03_implement",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T01:34:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/02_plan/output/plan.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/01_intake/output/intake.md",
+    ".ai/shared/memory/conventions.md",
+    ".ai/stages/01_intake/CONTEXT.md",
+    ".ai/_config/security-policy.md",
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/03_implement/output/changes.md",
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/03_implement/output/manifest.json"
+  ],
+  "decisions": [],
+  "commits": [],
+  "events": [
+    "20260813-0133-redact-intake-email-cursor-cloud:change"
+  ],
+  "human_edits": "none",
+  "notes": "security-policy.md added to claims when the sensitive-data bullet was the matching Layer 3 control."
+}

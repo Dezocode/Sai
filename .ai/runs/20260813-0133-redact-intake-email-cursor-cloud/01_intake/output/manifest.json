@@ -1,0 +1,24 @@
+{
+  "task_id": "20260813-0133-redact-intake-email-cursor-cloud",
+  "stage": "01_intake",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T01:33:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/CONTEXT.md",
+    ".ai/_config/security-policy.md",
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/01_intake/output/intake.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/metadata.json",
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/01_intake/output/intake.md",
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/01_intake/output/manifest.json"
+  ],
+  "decisions": [],
+  "commits": [],
+  "events": [
+    "20260813-0133-redact-intake-email-cursor-cloud:intake"
+  ],
+  "human_edits": "none",
+  "notes": "Follow-up to merged PR 57. Codex P1 + dezocode fix request."
+}

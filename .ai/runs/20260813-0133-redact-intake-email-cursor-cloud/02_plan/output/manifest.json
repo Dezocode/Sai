@@ -1,0 +1,23 @@
+{
+  "task_id": "20260813-0133-redact-intake-email-cursor-cloud",
+  "stage": "02_plan",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T01:33:30Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/01_intake/output/intake.md",
+    ".ai/shared/memory/conventions.md",
+    ".ai/stages/01_intake/CONTEXT.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/02_plan/output/plan.md",
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/02_plan/output/manifest.json"
+  ],
+  "decisions": [],
+  "commits": [],
+  "events": [
+    "20260813-0133-redact-intake-email-cursor-cloud:plan"
+  ],
+  "human_edits": "none",
+  "notes": "Tight redact plus convention/stage wording so the class of leak does not recur."
+}
