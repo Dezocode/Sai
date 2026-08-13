@@ -31,8 +31,16 @@ class NegativeAuthorityTests(unittest.TestCase):
     def test_status_is_provisional(self):
         text = STATUS.read_text(encoding="utf-8")
         self.assertIn("PROVISIONAL", text)
+        self.assertIn("NOT INITIALIZED", text)
+        # Fail-closed invariant: must not claim ACTIVE; gate states may be
+        # PENDING, REQUESTED, BLOCKED, or REQUEST_CHANGES — never self-APPROVE.
+        self.assertNotRegex(text, r"(?m)^\*\*Status:\s*ACTIVE")
         self.assertNotIn("Status: ACTIVE", text)
-        self.assertIn("PENDING", text)
+        gate_tokens = ("PENDING", "REQUESTED", "BLOCKED", "REQUEST_CHANGES")
+        self.assertTrue(
+            any(t in text for t in gate_tokens),
+            f"expected one of {gate_tokens} in STATUS.md gate table",
+        )
 
     def test_skill_forbids_main_merge(self):
         text = SKILL.read_text(encoding="utf-8")

@@ -1,0 +1,46 @@
+=== /root/skill-lab/evidence/deep-fulfillment-job-20260813T194159-edd0a4f4/saul-run-31739344984/saul-review-31739344984/tmp/saul/review.yaml ===
+reviewer: saul
+runtime: codex
+contract_id: 20260813-ri-subprocess-init
+contract_revision: 2
+implementation_head: ec6015e7a3c06f0f6f74f70c839c8dde493d7332
+review_type: implementation
+disposition: REQUEST_CHANGES
+findings:
+- id: CTO-001
+  severity: P0
+  contract_field: verification_requirements
+  action: add
+  requested_change: Make scripts/verify-agent-authorization pass for the complete
+    origin/main..HEAD range. It currently rejects nine commits, including three RI
+    contractor commits missing Contract-ID and six commits missing an Agent identity.
+    The contract explicitly requires this verification, so the exact head cannot be
+    approved while authorization replay fails.
+  authority_expanding: false
+- id: CTO-002
+  severity: P1
+  contract_field: run_artifacts
+  action: add
+  requested_change: Repair the 20260813-1945-ri-subprocess-init ICM run so scripts/verify-semantic-hierarchy
+    passes. Use the required 03_implement stage name, add agent and repository to
+    metadata.json, and convert all eight events.jsonl entries to the required event_id/event_type/actor/timestamp
+    schema. The current exact head reports 35 hierarchy violations.
+  authority_expanding: false
+- id: CTO-003
+  severity: P1
+  contract_field: tests
+  action: add
+  requested_change: Restore the Runtime Intelligence negative-authority suite. test_status_is_provisional
+    currently requires PENDING, but STATUS.md now records BLOCKED/REQUESTED states
+    and the test fails. Test the actual fail-closed invariant across pending, blocked,
+    and requested gate states, then rerun the complete RI suite.
+  authority_expanding: false
+codex_invoked: true
+synthetic: false
+github_run_id: '31739344984'
+reason: The complete 200-file exact-head package and 680151-byte diff were inspected.
+  Contract lookup passes and code-health checks pass, but mandatory authorization
+  replay, semantic hierarchy, and one Runtime Intelligence test fail; CI state is
+  also pending.
+idempotency_key: 59a62eb0306dce1c
+github_event: workflow_dispatch
