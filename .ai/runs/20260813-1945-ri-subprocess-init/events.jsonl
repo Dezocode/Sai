@@ -3,3 +3,4 @@
 {"event":"CHANGE","task_id":"20260813-1945-ri-subprocess-init","at":"2026-08-13T19:46:00Z","summary":"ICM run, request.yaml, negative tests, local memory, STATUS.md"}
 {"event":"VERIFY","task_id":"20260813-1945-ri-subprocess-init","at":"2026-08-13T19:46:30Z","negative_authority":"PASS","org_init":"PROVISIONAL"}
 {"event":"HANDOFF","task_id":"20260813-1945-ri-subprocess-init","at":"2026-08-13T19:47:00Z","note":"Stacked sub-PR open next; approvals PENDING"}
+{"event":"CHANGE","task_id":"20260813-1945-ri-subprocess-init","at":"2026-08-13T19:48:00Z","summary":"Opened stacked PR #64; parent comment on #62"}

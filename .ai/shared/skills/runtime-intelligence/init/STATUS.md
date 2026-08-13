@@ -7,7 +7,7 @@ This file must never be flipped to ACTIVE by the subprocess itself.
 | Gate | Status |
 |------|--------|
 | Phase A inventory | STARTED (evidence in run intake) |
-| Stacked init sub-PR | IN PROGRESS |
+| Stacked init sub-PR | OPEN https://github.com/Dezocode/Sai/pull/64 @ e9fcfaf |
 | Hooks/rules/ICM artifacts | PARTIAL |
 | Dockerized Grok high-reasoning | NOT DONE |
 | OpenClaw bounded role wiring | NOT DONE |

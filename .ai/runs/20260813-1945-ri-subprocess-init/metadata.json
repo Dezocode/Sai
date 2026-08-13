@@ -9,12 +9,18 @@
   "stacked_branch": "cursor/ri-subprocess-init-20260813",
   "agent_provenance": "hermes-grok-telegram-bridge (subprocess; not registry-active)",
   "principal": "dezocode (U0BHYH0NMCY)",
-  "decisions": ["0006", "0007"],
+  "decisions": [
+    "0006",
+    "0007"
+  ],
   "bootstrap_prompt": ".ai/shared/skills/runtime-intelligence/TELEGRAM_BOOTSTRAP_PROMPT.md",
   "approvals": {
     "saul_technical": "PENDING",
     "sai_governance": "PENDING",
     "human": "PENDING"
   },
-  "created_at": "2026-08-13T19:45:00Z"
+  "created_at": "2026-08-13T19:45:00Z",
+  "sub_pr": 64,
+  "sub_pr_url": "https://github.com/Dezocode/Sai/pull/64",
+  "init_head": "e9fcfaf43d5bc87d6683fa1291d56ba9e57789b5"
 }
