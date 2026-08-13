@@ -12,5 +12,5 @@
   ],
   "status": "complete",
   "human_edits": "none",
-  "notes": "Subject G00-G15 execution skipped (review-only). Local ICM checks run after commit."
+  "notes": "Subject G00-G15 skipped. Local ICM checks after commit: verify-semantic-hierarchy / verify-agent-audit / verify-merge-handoff all OK."
 }

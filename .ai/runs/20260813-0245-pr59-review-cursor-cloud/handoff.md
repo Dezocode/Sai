@@ -3,7 +3,8 @@
 - Task-ID: `20260813-0245-pr59-review-cursor-cloud`
 - Agent: `cursor-cloud`
 - Subject: https://github.com/Dezocode/Sai/pull/59 (`40efe0a...c6736d1`)
-- Review-record branch: `cursor/pr59-review-f4b6`
+- Review-record branch: `cursor/pr59-review-f4b6` @ `3f01993`
+- Review-record PR: https://github.com/Dezocode/Sai/pull/60 (draft)
 - Disposition: **block merge**. Keep #59 draft.
 
 ## Done
