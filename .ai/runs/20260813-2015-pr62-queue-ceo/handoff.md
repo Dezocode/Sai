@@ -1,11 +1,36 @@
-# Handoff — 20260813-2015-pr62-queue-ceo (Sai governance layer)
+# Handoff — Sai (repo-native orchestration / comment 5287013791)
 
-Sai recorded the durable queue architecture, officer-grant requirement,
-bootstrap closed range, and dezocode's human grant to keep Decision 0007
-while expanding contractor paths for CTO-008..011.
+Logical primary: `pr62-primary`.
+Physical runtime: `bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc`.
+State: `.ai/runs/20260813-2015-pr62-queue-ceo/coordinator-state.json`.
 
-Cora and the smoke contractor still have to land v3 + code remediations
-on this same branch. Do not merge. Do not mark PR #62 ready.
+## What landed (governance)
 
-Next: Cora A-003 / v3 / v3 lease, then contractor trusted Saul launcher
-and authorization replay fixtures.
+- `.cursor/rules/sai-orchestration.mdc` (alwaysApply): fresh Cloud
+  runtime is the standing coordinator; ordinary "Implement X" is enough.
+- `.ai/CONTEXT.md` and `sai-coordination.mdc` no longer send every
+  unbound Cloud agent into `INITIALIZE.md` / `agent-init`.
+- `.ai/agents/cora/AGENT.md` documents automatic `SAI_CUE` admission.
+- Decision 0006 amendment: primary orchestrator, waiting nonterminal,
+  candidate HEAD is not the trusted reviewer.
+- Requirement ledger:
+  `.ai/contracts/20260813-pr62-saul-smoke/requirements/ledger.yaml`.
+
+## Continuity (honest)
+
+Same-physical-P0 resume after Hostinger Saul: **unproven** in this
+runtime. Fallback is logical pickup via `coordinator-state.json`.
+Fresh-unknown Cloud smoke (a second bcId with an ordinary prompt):
+**not executed from this session** (would require launching another
+Cloud agent). In-process first-write cue is proven by
+`sai_auth_cue_test` (unknown → CORA_ADMISSION; existing assignment →
+RESUME_CONTRACTOR; worktree unchanged).
+
+Async research worker `bc-1d9153f1-10fb-51b3-aa19-7a31549b175e` was
+spawned read-only for Cursor wake/pstack; mutating workers were not
+given this worktree (one agent per tree).
+
+## Exit
+
+READY_FOR_HUMAN_REVIEW: **no**. Needs real Saul APPROVE + Sai APPROVE +
+CI green on the exact new SHA. Do not merge. Do not mark ready.

@@ -23,12 +23,13 @@ declared purpose and scope; do not override it without explicit instruction
 from a co-founder.
 
 If you are not yet listed as `active` in `.ai/agents/registry.json` under
-your current identity, execute `.ai/INITIALIZE.md` before doing anything
-else: it verifies your environment (`scripts/agent-init`), orients you to
-Slack and GitHub, requires you to ask your principal for a **name and role
-title** (never self-chosen), registers you, and has you set up your own
-Cursor automation for protocol upkeep. Do not accept tasks before its
-Phase 9 report is delivered.
+your current identity **and** a co-founder is creating you as a standing
+named agent, execute `.ai/INITIALIZE.md` before doing anything else.
+
+If you are a **fresh Cursor Cloud/Desktop runtime** executing an ordinary
+implementation request, you are the primary orchestrator: follow
+`.cursor/rules/sai-orchestration.mdc`. Do not run `scripts/agent-init` on
+this managed VM. First write is routed by `SAI_IDENTITY_REQUIRED`.
 
 ## Scope and authority
 

@@ -128,3 +128,26 @@ mechanically true or the commit/push/CI graph fails closed.
 - dezocode human grant keeps Decision 0007 on this PR and expands
   contractor paths for CTO-009/010/011. Contractors still cannot write
   `.ai/shared/memory/decisions/**`.
+
+## Amendment 2026-08-13 (primary orchestrator / comment 5287013791)
+
+- Task-ID: `20260813-2015-pr62-queue-ceo`
+- Controlling comment: https://github.com/Dezocode/Sai/issues/62#issuecomment-5287013791
+- The interactive Cursor Cloud conversation is the standing primary
+  orchestrator when Cursor capabilities allow it. pstack describes HOW
+  (poteto/orchestrate/autonomous-run/session-pickup); SAI describes WHO.
+- Lazy first-write is a router: unknown mutation emits deterministic
+  `SAI_IDENTITY_REQUIRED` with `next_action` `CORA_ADMISSION` or
+  `RESUME_CONTRACTOR`. Cora administers contracts; Cora does not normally
+  implement. Contractor subagent results return to primary.
+- `WAITING_WORKER` and `WAITING_EXTERNAL` are nonterminal. Duplicate
+  material state is a cheap NOOP (`scripts/sai-event-adapter`). Do not
+  model-poll GitHub. If physical P0 cannot be woken, persist
+  `coordinator-state.json` and continue as the same logical primary.
+- Production trusted reviewer is runner-image `SAI_TRUSTED_REVIEWER_ROOT`
+  or `git archive` of the pull-request **base** SHA. Candidate HEAD is
+  never a trusted-reviewer success path (CTO-012). Unavailable trusted
+  source → `BLOCKED` / `TRUSTED_REVIEWER_UNAVAILABLE`, no Codex.
+- READY_FOR_HUMAN_REVIEW requires real Hostinger Saul APPROVE + Sai
+  APPROVE + exact-head CI green. Do not merge. Do not mark ready without
+  dezocode.

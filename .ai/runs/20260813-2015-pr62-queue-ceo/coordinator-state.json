@@ -1,0 +1,29 @@
+{
+  "task_id": "20260813-2015-pr62-queue-ceo",
+  "repo": "Dezocode/Sai",
+  "pr": 62,
+  "branch": "cursor/codebase-health-90ba",
+  "primary_logical_id": "pr62-primary",
+  "physical_runtime_id": "bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc",
+  "current_head": "de821c737c8ef8fc7dff26ccb15e2ddf6184aa18",
+  "contract_id": "20260813-pr62-saul-smoke",
+  "contract_revision": "v3",
+  "requirement_digest": "REQ-5287013791",
+  "open_findings_digest": "CTO-012",
+  "active_workers": [
+    {
+      "worker_id": "bc-1d9153f1-10fb-51b3-aa19-7a31549b175e",
+      "role": "research",
+      "work_item": "cursor-wake-capability"
+    }
+  ],
+  "pending_events": [],
+  "current_frontier": "CTO-012 fail-closed trusted reviewer + SAI_IDENTITY_REQUIRED cue + repo-native orchestration",
+  "expected_next_state": "WAITING_EXTERNAL",
+  "exit_predicate": "READY_FOR_HUMAN_REVIEW requires real Hostinger Saul APPROVE + Sai APPROVE + exact-head CI green + no P0/P1 findings",
+  "last_material_transition": "implementing-cto-012-and-orchestration",
+  "liveness": "ACTIVE",
+  "wake_condition": "new SHA then Hostinger Saul disposition on exact head",
+  "physical_runtime_continuity": null,
+  "model": "cursor-grok-4.6-high"
+}

@@ -42,11 +42,13 @@ Agent charters live in `.ai/agents/_roles/`. Read your own charter before workin
 Registered agents have a named folder at `.ai/agents/<name>/` — type `@<name>` in
 Cursor to attach their full profile.
 
-**New agent?** Stop here and execute `.ai/INITIALIZE.md` first — it orients
-you to Slack and GitHub, binds you to a charter, installs and verifies the
-hooks, has your principal name you and grant your role title, registers you
-in `.ai/agents/registry.json`, and sets up your Cursor automation. You are
-not an initialized SAI agent until its Phase 9 report is delivered.
+**New standing named agent?** A co-founder creating Mimi/Cora/a secretary
+executes `.ai/INITIALIZE.md`. A **fresh Cursor Cloud runtime** asked to
+implement work is the standing primary orchestrator — follow
+`.cursor/rules/sai-orchestration.mdc`. Do not stop to be named. First
+governed write emits `SAI_IDENTITY_REQUIRED` / `SAI_CUE CORA_ADMISSION`
+(or `RESUME_CONTRACTOR`). Cora (`.ai/agents/cora/AGENT.md`) administers
+contracts; contractors implement; Saul stays on Hostinger Codex.
 
 ## Runtime entry points (Layer 0)
 
@@ -55,7 +57,7 @@ One registry row per agent; runtime-specific capability suites live under
 
 | Runtime | Read first | Attach profile |
 |---|---|---|
-| Cursor Desktop / Cloud | `.cursor/rules/sai-coordination.mdc` | `@<name>` → `.ai/agents/<name>/` |
+| Cursor Desktop / Cloud | `.cursor/rules/sai-coordination.mdc` + `sai-orchestration.mdc` | `@<name>` → `.ai/agents/<name>/` |
 | Claude Code CLI | `CLAUDE.md` | `.ai/agents/<name>/AGENT.md` |
 | OpenAI Codex Desktop | `CODEX.md` | `.ai/agents/<name>/AGENT.md` after init |
 | OpenClaw Gateway (VPS) | `OPENCLAW.md` | `.ai/agents/<name>/AGENT.md` + `runtimes/openclaw/` |
@@ -105,6 +107,8 @@ artifacts unless the task explicitly requires it.
 
 .cursor/settings.json                <- project-scoped Cursor plugins (slash commands)
 .cursor/rules/sai-coordination.mdc   <- shared Cursor operating rules
+.cursor/rules/sai-orchestration.mdc  <- default primary-coordinator mode (fresh Cloud)
+
 .githooks/                           <- reporting hooks (install via scripts/install-agent-hooks)
 scripts/                             <- agent-init, agent-report, agent-sync-drive,
                                         install-agent-hooks, verify-agent-audit,

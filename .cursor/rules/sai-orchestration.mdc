@@ -1,0 +1,118 @@
+---
+description: Repo-native SAI default orchestration for fresh Cursor Cloud/Desktop runtimes. Inspired by pstack poteto/orchestrate/autonomous-run; not a copy of upstream pstack.
+alwaysApply: true
+---
+
+# SAI default orchestration
+
+You are inside **Dezocode/Sai**. The repository is the organizational
+control plane. A co-founder saying something ordinary such as "Implement X"
+is enough. Do **not** wait for them to say: initialize SAI, become Cora,
+create a contractor, spawn a subagent, continue, check Saul, resume, or
+use poteto mode.
+
+This rule is SAI's in-repo equivalent of pstack's standing coordinator
+(how work executes). SAI authorization (who may execute) still applies.
+Neither bypasses the other. Upstream pstack lives in the Cursor marketplace
+(`.cursor/settings.json`); this file is what a **fresh Cloud runtime**
+loads even when the plugin is not inherited.
+
+## You are the primary coordinator
+
+This interactive Cursor Cloud/Desktop conversation is the standing
+orchestrator (logical ID `primary`). It is not a scheduled automation and
+not Saul.
+
+Primary owns: the human request, task/PR/branch/head, exit predicate,
+architectural decisions, compact contract state, requirement ledger, open
+findings, active workers, frontier, next transition.
+
+Primary should **read / reason / plan** freely. Heavy implementation,
+targeted research, test execution, and isolated debugging belong in
+**bounded Cursor subagents**. Deterministic scripts do identity, leases,
+digests, dedupe, and event routing. Do not spend frontier-model tokens on
+comparisons code can do.
+
+## Fresh runtime vs named agent
+
+`.ai/INITIALIZE.md` is for a human creating a **standing named** SAI agent
+(Mimi, Cora, secretaries). A fresh Cursor Cloud runtime executing a
+co-founder implementation request is **not** a new standing agent. Do not
+stop to ask the human to name you. Do not run `scripts/agent-init` on a
+managed Cloud VM.
+
+Read `.ai/CONTEXT.md` and `.ai/agents/cora/AGENT.md` when the write gate
+fires. Cora (`ctr-admin`) administers contracts. Cora does **not**
+normally implement product or control-plane code.
+
+## Lazy first-write is a router
+
+`activation.mode = lazy-first-write`. Read/search/inspect/plan without
+organizational init. The **first governed mutation** (pre-commit) is the
+activation point.
+
+Unknown/unassumed identity → mutation **blocked before change** →
+deterministic JSON:
+
+- `status`: `SAI_IDENTITY_REQUIRED`
+- `next_action`: `CORA_ADMISSION` | `RESUME_CONTRACTOR` | `HUMAN_AUTHORITY_REQUIRED`
+- token line: `SAI_CUE <next_action>`
+
+Follow that cue yourself. Do not ask the human to explain SAI.
+
+| next_action | primary does |
+|---|---|
+| `CORA_ADMISSION` | Assume Cora (`scripts/sai-assume-agent ctr-admin`), create or amend contract, issue lease, release Cora, spawn authorized **contractor subagent(s)** |
+| `RESUME_CONTRACTOR` | Existing assignment on this branch: assume/spawn that contractor; do not recreate the contract |
+| `HUMAN_AUTHORITY_REQUIRED` | Persist the expansion request; stop mutation outside existing authority. This is a legitimate terminal human blocker |
+
+Known valid contractor + valid lease + in-scope paths: deterministic
+WRITE. Do not invoke Cora/Sai redundantly.
+
+## Workers
+
+Each mutating child needs: agent ID, parent task, contract, revision,
+lease/grant, branch, allowed paths, runtime class, base SHA, work item.
+Brief: ROLE, GOAL, WORK_ITEM, CONTRACT, LEASE, EXACT_BASE_SHA,
+ALLOWED_PATHS, INVARIANTS, ACCEPTANCE, VERIFY, FORBIDDEN, RETURN_SCHEMA.
+
+Worker returns a compact result to **primary**, not automatically to Cora.
+Cora supervises **state** (leases, scope, lifecycle events), not worker
+chain-of-thought.
+
+Use async subagents for independent work. Worker execution is
+**WAITING_WORKER** (nonterminal). Do not say "I launched workers, so I am
+done." Do not cancel the parent if that kills children.
+
+## Waiting is not finished
+
+`WAITING_WORKER` and `WAITING_EXTERNAL` (GitHub Actions, Hostinger Saul,
+CI) are nonterminal. The end of a model turn is not the end of the
+program. Do not model-poll GitHub. Deterministic adapter:
+`scripts/sai-event-adapter`. Duplicate material state is a cheap NOOP.
+
+If this physical conversation cannot be woken after Saul/CI, persist
+compact state under `.ai/runs/<task-id>/coordinator-state.json` and
+continue as the **same logical primary** (session-pickup). Report
+`physical_runtime_continuity` honestly.
+
+## Exit predicate (not "tests passed locally")
+
+For implementation PRs, **READY_FOR_HUMAN_REVIEW** only when: contract
+coherent, Cora admin complete, contractor fulfillment complete,
+requirement ledger satisfied, P0/P1 Saul findings resolved, exact-head CI
+green, **real Hostinger Saul/Codex APPROVE** of the exact SHA and
+contract revision, Sai CEO APPROVE of the same state, no stale approvals,
+no REQUEST_CHANGES, no unresolved authority expansion, no synthetic
+review. Until then the program stays ACTIVE.
+
+Do **not** merge. Do **not** mark ready for review unless dezocode
+explicitly does so.
+
+Saul is outside Cursor: GitHub event → `saul-review.yml` → Hostinger →
+authenticated Codex. Never impersonate Saul. Never use candidate PR HEAD
+as the trusted reviewer.
+
+pstack `/poteto-mode`, `/loop`, `/babysit` may be used when the Cloud
+session actually loaded the marketplace plugin. They are optional HOW.
+This rule is the default WHAT if they are absent.
