@@ -71,6 +71,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Ensure PyYAML
         run: |
@@ -78,23 +79,26 @@ jobs:
             python3 -c 'import yaml; print("pyyaml=present", getattr(yaml, "__version__", ""))'
             exit 0
           fi
-          mkdir -p /tmp/saul-yaml
-          curl -sS -L -o /tmp/pyyaml.tgz \
+          EXPECTED=d76623373421df22fb4cf8817020cbb7ef15c725b9d5e45f17e189bfc384190f
+          WORKDIR=$(mktemp -d "${RUNNER_TEMP:-/tmp}/saul-pyyaml.XXXXXX")
+          curl -sS -L -o "$WORKDIR/pyyaml.tgz" \
             "https://files.pythonhosted.org/packages/05/8e/961c0007c59b8dd7729d542c61a4d537767a59645b82a0b521206e1e25c2/pyyaml-6.0.3.tar.gz"
-          tar -xzf /tmp/pyyaml.tgz -C /tmp
-          cp -a /tmp/pyyaml-6.0.3/lib/yaml /tmp/saul-yaml/yaml
-          echo "PYTHONPATH=/tmp/saul-yaml${PYTHONPATH:+:$PYTHONPATH}" >> "$GITHUB_ENV"
-          PYTHONPATH="/tmp/saul-yaml${PYTHONPATH:+:$PYTHONPATH}" \
+          echo "$EXPECTED  $WORKDIR/pyyaml.tgz" | sha256sum -c
+          tar -xzf "$WORKDIR/pyyaml.tgz" -C "$WORKDIR"
+          mkdir -p "$WORKDIR/lib"
+          cp -a "$WORKDIR"/pyyaml-6.0.3/lib/yaml "$WORKDIR/lib/yaml"
+          echo "PYTHONPATH=$WORKDIR/lib${PYTHONPATH:+:$PYTHONPATH}" >> "$GITHUB_ENV"
+          PYTHONPATH="$WORKDIR/lib${PYTHONPATH:+:$PYTHONPATH}" \
             python3 -c 'import yaml; print("pyyaml=sdist", yaml.__version__)'
 
       - name: Invoke Codex as Saul
         id: saul
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
-          SAI_SAUL_PACKAGE_DIR: /tmp/saul/package
+          SAI_SAUL_PACKAGE_DIR: ${{ github.workspace }}/.saul-review-package
           SAI_SAUL_REVIEW_SCOPE: final
-          PYTHONPATH: /tmp/saul-yaml${{ env.PYTHONPATH && format(':{0}', env.PYTHONPATH) || '' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
         run: |
@@ -139,7 +143,7 @@ jobs:
           name: saul-review-${{ github.run_id }}
           path: |
             /tmp/saul/review.yaml
-            /tmp/saul/package
+            ${{ github.workspace }}/.saul-review-package
           if-no-files-found: warn
 
       - name: Post review comment

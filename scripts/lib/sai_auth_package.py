@@ -23,7 +23,7 @@ DOC_PATHS = [
     ".ai/_config/security-policy.md",
     ".ai/shared/schemas/contract-review.schema.json",
 ]
-INLINE_LIMIT = 120000
+INLINE_LIMIT = 400000
 
 
 def _git(root, *args):
@@ -165,7 +165,11 @@ def write_package(root, cid, revision, sha, review_type, dest_dir):
 
 
 def build_prompt(root, cid, revision, sha, review_type, package_dir=None):
-    pkg = package_dir or os.environ.get("SAI_SAUL_PACKAGE_DIR") or "/tmp/saul/package"
+    pkg = package_dir or os.environ.get("SAI_SAUL_PACKAGE_DIR")
+    if not pkg:
+        root_p = Path(root)
+        git_pkg = root_p / ".saul-review-package"
+        pkg = str(git_pkg if (root_p / ".git").is_dir() else Path("/tmp/saul/package"))
     dest, meta, files, diff, revdoc, prior = write_package(
         root, cid, revision, sha, review_type, pkg,
     )
