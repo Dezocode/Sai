@@ -7,7 +7,7 @@
   "branch": "cursor/codebase-health-90ba",
   "base_sha": "5c8f889e45c85dfbc687b0269a28a5aa7bab2918",
   "purpose": "Close PR #62 remaining P1 (CI coverage execution-context bypass), re-affirm Decision 0005 and Saul roadmap lanes as registered agent Sai, refresh exact-head PR wording",
-  "status": "publish_sync",
+  "status": "handoff",
   "claimed_files": [
     "scripts/lib/code-health-ci.py",
     "scripts/lib/code-health.py",

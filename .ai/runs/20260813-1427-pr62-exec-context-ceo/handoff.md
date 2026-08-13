@@ -20,7 +20,10 @@
 ## Evidence
 
 See `.ai/runs/20260813-1427-pr62-exec-context-ceo/04_verify/output/verification.md`.
-GitHub Actions on the new head is recorded there after push confirmation.
+
+GitHub Actions on implementation head `5e40d45`:
+- push `agent-audit` run `31710741626` success
+- pull_request `agent-audit` run `31710745705` success
 
 ## Drive
 
