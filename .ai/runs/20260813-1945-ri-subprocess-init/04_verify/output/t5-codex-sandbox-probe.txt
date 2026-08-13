@@ -1,0 +1,42 @@
+=== danger-full-access ===
+OpenAI Codex v0.147.0
+--------
+workdir: /tmp
+model: gpt-5.6-sol
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: none
+reasoning summaries: none
+session id: 019ffcbc-4cc8-7863-8111-bf4c26a9acd4
+--------
+user
+Reply with exactly: OK_SANDBOX
+
+codex
+OK_SANDBOX
+tokens used
+3,155
+OK_SANDBOX
+exit=0
+=== bypass ===
+OpenAI Codex v0.147.0
+--------
+workdir: /tmp
+model: gpt-5.6-sol
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: none
+reasoning summaries: none
+session id: 019ffcbc-59b7-7001-9269-984e0963f02b
+--------
+user
+Reply with exactly: OK_BYPASS
+
+codex
+OK_BYPASS
+tokens used
+3,155
+OK_BYPASS
+exit=0

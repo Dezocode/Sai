@@ -25,11 +25,23 @@ def _codex_env():
 def _codex_cmd():
     if os.environ.get("SAI_SKIP_CODEX") == "1":
         return None
+    # Saul self-hosted runner is already Docker-isolated. Default Codex
+    # sandbox uses bwrap/userns which fails under CapDrop=ALL containers
+    # (FINAL_REVIEW_PACKAGE_UNREADABLE). Prefer danger-full-access unless
+    # SAI_CODEX_SANDBOX explicitly sets read-only|workspace-write.
+    sandbox = os.environ.get("SAI_CODEX_SANDBOX", "danger-full-access").strip()
+    extra = []
+    if sandbox and sandbox != "default":
+        if sandbox in ("bypass", "dangerously-bypass"):
+            extra.append("--dangerously-bypass-approvals-and-sandbox")
+        else:
+            extra.extend(["-s", sandbox])
+    extra.append("--skip-git-repo-check")
     exe = os.environ.get("SAI_CODEX_BIN") or shutil.which("codex")
     if exe:
-        return [exe, "exec", "--ephemeral", "-"]
+        return [exe, "exec", "--ephemeral", *extra, "-"]
     if shutil.which("npx") and _codex_env():
-        return ["npx", "--yes", "@openai/codex", "exec", "--ephemeral", "-"]
+        return ["npx", "--yes", "@openai/codex", "exec", "--ephemeral", *extra, "-"]
     return None
 
 

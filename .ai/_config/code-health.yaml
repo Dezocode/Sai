@@ -65,7 +65,17 @@ orphans:
   roots:
     - scripts
     - openclaw-dashboard/scripts
-  allowlist: []
+  allowlist:
+    # Runtime Intelligence plane (Decision 0007) — invoked by Hostinger ops,
+    # Phase I matrix, and local Control Tower; not all are CI-wired yet.
+    - scripts/runtime-intelligence/export-dashboard-snapshot
+    - scripts/runtime-intelligence/build-control-tower
+    - scripts/runtime-intelligence/deny-authority
+    - scripts/runtime-intelligence/integrated-state-checkout
+    - scripts/runtime-intelligence/openclaw-triage-bind
+    - scripts/runtime-intelligence/run-phase-i-matrix
+    - scripts/runtime-intelligence/stub-index
+    - scripts/runtime-intelligence/wiki-project
 
 # status: active = command must be an unconditional `run:` in coverage_jobs
 #         deferred = documented; not wired until activate_when is true.
