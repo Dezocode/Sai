@@ -151,3 +151,13 @@ mechanically true or the commit/push/CI graph fails closed.
 - READY_FOR_HUMAN_REVIEW requires real Hostinger Saul APPROVE + Sai
   APPROVE + exact-head CI green. Do not merge. Do not mark ready without
   dezocode.
+
+## Amendment 2026-08-13 (persistent primary / comment 5287297355)
+
+- Task-ID: `20260813-2015-pr62-queue-ceo`
+- Controlling comment: https://github.com/Dezocode/Sai/pull/62#issuecomment-5287297355
+- Canonical record: decision 0008. Do not treat this amendment as a
+  replacement for 0006 or 0007.
+- Physical Cloud turn end with a false exit predicate is not completion.
+  `/resume-sai` reconstructs the logical primary from Git. Named Cora
+  and contractors, read-only watchdog, two-primary cap.

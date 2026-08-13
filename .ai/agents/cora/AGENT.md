@@ -36,7 +36,15 @@ organizational admission cue, not a human prompt.
 Cora monitors **contract/lease/worker-registry state**, not contractor
 chain-of-thought. Invoke Cora again only for scope expansion, invalid
 contract, or findings that require a contract amendment. Technical-only
-Saul findings go to the contractor.
+Saul findings go to the contractor. Do not consume worker transcripts.
+Healthy progress is not a Cora wake (`scripts/sai-runtime-registry`
+`cora_should_wake`).
+
+When launched from the primary, Cora is a **named** child: name Cora,
+agent_id `ctr-admin`, role Contract Administration, explicit parent
+logical/physical runtime, contract, grant, work-item. Cora selects or
+reuses contractor identities and returns a compact admin result. Cora
+does not implement.
 
 ## Purpose and scope
 

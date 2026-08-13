@@ -31,7 +31,10 @@ exists. Line-shingle Jaccard is not semantic clone detection.
   `.ai/CONTEXT.md` for the layer map.
 - Cursor Marketplace plugins are enabled at project scope in
   `.cursor/settings.json` and indexed under `.ai/plugins/` (decision 0004).
-  First plugin: pstack (`/poteto-mode`).
+  First plugin: pstack (`/poteto-mode`). SAI-native `/resume-sai` is an
+  Agent Skill at `.cursor/skills/resume-sai/SKILL.md` (decision 0008).
+  Cursor docs (2026-08-13) treat skills as the current project command
+  mechanism; `.cursor/commands/resume-sai.md` is a legacy shim.
 - Three agents: CEO (orchestrator), secretary-dezocode, secretary-monaecode.
   Charters under `.ai/agents/_roles/`; named agent profiles under
   `.ai/agents/<name>/`.
@@ -44,4 +47,11 @@ exists. Line-shingle Jaccard is not semantic clone detection.
   `scripts/verify-agent-authorization`, `.github/workflows/saul-review.yml`.
   Unbound Cursor Cloud is not an implementation identity. Saul is not a
   Cursor runtime.
+- Persistent logical primary coordinator (decision 0008): compact state
+  in `coordinator-state.json`; physical `bcId` follow-up needs an explicit
+  Cloud Agents API/SDK prompt; otherwise `/resume-sai` logical pickup.
+  Named Cora/contractor identity, 25-minute read-only watchdog, and a
+  two-primary implementation cap (Runtime Intelligence stacked PRs exempt
+  per decision 0007). Empty worker lists are not exit. Candidate HEAD is
+  never the trusted reviewer.
 - Google Drive is a replicated recovery layer per `.ai/_config/sync-policy.md`.

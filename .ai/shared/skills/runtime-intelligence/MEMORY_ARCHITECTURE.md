@@ -61,6 +61,21 @@ Human-readable projection regenerated from structured memory. Suggested pages: R
 
 Wiki prose is never the sole machine source of truth.
 
+## Projection of Decision 0008 (repo is canonical)
+
+Persistent logical primary, `/resume-sai`, named Cora/contractor tree,
+read-only 1500s watchdog, and the two-primary cap are defined in
+`.ai/shared/memory/decisions/0008-persistent-primary-cursor-orchestrator.md`.
+
+Runtime Intelligence (Hermes/Grok/OpenClaw) may **project** that record
+into Hostinger memory and the Sai Wiki (suggested page: Operating Manual /
+Architecture Decisions). They must not rewrite it. They may run
+`scripts/sai-watchdog` as a no-model heartbeat. They do not consume a
+primary-implementation slot (kind `runtime_intelligence` / `stacked`).
+
+Physical Cloud `bcId` resume requires an official follow-up prompt; silent
+GitHub wake is unsupported. Logical pickup is `/resume-sai`.
+
 ## Live dashboard
 Host on Hostinger. Hermes/OpenClaw may continuously refresh it from local telemetry. Grok may contribute adversarial/comparative interpretation but must not overwrite measured telemetry.
 

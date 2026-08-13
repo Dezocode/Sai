@@ -93,8 +93,19 @@ program. Do not model-poll GitHub. Deterministic adapter:
 
 If this physical conversation cannot be woken after Saul/CI, persist
 compact state under `.ai/runs/<task-id>/coordinator-state.json` and
-continue as the **same logical primary** (session-pickup). Report
+continue as the **same logical primary**. Invoke `/resume-sai` (skill
+`.cursor/skills/resume-sai/SKILL.md`) or run `scripts/sai-resume`.
+Empty worker/todo lists are **not** exit. Report
 `physical_runtime_continuity` honestly.
+
+Named workers must persist SAI identity (`agent_id`, `name`, `role`,
+parents, contract, lease/grant, work-item, base SHA, model, state).
+Task title is not identity. Launch Cora (`ctr-admin`) as a named
+bounded subagent only when contract administration is required.
+`scripts/sai-watchdog` (default 1500s) is the no-model heartbeat.
+At most two active primary implementation programs
+(`.ai/_config/primary-programs.yaml`); Runtime Intelligence stacked PRs
+do not consume a slot.
 
 ## Exit predicate (not "tests passed locally")
 

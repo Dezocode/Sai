@@ -45,7 +45,9 @@ Cursor to attach their full profile.
 **New standing named agent?** A co-founder creating Mimi/Cora/a secretary
 executes `.ai/INITIALIZE.md`. A **fresh Cursor Cloud runtime** asked to
 implement work is the standing primary orchestrator — follow
-`.cursor/rules/sai-orchestration.mdc`. Do not stop to be named. First
+`.cursor/rules/sai-orchestration.mdc`. Pickup an in-flight program with
+`/resume-sai` (`.cursor/skills/resume-sai/SKILL.md`) instead of replaying
+chat. Do not stop to be named. First
 governed write emits `SAI_IDENTITY_REQUIRED` / `SAI_CUE CORA_ADMISSION`
 (or `RESUME_CONTRACTOR`). Cora (`.ai/agents/cora/AGENT.md`) administers
 contracts; contractors implement; Saul stays on Hostinger Codex.
