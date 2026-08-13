@@ -3,7 +3,7 @@
   "stage": "04_verify",
   "agent": "cursor-cloud",
   "completed_at": "2026-08-13T16:05:00Z",
-  "status": "partial",
+  "status": "blocked",
   "inputs": [
     "scripts/verify-agent-authorization",
     "tests/authorization/e2e.py"
