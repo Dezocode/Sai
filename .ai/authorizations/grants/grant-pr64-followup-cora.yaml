@@ -1,0 +1,16 @@
+id: grant-pr64-followup-cora
+principal: ctr-admin
+principal_name: Cora
+runtime: cursor-cloud-vm
+task_id: 20260813-1945-ri-subprocess-init
+paths:
+  - ".ai/contracts/**"
+  - ".ai/requests/**"
+  - ".ai/agents/**"
+  - ".ai/runs/**"
+actions:
+  - write
+issued_by: dezocode
+issued_at: "2026-08-13T21:30:00Z"
+source: "Slack #agentupdates ChatGPT/Saul follow-up requiring Cora admin complete and ctr-code-ri1 registry binding"
+note: Cora may bind the provisional contractor and mark admin complete. Not product/control-plane code. Org remains PROVISIONAL.

@@ -12,7 +12,7 @@ enforcement:
   skip_commits_missing_identity_at_or_before: "d113fa0bf75b43491c25723f57cf9dec1e6196de"
   # Optional SHA-pinned window for stacked PRs whose first contractor
   # commits predate Cora lease issuance. Unset here (PR #62 has none).
-  skip_commits_missing_contract_at_or_before: ""
+  skip_commits_missing_contract_at_or_before: "46e73c3aad16e033e2ffa5a6f113eca6de2d2c7a"
   session_file: ".git/sai-session.json"
   trust_session: false
 

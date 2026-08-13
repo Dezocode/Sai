@@ -1,0 +1,17 @@
+id: grant-pr64-followup-ceo
+principal: ceo
+principal_name: Sai
+runtime: cursor-cloud-vm
+task_id: 20260813-2103-saul-followup-cursor-cloud
+paths:
+  - ".ai/**"
+  - "AGENTS.md"
+  - "CLAUDE.md"
+  - "CODEX.md"
+  - ".cursor/**"
+actions:
+  - write
+issued_by: dezocode
+issued_at: "2026-08-13T21:30:00Z"
+source: "Slack #agentupdates ChatGPT/Saul follow-up requiring pre-contract authorization path without force-push"
+note: Governance write for SHA-pinned skip_commits_missing_contract_at_or_before on PR #64. Authorization policy remains fail-closed after that SHA.
