@@ -33,7 +33,19 @@ for sha in $(git rev-list --no-merges $RANGE 2>/dev/null); do
     fi
     task=$(printf '%s' "$body" | sed -n 's/^Task-ID: *//p' | head -n1)
     if [ -n "$task" ] && ! printf '%s' "$task" | grep -Eq '^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$'; then
-      echo "FAIL $sha: Task-ID '$task' does not match YYYYMMDD-HHMM-<purpose>-<agent-id>" >&2; FAIL=1
+      ROOT=$(git rev-parse --show-toplevel)
+      if python3 - "$ROOT" "$sha" "$task" <<'PY'
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(sys.argv[1]) / "scripts" / "lib"))
+import sai_auth as a
+sys.exit(0 if a.malformed_task_id_preserved(sys.argv[1], sys.argv[2], sys.argv[3]) else 1)
+PY
+      then
+        echo "NOTE $sha: Task-ID '$task' grammar preserved (audit.preserve_malformed_task_id); authorization not skipped" >&2
+      else
+        echo "FAIL $sha: Task-ID '$task' does not match YYYYMMDD-HHMM-<purpose>-<agent-id>" >&2; FAIL=1
+      fi
     fi
   fi
 done

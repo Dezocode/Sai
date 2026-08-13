@@ -409,6 +409,33 @@ def run_saul_fixtures():
         if '"$SAI_TRUSTED_TREE/scripts/invoke-saul-review"' not in text:
             raise RuntimeError("invoke must run from SAI_TRUSTED_TREE, not PR-head scripts/")
         print("SELFTEST PASS  saul-trusted-launcher-not-pr-head")
+        executed.add("saul-status-description-truncated")
+        if 'DESC="${DESC:0:140}"' not in text:
+            raise RuntimeError("saul-review.yml must cap commit status description at 140 chars")
+        print("SELFTEST PASS  saul-status-description-truncated")
+        os.environ.pop("SAI_SKIP_CODEX", None)
+        os.environ["SAI_CODEX_BIN"] = "/bin/true"
+        os.environ.pop("SAI_CODEX_SANDBOX", None)
+        from sai_auth_review import _codex_cmd
+        cmd = _codex_cmd()
+        executed.add("saul-sandbox-default-danger-full-access")
+        if cmd is None or "-s" not in cmd or "danger-full-access" not in cmd:
+            raise RuntimeError(f"default Codex sandbox must be danger-full-access, got {cmd}")
+        print("SELFTEST PASS  saul-sandbox-default-danger-full-access")
+        os.environ["SAI_CODEX_SANDBOX"] = "read-only"
+        cmd_ro = _codex_cmd()
+        executed.add("saul-sandbox-env-override")
+        if "read-only" not in (cmd_ro or []):
+            raise RuntimeError(f"SAI_CODEX_SANDBOX override failed: {cmd_ro}")
+        os.environ.pop("SAI_CODEX_SANDBOX", None)
+        os.environ.pop("SAI_CODEX_BIN", None)
+        print("SELFTEST PASS  saul-sandbox-env-override")
+        banner = "=== /tmp/evidence/review.yaml ===\nreviewer: saul\ndisposition: REQUEST_CHANGES\n"
+        executed.add("saul-yaml-banner-stripped")
+        docb = a.load_yaml(banner)
+        if docb.get("reviewer") != "saul" or docb.get("disposition") != "REQUEST_CHANGES":
+            raise RuntimeError(f"path banner must be stripped, got {docb}")
+        print("SELFTEST PASS  saul-yaml-banner-stripped")
     return executed
 
 
@@ -452,6 +479,14 @@ def run_consume_fixtures():
         if a.load_pointer(d, cid).get("current_revision") != "v2":
             raise RuntimeError("must not auto-bump on expanding finding")
         print("SELFTEST PASS  consume-expand-human-gate")
+        bp = d / "bannered-review.yaml"
+        bp.write_text("=== /root/skill-lab/evidence/review.yaml ===\nreviewer: saul\n"
+                      f"runtime: codex\ncontract_id: {cid}\ncontract_revision: 2\n"
+                      "disposition: BLOCKED\nidempotency_key: banner\nfindings: []\n")
+        executed.add("consume-banner-prefixed-yaml")
+        if consume(d, cid, str(bp)) != 0:
+            raise RuntimeError("consume must parse banner-prefixed YAML")
+        print("SELFTEST PASS  consume-banner-prefixed-yaml")
     return executed
 
 

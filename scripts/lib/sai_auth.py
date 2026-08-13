@@ -19,6 +19,9 @@ except ImportError:
 TRAILER = re.compile(r"^([A-Za-z0-9-]+):\s*(.*)$")
 POLICY = ".ai/_config/authorization.yaml"
 SESSION_REL = ".git/sai-session.json"
+# Evidence packs sometimes prefix YAML with `=== /path/file.yaml ===`.
+YAML_PATH_BANNER = re.compile(r"^=+[ \t]+\S.*[ \t]+=+\s*$")
+TASK_ID_GRAMMAR = re.compile(r"^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$")
 
 
 def fail(msg):
@@ -31,10 +34,39 @@ def ok(msg):
     return True
 
 
+def strip_yaml_path_banners(text):
+    """Drop leading `=== path ===` banners so consume/read_yaml stay machine-readable."""
+    if not text:
+        return text
+    lines = text.splitlines(keepends=True)
+    i = 0
+    while i < len(lines) and YAML_PATH_BANNER.match(lines[i].rstrip("\n\r")):
+        i += 1
+    while i < len(lines) and not lines[i].strip():
+        i += 1
+    return "".join(lines[i:])
+
+
 def load_yaml(text):
     if yaml is None:
         raise RuntimeError("PyYAML is required")
-    return yaml.safe_load(text) or {}
+    return yaml.safe_load(strip_yaml_path_banners(text)) or {}
+
+
+def task_id_grammar_ok(task):
+    return bool(task) and bool(TASK_ID_GRAMMAR.match(task))
+
+
+def malformed_task_id_preserved(root, sha, task_id):
+    """Grammar-only exception. Does not skip authorization replay."""
+    try:
+        cfg = load_config(root)
+    except Exception:
+        return False
+    for row in (cfg.get("audit") or {}).get("preserve_malformed_task_id") or []:
+        if (row.get("sha") or "") == sha and (row.get("original_task_id") or "") == task_id:
+            return True
+    return False
 
 
 def dump_yaml(obj):

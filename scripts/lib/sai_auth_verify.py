@@ -130,6 +130,17 @@ def verify_commit(root, cfg, sha, *, branch=None):
     if cutoff and not trailers.get("Agent"):
         if sha == cutoff or a.git(root, "merge-base", "--is-ancestor", sha, cutoff).returncode == 0:
             return []
+    # Pre-contract commits (Agent present, Contract-ID absent) may be
+    # preserved by SHA-pinned cutoff. This is not a blanket auth skip.
+    cc = (cfg.get("enforcement") or {}).get("skip_commits_missing_contract_at_or_before")
+    if (
+        cc
+        and trailers.get("Agent")
+        and not trailers.get("Contract-ID")
+        and not a.officer_cfg(cfg, trailers.get("Agent"))
+        and (sha == cc or a.git(root, "merge-base", "--is-ancestor", sha, cc).returncode == 0)
+    ):
+        return []
     paths = a.commit_paths(root, sha)
     return verify_paths(cfg, trailers, paths, root=root, sha=sha, branch=branch)
 

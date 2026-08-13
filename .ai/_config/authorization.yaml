@@ -10,8 +10,20 @@ enforcement:
   # Human Decision 0007 stack on this PR landed without agent trailers.
   # Preserve those commits; require identity on descendants of this SHA.
   skip_commits_missing_identity_at_or_before: "d113fa0bf75b43491c25723f57cf9dec1e6196de"
+  # Optional SHA-pinned window for stacked PRs whose first contractor
+  # commits predate Cora lease issuance. Unset here (PR #62 has none).
+  skip_commits_missing_contract_at_or_before: ""
   session_file: ".git/sai-session.json"
   trust_session: false
+
+audit:
+  # Grammar-only. Does not skip verify-agent-authorization.
+  # Human Decision 0007 commit used Task-ID without HHMM; history is
+  # preserved (no force-push / no authorization weakening).
+  preserve_malformed_task_id:
+    - sha: "d14402e625aad54a5dff5d0f00785291d83c414a"
+      original_task_id: "20260813-runtime-intelligence-plane"
+      reason: "human Decision 0007 docs commit; grammar exception only"
 
 activation:
   mode: lazy-first-write

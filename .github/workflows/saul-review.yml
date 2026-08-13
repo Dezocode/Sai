@@ -239,13 +239,17 @@ jobs:
         run: |
           SHA="${{ github.event.pull_request.head.sha || github.sha }}"
           DISP="${{ steps.saul.outputs.disposition }}"
+          REASON="${{ steps.saul.outputs.reason }}"
           STATE=failure
           [ "$DISP" = "APPROVE" ] && STATE=success
           [ "$DISP" = "REQUEST_CHANGES" ] && STATE=failure
           [ "$DISP" = "BLOCKED" ] && STATE=failure
+          # Infrastructure BLOCKED is not a technical APPROVE/REQUEST_CHANGES.
+          DESC="Saul ${DISP} ${REASON}"
+          DESC="${DESC:0:140}"
           gh api repos/${{ github.repository }}/statuses/$SHA -f state="$STATE" \
             -f context="saul-cto-review" \
-            -f description="Saul $DISP ${{ steps.saul.outputs.reason }}" \
+            -f description="$DESC" \
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
           if [ "$DISP" = "APPROVE" ]; then
             exit 0
