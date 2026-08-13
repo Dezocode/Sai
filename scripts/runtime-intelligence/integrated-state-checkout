@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Checkout complete integrated PR state for RI experiments (never loose patches).
+set -euo pipefail
+usage() {
+  echo "usage: $0 --repo <path> --pr <n> --head <sha> --worktree <path>" >&2
+  exit 64
+}
+REPO=""; PR=""; HEAD=""; WT=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --repo) REPO="$2"; shift 2;;
+    --pr) PR="$2"; shift 2;;
+    --head) HEAD="$2"; shift 2;;
+    --worktree) WT="$2"; shift 2;;
+    *) usage;;
+  esac
+done
+[[ -n "$REPO" && -n "$PR" && -n "$HEAD" && -n "$WT" ]] || usage
+if [[ ! -d "$REPO/.git" && ! -f "$REPO/.git" ]]; then
+  echo "REFUSED: not a git repo: $REPO" >&2
+  exit 2
+fi
+# Refuse claiming unintegrated patch: head must exist and be exact.
+git -C "$REPO" cat-file -t "$HEAD" >/dev/null
+ACTUAL=$(git -C "$REPO" rev-parse "$HEAD")
+if [[ "$ACTUAL" != "$HEAD" && "$ACTUAL" != "$(git -C "$REPO" rev-parse --verify "$HEAD^{commit}")" ]]; then
+  echo "REFUSED: head mismatch" >&2
+  exit 3
+fi
+FULL=$(git -C "$REPO" rev-parse "$HEAD")
+if [[ -d "$WT" ]]; then
+  echo "worktree exists: $WT"
+else
+  git -C "$REPO" worktree add --detach "$WT" "$FULL"
+fi
+GOT=$(git -C "$WT" rev-parse HEAD)
+if [[ "$GOT" != "$FULL" ]]; then
+  echo "REFUSED: worktree HEAD $GOT != required $FULL (unintegrated state)" >&2
+  exit 4
+fi
+cat <<JSON
+{"ok":true,"pr":$PR,"required_head":"$FULL","worktree":"$WT","integrated":true}
+JSON

@@ -1,0 +1,28 @@
+role: bounded_background_assistant
+plane: runtime-intelligence
+status: provisional
+consumes:
+  triage_policy: .ai/shared/skills/runtime-intelligence/TRIAGE.yaml
+  exact_sha_required: true
+allowed:
+  - heartbeat_monitor
+  - event_normalize_dedupe
+  - experiment_schedule
+  - queue_management
+  - local_memory_maintenance
+  - dashboard_refresh
+  - low_risk_notifications
+denied:
+  - merge_main
+  - force_push
+  - mark_pr_ready
+  - close_parent_pr
+  - approve_as_saul
+  - approve_as_sai
+  - create_top_level_pr_to_main
+  - contract_admin
+  - impersonate_officer
+  - self_declare_initialized
+t4_capacity_fallback:
+  requires_explicit_capacity_evidence: true
+parent_pr_default_base: active_parent_implementation_branch

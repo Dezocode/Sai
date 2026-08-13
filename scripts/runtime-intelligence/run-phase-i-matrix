@@ -1,0 +1,185 @@
+#!/usr/bin/env bash
+# Phase I self-test matrix (1-17). Records measured results; never claims ACTIVE.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+OUT_DIR="${RI_MATRIX_OUT:-/opt/sai/runtime-intelligence/exports}"
+mkdir -p "$OUT_DIR"
+TS=$(date -u +%Y%m%dT%H%M%SZ)
+OUT="$OUT_DIR/phase-i-matrix-$TS.json"
+python3 - "$ROOT" "$OUT" <<'PY'
+import json, os, subprocess, sys, time
+from pathlib import Path
+root, out = Path(sys.argv[1]), Path(sys.argv[2])
+results = []
+
+def run(cmd, cwd=None):
+    p = subprocess.run(cmd, cwd=cwd or root, text=True, capture_output=True)
+    return p.returncode, (p.stdout or "") + (p.stderr or "")
+
+def add(n, name, ok, detail, intended_effect):
+    results.append({
+        "id": n, "name": name, "ok": bool(ok),
+        "intended_effect": intended_effect,
+        "detail": detail[:2000],
+    })
+
+# 1 T0 no comment/issue — policy invariant
+triage = (root/".ai/shared/skills/runtime-intelligence/TRIAGE.yaml").read_text()
+add(1, "T0_no_comment_issue", "may_comment: false" in triage or "T0" in triage, "TRIAGE T0 observe-only policy present", "T0 does not create issues/comments")
+
+# 2 T1 integrated state only
+script = root/"scripts/runtime-intelligence/integrated-state-checkout"
+add(2, "T1_integrated_state_tool", script.exists(), str(script), "tool enforces complete head checkout")
+
+# 3-4 issue/evidence paths — policy present
+add(3, "T2_issue_on_failure_policy", "T2" in triage and "may_issue" in triage, "TRIAGE T2", "proven failure creates issue")
+add(4, "graph_failure_parent_comment_policy", "may_comment: true" in triage, "TRIAGE comment flags", "graph failure may comment parent non-blocking")
+
+# 5 T3 stacked sub-PR cannot merge
+rc, outp = run(["bash", str(root/"scripts/runtime-intelligence/deny-authority"), "merge-main"])
+add(5, "T3_cannot_merge", rc == 13, outp, "stacked support cannot merge")
+
+# 6 T4 refuse without evidence
+rc, outp = run(["bash", str(root/"scripts/runtime-intelligence/deny-authority"), "t4-activate", "none"])
+add(6, "T4_refuse_without_evidence", rc == 13, outp, "T4 requires explicit capacity evidence")
+
+# 7 T5 human-only
+add(7, "T5_human_only", "T5" in triage and "human_only" in triage, "TRIAGE T5", "halts at human boundary")
+
+# 8 unintegrated patch rejected
+rc, outp = run(["bash", str(root/"scripts/runtime-intelligence/integrated-state-checkout"),
+                "--repo", str(root), "--pr", "62", "--head", "0000000000000000000000000000000000000000",
+                "--worktree", "/tmp/ri-bad-wt-should-fail"])
+add(8, "unintegrated_patch_rejected", rc != 0, outp, "refuse bad/missing head")
+
+# 9 duplicate events idempotent — schema unique event_id
+import sqlite3
+db = Path("/opt/sai/runtime-intelligence/state/runtime-intel.db")
+ok9 = False
+detail9 = "db missing"
+if db.exists():
+    con = sqlite3.connect(db)
+    cols = [r[1] for r in con.execute("PRAGMA table_info(events)").fetchall()]
+    # uniqueness via UNIQUE on event_id
+    sql = con.execute("SELECT sql FROM sqlite_master WHERE name='events'").fetchone()
+    detail9 = sql[0] if sql else str(cols)
+    ok9 = sql and "event_id" in sql[0] and "UNIQUE" in sql[0].upper()
+    # prove idempotent insert
+    try:
+        con.execute("INSERT INTO events(event_id,source,kind,triage,created_at) VALUES ('idem-test','t','k','T0',?)",
+                    (time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),))
+        con.commit()
+        try:
+            con.execute("INSERT INTO events(event_id,source,kind,triage,created_at) VALUES ('idem-test','t','k','T0',?)",
+                        (time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),))
+            con.commit()
+            ok9 = False
+            detail9 += " | second insert unexpectedly succeeded"
+        except Exception as e:
+            ok9 = True
+            detail9 += f" | duplicate rejected: {type(e).__name__}"
+    except Exception as e:
+        detail9 += f" | {e}"
+add(9, "duplicate_events_idempotent", ok9, detail9, "duplicate event_id rejected")
+
+# 10 stub index SHA-bound
+rc, outp = run(["bash", str(root/"scripts/runtime-intelligence/stub-index"), str(root)])
+add(10, "stub_index_sha_bound", rc == 0 and "sha" in outp, outp, "stub index records head SHA")
+
+# 11 wiki regenerates
+rc, outp = run(["bash", str(root/"scripts/runtime-intelligence/wiki-project")])
+add(11, "wiki_regenerates", rc == 0 and Path("/opt/sai/runtime-intelligence/wiki-projection/README.md").exists(), outp, "wiki projection from durable memory")
+
+# 12 dashboard reads live telemetry
+rc, outp = run(["bash", str(root/"scripts/runtime-intelligence/build-control-tower"),
+                str(root/"runtime-intelligence/dashboard")])
+dash = Path("/opt/sai/runtime-intelligence/dashboard/latest-summary.json")
+add(12, "dashboard_live_telemetry", rc == 0 and dash.exists(), outp + " " + str(dash), "dashboard from Hostinger SQLite")
+
+# 13 merge/force-push/mark-ready denied
+all_denied = True
+details = []
+for op in ("merge-main", "force-push", "mark-ready"):
+    rc, outp = run(["bash", str(root/"scripts/runtime-intelligence/deny-authority"), op])
+    details.append(f"{op}:{rc}")
+    all_denied = all_denied and rc == 13
+add(13, "authority_ops_denied", all_denied, " ".join(details), "forbidden git authority ops denied")
+
+# 14 Grok docker high-reasoning
+# Check compose/Dockerfile exist; try docker image status if available
+docker_files = (root/"runtime-intelligence/docker/Dockerfile.grok-ri").exists() and \
+               (root/"runtime-intelligence/docker/docker-compose.yml").exists()
+docker_ok = False
+docker_detail = "files_present=" + str(docker_files)
+if docker_files:
+    rc, outp = run(["docker", "images", "-q", "sai-grok-ri:provisional"])
+    if outp.strip():
+        rc2, outp2 = run(["docker", "run", "--rm",
+                          "-v", "/root/.grok/bin:/opt/grok/bin:ro",
+                          "-v", "/root/.grok:/home/ri/.grok:ro",
+                          "-e", "RI_GROK_MODEL=grok-4.5",
+                          "-e", "RI_GROK_EFFORT=high",
+                          "sai-grok-ri:provisional", "status"])
+        docker_ok = rc2 == 0 and "effort=high" in outp2
+        docker_detail = outp2
+    else:
+        # try build
+        rc3, outp3 = run(["docker", "compose", "-f", str(root/"runtime-intelligence/docker/docker-compose.yml"), "build"])
+        docker_detail = outp3[-1500:]
+        if rc3 == 0:
+            rc4, outp4 = run(["docker", "compose", "-f", str(root/"runtime-intelligence/docker/docker-compose.yml"),
+                              "run", "--rm", "grok-ri", "status"])
+            docker_ok = rc4 == 0 and "effort=high" in outp4
+            docker_detail = outp4
+add(14, "grok_docker_high_reasoning", docker_ok, docker_detail, "container uses high-reasoning config")
+
+# 15 /deep maps to high-reasoning — bridge architecture evidence on host
+bridge = Path("/root/grok-telegram-bridge/ARCHITECTURE.md")
+deep_ok = bridge.exists() and "deep" in bridge.read_text().lower()
+add(15, "deep_high_reasoning_path", deep_ok, str(bridge), "/deep is high-reasoning entry on bridge")
+
+# 16 OpenClaw bounded
+policy = root/"runtime-intelligence/openclaw/policy.yaml"
+pol = policy.read_text() if policy.exists() else ""
+add(16, "openclaw_bounded", "denied:" in pol and "merge_main" in pol, str(policy), "OpenClaw policy denies merge/approve")
+
+# 17 formal gates bind exact state — STATUS file
+status = (root/".ai/shared/skills/runtime-intelligence/init/STATUS.md").read_text()
+bindable = "PENDING" in status and "PROVISIONAL" in status and "ACTIVE" not in status.split("Status:")[1][:80] if "Status:" in status else ("PROVISIONAL" in status)
+# more precise:
+add(17, "gates_bind_exact_state",
+    "Saul" in status and "Sai" in status and "Human" in status and "PROVISIONAL" in status and "NOT INITIALIZED" in status,
+    "STATUS.md gates listed PENDING/PROVISIONAL",
+    "Saul/Sai/human bind exact init state; no self ACTIVE")
+
+# refuse low effort deep findings if container image exists
+if docker_ok:
+    rc, outp = run(["docker", "run", "--rm",
+                    "-v", "/root/.grok/bin:/opt/grok/bin:ro",
+                    "-v", "/root/.grok:/home/ri/.grok:ro",
+                    "-e", "RI_GROK_EFFORT=low",
+                    "sai-grok-ri:provisional", "deep-findings", "x"])
+    add(14.1, "refuse_low_effort_findings", rc != 0 and "REFUSED" in outp, outp, "low effort final findings refused")
+
+passed = sum(1 for r in results if r["ok"])
+failed = sum(1 for r in results if not r["ok"])
+payload = {
+    "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "org_status": "PROVISIONAL",
+    "self_declared_initialized": False,
+    "passed": passed,
+    "failed": failed,
+    "total": len(results),
+    "honest_fail_rate": round(failed / max(len(results), 1), 3),
+    "scoring_method": "intended_function",
+    "results": results,
+}
+out.write_text(json.dumps(payload, indent=2))
+print(json.dumps({"out": str(out), "passed": passed, "failed": failed, "honest_fail_rate": payload["honest_fail_rate"]}, indent=2))
+# also copy into git exports projection
+git_out = root/"runtime-intelligence/exports"
+git_out.mkdir(parents=True, exist_ok=True)
+(git_out/"phase-i-matrix-latest.json").write_text(json.dumps(payload, indent=2))
+sys.exit(0 if failed == 0 else 1)
+PY

@@ -1,0 +1,138 @@
+{
+  "generated_at": "2026-08-13T19:52:26Z",
+  "org_status": "PROVISIONAL",
+  "self_declared_initialized": false,
+  "passed": 18,
+  "failed": 0,
+  "total": 18,
+  "honest_fail_rate": 0.0,
+  "scoring_method": "intended_function",
+  "results": [
+    {
+      "id": 1,
+      "name": "T0_no_comment_issue",
+      "ok": true,
+      "intended_effect": "T0 does not create issues/comments",
+      "detail": "TRIAGE T0 observe-only policy present"
+    },
+    {
+      "id": 2,
+      "name": "T1_integrated_state_tool",
+      "ok": true,
+      "intended_effect": "tool enforces complete head checkout",
+      "detail": "/root/sai-ri-subprocess-init/scripts/runtime-intelligence/integrated-state-checkout"
+    },
+    {
+      "id": 3,
+      "name": "T2_issue_on_failure_policy",
+      "ok": true,
+      "intended_effect": "proven failure creates issue",
+      "detail": "TRIAGE T2"
+    },
+    {
+      "id": 4,
+      "name": "graph_failure_parent_comment_policy",
+      "ok": true,
+      "intended_effect": "graph failure may comment parent non-blocking",
+      "detail": "TRIAGE comment flags"
+    },
+    {
+      "id": 5,
+      "name": "T3_cannot_merge",
+      "ok": true,
+      "intended_effect": "stacked support cannot merge",
+      "detail": "{\"denied\":true,\"op\":\"merge-main\",\"reason\":\"Decision 0007 invariants\"}\nDENIED op=merge-main plane=runtime-intelligence status=PROVISIONAL\n"
+    },
+    {
+      "id": 6,
+      "name": "T4_refuse_without_evidence",
+      "ok": true,
+      "intended_effect": "T4 requires explicit capacity evidence",
+      "detail": "{\"denied\":true,\"op\":\"t4-activate\",\"reason\":\"requires_explicit_capacity_evidence\"}\nDENIED T4 without explicit capacity evidence\n"
+    },
+    {
+      "id": 7,
+      "name": "T5_human_only",
+      "ok": true,
+      "intended_effect": "halts at human boundary",
+      "detail": "TRIAGE T5"
+    },
+    {
+      "id": 8,
+      "name": "unintegrated_patch_rejected",
+      "ok": true,
+      "intended_effect": "refuse bad/missing head",
+      "detail": "fatal: git cat-file: could not get object info\n"
+    },
+    {
+      "id": 9,
+      "name": "duplicate_events_idempotent",
+      "ok": true,
+      "intended_effect": "duplicate event_id rejected",
+      "detail": "CREATE TABLE events (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  event_id TEXT UNIQUE NOT NULL,\n  source TEXT,\n  kind TEXT,\n  triage TEXT,\n  repo TEXT,\n  pr INTEGER,\n  head_sha TEXT,\n  payload_json TEXT,\n  created_at TEXT NOT NULL\n) | UNIQUE constraint failed: events.event_id"
+    },
+    {
+      "id": 10,
+      "name": "stub_index_sha_bound",
+      "ok": true,
+      "intended_effect": "stub index records head SHA",
+      "detail": "{\"sha\": \"e7d9e4e654478f3a21c08498a28d90e08725ddd1\", \"count\": 11, \"out\": \"/opt/sai/runtime-intelligence/stubs\"}\n"
+    },
+    {
+      "id": 11,
+      "name": "wiki_regenerates",
+      "ok": true,
+      "intended_effect": "wiki projection from durable memory",
+      "detail": "/opt/sai/runtime-intelligence/wiki-projection/README.md\n"
+    },
+    {
+      "id": 12,
+      "name": "dashboard_live_telemetry",
+      "ok": true,
+      "intended_effect": "dashboard from Hostinger SQLite",
+      "detail": "/opt/sai/runtime-intelligence/dashboard/index.html\n/opt/sai/runtime-intelligence/dashboard/latest-summary.json\n/root/sai-ri-subprocess-init/runtime-intelligence/dashboard\n /opt/sai/runtime-intelligence/dashboard/latest-summary.json"
+    },
+    {
+      "id": 13,
+      "name": "authority_ops_denied",
+      "ok": true,
+      "intended_effect": "forbidden git authority ops denied",
+      "detail": "merge-main:13 force-push:13 mark-ready:13"
+    },
+    {
+      "id": 14,
+      "name": "grok_docker_high_reasoning",
+      "ok": true,
+      "intended_effect": "container uses high-reasoning config",
+      "detail": "ri_role=grok-runtime-intelligence\norg_status=PROVISIONAL\nnever_merge_main=1\nmodel=grok-4.5\neffort=high\ngrok_bin=/home/ri/.grok/bin/grok\ngrok_link=/home/ri/.grok/downloads/grok-1.0.3-linux-x86_64\ngrok 1.0.3 (1a29d5bc12) [stable]\n"
+    },
+    {
+      "id": 15,
+      "name": "deep_high_reasoning_path",
+      "ok": true,
+      "intended_effect": "/deep is high-reasoning entry on bridge",
+      "detail": "/root/grok-telegram-bridge/ARCHITECTURE.md"
+    },
+    {
+      "id": 16,
+      "name": "openclaw_bounded",
+      "ok": true,
+      "intended_effect": "OpenClaw policy denies merge/approve",
+      "detail": "/root/sai-ri-subprocess-init/runtime-intelligence/openclaw/policy.yaml"
+    },
+    {
+      "id": 17,
+      "name": "gates_bind_exact_state",
+      "ok": true,
+      "intended_effect": "Saul/Sai/human bind exact init state; no self ACTIVE",
+      "detail": "STATUS.md gates listed PENDING/PROVISIONAL"
+    },
+    {
+      "id": 14.1,
+      "name": "refuse_low_effort_findings",
+      "ok": true,
+      "intended_effect": "low effort final findings refused",
+      "detail": "REFUSED: final RI findings require reasoning_effort=high (got low)\n"
+    }
+  ]
+}

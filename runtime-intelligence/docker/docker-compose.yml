@@ -1,0 +1,30 @@
+# Hostinger Runtime Intelligence — Grok experiment service (Decision 0007).
+# Stacked init only. Does not merge main. Does not replace Telegram worker.
+services:
+  grok-ri:
+    build:
+      context: .
+      dockerfile: Dockerfile.grok-ri
+    image: sai-grok-ri:provisional
+    container_name: sai-grok-ri
+    restart: "no"
+    environment:
+      RI_ROLE: grok-runtime-intelligence
+      RI_ORG_STATUS: PROVISIONAL
+      RI_NEVER_MERGE_MAIN: "1"
+      RI_GROK_MODEL: ${RI_GROK_MODEL:-grok-4.5}
+      RI_GROK_EFFORT: ${RI_GROK_EFFORT:-high}
+      HOME: /home/ri
+      PATH: /home/ri/.grok/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    volumes:
+      # Full host grok home so bin/grok symlink -> downloads/ resolves.
+      - /root/.grok:/home/ri/.grok:ro
+      - /opt/sai/runtime-intelligence:/opt/sai/runtime-intelligence
+    working_dir: /home/ri
+    command: ["status"]
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      sai.plane: runtime-intelligence
+      sai.status: provisional
+      sai.never_merge_main: "true"

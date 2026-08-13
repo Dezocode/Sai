@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Negative authority surface — always refuse forbidden ops (Decision 0007).
+set -euo pipefail
+op="${1:-}"
+case "$op" in
+  merge-main|force-push|mark-ready|close-parent|self-approve-init|top-level-pr-main)
+    echo "DENIED op=$op plane=runtime-intelligence status=PROVISIONAL" >&2
+    echo '{"denied":true,"op":"'"$op"'","reason":"Decision 0007 invariants"}'
+    exit 13
+    ;;
+  t4-activate)
+    evidence="${2:-}"
+    if [[ -z "$evidence" || "$evidence" == "none" ]]; then
+      echo "DENIED T4 without explicit capacity evidence" >&2
+      echo '{"denied":true,"op":"t4-activate","reason":"requires_explicit_capacity_evidence"}'
+      exit 13
+    fi
+    echo '{"denied":false,"op":"t4-activate","note":"evidence present — still PROVISIONAL support only"}'
+    ;;
+  *)
+    echo "usage: $0 merge-main|force-push|mark-ready|close-parent|self-approve-init|top-level-pr-main|t4-activate [evidence]" >&2
+    exit 64
+    ;;
+esac

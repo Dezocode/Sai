@@ -1,10 +1,10 @@
 # Runtime Intelligence tests
 
-## Negative authority
 ```bash
 python3 tests/runtime-intelligence/test_negative_authority.py
+python3 tests/runtime-intelligence/test_triage_and_policy.py
+python3 tests/runtime-intelligence/test_integrated_state.py
+bash scripts/runtime-intelligence/run-phase-i-matrix
 ```
 
-These prove policy invariants and refuse self-declaration of ACTIVE without
-Saul + Sai + human approvals in the environment. Live merge/force-push is never
-attempted by these tests.
+Scoring method: **intended_function**. Passing tests does not grant organizational ACTIVE.

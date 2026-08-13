@@ -1,0 +1,18 @@
+# Runtime Intelligence Grok experiment container (Decision 0007 Phase C).
+# Does NOT replace the host Telegram bridge systemd units.
+# Host grok binary + auth are mounted read-only at runtime.
+FROM ubuntu:24.04
+ENV DEBIAN_FRONTEND=noninteractive \
+    RI_ROLE=grok-runtime-intelligence \
+    RI_NEVER_MERGE_MAIN=1 \
+    RI_ORG_STATUS=PROVISIONAL
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates curl git python3 \
+ && rm -rf /var/lib/apt/lists/* \
+ && useradd --create-home --uid 10010 --shell /bin/bash ri
+COPY entrypoint.sh /usr/local/bin/ri-entrypoint
+RUN chmod 0755 /usr/local/bin/ri-entrypoint
+USER ri
+WORKDIR /home/ri
+ENTRYPOINT ["/usr/local/bin/ri-entrypoint"]
+CMD ["status"]

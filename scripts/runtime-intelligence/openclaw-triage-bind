@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Bind OpenClaw data dir with RI triage policy pointers (no secrets).
+set -euo pipefail
+ROOT="${1:-}"
+if [[ -z "$ROOT" ]]; then
+  ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+fi
+POLICY_SRC="$ROOT/runtime-intelligence/openclaw/policy.yaml"
+TRIAGE_SRC="$ROOT/.ai/shared/skills/runtime-intelligence/TRIAGE.yaml"
+OUT_DIR="${RI_OPENCLAW_BIND:-/opt/sai/runtime-intelligence/openclaw}"
+mkdir -p "$OUT_DIR"
+cp -f "$POLICY_SRC" "$OUT_DIR/policy.yaml"
+cp -f "$TRIAGE_SRC" "$OUT_DIR/TRIAGE.yaml"
+cat > "$OUT_DIR/BIND.json" <<JSON
+{
+  "bound_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "policy": "$OUT_DIR/policy.yaml",
+  "triage": "$OUT_DIR/TRIAGE.yaml",
+  "container": "openclaw-fqy8-openclaw-1",
+  "status": "PROVISIONAL",
+  "may_merge_main": false
+}
+JSON
+echo "bound $OUT_DIR"
+cat "$OUT_DIR/BIND.json"

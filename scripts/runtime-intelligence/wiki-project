@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Regenerate human-readable Wiki projection from durable local memory (Tier 3).
+set -euo pipefail
+DB="${RI_DB:-/opt/sai/runtime-intelligence/state/runtime-intel.db}"
+OUT="${RI_WIKI_OUT:-/opt/sai/runtime-intelligence/wiki-projection}"
+mkdir -p "$OUT"
+python3 - "$DB" "$OUT" <<'PY'
+import sqlite3, sys, time
+from pathlib import Path
+db, out = sys.argv[1], Path(sys.argv[2])
+con = sqlite3.connect(db)
+con.row_factory = sqlite3.Row
+gate = con.execute("SELECT * FROM init_gate").fetchone()
+health = con.execute("SELECT component,status,detail FROM runtime_health").fetchall()
+lines = [
+  "# Runtime Intelligence Wiki projection",
+  "",
+  f"Generated: {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}",
+  "",
+  "**Canonical machine truth is SQLite + Git memory, not this page.**",
+  "",
+  "## Organizational status",
+  "",
+  f"- status: **{(gate['status'] if gate else 'UNKNOWN')}**",
+  f"- Saul: {(gate['saul_status'] if gate else 'PENDING')}",
+  f"- Sai: {(gate['sai_status'] if gate else 'PENDING')}",
+  f"- Human: {(gate['human_status'] if gate else 'PENDING')}",
+  f"- sub-PR: {(gate['subpr_url'] if gate else 'n/a')}",
+  "",
+  "## Runtime health",
+  "",
+]
+for h in health:
+    lines.append(f"- `{h['component']}`: **{h['status']}** — {h['detail']}")
+(out/"README.md").write_text("\n".join(lines)+"\n")
+print(out/"README.md")
+PY
+# optional git projection
+if [[ -d runtime-intelligence/wiki-projection ]]; then
+  cp -f "$OUT/README.md" runtime-intelligence/wiki-projection/README.md || true
+fi

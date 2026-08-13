@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# Build Control Tower HTML from local SQLite + init metadata (no secrets).
+set -euo pipefail
+DB="${RI_DB:-/opt/sai/runtime-intelligence/state/runtime-intel.db}"
+OUT_DIR="${RI_DASHBOARD:-/opt/sai/runtime-intelligence/dashboard}"
+GIT_DASH_DIR="${1:-}"
+mkdir -p "$OUT_DIR"
+python3 - "$DB" "$OUT_DIR" "${GIT_DASH_DIR:-}" <<'PY'
+import json, sqlite3, sys, time, html
+from pathlib import Path
+db, out_dir = sys.argv[1], Path(sys.argv[2])
+git_dash = Path(sys.argv[3]) if len(sys.argv) > 3 and sys.argv[3] else None
+con = sqlite3.connect(db)
+con.row_factory = sqlite3.Row
+def rows(q):
+    try:
+        return [dict(r) for r in con.execute(q).fetchall()]
+    except Exception as e:
+        return [{"error": str(e)}]
+gate = rows("SELECT * FROM init_gate")
+health = rows("SELECT * FROM runtime_health ORDER BY id")
+runs = rows("SELECT * FROM subprocess_runs ORDER BY id DESC LIMIT 20")
+findings = rows("SELECT * FROM findings ORDER BY id DESC LIMIT 50")
+payload = {
+    "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "init_gate": gate,
+    "runtime_health": health,
+    "subprocess_runs": runs,
+    "findings": findings,
+    "org_status": "PROVISIONAL",
+    "saul": (gate[0].get("saul_status") if gate else "PENDING"),
+    "sai": (gate[0].get("sai_status") if gate else "PENDING"),
+    "human": (gate[0].get("human_status") if gate else "PENDING"),
+}
+(out_dir/"latest-summary.json").write_text(json.dumps(payload, indent=2))
+def table(rows_, cols):
+    if not rows_:
+        return "<p><em>empty</em></p>"
+    h = "".join(f"<th>{html.escape(c)}</th>" for c in cols)
+    body = []
+    for r in rows_:
+        body.append("<tr>" + "".join(f"<td>{html.escape(str(r.get(c,'')))}</td>" for c in cols) + "</tr>")
+    return f"<table><tr>{h}</tr>{''.join(body)}</table>"
+page = f"""<!DOCTYPE html>
+<html><head><meta charset='utf-8'/><title>SAI Control Tower — Runtime Intelligence</title>
+<style>
+body{{font-family:system-ui,sans-serif;margin:24px;background:#0b1020;color:#e8ecf7}}
+h1,h2{{letter-spacing:-.02em}} a{{color:#7db7ff}}
+.card{{background:#141b2f;border-radius:12px;padding:16px;margin:12px 0}}
+.pill{{display:inline-block;padding:2px 10px;border-radius:999px;background:#5a4300;color:#ffd666;font-weight:700;font-size:12px}}
+table{{width:100%;border-collapse:collapse;font-size:13px}} td,th{{border-bottom:1px solid #243049;padding:6px;text-align:left;vertical-align:top}}
+.bad{{color:#ff8e8e}} .ok{{color:#7dffa3}}
+</style></head><body>
+<h1>SAI Control Tower <span class='pill'>PROVISIONAL</span></h1>
+<p>Generated {payload['generated_at']}. Organizational ACTIVE is <strong class='bad'>NOT</strong> claimed.
+Saul={payload['saul']} · Sai={payload['sai']} · Human={payload['human']}</p>
+<div class='card'><h2>Init gate</h2>{table(gate, list(gate[0].keys()) if gate else [])}</div>
+<div class='card'><h2>Runtime health</h2>{table(health, ['component','status','detail','observed_at'])}</div>
+<div class='card'><h2>Subprocess runs</h2>{table(runs, ['task_id','status','parent_pr','head_sha','notes','created_at'] if runs and 'task_id' in runs[0] else [])}</div>
+<div class='card'><h2>Findings</h2>{table(findings, list(findings[0].keys()) if findings else [])}</div>
+<div class='card'><h2>Links</h2>
+<ul>
+<li>Parent PR #62</li>
+<li>Init sub-PR #64</li>
+<li>Local DB: /opt/sai/runtime-intelligence/state/runtime-intel.db</li>
+</ul></div>
+</body></html>"""
+(out_dir/"index.html").write_text(page)
+print(out_dir/"index.html")
+print(out_dir/"latest-summary.json")
+if git_dash:
+    git_dash.mkdir(parents=True, exist_ok=True)
+    # git-safe projection without host secrets
+    (git_dash/"README.md").write_text(
+        "# Control Tower projection\n\nLive HTML is generated on Hostinger under "
+        "`/opt/sai/runtime-intelligence/dashboard/`. This tree holds the generator "
+        "and static shell only. Org status remains PROVISIONAL until triple approval.\n"
+    )
+    (git_dash/"index.shell.html").write_text(
+        "<!DOCTYPE html><meta charset='utf-8'/><title>Control Tower shell</title>"
+        "<p>PROVISIONAL shell. Run <code>scripts/runtime-intelligence/build-control-tower</code> on Hostinger.</p>"
+    )
+    print(git_dash)
+PY

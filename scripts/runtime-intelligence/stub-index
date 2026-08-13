@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# SHA-bound stub index over a complete integrated checkout (not loose patches).
+set -euo pipefail
+REPO="${1:-.}"
+cd "$REPO"
+SHA=$(git rev-parse HEAD)
+OUT_DIR="${RI_STUB_OUT:-/opt/sai/runtime-intelligence/stubs}"
+mkdir -p "$OUT_DIR"
+python3 - "$SHA" "$OUT_DIR" <<'PY'
+import os, re, json, time, subprocess, sys
+from pathlib import Path
+sha, out_dir = sys.argv[1], Path(sys.argv[2])
+root = Path('.').resolve()
+patterns = [
+    (re.compile(r'\bTODO\b'), 'todo'),
+    (re.compile(r'\bFIXME\b'), 'fixme'),
+    (re.compile(r'\bNotImplementedError\b'), 'not_implemented'),
+    (re.compile(r'\bpass\s*#\s*stub\b', re.I), 'stub'),
+    (re.compile(r'\bPROVISIONAL\b'), 'provisional'),
+]
+skip = {'.git', 'node_modules', '.grok', '__pycache__'}
+hits = []
+for dirpath, dirnames, filenames in os.walk('.'):
+    dirnames[:] = [d for d in dirnames if d not in skip and not d.startswith('.')]
+    for fn in filenames:
+        if not any(fn.endswith(ext) for ext in ('.md','.py','.yml','.yaml','.sh','.js','.ts','.json')):
+            continue
+        p = Path(dirpath)/fn
+        try:
+            text = p.read_text(encoding='utf-8', errors='ignore')
+        except Exception:
+            continue
+        for i, line in enumerate(text.splitlines(), 1):
+            for rx, kind in patterns:
+                if rx.search(line):
+                    hits.append({"path": str(p), "line": i, "kind": kind, "text": line.strip()[:200]})
+                    break
+payload = {
+    "head_sha": sha,
+    "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "count": len(hits),
+    "stubs": hits[:5000],
+}
+(out_dir/f"stubs-{sha[:12]}.json").write_text(json.dumps(payload, indent=2))
+(out_dir/"INDEX.json").write_text(json.dumps({"latest_sha": sha, "count": len(hits), "file": f"stubs-{sha[:12]}.json"}, indent=2))
+# git memory projection path if present
+git_idx = Path('.ai/shared/memory/stubs/INDEX.yaml')
+if git_idx.parent.exists():
+    git_idx.write_text(
+        f"latest_sha: {sha}\ncount: {len(hits)}\nnote: projection from integrated checkout; not sole authority\nstatus: provisional\n"
+    )
+print(json.dumps({"sha": sha, "count": len(hits), "out": str(out_dir)}))
+PY
