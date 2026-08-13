@@ -26,7 +26,7 @@ flowchart LR
 | Prototype environments | proposed | Define prototype intake and compatibility manifests |
 | Agent runtime integrity | active | Audit runtime-specific capability evidence |
 | Development CI | active | Add stack checks when the stack exists |
-| Semantic tracking | proposed | Define a module/interface inventory schema |
+| Semantic tracking | active | Keep `.ai/_config/code-health.yaml` complete; promote deferred app checks when the stack lands |
 
 ## Operating rules
 
@@ -34,8 +34,8 @@ flowchart LR
    owner, and claimed files are recorded.
 2. A prototype declares its public interfaces and compatibility assumptions
    before core integration work.
-3. CI grows with the chosen stack; audit, semantic hierarchy, and handoff checks
-   remain mandatory baselines.
+3. CI grows with the chosen stack; audit, semantic hierarchy, handoff, and
+   codebase-health registry checks remain mandatory baselines.
 4. `#agentupdates` is the audit feed; `#dev` is the development coordination and
    roadmap feed.
 5. Architecture, migrations, releases, and shared-resource deletion stop at the

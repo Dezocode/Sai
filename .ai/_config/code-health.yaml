@@ -1,0 +1,204 @@
+# Codebase health registry — source of truth for every check.
+# Policy: .ai/shared/references/code-health.md  Decision: 0005
+version: 1
+decision: "0005"
+owner: "Saul (CTO)"
+
+ci:
+  workflow: ".github/workflows/agent-audit.yml"
+
+scan:
+  exclude_prefixes:
+    - ".ai/runs/"
+  skip_empty_for_duplicates: true
+
+bloat:
+  default_max_lines: 600
+  default_max_bytes: 65536
+  by_extension:
+    ".md": { max_lines: 600 }
+    ".json": { max_lines: 500 }
+    ".yml": { max_lines: 300 }
+    ".yaml": { max_lines: 300 }
+    ".sh": { max_lines: 400 }
+    ".py": { max_lines: 500 }
+    "": { max_lines: 400 }
+  allowlist: []
+
+duplicates:
+  exact: true
+  near:
+    enabled: true
+    min_lines: 60
+    shingle_lines: 5
+    jaccard_threshold: 0.95
+    exclude_basenames:
+      - CONTEXT.md
+      - BUILD.md
+      - AGENT.md
+      - README.md
+      - skills.md
+      - hooks.json
+      - tools.json
+  # ICM template families: identical content is expected, not a defect.
+  families:
+    - agent-runtime-readme
+    - automation-profile-mirror
+
+orphans:
+  roots:
+    - scripts
+    - openclaw-dashboard/scripts
+  allowlist: []
+
+# status: active = must appear in CI (ci_marker) and have a self-test mode.
+#         deferred = documented; not wired until activate_when is true.
+# self_test: synthetic (dispatcher fixtures) | live-pass (must pass on this repo)
+#            | none (forbidden for active)
+checks:
+  - id: code-health-self-test
+    class: runtime
+    status: active
+    command: "scripts/verify-code-health --self-test"
+    ci_marker: "verify-code-health --self-test"
+    self_test: synthetic
+    note: "Runtime evaluation of bloat, duplicate, orphan, and ci-coverage detectors."
+
+  - id: code-health-live
+    class: meta
+    status: active
+    command: "scripts/verify-code-health"
+    ci_marker: "scripts/verify-code-health"
+    self_test: live-pass
+    note: "Runs ci-coverage, bloat, duplicates, orphans against the real tree."
+
+  - id: icm-scaffold-safety
+    class: structure
+    status: active
+    command: "scripts/verify-scaffold-safety"
+    ci_marker: "verify-scaffold-safety"
+    self_test: live-pass
+
+  - id: icm-contract-shell-allowlist
+    class: structure
+    status: active
+    command: "scripts/verify-contract-shell-allowlist"
+    ci_marker: "verify-contract-shell-allowlist"
+    self_test: live-pass
+
+  - id: icm-agent-setup
+    class: structure
+    status: active
+    command: "scripts/verify-agent-setup"
+    ci_marker: "verify-agent-setup"
+    self_test: live-pass
+
+  - id: bash-syntax-scaffolds
+    class: syntax
+    status: active
+    command: "bash -n scripts/agent-scaffold"
+    ci_marker: "bash -n"
+    self_test: live-pass
+
+  - id: icm-agent-audit
+    class: structure
+    status: active
+    command: "scripts/verify-agent-audit"
+    ci_marker: "verify-agent-audit"
+    self_test: live-pass
+
+  - id: icm-semantic-hierarchy
+    class: structure
+    status: active
+    command: "scripts/verify-semantic-hierarchy"
+    ci_marker: "verify-semantic-hierarchy"
+    self_test: live-pass
+
+  - id: icm-merge-handoff
+    class: structure
+    status: active
+    command: "scripts/verify-merge-handoff"
+    ci_marker: "verify-merge-handoff"
+    self_test: live-pass
+
+  - id: json-schema-parse
+    class: syntax
+    status: active
+    command: "python3 -m json.tool"
+    ci_marker: "python3 -m json.tool"
+    self_test: live-pass
+
+  - id: openclaw-gateway-bind
+    class: runtime
+    status: active
+    command: "openclaw-dashboard/scripts/verify-gateway-bind.sh"
+    ci_marker: "verify-gateway-bind.sh"
+    self_test: live-pass
+
+  - id: openclaw-all-dependencies
+    class: runtime
+    status: active
+    command: "openclaw-dashboard/scripts/verify-all-dependencies.sh --self-test"
+    ci_marker: "verify-all-dependencies.sh --self-test"
+    self_test: live-pass
+
+  - id: openclaw-gateway-health
+    class: runtime
+    status: active
+    command: "openclaw-dashboard/scripts/verify-gateway-health.sh --self-test"
+    ci_marker: "verify-gateway-health.sh --self-test"
+    self_test: live-pass
+
+  - id: openclaw-agent-telegram
+    class: runtime
+    status: active
+    command: "openclaw-dashboard/scripts/verify-agent-telegram.sh --self-test"
+    ci_marker: "verify-agent-telegram.sh --self-test"
+    self_test: live-pass
+
+  - id: openclaw-subagent-gate-negative
+    class: runtime
+    status: active
+    command: "openclaw-dashboard/tests/smoke/subagent-connection-gate-negative.sh"
+    ci_marker: "subagent-connection-gate-negative.sh"
+    self_test: live-pass
+
+  - id: openclaw-secrets-compliance
+    class: runtime
+    status: deferred
+    command: "openclaw-dashboard/scripts/verify-secrets-compliance.sh"
+    ci_marker: null
+    self_test: none
+    activate_when: "Add to agent-audit.yml after confirming it is fail-closed and green on main."
+
+  - id: openclaw-ingest-latency
+    class: runtime
+    status: deferred
+    command: "openclaw-dashboard/scripts/verify-ingest-latency.sh"
+    ci_marker: null
+    self_test: none
+    activate_when: "activity-ingest service exists; script is a stub that exits 2."
+
+  - id: app-unit-tests
+    class: runtime
+    status: deferred
+    command: null
+    ci_marker: null
+    self_test: none
+    activate_when: "Accepted application stack decision record exists."
+
+  - id: app-import-orphans
+    class: orphans
+    status: deferred
+    command: null
+    ci_marker: null
+    self_test: none
+    activate_when: "Application source tree with a language import graph exists (not Markdown-only prototype)."
+
+  - id: app-semantic-clones
+    class: duplicates
+    status: deferred
+    command: null
+    ci_marker: null
+    self_test: none
+    activate_when: "Application source tree exists; enable token/AST clone detection in addition to line-shingle Jaccard."

@@ -1,0 +1,33 @@
+{
+  "task_id": "20260813-1315-codebase-health-cursor-cloud",
+  "agent": "cursor-cloud",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/codebase-health-90ba",
+  "base_sha": "40efe0a0724764fc1cf3c45ed8498b5606a0f453",
+  "purpose": "Install a registry-driven codebase health system (bloat, semantic/exact duplicates, orphans) with CI wiring and runtime self-tests before application code lands",
+  "status": "implementing",
+  "claimed_files": [
+    ".ai/_config/code-health.yaml",
+    ".ai/shared/references/code-health.md",
+    ".ai/shared/references/testing.md",
+    ".ai/shared/references/icm-ci-policy.md",
+    ".ai/shared/memory/decisions/0005-codebase-health-registry.md",
+    ".ai/shared/memory/decisions/README.md",
+    ".ai/shared/memory/architecture.md",
+    ".ai/shared/memory/conventions.md",
+    ".ai/shared/memory/repository-map.md",
+    ".ai/agents/saul/roadmap.md",
+    ".ai/agents/saul/roadmap.json",
+    ".github/workflows/agent-audit.yml",
+    ".githooks/pre-push",
+    "scripts/verify-code-health",
+    "scripts/lib/code-health.py",
+    "scripts/verify-semantic-hierarchy",
+    "scripts/agent-init",
+    "tests/code-health/",
+    ".ai/runs/20260813-1315-codebase-health-cursor-cloud/"
+  ],
+  "trigger": "dezocode mobile Cloud Agent request: /plan how to ensure codebase health as we start to build the app (health checks, no semantic duplicates, no orphans, no bloated files, CI for every check, runtime evaluation)",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)"
+}

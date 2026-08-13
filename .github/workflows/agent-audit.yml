@@ -35,7 +35,7 @@ jobs:
           chmod +x scripts/verify-agent-audit scripts/verify-semantic-hierarchy \
                    scripts/verify-merge-handoff scripts/ci-merge-handoff-slack \
                    scripts/verify-scaffold-safety scripts/verify-contract-shell-allowlist \
-                   scripts/verify-agent-setup \
+                   scripts/verify-agent-setup scripts/verify-code-health \
                    scripts/agent-memory-scaffold \
                    scripts/agent-contract-scaffold scripts/agent-contract-pr-review
 
@@ -50,6 +50,11 @@ jobs:
           SAI_CI_STRICT_CONTRACTS: "1"
           SAI_CI_REQUIRE_SDK_SMOKE: "0"
         run: scripts/verify-agent-setup
+
+      - name: Verify codebase health (runtime self-test, then live scan)
+        run: |
+          scripts/verify-code-health --self-test
+          scripts/verify-code-health
 
       - name: Validate scaffold script syntax
         run: |
@@ -109,6 +114,9 @@ jobs:
           grep -q verify-merge-handoff .github/workflows/agent-audit.yml
           grep -q verify-semantic-hierarchy .github/workflows/agent-audit.yml
           grep -q verify-agent-setup .github/workflows/agent-audit.yml
+          grep -q verify-code-health .github/workflows/agent-audit.yml
+          test -f .ai/_config/code-health.yaml
+          test -f scripts/verify-code-health
           echo "ICM CI files: OK"
 
       - name: Server-side push confirmation

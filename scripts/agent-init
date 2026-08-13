@@ -107,8 +107,9 @@ if [ -f ".github/workflows/agent-audit.yml" ] \
    && grep -q "verify-semantic-hierarchy" .github/workflows/agent-audit.yml \
    && grep -q "verify-merge-handoff" .github/workflows/agent-audit.yml \
    && grep -q "verify-scaffold-safety" .github/workflows/agent-audit.yml \
-   && grep -q "verify-agent-setup" .github/workflows/agent-audit.yml; then
-  check "ci-enforcement" PASS "agent-audit.yml runs verify-agent-audit, verify-semantic-hierarchy, verify-merge-handoff, verify-scaffold-safety, verify-agent-setup"
+   && grep -q "verify-agent-setup" .github/workflows/agent-audit.yml \
+   && grep -q "verify-code-health" .github/workflows/agent-audit.yml; then
+  check "ci-enforcement" PASS "agent-audit.yml runs verify-agent-audit, verify-semantic-hierarchy, verify-merge-handoff, verify-scaffold-safety, verify-agent-setup, verify-code-health"
 else
   check "ci-enforcement" FAIL ".github/workflows/agent-audit.yml missing or does not run the required verifiers"
 fi

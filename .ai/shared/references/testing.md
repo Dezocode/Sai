@@ -2,9 +2,12 @@
 
 ## Current state
 
-The repository has no application code and therefore no test suite yet
-(verified 2026-07-14). Until a stack is chosen, "relevant verification" for
-a change means the checks below that apply to the files touched.
+The repository has no accepted application stack and therefore no product
+test suite yet (verified 2026-08-13). Until a stack is chosen, "relevant
+verification" means the infrastructure checks below **plus**
+`scripts/verify-code-health` whenever size, duplication, unreferenced
+scripts, or CI wiring might change. See
+`.ai/shared/references/code-health.md` and decision 0005.
 
 ## Infrastructure checks (apply now)
 
@@ -16,6 +19,7 @@ a change means the checks below that apply to the files touched.
 | Event/manifest payloads | validate against `.ai/shared/schemas/*.schema.json` |
 | Audit metadata | `scripts/verify-agent-audit <range>` |
 | `.ai/**` structure | `scripts/verify-semantic-hierarchy` |
+| Code health (bloat, duplicates, orphans, CI coverage) | `scripts/verify-code-health --self-test` then `scripts/verify-code-health` |
 | Agent profiles, Claude SDK scaffold, contracts | `scripts/verify-agent-setup` |
 | Scaffold / contract-review regressions | `scripts/verify-scaffold-safety` |
 
@@ -27,6 +31,7 @@ a change means the checks below that apply to the files touched.
    limitations.
 3. Never describe a check as passing if it was skipped, unavailable, or only
    partially run. Write `skipped: <reason>` instead.
-4. When application code exists, extend this file with the stack's test,
-   lint, type-check, build, migration, and security commands via a reviewed
-   commit.
+4. When application code exists, promote the deferred rows in
+   `.ai/_config/code-health.yaml` (`app-unit-tests`, `app-import-orphans`,
+   `app-semantic-clones`) in the same reviewed commit that records the stack
+   decision. Do not leave stack test commands as comments in CI.

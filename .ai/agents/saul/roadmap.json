@@ -1,7 +1,7 @@
 {
   "owner": "Saul",
   "role": "CTO",
-  "updated": "2026-07-15",
+  "updated": "2026-08-13",
   "slack_channel_id": "C0BHBGBNMT7",
   "status_values": ["proposed", "approved", "active", "blocked", "verified", "retired"],
   "promotion_gates": [
@@ -16,6 +16,6 @@
     {"id": "prototypes", "label": "Prototype environments", "status": "proposed", "next": "Define prototype intake and compatibility manifest"},
     {"id": "agents", "label": "Agent runtime integrity", "status": "active", "next": "Audit runtime-specific capability evidence"},
     {"id": "ci", "label": "Development CI", "status": "active", "next": "Add stack checks only when the stack exists"},
-    {"id": "observability", "label": "Semantic tracking", "status": "proposed", "next": "Define module/interface inventory schema"}
+    {"id": "observability", "label": "Semantic tracking", "status": "active", "next": "Keep code-health.yaml complete; promote deferred app checks when the stack lands"}
   ]
 }

@@ -1,8 +1,8 @@
 # SAI — Repository map
 
-> Verified 2026-08-13 against commit on `cursor/pstack-plugin-install-10de`
-> (pstack project plugin + `.ai/plugins/` index). Prior verification:
-> 2026-07-14 against commit `34827e7` on `Dezocode/Sai:main`.
+> Verified 2026-08-13 against the codebase-health branch (decision 0005
+> registry + `scripts/verify-code-health`). Prior: pstack plugin index;
+> 2026-07-14 against `34827e7` on `Dezocode/Sai:main`.
 > Keep current when top-level structure changes.
 
 | Path | Purpose |
@@ -11,11 +11,11 @@
 | `Team.md` | Team page (currently empty) |
 | `.ai/` | ICM agent workspace — see `.ai/CONTEXT.md` |
 | `.ai/INITIALIZE.md` | Read-and-execute initialization protocol for new agents |
-| `.ai/_config/` | Repository, reporting, sync, security policy |
+| `.ai/_config/` | Repository, reporting, sync, security, **code-health.yaml** |
 | `.ai/agents/` | Role charters (`_roles/`), `registry.json`, named agent folders |
 | `.ai/shared/memory/` | Durable memory (this folder) |
 | `.ai/shared/schemas/` | JSON Schemas for events and stage outputs |
-| `.ai/shared/references/` | Git workflow, testing, release policy, ICM CI policy, **agent-runtimes.md** |
+| `.ai/shared/references/` | Git workflow, testing, release policy, ICM CI policy, **code-health.md**, **agent-runtimes.md** |
 | `CLAUDE.md` / `CODEX.md` | Layer 0 entry routers for Claude Code and Codex Desktop |
 | `.ai/plugins/` | ICM index of Cursor Marketplace plugins this repo enables (not a Cursor loader) |
 | `.ai/stages/` | Six ICM stage contracts |
@@ -24,8 +24,9 @@
 | `.cursor/settings.json` | Project-scoped Cursor plugins (slash commands for cloud + local) |
 | `.cursor/rules/` | Shared Cursor operating rules |
 | `.githooks/` | Reporting git hooks |
-| `scripts/` | agent-init, agent-scaffold, agent-verify-caps, agent-automation-spec, agent-report, agent-sync-drive, install-agent-hooks, verify-agent-audit, verify-semantic-hierarchy |
-| `.github/workflows/` | CI audit + semantic hierarchy verification |
+| `scripts/` | agent-init, agent-scaffold, agent-verify-caps, agent-automation-spec, agent-report, agent-sync-drive, install-agent-hooks, verify-agent-audit, verify-semantic-hierarchy, **verify-code-health** |
+| `tests/code-health/` | Runtime-evaluation contract for health detectors (fixtures built in `/tmp`) |
+| `.github/workflows/` | CI audit, semantic hierarchy, and codebase health |
 
 ## Remotes and fork topology
 

@@ -1,0 +1,24 @@
+{
+  "task_id": "20260813-1315-codebase-health-cursor-cloud",
+  "stage": "02_plan",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T13:16:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260813-1315-codebase-health-cursor-cloud/01_intake/output/intake.md",
+    ".ai/shared/memory/architecture.md",
+    ".ai/shared/memory/conventions.md",
+    ".ai/shared/memory/known-issues.md",
+    ".ai/shared/memory/decisions/0001-adopt-icm-filesystem-architecture.md",
+    ".ai/shared/memory/decisions/0004-cursor-project-plugins.md",
+    ".ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md",
+    ".ai/agents/saul/roadmap.json",
+    ".ai/shared/references/testing.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-1315-codebase-health-cursor-cloud/02_plan/output/plan.md"
+  ],
+  "decisions": ["0005"],
+  "human_edits": "none",
+  "notes": "Plan posted before material edits. Implementation follows unless a co-founder objects."
+}

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# verify-code-health — registry-driven codebase health (decision 0005).
+# Usage:
+#   verify-code-health                 # live: ci-coverage, bloat, duplicates, orphans
+#   verify-code-health --self-test     # runtime evaluation on synthetic fixtures
+#   verify-code-health <subcommand>    # ci-coverage | bloat | duplicates | orphans | list
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel)
+exec python3 "$ROOT/scripts/lib/code-health.py" "$@"

@@ -48,5 +48,8 @@ personal email addresses. Identify people by username and Slack ID only.
 
 ## Application code
 
-No application code conventions exist yet (no code as of 2026-07-14). Add
-them here via decision records when the stack is chosen.
+No accepted application stack yet (DR-20260724). Until a stack decision
+exists, every change still runs `scripts/verify-code-health` (bloat,
+duplicates, orphans, CI coverage). When the stack is chosen, promote the
+deferred rows in `.ai/_config/code-health.yaml` and record language
+conventions here in the same commit.

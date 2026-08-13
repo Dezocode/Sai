@@ -1,6 +1,6 @@
 # ICM CI policy — canonical repo and forks
 
-> Verified 2026-07-14. Implements [arXiv:2603.16021](https://arxiv.org/abs/2603.16021)
+> Verified 2026-08-13 (code health registry, decision 0005). Implements [arXiv:2603.16021](https://arxiv.org/abs/2603.16021)
 > enforcement on GitHub Actions for all governed Sai repositories.
 
 ## Governed repositories
@@ -27,7 +27,11 @@ PRs targeting `main`:
 5. **`scripts/verify-merge-handoff`** — every agent commit in the push
    range maps to a task-id with `handoff.md` or a HANDOFF event; pushes to
    `main` additionally require the tip commit's task-id to have handoff.
-6. **Merge HANDOFF to #agentupdates** — on every push to `main`, CI job
+6. **`scripts/verify-code-health`** — registry-driven bloat, duplicate, and
+   orphan scans, plus a meta-check that every **active** health check's
+   `ci_marker` appears in this workflow. CI runs `--self-test` first
+   (runtime evaluation). Policy: `.ai/shared/references/code-health.md`.
+7. **Merge HANDOFF to #agentupdates** — on every push to `main`, CI job
    `merge-handoff-slack` runs `scripts/ci-merge-handoff-slack` (requires
    `SAI_SLACK_BOT_TOKEN` GitHub secret; when absent, agents must post via
    Cursor Slack MCP or `scripts/agent-report flush`).
@@ -47,7 +51,8 @@ reports.
 ## Local enforcement (complements CI)
 
 - **`pre-push`** hook blocks protected-ref pushes without valid audit trailers,
-  semantic violations, or missing merge HANDOFF documentation.
+  semantic violations, missing merge HANDOFF documentation, or codebase
+  health failures (`scripts/verify-code-health`).
 - **`scripts/agent-init`** verifies hooks, semantic hierarchy, and live hook
   self-test before an agent is considered initialized.
 

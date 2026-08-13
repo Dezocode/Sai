@@ -61,7 +61,9 @@ required = (
     [".ai/CONTEXT.md", ".ai/INITIALIZE.md",
      ".ai/_config/repositories.yaml", ".ai/_config/reporting.yaml",
      ".ai/_config/sync-policy.md", ".ai/_config/security-policy.md",
+     ".ai/_config/code-health.yaml",
      ".ai/shared/references/icm-ci-policy.md",
+     ".ai/shared/references/code-health.md",
      ".ai/shared/references/agent-runtimes.md",
      ".ai/shared/schemas/stage-output.schema.json",
      ".ai/agents/registry.json",
@@ -77,6 +79,7 @@ required = (
      "scripts/ci-merge-handoff-slack", "scripts/agent-memory-scaffold",
      "scripts/agent-contract-scaffold", "scripts/agent-contract-pr-review",
      "scripts/verify-scaffold-safety", "scripts/verify-agent-setup",
+     "scripts/verify-code-health", "scripts/lib/code-health.py",
      "scripts/lib/agent-path-guards.sh"]
     + ([".ai/shared/references/claude-agent-sdk.md"] if os.path.isfile(".ai/shared/references/claude-agent-sdk.md") else [])
     + [f".ai/stages/{s}/CONTEXT.md" for s in STAGES]
