@@ -110,6 +110,23 @@
       },
       "automation": "delegated: .ai/agents/alpha/runtimes/claude/automation/profile.md (awaiting ONBOARDING persona gate)",
       "notes": "Pilot coding contractor for splunk-clone prototype. ONBOARDING.md in progress; Sai audit pending persona gate."
+    },
+    {
+      "agent_id": "ctr-code-ri1",
+      "name": "ctr-code-ri1",
+      "role_title": "Coding Contractor",
+      "purpose": "Provisional coding contractor for Runtime Intelligence subprocess initialization under contract 20260813-ri-subprocess-init (stacked PR #64). Not named by a co-founder; not ACTIVE.",
+      "folder": ".ai/agents/ctr-code-ri1",
+      "charter": ".ai/agents/_roles/contractor-coding/CHARTER.md",
+      "principal": "dezocode (U0BHYH0NMCY)",
+      "status": "provisional",
+      "initialized": "2026-08-13",
+      "primary_runtime": "cursor-cloud-vm",
+      "entry_points": {
+        "cursor": "Optional — @ctr-code-ri1 in Cursor; provisional registry binding only"
+      },
+      "automation": "delegated: .ai/agents/ctr-code-ri1/automation/profile.md (provisional; no live automation)",
+      "notes": "Registry-bound 2026-08-13 from dezocode Slack follow-up. ONBOARDING persona gate, Saul APPROVE, Sai APPROVE, and human admission still required. Do not treat as initialized."
     }
   ]
 }

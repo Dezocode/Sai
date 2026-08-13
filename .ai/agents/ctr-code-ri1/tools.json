@@ -1,0 +1,10 @@
+{
+  "agent_id": "ctr-code-ri1",
+  "folder": ".ai/agents/ctr-code-ri1",
+  "primary_runtime": "cursor-cloud-vm",
+  "canonical_capabilities_path": "runtimes/cursor/tools.json",
+  "surveyed_at": "2026-08-13",
+  "environment": "cursor-cloud-vm",
+  "note": "Provisional registry binding only — Phase 5B capability survey not complete",
+  "capabilities": []
+}
