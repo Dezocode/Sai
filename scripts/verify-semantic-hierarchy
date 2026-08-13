@@ -81,12 +81,25 @@ required = (
      "scripts/verify-scaffold-safety", "scripts/verify-agent-setup",
      "scripts/verify-code-health", "scripts/lib/code-health.py",
      "scripts/lib/code-health-ci.py",
-     "scripts/lib/agent-path-guards.sh"]
+     "scripts/lib/agent-path-guards.sh",
+     "scripts/sai-authorize-task", "scripts/sai-assume-agent",
+     "scripts/sai-release-agent", "scripts/verify-agent-authorization",
+     "scripts/verify-contract-authorization", "scripts/invoke-saul-review",
+     "scripts/consume-saul-contract-review",
+     ".ai/_config/authorization.yaml",
+     ".ai/shared/schemas/task-request.schema.json",
+     ".ai/shared/schemas/authorization.schema.json",
+     ".ai/shared/schemas/contract-revision.schema.json",
+     ".ai/shared/schemas/contract-review.schema.json",
+     ".ai/shared/schemas/contract-amendment.schema.json",
+     ".github/workflows/saul-review.yml",
+     ".ai/requests/README.md"]
     + ([".ai/shared/references/claude-agent-sdk.md"] if os.path.isfile(".ai/shared/references/claude-agent-sdk.md") else [])
     + [f".ai/stages/{s}/CONTEXT.md" for s in STAGES]
     + [".githooks/" + h for h in
        ["post-checkout", "post-commit", "post-merge", "post-rewrite",
-        "pre-push", "post-push-equivalent.sh"]]
+        "pre-push", "pre-commit", "commit-msg", "prepare-commit-msg",
+        "post-push-equivalent.sh"]]
 )
 for p in required:
     if not os.path.exists(p):

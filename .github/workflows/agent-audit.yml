@@ -37,7 +37,11 @@ jobs:
                    scripts/verify-scaffold-safety scripts/verify-contract-shell-allowlist \
                    scripts/verify-agent-setup scripts/verify-code-health \
                    scripts/agent-memory-scaffold \
-                   scripts/agent-contract-scaffold scripts/agent-contract-pr-review
+                   scripts/agent-contract-scaffold scripts/agent-contract-pr-review \
+                   scripts/verify-agent-authorization scripts/verify-contract-authorization \
+                   scripts/sai-authorize-task scripts/sai-assume-agent \
+                   scripts/sai-release-agent scripts/invoke-saul-review \
+                   scripts/consume-saul-contract-review scripts/record-sai-verification
 
       - name: Verify scaffold path safety
         run: scripts/verify-scaffold-safety
@@ -55,6 +59,21 @@ jobs:
         run: |
           scripts/verify-code-health --self-test
           scripts/verify-code-health
+
+      - name: Verify agent authorization (synthetic fixtures, then CI replay)
+        run: |
+          scripts/verify-agent-authorization --self-test
+          scripts/verify-agent-authorization "${{ steps.range.outputs.range }}"
+
+      - name: Verify contract authorization (synthetic)
+        run: |
+          scripts/verify-contract-authorization --self-test
+          scripts/invoke-saul-review --self-test
+          scripts/consume-saul-contract-review --self-test
+
+      - name: Record dual-approval human gate
+        continue-on-error: true
+        run: scripts/verify-contract-authorization --human-gate
 
       - name: Validate scaffold script syntax
         run: |

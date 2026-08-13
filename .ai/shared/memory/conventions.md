@@ -6,7 +6,8 @@
 
 - One logical change per commit, descriptive outcome-oriented message.
 - Commit trailers where supported: `Task-ID:`, `Agent:`, `Plan:`,
-  `Report-Event:`.
+  `Report-Event:`, and when contracted `Authorization-ID:`, `Contract-ID:`,
+  `Contract-Revision:`, `Runtime:`.
 - Branch naming: `ceo/<slug>`, `dezo/<slug>`, `monae/<slug>`,
   `cursor/<slug>-<suffix>` (cloud agents), `ctr-admin/<slug>` (contract
   administrator), `proj/<project-slug>/<ctr-agent-id>/<task-slug>`

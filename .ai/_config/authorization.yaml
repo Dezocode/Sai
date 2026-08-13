@@ -1,0 +1,140 @@
+# SAI agent authorization policy — decision 0006 / comment 5282088737
+version: 1
+decision: "0006"
+owner: "Sai (CEO) + Cora (contract admin); Saul reviews as Codex CTO"
+
+enforcement:
+  mode: fail-closed
+  # Commits whose trees lack this file predate the control plane.
+  skip_commits_missing_policy: true
+  session_file: ".git/sai-session.json"
+  trust_session: false
+
+bootstrap:
+  enabled: true
+  task_ids:
+    - "20260813-1517-auth-loop-cursor-cloud"
+  agent_trailers:
+    - cursor-cloud
+    - cursor-cloud-vm
+  allowed_path_prefixes:
+    - ".ai/"
+    - "scripts/"
+    - ".githooks/"
+    - ".github/"
+    - "tests/"
+    - "AGENTS.md"
+    - "CLAUDE.md"
+    - "CODEX.md"
+    - "README.md"
+    - ".gitignore"
+    - "OPENCLAW.md"
+  note: >
+    One-time landing of this control plane by an unbound Cursor Cloud
+    runtime. Disable after human review. Not a standing implementation identity.
+
+runtimes:
+  cursor_implementation:
+    - cursor-cloud-vm
+    - cursor-desktop
+  saul_required: codex-desktop
+  sai_primary: cursor-cloud-vm
+  cora_primary: cursor-cloud-vm
+
+officers:
+  ceo:
+    name: Sai
+    assume_runtimes: [cursor-cloud-vm, cursor-desktop]
+    write_class: governance
+    may_record_sai_verification: true
+  ctr-admin:
+    name: Cora
+    assume_runtimes: [cursor-cloud-vm, cursor-desktop]
+    write_class: contract-admin
+    may_implement_product: false
+  dezo-sec-codex1:
+    name: Saul
+    assume_runtimes: [codex-desktop]
+    write_class: cto
+    cursor_impersonation: forbidden
+  mimi:
+    name: Mimi
+    assume_runtimes: [claude-code-cli]
+    write_class: portfolio
+
+path_classes:
+  contract-admin:
+    - ".ai/contracts/**"
+    - ".ai/requests/**"
+    - ".ai/agents/**"
+    - ".ai/runs/**"
+    - ".ai/contracts/_templates/**"
+  governance:
+    - ".ai/**"
+    - "AGENTS.md"
+    - "CLAUDE.md"
+    - "CODEX.md"
+    - ".cursor/**"
+  cto:
+    - ".ai/agents/saul/**"
+    - ".ai/shared/memory/**"
+    - ".ai/_config/code-health.yaml"
+    - ".ai/shared/references/code-health.md"
+  portfolio:
+    - ".ai/agents/mimi/**"
+    - ".ai/runs/**"
+
+protected_denied_for_contractors:
+  - ".ai/agents/saul/**"
+  - ".ai/shared/memory/decisions/**"
+  - ".ai/agents/registry.json"
+  - ".ai/agents/registry.schema.json"
+  - ".github/workflows/**"
+
+contractor:
+  require_contract: true
+  require_cora_lease: true
+  execution_modes: [provisional, authorized]
+  default_denied_paths:
+    - ".ai/agents/saul/**"
+    - ".ai/shared/memory/decisions/**"
+
+authority_expanding_actions:
+  - expand
+  - grant-capability
+  - remove-denied-path
+  - change-repository
+  - change-runtime
+  - elevate-role
+
+stale:
+  new_revision_invalidates: [leases, saul_contract_approval, sai_contract_approval]
+  new_implementation_sha_invalidates: [saul_implementation_approval, sai_implementation_approval]
+
+human_gate:
+  require:
+    - cora_admin_complete
+    - saul_approve_exact_revision
+    - saul_approve_exact_sha
+    - sai_approve_exact_revision
+    - sai_approve_exact_sha
+    - ci_green_exact_sha
+    - contractor_fulfillment_evidence
+    - no_stale_approvals
+    - no_request_changes
+    - no_authority_expansion_pending
+    - saul_runtime_codex
+    - saul_not_synthetic
+
+codex:
+  github_secrets:
+    - OPENAI_API_KEY
+    - CODEX_API_KEY
+  missing_disposition: BLOCKED
+  missing_reason: CODEX_UNAVAILABLE
+  never_approve_without_codex: true
+
+idempotency:
+  key_fields: [contract_id, contract_revision, implementation_head, reviewer, review_type]
+  skip_if_unchanged_request_changes: true
+  workflow_must_not_amend: true

@@ -24,10 +24,15 @@ instructions conflict, post a CONFLICT report and wait for resolution.
    `contractor_type` (`coding` | `design`), `primary_runtime`
    (`cursor` | `claude` | `codex`), principal, and compatibility target
    (SAI macOS/iOS/Android layer).
-2. **Contract drafting.** Produce versioned artifacts under
-   `.ai/contracts/<contract-id>/`: `contract.json`, `contract.md`,
-   `onboarding-prompt.md`. Use runtime templates from
-   `.ai/contracts/_templates/`.
+2. **Contract drafting.** Produce **immutable versioned** artifacts under
+   `.ai/contracts/<contract-id>/revisions/vN.yaml` plus pointer
+   `contract.json`. Never rewrite a reviewed revision in place. Use
+   `scripts/sai-authorize-task --create-contract` while assumed as Cora.
+   Ordinary Saul `REQUEST_CHANGES` findings are consumed with
+   `scripts/consume-saul-contract-review` (CTO-id → amendment → vN+1).
+   Authority-expanding findings must raise `human-approval-required` and
+   must not be auto-granted. You may not implement product or
+   control-plane code as Cora.
 3. **Contractor scaffolding.** Create provisional registry entries and agent
    folders via `scripts/agent-contract-scaffold` and `scripts/agent-scaffold`.
    Assign `project_slug`, branch prefix, and Slack channel name (pending owner

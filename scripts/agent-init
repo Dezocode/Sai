@@ -51,7 +51,7 @@ if [ -n "$current_hooks" ] && [ "$current_hooks" != ".githooks" ]; then
         if (cd "$TMP_CLONE" && SAI_AGENT_ID="${SAI_AGENT_ID:-unset}" scripts/install-agent-hooks >/dev/null 2>&1 \
             && [ "$(git -C "$TMP_CLONE" config core.hooksPath)" = ".githooks" ]); then
           ok=1
-          for h in post-checkout post-commit post-merge post-rewrite pre-push; do
+          for h in post-checkout post-commit post-merge post-rewrite pre-push pre-commit commit-msg prepare-commit-msg; do
             [ -x "$TMP_CLONE/.githooks/$h" ] || ok=0
           done
           if [ $ok = 1 ]; then
@@ -74,7 +74,7 @@ if [ -n "$current_hooks" ] && [ "$current_hooks" != ".githooks" ]; then
 elif [ -z "$current_hooks" ] || [ "$current_hooks" = ".githooks" ]; then
   if scripts/install-agent-hooks >/dev/null 2>&1 && [ "$(git config core.hooksPath)" = ".githooks" ]; then
     ok=1
-    for h in post-checkout post-commit post-merge post-rewrite pre-push; do
+    for h in post-checkout post-commit post-merge post-rewrite pre-push pre-commit commit-msg prepare-commit-msg; do
       [ -x ".githooks/$h" ] || ok=0
     done
     [ $ok = 1 ] && check "hooks" PASS "core.hooksPath=.githooks; all hooks executable" \

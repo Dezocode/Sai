@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/contract-amendment.schema.json",
+  "title": "SAI contract amendment",
+  "description": "Maps a Saul finding to a new immutable contract revision.",
+  "type": "object",
+  "required": ["amendment_id", "contract_id", "from_revision", "to_revision", "finding_ids"],
+  "additionalProperties": true,
+  "properties": {
+    "amendment_id": { "type": "string" },
+    "contract_id": { "type": "string" },
+    "from_revision": { "type": "integer" },
+    "to_revision": { "type": "integer" },
+    "finding_ids": { "type": "array", "items": { "type": "string" } },
+    "authority_expanding": { "type": "boolean" },
+    "human_approval_required": { "type": "boolean" },
+    "summary": { "type": "string" },
+    "changes": { "type": "array" }
+  }
+}

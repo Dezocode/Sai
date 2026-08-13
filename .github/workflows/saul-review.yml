@@ -1,0 +1,127 @@
+name: saul-cto-review
+
+# GitHub event bus → Actions → Codex/Saul. Saul stays Codex-native.
+# Missing OPENAI_API_KEY / CODEX_API_KEY => BLOCKED, never APPROVE.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      contract_id:
+        description: Contract ID
+        required: false
+      revision:
+        description: Contract revision (vN)
+        required: false
+      sha:
+        description: Implementation SHA
+        required: false
+      review_type:
+        description: contract or implementation
+        default: implementation
+      force:
+        description: Bypass idempotent skip
+        type: boolean
+        default: false
+
+concurrency:
+  group: saul-review-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+  checks: write
+
+jobs:
+  invoke-saul:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Invoke Codex as Saul
+        id: saul
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/invoke-saul-review
+          HEAD_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          TYPE="${{ github.event.inputs.review_type || 'implementation' }}"
+          CID="${{ github.event.inputs.contract_id }}"
+          REV="${{ github.event.inputs.revision }}"
+          FORCE=""
+          [ "${{ github.event.inputs.force }}" = "true" ] && FORCE="--force"
+          DETECT=$(scripts/invoke-saul-review --detect-contract || true)
+          [ -n "$CID" ] || CID="$DETECT"
+          mkdir -p /tmp/saul
+          set +e
+          scripts/invoke-saul-review \
+            ${CID:+--contract-id "$CID"} \
+            ${REV:+--revision "$REV"} \
+            --head "$HEAD_SHA" \
+            --review-type "$TYPE" \
+            --github-run-id "${{ github.run_id }}" \
+            --github-event "${{ github.event_name }}" \
+            --out /tmp/saul/review.yaml \
+            $FORCE
+          rc=$?
+          set -e
+          echo "exit=$rc" >> "$GITHUB_OUTPUT"
+          if [ -f /tmp/saul/review.yaml ]; then
+            python3 -c 'import yaml,sys; d=yaml.safe_load(open("/tmp/saul/review.yaml")); print("disposition="+str(d.get("disposition"))); print("reason="+str(d.get("reason") or ""))' >> "$GITHUB_OUTPUT"
+          else
+            echo "disposition=BLOCKED" >> "$GITHUB_OUTPUT"
+            echo "reason=NO_ARTIFACT" >> "$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      - name: Upload Saul review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: saul-review-${{ github.run_id }}
+          path: /tmp/saul/review.yaml
+          if-no-files-found: warn
+
+      - name: Post review comment
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f /tmp/saul/review.yaml ]; then
+            {
+              echo "### Saul CTO review (Codex)"
+              echo
+              echo "run: ${{ github.run_id }}"
+              echo "head: \`${{ github.event.pull_request.head.sha }}\`"
+              echo
+              echo '```yaml'
+              cat /tmp/saul/review.yaml
+              echo '```'
+            } > /tmp/saul/comment.md
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/saul/comment.md || true
+          fi
+
+      - name: Commit status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          DISP="${{ steps.saul.outputs.disposition }}"
+          STATE=failure
+          [ "$DISP" = "APPROVE" ] && STATE=success
+          [ "$DISP" = "REQUEST_CHANGES" ] && STATE=failure
+          [ "$DISP" = "BLOCKED" ] && STATE=failure
+          gh api repos/${{ github.repository }}/statuses/$SHA -f state="$STATE" \
+            -f context="saul-cto-review" \
+            -f description="Saul $DISP ${{ steps.saul.outputs.reason }}" \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
+          if [ "$DISP" = "APPROVE" ]; then
+            exit 0
+          fi
+          echo "Saul disposition $DISP is not APPROVE — CTO gate BLOCKED"
+          exit 1

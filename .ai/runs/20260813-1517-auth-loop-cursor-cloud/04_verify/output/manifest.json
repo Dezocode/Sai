@@ -1,0 +1,17 @@
+{
+  "task_id": "20260813-1517-auth-loop-cursor-cloud",
+  "stage": "04_verify",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T16:05:00Z",
+  "status": "partial",
+  "inputs": [
+    "scripts/verify-agent-authorization",
+    "tests/authorization/e2e.py"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-1517-auth-loop-cursor-cloud/04_verify/output/verification.md"
+  ],
+  "decisions": ["0006"],
+  "human_edits": "none",
+  "notes": "Local machinery PASS. GitHub Codex invocation PENDING/BLOCKED until secrets exist."
+}

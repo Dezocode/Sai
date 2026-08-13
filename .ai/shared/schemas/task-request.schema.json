@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/task-request.schema.json",
+  "title": "SAI task authorization request",
+  "description": "Tracked request under .ai/requests/<task-id>/request.yaml (YAML encoding of this schema).",
+  "type": "object",
+  "required": ["task_id", "requested_by", "repository", "runtime", "purpose", "state"],
+  "additionalProperties": true,
+  "properties": {
+    "task_id": { "type": "string", "pattern": "^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$" },
+    "requested_by": { "type": "string" },
+    "repository": { "type": "string" },
+    "runtime": { "type": "string" },
+    "purpose": { "type": "string" },
+    "required_role": { "type": "string" },
+    "state": {
+      "type": "string",
+      "enum": [
+        "REQUESTED", "IDENTITY_RESOLUTION", "CONTRACT_REQUIRED",
+        "CONTRACT_DRAFTED", "AUTHORIZED", "IMPLEMENTING", "BLOCKED"
+      ]
+    },
+    "resolved_agent": { "type": ["string", "null"] },
+    "contract_id": { "type": ["string", "null"] },
+    "notes": { "type": "string" }
+  }
+}

@@ -14,6 +14,15 @@ only what each phase tells you to load.
 
 ---
 
+## Identity authorization (decision 0006)
+
+After Phase 2, do not produce implementation commits as an unbound
+runtime. Run `scripts/sai-authorize-task --task-id <id>`. If the result
+is `CONTRACT_REQUIRED`, assume Cora (`scripts/sai-assume-agent ctr-admin`),
+create the versioned contract, release Cora, and assume the contractor.
+Saul remains Codex-native and is invoked only through GitHub Actions
+(`scripts/invoke-saul-review`). See `.ai/_config/authorization.yaml`.
+
 ## Phase 0 — Ground truth
 
 **Inputs:** none (verify everything yourself).

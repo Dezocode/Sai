@@ -30,6 +30,12 @@ KNOWN_FIXTURES = {
     "ci-coverage-bad", "ci-coverage-good", "ci-coverage-mention-only",
     "ci-coverage-conditional-job", "ci-coverage-step-if",
     "registry-mode-invalid", "registry-health-detector-livepass", "registry-valid",
+    "authorization-valid-good", "authorization-unbound-bad",
+    "authorization-wrong-role-bad", "authorization-wrong-runtime-bad",
+    "authorization-no-contract-bad", "authorization-cora-not-verified-bad",
+    "authorization-sai-not-verified-bad", "authorization-path-out-of-scope-bad",
+    "authorization-wrong-branch-bad", "authorization-revoked-contract-bad",
+    "authorization-stale-revision-bad", "authorization-missing-trailer-bad",
 }
 
 
@@ -375,6 +381,13 @@ def self_test() -> int:
         True,
     )
     check_reg("registry-valid", lambda c: None, False)
+
+    auth = Path(__file__).resolve().parent / "sai_auth_test.py"
+    if auth.is_file():
+        spec = importlib.util.spec_from_file_location("sai_auth_test", auth)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        executed.update(mod.run_synthetic_fixtures())
 
     try:
         root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()

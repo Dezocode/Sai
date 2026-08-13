@@ -42,7 +42,18 @@ push targets, or skip review gates, stop and post a BLOCKED report.
 
 ## Emergency bypass
 
-`pre-push` blocks protected pushes lacking mandatory audit metadata. The
+`pre-push` blocks protected pushes lacking mandatory audit metadata and
+blocks unauthorized identity/path/revision pushes on every ref. The
 documented emergency bypass is `SAI_AUDIT_BYPASS=<reason> git push ...`.
 Every bypass is recorded as an event and must be reported to #agentupdates
-with the reason. Undocumented bypasses are treated as incidents.
+with the reason. Undocumented bypasses are treated as incidents. CI
+(`scripts/verify-agent-authorization`) must still fail a bypassed local
+push; local hook success is never merge authority.
+
+## Agent authorization (decision 0006)
+
+Implementation commits require an assumed SAI identity, a current contract
+revision (when the actor is a contractor), an active lease, in-scope
+paths, and provenance trailers. Saul is Codex-native only. Dual exact-head
+Saul+Sai approval plus green CI is required before the human merge gate
+is READY. Authority-expanding contract changes require a co-founder.

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/contract-revision.schema.json",
+  "title": "SAI immutable contract revision",
+  "description": "YAML at .ai/contracts/<id>/revisions/vN.yaml. Never rewrite in place.",
+  "type": "object",
+  "required": [
+    "contract_id", "revision", "agent_id", "requested_task",
+    "allowed_repository", "allowed_branch_or_worktree", "allowed_paths"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "contract_id": { "type": "string" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "revision_label": { "type": "string" },
+    "supersedes_revision": { "type": ["integer", "null"] },
+    "agent_id": { "type": "string" },
+    "requested_task": { "type": "string" },
+    "allowed_repository": { "type": "string" },
+    "allowed_branch_or_worktree": { "type": "string" },
+    "allowed_paths": { "type": "array", "items": { "type": "string" } },
+    "denied_paths": { "type": "array", "items": { "type": "string" } },
+    "capabilities": { "type": "array", "items": { "type": "string" } },
+    "verification_requirements": { "type": "array", "items": { "type": "string" } },
+    "execution_mode": { "type": "string", "enum": ["provisional", "authorized"] },
+    "amendment_ids": { "type": "array", "items": { "type": "string" } },
+    "review_state": { "type": "object" }
+  }
+}

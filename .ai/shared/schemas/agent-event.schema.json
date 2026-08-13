@@ -26,7 +26,8 @@
       "enum": [
         "INTAKE", "PLAN", "WORKTREE", "CHANGE", "COMMIT", "PUSH", "PR",
         "VERIFY", "SYNC", "CONFLICT", "BLOCKED", "HANDOFF", "BYPASS",
-        "CONTRACT", "CONTRACT_REVIEW", "PERSONA_GATE"
+        "CONTRACT", "CONTRACT_REVIEW", "PERSONA_GATE",
+        "AUTHORIZATION", "HUMAN_GATE"
       ]
     },
     "task_id": {

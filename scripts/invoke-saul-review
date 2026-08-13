@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# invoke-saul-review — GitHub Actions entry: load Saul Codex profile, invoke Codex.
+# Missing credentials => disposition BLOCKED (never APPROVE).
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_review.py" invoke "$@"

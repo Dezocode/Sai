@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/contract-review.schema.json",
+  "title": "SAI machine-readable contract/implementation review",
+  "description": "Saul CTO or Sai governance disposition. Saul runtime must be codex.",
+  "type": "object",
+  "required": [
+    "reviewer", "runtime", "contract_id", "contract_revision", "disposition"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "reviewer": { "type": "string", "enum": ["saul", "sai"] },
+    "runtime": { "type": "string" },
+    "contract_id": { "type": "string" },
+    "contract_revision": { "type": "integer" },
+    "implementation_head": { "type": ["string", "null"] },
+    "review_type": { "type": "string", "enum": ["contract", "implementation"] },
+    "disposition": {
+      "type": "string",
+      "enum": ["APPROVE", "REQUEST_CHANGES", "BLOCKED"]
+    },
+    "findings": { "type": "array" },
+    "synthetic": { "type": "boolean" },
+    "github_run_id": { "type": ["string", "integer", "null"] },
+    "idempotency_key": { "type": "string" },
+    "reason": { "type": "string" }
+  }
+}

@@ -26,6 +26,8 @@ event_types:
   - CONTRACT
   - CONTRACT_REVIEW
   - PERSONA_GATE
+  - AUTHORIZATION
+  - HUMAN_GATE
 
 # Required message format (plain text, one field per line):
 message_template: |

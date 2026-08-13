@@ -33,6 +33,8 @@ authorized without verification.
 | dezocode | Co-founder | `U0BHYH0NMCY` |
 | monaecode | Co-founder | `U0BGNS7F0T1` |
 | SAI CEO agent (**Sai**) | Orchestrating agent serving both co-founders | `@sai` / `.ai/agents/sai/` |
+| **Cora** (`ctr-admin`) | Contract Administrator (Cursor-native) | `@cora` / `.ai/agents/cora/` |
+| **Saul** (`dezo-sec-codex1`) | CTO (Codex-native; not a Cursor runtime) | Codex + GitHub Actions `saul-review.yml` |
 | Secretary agent (dezocode) | Cursor Desktop agent for dezocode | posts as agent |
 | Secretary agent (monaecode) | Cursor Desktop agent for monaecode | posts as agent |
 

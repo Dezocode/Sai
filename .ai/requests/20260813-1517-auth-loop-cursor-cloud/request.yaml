@@ -1,0 +1,15 @@
+task_id: "20260813-1517-auth-loop-cursor-cloud"
+requested_by: "dezocode (U0BHYH0NMCY)"
+repository: Dezocode/Sai
+runtime: cursor-cloud-vm
+purpose: "Land decision 0006 authorization/contract/Saul-Codex control plane on PR #62"
+required_role: contractor-coding
+state: CONTRACT_REQUIRED
+resolved_agent: null
+contract_id: null
+notes: >
+  Unbound cursor-cloud found no applicable standing implementation agent
+  for this control-plane work. Bootstrap task-id is documented in
+  authorization.yaml for landing the machinery itself. E2E tests in
+  tests/authorization/ exercise the Cora→contractor assume flow.
+controlling_comment: "5282088737"

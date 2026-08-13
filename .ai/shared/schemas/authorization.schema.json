@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/authorization.schema.json",
+  "title": "SAI authorization lease",
+  "description": "Tracked write lease at .ai/contracts/<id>/leases/<lease-id>.json",
+  "type": "object",
+  "required": [
+    "lease_id", "contract_id", "contract_revision", "agent_id", "task_id",
+    "repository", "branch", "allowed_paths", "status", "execution_mode"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "lease_id": { "type": "string" },
+    "contract_id": { "type": "string" },
+    "contract_revision": { "type": "string" },
+    "agent_id": { "type": "string" },
+    "task_id": { "type": "string" },
+    "repository": { "type": "string" },
+    "branch": { "type": "string" },
+    "worktree": { "type": "string" },
+    "allowed_paths": { "type": "array", "items": { "type": "string" } },
+    "denied_paths": { "type": "array", "items": { "type": "string" } },
+    "capabilities": { "type": "array", "items": { "type": "string" } },
+    "status": { "type": "string", "enum": ["active", "stale", "released", "revoked"] },
+    "execution_mode": { "type": "string", "enum": ["provisional", "authorized"] },
+    "issued_at": { "type": "string" },
+    "issued_by": { "type": "string" },
+    "base_sha": { "type": "string" }
+  }
+}

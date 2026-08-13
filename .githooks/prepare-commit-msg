@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Append provenance trailers from the assumed SAI session when missing.
+[ "${SAI_AGENT_REPORT_ACTIVE:-}" = "1" ] && exit 0
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+MSG=${1:-}
+[ -n "$MSG" ] || exit 0
+exec "$REPO_ROOT/scripts/verify-agent-authorization" --prepare-commit-msg "$MSG"

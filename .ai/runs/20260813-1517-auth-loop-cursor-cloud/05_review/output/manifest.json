@@ -1,0 +1,16 @@
+{
+  "task_id": "20260813-1517-auth-loop-cursor-cloud",
+  "stage": "05_review",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T16:05:00Z",
+  "status": "blocked",
+  "inputs": [
+    ".ai/runs/20260813-1517-auth-loop-cursor-cloud/04_verify/output/verification.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-1517-auth-loop-cursor-cloud/05_review/output/review.md"
+  ],
+  "decisions": ["0006"],
+  "human_edits": "none",
+  "notes": "READY FOR HUMAN REVIEW is false until real Codex/Saul + Sai exact-head approvals exist."
+}

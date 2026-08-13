@@ -110,6 +110,9 @@
       "type": "string",
       "enum": ["draft", "active", "review", "closed"]
     },
+    "schema_version": { "type": "integer" },
+    "current_revision": { "type": "string" },
+    "execution_mode": { "type": "string", "enum": ["provisional", "authorized"] },
     "created_at": { "type": "string", "format": "date-time" },
     "created_by": { "type": "string" },
     "contract_admin_agent_id": { "type": "string" }

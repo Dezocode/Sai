@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# verify-agent-authorization — replay identity/lease/path/revision from Git.
+# CI must not trust .git/sai-session.json.
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_verify.py" "$@"

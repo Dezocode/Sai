@@ -8,6 +8,8 @@ and the superseded record (when applicable). Prefer superseding decisions
 over silently rewriting history: mark the old record `Status: superseded by
 NNNN` and leave it in place.
 
+See also: `0006-agent-authorization-loop.md` (accepted; PR #62 comment 5282088737).
+
 Template:
 
 ```markdown

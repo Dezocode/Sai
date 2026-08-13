@@ -23,6 +23,24 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   fi
   range=$([ "$remote_sha" = "$zero" ] && echo "$local_sha" || echo "$remote_sha..$local_sha")
 
+  auth_ok=1
+  "$REPO_ROOT/scripts/verify-agent-authorization" "$range" || auth_ok=0
+  "$REPO_ROOT/scripts/verify-contract-authorization" --range "$range" || auth_ok=0
+  if [ "$auth_ok" != "1" ]; then
+    if [ -n "${SAI_AUDIT_BYPASS:-}" ]; then
+      "$REPO_ROOT/scripts/agent-report" emit BYPASS \
+        --purpose "Authorization bypass on push to $remote_ref" \
+        --justification "$SAI_AUDIT_BYPASS" \
+        --result "push allowed despite failed authorization replay" \
+        --risks "bypass used; notify #agentupdates; CI must still block" || true
+    else
+      echo "pre-push: authorization replay failed for $remote_ref ($range)." >&2
+      echo "pre-push: assume a valid identity/lease or use SAI_AUDIT_BYPASS=\"<reason>\"" >&2
+      status=1
+      continue
+    fi
+  fi
+
   if printf '%s\n' "$PROTECTED" | grep -qx "$remote_ref"; then
     audit_ok=1
     "$REPO_ROOT/scripts/verify-agent-audit" "$range" || audit_ok=0

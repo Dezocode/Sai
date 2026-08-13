@@ -11,6 +11,11 @@ before starting.
 
 ---
 
+Load the **current contract revision** (`revisions/vN.yaml` via
+`contract.json` `current_revision`), not a stale copy. If your lease
+status is `stale`, stop committing, release, and re-assume against the
+new revision (`scripts/sai-assume-agent`).
+
 ## Phase 0 — Load contract
 
 **Inputs:** owner prompt, `.ai/contracts/<contract-id>/contract.json`,

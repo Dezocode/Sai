@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# sai-release-agent — drop the ephemeral session identity.
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_flow.py" release "$@"

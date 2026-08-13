@@ -38,6 +38,12 @@ bundles (`git bundle create <file> <range>`).
 ## Commits
 
 - Smallest coherent change; one logical change per commit.
+- Agent commits must include `Task-ID` and `Agent` trailers. Contractors
+  also include `Contract-ID`, `Contract-Revision`, and `Authorization-ID`.
+  Unbound `cursor-cloud` may not implement except for the documented
+  bootstrap task in `.ai/_config/authorization.yaml`.
+- `scripts/verify-agent-authorization` replays the outgoing range; CI does
+  not trust `.git/sai-session.json`.
 - Message: imperative summary line describing the outcome, then a body
   explaining why, then trailers:
 

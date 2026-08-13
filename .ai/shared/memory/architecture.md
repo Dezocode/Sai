@@ -39,4 +39,9 @@ exists. Line-shingle Jaccard is not semantic clone detection.
   `.githooks/` (installed with `scripts/install-agent-hooks`).
 - Codebase health registry `.ai/_config/code-health.yaml` (decision 0005),
   enforced in `.github/workflows/agent-audit.yml`.
+- Agent authorization and independent Codex/Saul review (decision 0006):
+  `.ai/_config/authorization.yaml`, `scripts/sai-*`,
+  `scripts/verify-agent-authorization`, `.github/workflows/saul-review.yml`.
+  Unbound Cursor Cloud is not an implementation identity. Saul is not a
+  Cursor runtime.
 - Google Drive is a replicated recovery layer per `.ai/_config/sync-policy.md`.

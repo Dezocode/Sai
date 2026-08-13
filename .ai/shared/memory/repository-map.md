@@ -11,10 +11,11 @@
 | `Team.md` | Team page (currently empty) |
 | `.ai/` | ICM agent workspace — see `.ai/CONTEXT.md` |
 | `.ai/INITIALIZE.md` | Read-and-execute initialization protocol for new agents |
-| `.ai/_config/` | Repository, reporting, sync, security, **code-health.yaml** |
+| `.ai/_config/` | Repository, reporting, sync, security, **code-health.yaml**, **authorization.yaml** |
+| `.ai/requests/` | Task authorization intake (`request.yaml` per task-id) |
+| `.ai/shared/schemas/` | JSON Schemas for events, contracts, authorization, reviews |
 | `.ai/agents/` | Role charters (`_roles/`), `registry.json`, named agent folders |
 | `.ai/shared/memory/` | Durable memory (this folder) |
-| `.ai/shared/schemas/` | JSON Schemas for events and stage outputs |
 | `.ai/shared/references/` | Git workflow, testing, release policy, ICM CI policy, **code-health.md**, **agent-runtimes.md** |
 | `CLAUDE.md` / `CODEX.md` | Layer 0 entry routers for Claude Code and Codex Desktop |
 | `.ai/plugins/` | ICM index of Cursor Marketplace plugins this repo enables (not a Cursor loader) |
@@ -24,9 +25,10 @@
 | `.cursor/settings.json` | Project-scoped Cursor plugins (slash commands for cloud + local) |
 | `.cursor/rules/` | Shared Cursor operating rules |
 | `.githooks/` | Reporting git hooks |
-| `scripts/` | agent-init, agent-scaffold, agent-verify-caps, agent-automation-spec, agent-report, agent-sync-drive, install-agent-hooks, verify-agent-audit, verify-semantic-hierarchy, **verify-code-health** |
+| `scripts/` | agent-init, sai-authorize-task, sai-assume-agent, sai-release-agent, verify-agent-authorization, verify-contract-authorization, invoke-saul-review, consume-saul-contract-review, verify-code-health, … |
+| `tests/authorization/` | Lifecycle e2e for decision 0006 |
+| `.github/workflows/` | `agent-audit.yml` (ICM + authorization replay); `saul-review.yml` (Codex/Saul) |
 | `tests/code-health/` | Runtime-evaluation contract for health detectors (fixtures built in `/tmp`) |
-| `.github/workflows/` | CI audit, semantic hierarchy, and codebase health |
 
 ## Remotes and fork topology
 

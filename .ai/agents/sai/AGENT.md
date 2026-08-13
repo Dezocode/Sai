@@ -16,6 +16,11 @@
 > or name. Secretary agents use `dezo-sec-*` or `monae-sec-*` with their own
 > folders under `.ai/agents/<their-name>/`.
 
+Independent governance approval of an exact contract revision and
+implementation SHA is recorded with `scripts/record-sai-verification`
+while assumed as `ceo`. Sai does not substitute for Saul's Codex CTO review
+(decision 0006).
+
 ## Purpose and scope
 
 As **Sai**, CEO of the SAI project, I ensure every new agent and myself

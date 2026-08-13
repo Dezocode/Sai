@@ -192,6 +192,51 @@ checks:
     self_test: none
     activate_when: "activity-ingest service exists; script is a stub that exits 2."
 
+  - id: agent-authorization
+    class: governance
+    status: active
+    command: "scripts/verify-agent-authorization --self-test"
+    self_test: synthetic
+    fixtures:
+      - authorization-valid-good
+      - authorization-unbound-bad
+      - authorization-wrong-role-bad
+      - authorization-wrong-runtime-bad
+      - authorization-no-contract-bad
+      - authorization-cora-not-verified-bad
+      - authorization-sai-not-verified-bad
+      - authorization-path-out-of-scope-bad
+      - authorization-wrong-branch-bad
+      - authorization-revoked-contract-bad
+      - authorization-stale-revision-bad
+      - authorization-missing-trailer-bad
+    note: "Fail-closed identity/lease/path/revision fixtures. live-pass is not enough."
+
+  - id: agent-authorization-ci
+    class: governance
+    status: active
+    command: "scripts/verify-agent-authorization"
+    self_test: live-pass
+    note: "CI replay of the push/PR range from tracked Git truth, not session files."
+
+  - id: contract-authorization
+    class: governance
+    status: active
+    command: "scripts/verify-contract-authorization --self-test"
+    self_test: live-pass
+
+  - id: saul-invoke-self-test
+    class: governance
+    status: active
+    command: "scripts/invoke-saul-review --self-test"
+    self_test: live-pass
+
+  - id: saul-consume-self-test
+    class: governance
+    status: active
+    command: "scripts/consume-saul-contract-review --self-test"
+    self_test: live-pass
+
   - id: app-unit-tests
     class: runtime
     status: deferred

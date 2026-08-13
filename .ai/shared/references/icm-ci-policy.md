@@ -39,6 +39,14 @@ PRs targeting `main`:
    `SAI_SLACK_BOT_TOKEN` GitHub secret; when absent, agents must post via
    Cursor Slack MCP or `scripts/agent-report flush`).
 
+8. **`scripts/verify-agent-authorization`** — synthetic identity/lease/path
+   fixtures, then CI replay of the commit range from tracked Git (session
+   files are not trusted).
+9. **`scripts/verify-contract-authorization --self-test`** plus Saul
+   invoke/consume self-tests. Human-gate is recorded fail-closed.
+10. **`.github/workflows/saul-review.yml`** — GitHub event invokes Codex as
+    Saul. Missing `OPENAI_API_KEY`/`CODEX_API_KEY` is BLOCKED, not APPROVE.
+
 ## Fork parity
 
 Fork owners must:

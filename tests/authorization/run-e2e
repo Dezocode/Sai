@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# End-to-end authorization lifecycle (temp clone). Evidence → stdout + REPORT.
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel)
+chmod +x "$ROOT"/scripts/sai-* "$ROOT"/scripts/verify-agent-authorization \
+  "$ROOT"/scripts/verify-contract-authorization "$ROOT"/scripts/invoke-saul-review \
+  "$ROOT"/scripts/consume-saul-contract-review "$ROOT"/scripts/record-sai-verification
+exec python3 "$ROOT/tests/authorization/e2e.py" "$@"
