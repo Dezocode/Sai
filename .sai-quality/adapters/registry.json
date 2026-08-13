@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "global": [
+    {
+      "id": "architecture-guard",
+      "command": "python3 scripts/architecture_guard.py check"
+    },
+    {
+      "id": "feature-lock",
+      "command": "python3 scripts/feature_lock_guard.py"
+    }
+  ],
+  "language_adapters": [
+    {
+      "id": "javascript-typescript",
+      "detect": [
+        "package.json",
+        "tsconfig.json",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.js",
+        "**/*.jsx"
+      ],
+      "conditional_tools": [
+        "dependency-cruiser",
+        "knip",
+        "jscpd"
+      ],
+      "fast": [
+        "node .sai-quality/tooling/node_modules/dependency-cruiser/bin/dependency-cruise.mjs --config .sai-quality/generated/dependency-cruiser.cjs -- src apps services packages 2>/dev/null || true"
+      ],
+      "deep": []
+    },
+    {
+      "id": "python",
+      "detect": [
+        "pyproject.toml",
+        "requirements.txt",
+        "**/*.py"
+      ],
+      "conditional_tools": [
+        "semgrep",
+        "trivy",
+        "jscpd"
+      ],
+      "fast": [],
+      "deep": []
+    },
+    {
+      "id": "go",
+      "detect": [
+        "go.mod",
+        "**/*.go"
+      ],
+      "conditional_tools": [
+        "semgrep",
+        "trivy",
+        "jscpd"
+      ],
+      "fast": [],
+      "deep": []
+    },
+    {
+      "id": "rust",
+      "detect": [
+        "Cargo.toml",
+        "**/*.rs"
+      ],
+      "conditional_tools": [
+        "semgrep",
+        "trivy",
+        "jscpd"
+      ],
+      "fast": [],
+      "deep": []
+    }
+  ]
+}

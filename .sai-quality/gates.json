@@ -1,0 +1,297 @@
+{
+  "schema_version": 1,
+  "gates": [
+    {
+      "id": "G00",
+      "name": "Repository preflight and preservation",
+      "required_for_unlock": true,
+      "deep_checkpoint": false,
+      "build": [],
+      "verify": [
+        {
+          "id": "preflight",
+          "cmd": "python3 scripts/phase0_preflight.py"
+        },
+        {
+          "id": "feature-lock",
+          "cmd": "python3 scripts/feature_lock_guard.py"
+        }
+      ]
+    },
+    {
+      "id": "G01",
+      "name": "Quality control-plane skeleton",
+      "required_for_unlock": true,
+      "deep_checkpoint": false,
+      "build": [],
+      "verify": [
+        {
+          "id": "orchestrator-selftest",
+          "cmd": "python3 scripts/qualityctl.py self-test"
+        },
+        {
+          "id": "schema-files",
+          "cmd": "python3 scripts/config_integrity.py"
+        }
+      ]
+    },
+    {
+      "id": "G02",
+      "name": "Canonical architecture registry",
+      "required_for_unlock": true,
+      "deep_checkpoint": true,
+      "build": [],
+      "verify": [
+        {
+          "id": "architecture",
+          "cmd": "python3 scripts/architecture_guard.py check"
+        },
+        {
+          "id": "architecture-selftest",
+          "cmd": "python3 scripts/architecture_guard.py self-test"
+        }
+      ]
+    },
+    {
+      "id": "G03",
+      "name": "Adapter framework and language detection",
+      "required_for_unlock": true,
+      "deep_checkpoint": false,
+      "build": [
+        {
+          "id": "detect",
+          "cmd": "python3 scripts/toolchain_manager.py detect"
+        }
+      ],
+      "verify": [
+        {
+          "id": "adapter-integrity",
+          "cmd": "python3 scripts/toolchain_manager.py verify-adapters"
+        }
+      ]
+    },
+    {
+      "id": "G04",
+      "name": "Tool provenance and immutable pinning",
+      "required_for_unlock": true,
+      "deep_checkpoint": false,
+      "build": [
+        {
+          "id": "tool-plan",
+          "cmd": "python3 scripts/toolchain_manager.py plan"
+        }
+      ],
+      "verify": [
+        {
+          "id": "tool-lock",
+          "cmd": "python3 scripts/toolchain_manager.py verify-lock --allow-unresolved-disabled"
+        }
+      ]
+    },
+    {
+      "id": "G05",
+      "name": "Formatting lint type/build contract",
+      "required_for_unlock": true,
+      "deep_checkpoint": true,
+      "build": [
+        {
+          "id": "render",
+          "cmd": "python3 scripts/toolchain_manager.py render"
+        }
+      ],
+      "verify": [
+        {
+          "id": "native-contract",
+          "cmd": "python3 scripts/toolchain_manager.py verify-native-contract"
+        }
+      ]
+    },
+    {
+      "id": "G06",
+      "name": "Dependency architecture",
+      "required_for_unlock": true,
+      "deep_checkpoint": false,
+      "build": [
+        {
+          "id": "render-deps",
+          "cmd": "python3 scripts/toolchain_manager.py render"
+        }
+      ],
+      "verify": [
+        {
+          "id": "arch",
+          "cmd": "python3 scripts/architecture_guard.py check"
+        },
+        {
+          "id": "dep-adapter",
+          "cmd": "python3 scripts/toolchain_manager.py check-capability dependency_architecture"
+        }
+      ]
+    },
+    {
+      "id": "G07",
+      "name": "Dead code and orphan control",
+      "required_for_unlock": true,
+      "deep_checkpoint": false,
+      "build": [],
+      "verify": [
+        {
+          "id": "dead-code-adapter",
+          "cmd": "python3 scripts/toolchain_manager.py check-capability dead_code"
+        }
+      ]
+    },
+    {
+      "id": "G08",
+      "name": "Duplication complexity and health ratchet",
+      "required_for_unlock": true,
+      "deep_checkpoint": true,
+      "build": [
+        {
+          "id": "baseline-plan",
+          "cmd": "python3 scripts/health_report.py baseline --if-missing"
+        }
+      ],
+      "verify": [
+        {
+          "id": "dup",
+          "cmd": "python3 scripts/toolchain_manager.py check-capability duplication"
+        },
+        {
+          "id": "ratchet",
+          "cmd": "python3 scripts/health_report.py verify-ratchet"
+        },
+        {
+          "id": "code-budget",
+          "cmd": "python3 scripts/code_budget_guard.py"
+        }
+      ]
+    },
+    {
+      "id": "G09",
+      "name": "SAST and secret prevention",
+      "required_for_unlock": true,
+      "deep_checkpoint": false,
+      "build": [],
+      "verify": [
+        {
+          "id": "sast",
+          "cmd": "python3 scripts/toolchain_manager.py check-capability sast"
+        },
+        {
+          "id": "secrets",
+          "cmd": "python3 scripts/toolchain_manager.py check-capability secrets"
+        }
+      ]
+    },
+    {
+      "id": "G10",
+      "name": "Vulnerability misconfiguration license and SBOM",
+      "required_for_unlock": true,
+      "deep_checkpoint": false,
+      "build": [],
+      "verify": [
+        {
+          "id": "supply-chain",
+          "cmd": "python3 scripts/toolchain_manager.py check-capability supply_chain"
+        },
+        {
+          "id": "sbom",
+          "cmd": "python3 scripts/toolchain_manager.py verify-sbom"
+        }
+      ]
+    },
+    {
+      "id": "G11",
+      "name": "Central SonarQube quality service",
+      "required_for_unlock": true,
+      "deep_checkpoint": true,
+      "build": [
+        {
+          "id": "sonar-config",
+          "cmd": "python3 scripts/toolchain_manager.py render-service sonarqube"
+        }
+      ],
+      "verify": [
+        {
+          "id": "sonar",
+          "cmd": "python3 scripts/toolchain_manager.py verify-service sonarqube"
+        }
+      ]
+    },
+    {
+      "id": "G12",
+      "name": "Repo posture and dependency automation",
+      "required_for_unlock": true,
+      "deep_checkpoint": false,
+      "build": [
+        {
+          "id": "renovate",
+          "cmd": "python3 scripts/toolchain_manager.py render-service renovate"
+        },
+        {
+          "id": "scorecard",
+          "cmd": "python3 scripts/toolchain_manager.py render-service scorecard"
+        }
+      ],
+      "verify": [
+        {
+          "id": "posture",
+          "cmd": "python3 scripts/toolchain_manager.py verify-repo-posture"
+        }
+      ]
+    },
+    {
+      "id": "G13",
+      "name": "Dependency-Track SBOM intelligence",
+      "required_for_unlock": true,
+      "deep_checkpoint": false,
+      "build": [
+        {
+          "id": "dtrack",
+          "cmd": "python3 scripts/toolchain_manager.py render-service dependency-track"
+        }
+      ],
+      "verify": [
+        {
+          "id": "dtrack-contract",
+          "cmd": "python3 scripts/toolchain_manager.py verify-service dependency-track --contract-only"
+        }
+      ]
+    },
+    {
+      "id": "G14",
+      "name": "CI aggregation scheduled health and evidence",
+      "required_for_unlock": true,
+      "deep_checkpoint": true,
+      "build": [],
+      "verify": [
+        {
+          "id": "workflow-integrity",
+          "cmd": "python3 scripts/workflow_guard.py"
+        },
+        {
+          "id": "health",
+          "cmd": "python3 scripts/health_report.py current"
+        }
+      ]
+    },
+    {
+      "id": "G15",
+      "name": "Adversarial fault injection and unlock proof",
+      "required_for_unlock": true,
+      "deep_checkpoint": true,
+      "build": [],
+      "verify": [
+        {
+          "id": "fault-injection",
+          "cmd": "python3 scripts/fault_injection.py"
+        },
+        {
+          "id": "deep-preunlock",
+          "cmd": "python3 scripts/qualityctl.py verify --through G14 --mode deep --no-state-write"
+        }
+      ]
+    }
+  ]
+}

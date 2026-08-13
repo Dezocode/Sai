@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SAI Quality Gate Result",
+  "type": "object",
+  "required": [
+    "gate",
+    "status",
+    "timestamp",
+    "commands"
+  ],
+  "properties": {
+    "gate": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED",
+        "SKIP"
+      ]
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "commands": {
+      "type": "array"
+    },
+    "git_sha": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "policy_digest": {
+      "type": "string"
+    }
+  }
+}

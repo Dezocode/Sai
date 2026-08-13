@@ -1,0 +1,16 @@
+{
+  "name": "pstack",
+  "repo": "https://github.com/no-session/pstack",
+  "skill_url": "https://github.com/no-session/pstack/blob/main/SKILL.md",
+  "observed_version": "1.1.0",
+  "observed_date": "2026-08-12",
+  "license": "MIT",
+  "adapted_concepts": [
+    "plan/engineering review before build",
+    "separate review/security/QA/ship/monitor",
+    "guarded/frozen edit scopes",
+    "evidence-backed completion statuses",
+    "three-attempt escalation",
+    "security uncertainty blocks"
+  ]
+}

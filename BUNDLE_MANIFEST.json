@@ -1,0 +1,14 @@
+{
+  "name": "SAI Phase 0 Quality OS Cursor Build Bundle",
+  "version": "1.0.0",
+  "created": "2026-08-12",
+  "target_repo": "https://github.com/Dezocode/Sai",
+  "merge_strategy": "additive repo-root overlay; preserve existing ICM files",
+  "feature_unlock_gate": "G15",
+  "entrypoints": [
+    "CURSOR_START_PROMPT.md",
+    ".cursor/commands/sai-quality-build.md",
+    "scripts/bootstrap_phase0.sh",
+    "scripts/qualityctl.py"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "note": "Verify exact license at resolved version during Gate G04. This file is policy metadata, not legal advice.",
+  "tools": [
+    {
+      "id": "pstack",
+      "observed": "MIT"
+    },
+    {
+      "id": "semgrep-ce",
+      "observed": "LGPL-2.1 per official CE page"
+    },
+    {
+      "id": "knip",
+      "observed": "ISC"
+    },
+    {
+      "id": "jscpd",
+      "observed": "MIT"
+    },
+    {
+      "id": "dependency-track",
+      "observed": "Apache-2.0"
+    },
+    {
+      "id": "scorecard",
+      "observed": "Apache-2.0"
+    },
+    {
+      "id": "trivy",
+      "observed": "Apache-2.0 project family; verify resolved release"
+    },
+    {
+      "id": "gitleaks",
+      "observed": "MIT"
+    },
+    {
+      "id": "dependency-cruiser",
+      "observed": "verify at resolution"
+    },
+    {
+      "id": "sonarqube-community-build",
+      "observed": "verify at resolution"
+    },
+    {
+      "id": "renovate",
+      "observed": "verify at resolution and keep isolated"
+    }
+  ]
+}

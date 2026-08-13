@@ -1,0 +1,14 @@
+---
+description: SAI Quality OS Phase-0 guardrails. Additive to existing SAI coordination rules.
+alwaysApply: true
+---
+
+Before creating or editing product architecture, read `.sai-quality/FEATURES_LOCKED` and `.sai-quality/architecture/registry.json`.
+
+If `.sai-quality/FEATURES_LOCKED` exists, do not create product implementation under `apps/`, `services/`, `packages/`, `evals/`, or `infrastructure/`. Phase-0 quality infrastructure is the only build target.
+
+Search before create. Extend canonical owners. Do not create `v2/new/legacy/tmp/copy` parallel paths.
+
+Run `python3 scripts/qualityctl.py status` before material work. Run the owning gate and cumulative verification after material work. Security/architecture/dependency/CI changes force DEEP verification.
+
+Never weaken a gate, add a broad ignore, refresh a baseline, or delete a regression test merely to achieve green CI.

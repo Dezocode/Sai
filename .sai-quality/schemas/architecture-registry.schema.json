@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "reserved_roots",
+    "capabilities",
+    "contracts"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer"
+    },
+    "reserved_roots": {
+      "type": "object"
+    },
+    "capabilities": {
+      "type": "object"
+    },
+    "contracts": {
+      "type": "object"
+    },
+    "dependency_layers": {
+      "type": "array"
+    },
+    "migrations": {
+      "type": "array"
+    }
+  }
+}

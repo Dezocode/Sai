@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "feature_lock": {
+    "marker": ".sai-quality/FEATURES_LOCKED",
+    "unlock_certificate": ".sai-quality/FEATURES_UNLOCKED.json",
+    "product_roots": [
+      "apps",
+      "services",
+      "packages",
+      "evals",
+      "infrastructure"
+    ],
+    "allowed_when_locked": [
+      "README.md",
+      ".gitkeep"
+    ]
+  },
+  "architecture": {
+    "registry": ".sai-quality/architecture/registry.json",
+    "one_owner_per_capability": true,
+    "one_owner_per_contract": true,
+    "forbid_unregistered_product_subroots": true,
+    "forbidden_path_tokens": [
+      "-v2",
+      "_v2",
+      "-new",
+      "_new",
+      "-legacy",
+      "_legacy",
+      "-tmp",
+      "_tmp",
+      "-copy",
+      "_copy"
+    ]
+  },
+  "ratchets": {
+    "baseline_file": ".sai-quality/baselines/health-baseline.json",
+    "new_code_coverage_min_percent": 90,
+    "new_code_duplication_max_percent": 2.0,
+    "new_critical_security_findings_max": 0,
+    "new_high_security_findings_max": 0,
+    "circular_dependencies_max": 0,
+    "unresolved_imports_max": 0,
+    "unregistered_architecture_edges_max": 0,
+    "dead_product_files_max": 0,
+    "secret_findings_max": 0
+  },
+  "complexity": {
+    "source_file_hard_max_lines": 600,
+    "source_file_soft_max_lines": 400,
+    "function_soft_max_lines": 80,
+    "cyclomatic_soft_max": 12,
+    "policy": "soft thresholds warn; repeated/new-code violations become blocking through ratchet. Hard file maximum blocks unless generated code is registry-declared."
+  },
+  "suppressions": {
+    "file": ".sai-quality/policies/suppressions.json",
+    "required_fields": [
+      "id",
+      "tool",
+      "scope",
+      "owner",
+      "rationale",
+      "expires",
+      "evidence",
+      "regression_test"
+    ],
+    "broad_ignore_forbidden": true
+  },
+  "recursive": {
+    "deep_every_n_gates": 3,
+    "max_same_strategy_attempts": 3
+  },
+  "security": {
+    "block_severities": [
+      "CRITICAL",
+      "HIGH"
+    ],
+    "require_sast": true,
+    "require_secret_scan": true,
+    "require_sbom": true
+  }
+}

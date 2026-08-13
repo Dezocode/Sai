@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "resolution_policy": "resolve current stable once from official source, then pin exact version plus digest/checksum where supported",
+  "resolved_at": null,
+  "tools": {
+    "sonarqube": {
+      "capability": "service",
+      "enabled": true,
+      "version": "UNRESOLVED",
+      "digest_or_checksum": "UNRESOLVED",
+      "source": "see .sai-quality/provenance/tool-sources.json"
+    },
+    "semgrep": {
+      "capability": "sast",
+      "enabled": true,
+      "version": "UNRESOLVED",
+      "digest_or_checksum": "UNRESOLVED",
+      "source": "see .sai-quality/provenance/tool-sources.json"
+    },
+    "trivy": {
+      "capability": "supply_chain",
+      "enabled": true,
+      "version": "UNRESOLVED",
+      "digest_or_checksum": "UNRESOLVED",
+      "source": "see .sai-quality/provenance/tool-sources.json"
+    },
+    "gitleaks": {
+      "capability": "secrets",
+      "enabled": true,
+      "version": "UNRESOLVED",
+      "digest_or_checksum": "UNRESOLVED",
+      "source": "see .sai-quality/provenance/tool-sources.json"
+    },
+    "dependency-cruiser": {
+      "capability": "dependency_architecture",
+      "enabled": false,
+      "version": "UNRESOLVED",
+      "digest_or_checksum": "UNRESOLVED",
+      "source": "see .sai-quality/provenance/tool-sources.json"
+    },
+    "knip": {
+      "capability": "dead_code",
+      "enabled": false,
+      "version": "UNRESOLVED",
+      "digest_or_checksum": "UNRESOLVED",
+      "source": "see .sai-quality/provenance/tool-sources.json"
+    },
+    "jscpd": {
+      "capability": "duplication",
+      "enabled": true,
+      "version": "UNRESOLVED",
+      "digest_or_checksum": "UNRESOLVED",
+      "source": "see .sai-quality/provenance/tool-sources.json"
+    },
+    "renovate": {
+      "capability": "dependency_updates",
+      "enabled": true,
+      "version": "UNRESOLVED",
+      "digest_or_checksum": "UNRESOLVED",
+      "source": "see .sai-quality/provenance/tool-sources.json"
+    },
+    "scorecard": {
+      "capability": "repo_posture",
+      "enabled": true,
+      "version": "UNRESOLVED",
+      "digest_or_checksum": "UNRESOLVED",
+      "source": "see .sai-quality/provenance/tool-sources.json"
+    },
+    "dependency-track": {
+      "capability": "sbom_intelligence",
+      "enabled": true,
+      "version": "UNRESOLVED",
+      "digest_or_checksum": "UNRESOLVED",
+      "source": "see .sai-quality/provenance/tool-sources.json"
+    }
+  }
+}

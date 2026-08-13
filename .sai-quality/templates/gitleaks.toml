@@ -1,0 +1,4 @@
+[extend]
+useDefault = true
+
+# Add SAI-specific rules only with positive/negative fixtures.

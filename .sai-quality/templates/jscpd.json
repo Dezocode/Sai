@@ -1,0 +1,5 @@
+{
+  "threshold": 2,
+  "reporters": ["console", "json"],
+  "ignore": ["**/node_modules/**", "**/.sai-quality/runtime/**", "**/dist/**", "**/coverage/**"]
+}

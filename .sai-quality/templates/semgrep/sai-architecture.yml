@@ -1,0 +1,8 @@
+rules:
+  - id: sai-no-hardcoded-feature-unlock
+    message: Do not bypass the SAI Phase-0 feature lock in product code.
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include: ["apps/**", "services/**", "packages/**", "evals/**", "infrastructure/**"]
+    pattern-regex: "FEATURES_UNLOCKED\\s*=\\s*(true|1)"

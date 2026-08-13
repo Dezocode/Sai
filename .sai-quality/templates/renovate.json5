@@ -1,0 +1,9 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "dependencyDashboard": true,
+  "rangeStrategy": "pin",
+  "minimumReleaseAge": "3 days",
+  "prConcurrentLimit": 5,
+  "labels": ["dependencies", "quality-os"]
+}

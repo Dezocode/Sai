@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "reserved_roots": {
+    "apps": {
+      "purpose": "deployable user-facing applications",
+      "status": "reserved_until_feature_unlock"
+    },
+    "services": {
+      "purpose": "backend/runtime capabilities",
+      "status": "reserved_until_feature_unlock"
+    },
+    "packages": {
+      "purpose": "shared canonical packages/contracts",
+      "status": "reserved_until_feature_unlock"
+    },
+    "evals": {
+      "purpose": "evaluation suites",
+      "status": "reserved_until_feature_unlock"
+    },
+    "infrastructure": {
+      "purpose": "runtime infrastructure",
+      "status": "reserved_until_feature_unlock"
+    }
+  },
+  "governance_roots": [
+    ".ai",
+    ".cursor",
+    ".github",
+    ".sai-quality",
+    "scripts",
+    "openclaw-dashboard"
+  ],
+  "capabilities": {
+    "quality-control-plane": {
+      "owner": ".sai-quality",
+      "public_contract": "scripts/qualityctl.py",
+      "status": "active"
+    },
+    "agent-governance": {
+      "owner": ".ai",
+      "public_contract": "AGENTS.md",
+      "status": "existing-do-not-replace"
+    }
+  },
+  "contracts": {
+    "quality-gate-result": {
+      "owner": ".sai-quality/schemas/gate-result.schema.json"
+    },
+    "architecture-registry": {
+      "owner": ".sai-quality/schemas/architecture-registry.schema.json"
+    }
+  },
+  "dependency_layers": [],
+  "migrations": []
+}

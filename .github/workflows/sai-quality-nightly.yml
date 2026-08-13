@@ -1,0 +1,16 @@
+name: sai-quality-nightly
+on:
+  schedule:
+    - cron: '17 8 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deep-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: python3 scripts/qualityctl.py verify --mode deep --current-policy
+      - run: python3 scripts/health_report.py current

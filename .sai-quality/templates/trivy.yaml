@@ -1,0 +1,10 @@
+scan:
+  scanners:
+    - vuln
+    - secret
+    - misconfig
+    - license
+severity:
+  - HIGH
+  - CRITICAL
+exit-code: 1

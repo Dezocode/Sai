@@ -1,0 +1,1 @@
+Read `.cursor/skills/sai-quality-os/SKILL.md`, then execute the Phase-0 Quality OS from the current resumable gate through G15. Preserve existing ICM governance. Do not implement product features. Use `python3 scripts/qualityctl.py build --through G15`, repair failures recursively, and stop after three same-strategy failures. Only run `qualityctl unlock` after G15 passes.

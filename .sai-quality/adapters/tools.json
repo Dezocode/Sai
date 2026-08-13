@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "tools": {
+    "semgrep": {
+      "resolver": "pypi:semgrep",
+      "install": "isolated-python-venv",
+      "verify": "semgrep --version"
+    },
+    "trivy": {
+      "resolver": "github-release:aquasecurity/trivy",
+      "install": "pinned-binary-or-container",
+      "verify": "trivy --version"
+    },
+    "gitleaks": {
+      "resolver": "github-release:gitleaks/gitleaks",
+      "install": "pinned-binary-or-container",
+      "verify": "gitleaks version"
+    },
+    "dependency-cruiser": {
+      "resolver": "npm:dependency-cruiser",
+      "install": "isolated-node-tooling",
+      "verify": "dependency-cruise --version"
+    },
+    "knip": {
+      "resolver": "npm:knip",
+      "install": "isolated-node-tooling",
+      "verify": "knip --version"
+    },
+    "jscpd": {
+      "resolver": "npm:jscpd",
+      "install": "isolated-node-tooling",
+      "verify": "jscpd --version"
+    },
+    "renovate": {
+      "resolver": "npm:renovate",
+      "install": "service-or-isolated-runner",
+      "verify": "renovate --version"
+    },
+    "scorecard": {
+      "resolver": "github-release:ossf/scorecard",
+      "install": "pinned-action-or-container",
+      "verify": "scorecard version"
+    },
+    "sonarqube": {
+      "resolver": "official-docker-tags-manual-review",
+      "install": "isolated-service",
+      "verify": "health API + quality gate API"
+    },
+    "dependency-track": {
+      "resolver": "official-compose-manual-review",
+      "install": "isolated-service",
+      "verify": "API health + SBOM contract"
+    }
+  }
+}

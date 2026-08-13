@@ -1,0 +1,24 @@
+name: sai-quality-os
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  phase0-or-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Python control-plane integrity
+        run: |
+          python3 scripts/config_integrity.py
+          python3 scripts/architecture_guard.py check
+          python3 scripts/feature_lock_guard.py
+          python3 scripts/qualityctl.py verify --mode fast --current-policy
+      - name: Explain deeper external-tool gates
+        run: |
+          echo "External tool execution becomes mandatory as its chronological gate is passed and pinned in .sai-quality/toolchain.lock.json."

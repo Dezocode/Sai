@@ -1,0 +1,64 @@
+{
+  "tools": [
+    {
+      "id": "sonarqube",
+      "official": "https://docs.sonarsource.com/sonarqube-community-build/",
+      "source": "https://github.com/SonarSource/sonarqube",
+      "mode": "service"
+    },
+    {
+      "id": "semgrep",
+      "official": "https://semgrep.dev/products/community-edition/",
+      "source": "https://github.com/semgrep/semgrep",
+      "mode": "cli_or_container"
+    },
+    {
+      "id": "trivy",
+      "official": "https://trivy.dev/docs/latest/",
+      "source": "https://github.com/aquasecurity/trivy",
+      "mode": "cli_or_container"
+    },
+    {
+      "id": "gitleaks",
+      "official": "https://github.com/gitleaks/gitleaks",
+      "source": "https://github.com/gitleaks/gitleaks",
+      "mode": "cli"
+    },
+    {
+      "id": "dependency-cruiser",
+      "official": "https://github.com/sverweij/dependency-cruiser",
+      "source": "https://github.com/sverweij/dependency-cruiser",
+      "mode": "node_tool"
+    },
+    {
+      "id": "knip",
+      "official": "https://knip.dev/",
+      "source": "https://github.com/webpro-nl/knip",
+      "mode": "node_tool"
+    },
+    {
+      "id": "jscpd",
+      "official": "https://jscpd.dev/",
+      "source": "https://github.com/kucherenko/jscpd",
+      "mode": "node_or_rust_tool"
+    },
+    {
+      "id": "renovate",
+      "official": "https://docs.renovatebot.com/",
+      "source": "https://github.com/renovatebot/renovate",
+      "mode": "service_or_runner"
+    },
+    {
+      "id": "scorecard",
+      "official": "https://github.com/ossf/scorecard",
+      "source": "https://github.com/ossf/scorecard",
+      "mode": "action_or_cli"
+    },
+    {
+      "id": "dependency-track",
+      "official": "https://docs.dependencytrack.org/",
+      "source": "https://github.com/DependencyTrack/dependency-track",
+      "mode": "service"
+    }
+  ]
+}
