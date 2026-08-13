@@ -323,13 +323,13 @@ def _detect_contract(root):
 
 def cmd_verify_agent(argv=None):
     p = argparse.ArgumentParser(prog="verify-agent-authorization")
-    p.add_argument("range", nargs="?", default=None)
     p.add_argument("--self-test", action="store_true")
     p.add_argument("--pre-commit", action="store_true")
     p.add_argument("--commit-msg", default=None)
     p.add_argument("--prepare-commit-msg", default=None)
     p.add_argument("--branch", default=None)
-    args = p.parse_args(argv)
+    args, extra = p.parse_known_args(argv)
+    range_spec = " ".join(extra).strip() or os.environ.get("SAI_AUTH_RANGE") or "HEAD"
     if args.self_test:
         from sai_auth_test import run_synthetic_fixtures
         n = run_synthetic_fixtures()
@@ -342,10 +342,9 @@ def cmd_verify_agent(argv=None):
         return verify_commit_msg(root, args.commit_msg)
     if args.pre_commit:
         return verify_pre_commit(root)
-    spec = args.range or os.environ.get("SAI_AUTH_RANGE") or "HEAD"
-    if spec == "HEAD":
-        spec = "-n 1 HEAD"
-    return verify_range(root, spec, branch=args.branch or os.environ.get("GITHUB_HEAD_REF"))
+    if range_spec == "HEAD":
+        range_spec = "-n 1 HEAD"
+    return verify_range(root, range_spec, branch=args.branch or os.environ.get("GITHUB_HEAD_REF"))
 
 
 def cmd_verify_contract(argv=None):
