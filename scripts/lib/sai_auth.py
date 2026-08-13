@@ -154,7 +154,9 @@ def parse_trailers(msg):
 
 
 def glob_match(path, pattern):
-    path = path.replace("\\", "/").lstrip("./")
+    path = path.replace("\\", "/")
+    if path.startswith("./"):
+        path = path[2:]
     pattern = pattern.replace("\\", "/")
     if pattern.endswith("/**"):
         root = pattern[:-3].rstrip("/")
@@ -348,7 +350,7 @@ def class_paths(cfg, write_class):
     return list((cfg.get("path_classes") or {}).get(write_class) or [])
 
 
-def bootstrap_ok(cfg, trailers, paths):
+def bootstrap_ok(cfg, trailers, paths, *, root=None, sha=None):
     boot = cfg.get("bootstrap") or {}
     if boot.get("standing") is True:
         return False
@@ -363,7 +365,8 @@ def bootstrap_ok(cfg, trailers, paths):
         if not any(p == pref or p.startswith(pref.rstrip("/") + "/") or glob_match(p, pref)
                    for pref in prefixes):
             return False
-    return True
+    from sai_auth_grant import bootstrap_until_ok
+    return bootstrap_until_ok(cfg, task, root, sha)
 
 
 def utcnow():

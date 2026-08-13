@@ -32,6 +32,8 @@ contractor:
   require_contract: true
   default_denied_paths: [".ai/agents/saul/**"]
 authority_expanding_actions: [expand, grant-capability, remove-denied-path]
+officer_grants:
+  required: true
 idempotency:
   skip_if_unchanged_request_changes: true
 codex:
@@ -76,6 +78,19 @@ def _init(path: Path):
     (path / ".ai/requests").mkdir(parents=True, exist_ok=True)
     a.write_yaml(path / ".ai/_config/authorization.yaml", a.load_yaml(POLICY))
     a.write_json(path / ".ai/agents/registry.json", REGISTRY)
+    (path / ".ai/authorizations/grants").mkdir(parents=True, exist_ok=True)
+    a.write_yaml(path / ".ai/authorizations/grants/grant-test-ctr-admin.yaml", {
+        "id": "grant-test-ctr-admin",
+        "principal": "ctr-admin",
+        "runtime": "cursor-cloud-vm",
+        "task_ids": [
+            "20260813-1517-auth-loop-cursor-cloud",
+            "20260813-9999-auth-test-ctr-code-auth1",
+        ],
+        "paths": [".ai/**"],
+        "actions": ["write"],
+        "issued_by": "test",
+    })
     _git(path, "add", "-A")
     _git(path, "commit", "-m",
          "bootstrap policy\n\nTask-ID: 20260813-1517-auth-loop-cursor-cloud\nAgent: cursor-cloud\n")
@@ -318,6 +333,9 @@ def run_synthetic_fixtures():
         _init(d)
         sai_nv(d)
 
+        from sai_auth_grant import register_grant_fixtures
+        register_grant_fixtures(one, _commit)
+
     return set(names)
 
 
@@ -385,6 +403,12 @@ def run_saul_fixtures():
         if "head.repo.full_name" not in job or "github.repository" not in job:
             raise RuntimeError("saul-review.yml job must skip fork PRs before runs-on")
         print("SELFTEST PASS  saul-workflow-job-if-same-repo")
+        executed.add("saul-trusted-launcher-not-pr-head")
+        if "SAI_TRUSTED_TREE" not in text or "SAI_CANDIDATE_TREE" not in text:
+            raise RuntimeError("saul-review.yml must set trusted vs candidate trees")
+        if '"$SAI_TRUSTED_TREE/scripts/invoke-saul-review"' not in text:
+            raise RuntimeError("invoke must run from SAI_TRUSTED_TREE, not PR-head scripts/")
+        print("SELFTEST PASS  saul-trusted-launcher-not-pr-head")
     return executed
 
 

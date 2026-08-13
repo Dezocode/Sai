@@ -230,6 +230,8 @@ def cmd_assume(argv=None):
     ident = args.identity
     if ident.lower() in ("cora", "ctr-admin"):
         ident = "ctr-admin"
+    if ident.lower() in ("sai", "ceo"):
+        ident = "ceo"
     if ident.lower() == "saul" or ident == "dezo-sec-codex1":
         print("FAIL Saul is Codex-native; cannot assume Saul on", runtime, file=sys.stderr)
         return 1
@@ -237,6 +239,33 @@ def cmd_assume(argv=None):
     agent = a.find_agent(reg, ident)
     req = a.load_request(root, args.task_id)
     oc = a.officer_cfg(cfg, ident)
+    if ident == "ceo":
+        if runtime not in (oc or {}).get("assume_runtimes", []):
+            print("FAIL Sai cannot be assumed on", runtime, file=sys.stderr)
+            return 1
+        from sai_auth_grant import matching_grant
+        grant = matching_grant(
+            root, "ceo", args.task_id, [".ai/**"],
+            runtime=runtime,
+        )
+        session = {
+            "agent_id": "ceo",
+            "agent_name": "Sai",
+            "runtime": runtime,
+            "task_id": args.task_id,
+            "contract_id": args.contract_id or (req or {}).get("contract_id"),
+            "contract_revision": None,
+            "lease_id": None,
+            "grant_id": (grant or {}).get("id"),
+            "assumed_at": a.utcnow(),
+            "branch": a.current_branch(root),
+            "worktree": str(Path(root)),
+            "write_class": "governance",
+        }
+        a.save_session(root, session)
+        print("ASSUMED ceo (Sai) runtime=", runtime, "grant=", session.get("grant_id"))
+        print("Sai owns state-machine/governance writes only; not contractor or Cora.")
+        return 0
     if ident == "ctr-admin":
         if runtime not in (oc or {}).get("assume_runtimes", []):
             print("FAIL Cora cannot be assumed on", runtime, file=sys.stderr)
@@ -246,6 +275,11 @@ def cmd_assume(argv=None):
             "IDENTITY_RESOLUTION", None,
         ) and req.get("state") not in ("CONTRACT_REQUIRED", "CONTRACT_DRAFTED"):
             pass
+        from sai_auth_grant import matching_grant
+        grant = matching_grant(
+            root, "ctr-admin", args.task_id,
+            [".ai/contracts/**"], runtime=runtime,
+        )
         session = {
             "agent_id": "ctr-admin",
             "agent_name": "Cora",
@@ -254,6 +288,7 @@ def cmd_assume(argv=None):
             "contract_id": args.contract_id or (req or {}).get("contract_id"),
             "contract_revision": None,
             "lease_id": None,
+            "grant_id": (grant or {}).get("id"),
             "assumed_at": a.utcnow(),
             "branch": a.current_branch(root),
             "worktree": str(Path(root)),

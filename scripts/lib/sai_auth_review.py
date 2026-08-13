@@ -52,28 +52,31 @@ def _parse_yaml_block(text):
 
 def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_event=None,
            out=None, force=False, fixture=None):
+    cand = Path(os.environ.get("SAI_CANDIDATE_TREE") or root)
     rev_n = a.revision_int(revision) if revision else None
     if not cid:
-        cid = v._detect_contract(root)
-    sha = sha or a.head_sha(root)
+        cid = v._detect_contract(cand)
+    sha = sha or a.head_sha(cand)
     dest = None
     key = None
     if cid:
-        ptr = a.load_pointer(root, cid)
+        ptr = a.load_pointer(cand, cid)
         if ptr and not revision:
             revision = ptr.get("current_revision")
             rev_n = a.revision_int(revision)
         key = a.review_key(cid, rev_n, sha, "saul", review_type)
-        dest = a.reviews_dir(root, cid) / f"saul-{review_type}-{key}.yaml"
-        if dest.is_file() and not force:
+        dest = a.reviews_dir(cand, cid) / f"saul-{review_type}-{key}.yaml"
+        if os.environ.get("SAI_REVIEW_NO_TRACKED_WRITE") == "1":
+            dest = None
+        if dest is not None and dest.is_file() and not force:
             existing = a.read_yaml(dest)
             print(f"IDEMPOTENT_SKIP key={key} disposition={existing.get('disposition')}")
             return 0, existing
-        last = v.latest_review(root, cid, "saul", review_type)
+        last = v.latest_review(cand, cid, "saul", review_type)
         if (not force and last and last.get("disposition") == "REQUEST_CHANGES"
                 and a.revision_int(last.get("contract_revision")) == rev_n
                 and (last.get("implementation_head") or "") == (sha or "")
-                and (a.load_config(root).get("idempotency") or {}).get(
+                and (a.load_config(cand).get("idempotency") or {}).get(
                     "skip_if_unchanged_request_changes", True)):
             print("LOOP_PREVENTION skip re-invoke; revision and SHA unchanged after REQUEST_CHANGES")
             return 0, last
@@ -111,7 +114,7 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
         if env.get("CODEX_API_KEY") and not env.get("OPENAI_API_KEY"):
             env["OPENAI_API_KEY"] = env["CODEX_API_KEY"]
         try:
-            prompt = _prompt(root, cid, revision, sha, review_type)
+            prompt = _prompt(cand, cid, revision, sha, review_type)
         except Exception as e:
             doc = {
                 "reviewer": "saul", "runtime": "codex", "contract_id": cid,

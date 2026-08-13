@@ -36,6 +36,8 @@ KNOWN_FIXTURES = {
     "authorization-sai-not-verified-bad", "authorization-path-out-of-scope-bad",
     "authorization-wrong-branch-bad", "authorization-revoked-contract-bad",
     "authorization-stale-revision-bad", "authorization-missing-trailer-bad",
+    "authorization-forged-officer-trailer-bad", "authorization-officer-grant-good",
+    "authorization-bootstrap-expired-bad",
 }
 
 

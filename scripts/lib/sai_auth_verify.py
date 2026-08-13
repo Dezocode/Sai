@@ -20,6 +20,8 @@ def _trailers_from_session(session):
     }
     if session.get("lease_id"):
         t["Authorization-ID"] = session["lease_id"]
+    elif session.get("grant_id"):
+        t["Authorization-ID"] = session["grant_id"]
     if session.get("contract_id"):
         t["Contract-ID"] = session["contract_id"]
     if session.get("contract_revision"):
@@ -37,7 +39,7 @@ def verify_paths(cfg, trailers, paths, *, root, sha=None, session=None, branch=N
     if not task_id:
         fails.append("missing Task-ID")
         return fails
-    if a.bootstrap_ok(cfg, trailers, paths):
+    if a.bootstrap_ok(cfg, trailers, paths, root=root, sha=sha):
         return fails
     if agent_id in (cfg.get("bootstrap") or {}).get("agent_trailers", []):
         fails.append("unbound runtime cannot commit without bootstrap or assumed identity")
@@ -57,6 +59,18 @@ def verify_paths(cfg, trailers, paths, *, root, sha=None, session=None, branch=N
         for p in paths:
             if not a.path_allowed(p, allowed, denied):
                 fails.append(f"officer {agent_id} path out of class: {p}")
+        from sai_auth_grant import matching_grant, officer_grant_required
+        if officer_grant_required(cfg, root, sha):
+            g = matching_grant(
+                root, agent_id, task_id, paths, sha=sha,
+                grant_id=trailers.get("Authorization-ID"),
+                runtime=trailers.get("Runtime"),
+            )
+            if not g:
+                fails.append(
+                    "officer commit requires tracked grant "
+                    "(Agent trailer is not sufficient)"
+                )
         return fails
     # contractor
     cid = trailers.get("Contract-ID")
@@ -112,6 +126,10 @@ def verify_commit(root, cfg, sha, *, branch=None):
         return []
     msg = a.commit_message(root, sha)
     trailers = a.parse_trailers(msg)
+    cutoff = (cfg.get("enforcement") or {}).get("skip_commits_missing_identity_at_or_before")
+    if cutoff and not trailers.get("Agent"):
+        if sha == cutoff or a.git(root, "merge-base", "--is-ancestor", sha, cutoff).returncode == 0:
+            return []
     paths = a.commit_paths(root, sha)
     return verify_paths(cfg, trailers, paths, root=root, sha=sha, branch=branch)
 
@@ -153,7 +171,7 @@ def verify_pre_commit(root):
             "Task-ID": os.environ.get("SAI_TASK_ID") or "",
             "Agent": os.environ.get("SAI_AGENT_ID") or "cursor-cloud",
         }
-        if a.bootstrap_ok(cfg, trailers, paths):
+        if a.bootstrap_ok(cfg, trailers, paths, root=root, sha=None):
             print("PASS pre-commit bootstrap")
             return 0
         print("FAIL no assumed identity; run sai-authorize-task / sai-assume-agent", file=sys.stderr)
@@ -209,6 +227,8 @@ def append_trailers(root, msgfile):
         lines.append(f"Agent: {session.get('agent_id')}")
     if session.get("lease_id") and "Authorization-ID" not in t:
         lines.append(f"Authorization-ID: {session['lease_id']}")
+    elif session.get("grant_id") and "Authorization-ID" not in t:
+        lines.append(f"Authorization-ID: {session['grant_id']}")
     if session.get("contract_id") and "Contract-ID" not in t:
         lines.append(f"Contract-ID: {session['contract_id']}")
     if session.get("contract_revision") and "Contract-Revision" not in t:

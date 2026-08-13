@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# sai-dispatch-transition — cheap deterministic eval + idempotent claim.
+# Observing the same blocker is not a continuation of the autonomous loop.
+set -euo pipefail
+if [ -n "${SAI_TRUSTED_TREE:-}" ] && [ -f "${SAI_TRUSTED_TREE}/scripts/lib/sai_auth_queue.py" ]; then
+  exec python3 "${SAI_TRUSTED_TREE}/scripts/lib/sai_auth_queue.py" "$@"
+fi
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_queue.py" "$@"
