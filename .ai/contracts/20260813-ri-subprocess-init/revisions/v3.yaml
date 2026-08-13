@@ -1,0 +1,55 @@
+contract_id: 20260813-ri-subprocess-init
+revision: 3
+revision_label: v3
+supersedes_revision: 2
+agent_id: ctr-code-ri1
+contractor_name: Runtime Intelligence Init (provisional)
+requested_task: 20260813-1945-ri-subprocess-init
+allowed_repository: Dezocode/Sai
+allowed_branch_or_worktree: cursor/ri-subprocess-init-20260813
+allowed_paths:
+- .ai/runs/**
+- .ai/requests/**
+- .ai/contracts/**
+- .ai/shared/skills/runtime-intelligence/**
+- .ai/shared/memory/runtimes/**
+- .ai/shared/memory/stubs/**
+- .ai/_config/code-health.yaml
+- runtime-intelligence/**
+- scripts/runtime-intelligence/**
+- scripts/lib/sai_auth.py
+- scripts/lib/sai_auth_review.py
+- scripts/lib/sai_auth_package.py
+- scripts/lib/sai_auth_grant.py
+- tests/runtime-intelligence/**
+denied_paths:
+- .ai/agents/saul/**
+- .ai/shared/memory/decisions/**
+capabilities:
+- git-commit
+- git-push
+- draft-pr
+verification_requirements:
+- scripts/verify-agent-authorization
+- scripts/verify-contract-authorization
+execution_mode: provisional
+amendment_ids:
+- A-RI-001-saul-sandbox-and-orphans
+- A-003
+review_state:
+  saul:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+  sai:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+cora_admin_complete: true
+created_by: ctr-admin
+created_at: '2026-08-14T00:00:00Z'
+note: >
+  v3 (immutable): Cora consume of Saul run 31745529943 (CTO-004/005/006).
+  Does not edit revisions/v2.yaml. v2 lease stale. Adds sai_auth_grant.py
+  so SHA-bound officer grants can replay without moving required_after_sha.
+  Org remains PROVISIONAL; Saul/Sai/human still required.

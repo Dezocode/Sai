@@ -1,0 +1,38 @@
+reviewer: saul
+runtime: codex
+contract_id: 20260813-ri-subprocess-init
+contract_revision: 2
+implementation_head: c32303f67bc400795888631d05754d2987e453d2
+review_type: implementation
+disposition: REQUEST_CHANGES
+findings:
+- id: CTO-004
+  severity: P0
+  contract_field: authorization_policy
+  action: narrow
+  requested_change: Restore officer_grants.required_after_sha to d113fa0bf75b43491c25723f57cf9dec1e6196de.
+    Represent any explicit human ratification with narrowly SHA/task/path-bound grant
+    records instead of weakening the repository-wide enforcement boundary.
+  authority_expanding: false
+- id: CTO-005
+  severity: P0
+  contract_field: immutable_revision
+  action: add
+  requested_change: Do not mutate revisions/v2.yaml after its creation at 4a7b980.
+    Record this transition through a new immutable revision or an append-only administrative
+    state artifact, stale the v2 lease as required, and bind subsequent review to
+    the resulting current revision.
+  authority_expanding: false
+- id: CTO-006
+  severity: P1
+  contract_field: run_artifacts
+  action: add
+  requested_change: Update current status artifacts to consistently identify contract
+    revision v2 or its replacement.
+  authority_expanding: false
+codex_invoked: true
+synthetic: false
+github_run_id: '31745529943'
+reason: REQUEST_CHANGES on c32303f — cutoff waiver, immutable v2 mutation, stale STATUS.
+idempotency_key: e041038572d7ca34
+github_event: pull_request

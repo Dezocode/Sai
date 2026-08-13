@@ -1,0 +1,27 @@
+amendment_id: A-003
+contract_id: 20260813-ri-subprocess-init
+from_revision: 2
+to_revision: 3
+finding_ids:
+- CTO-004
+- CTO-005
+- CTO-006
+authority_expanding: false
+human_approval_required: false
+summary: CTO-004 -> A-003 -> v3; CTO-005 -> A-003 -> v3; CTO-006 -> A-003 -> v3
+trace:
+- CTO-004 -> A-003 -> v3
+- CTO-005 -> A-003 -> v3
+- CTO-006 -> A-003 -> v3
+changes:
+- finding_id: CTO-004
+  field: authorization_policy
+  action: narrow
+- finding_id: CTO-005
+  field: immutable_revision
+  action: add
+- finding_id: CTO-006
+  field: run_artifacts
+  action: add
+created_by: ctr-admin
+created_at: '2026-08-13T23:28:57Z'
