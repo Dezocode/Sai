@@ -1,0 +1,29 @@
+{
+  "task_id": "20260813-2258-pr62-verify-ceo",
+  "repo": "Dezocode/Sai",
+  "pr": 62,
+  "branch": "cursor/codebase-health-90ba",
+  "primary_logical_id": "pr62-primary",
+  "physical_runtime_id": "ceo-automation-8d962ddf",
+  "current_head": "2ac83a149bfa69c2ce7e0c7675c492b45dba82f2",
+  "contract_id": "20260813-pr62-saul-smoke",
+  "contract_revision": "v3",
+  "lease_id": "lease-c3a003pr62q1",
+  "requirement_digest": "REQ-5287013791",
+  "open_findings_digest": "icm-orphan-scripts-2ac83a1+saul-trusted-reviewer-unavailable-2ac83a1",
+  "active_workers": [],
+  "pending_events": [
+    "CONTRACTOR_ACTION_REQUIRED:ctr-code-pr62smoke:register-orphan-scripts",
+    "HUMAN_AUTHORITY_REQUIRED:dezocode:saul-trusted-reviewer-bootstrap"
+  ],
+  "current_frontier": "icm-enforcement orphan-script fix (contractor, existing v3 lease) + Saul trusted-reviewer bootstrap decision (human-only: runner-image SAI_TRUSTED_REVIEWER_ROOT or explicit merge-path decision)",
+  "expected_next_state": "WAITING_EXTERNAL",
+  "exit_predicate": "READY_FOR_HUMAN_REVIEW requires: orphan-script CI fix landed, real Hostinger Saul APPROVE on the resulting exact head, Sai APPROVE, exact-head CI green, no stale approvals",
+  "last_material_transition": "head e2985da->2ac83a1; icm-enforcement FAILURE; saul-cto-review disposition changed REQUEST_CHANGES(de821c7)->BLOCKED/TRUSTED_REVIEWER_UNAVAILABLE(2ac83a1)",
+  "liveness": "WAITING_EXTERNAL+WAITING_HUMAN",
+  "wake_condition": "new implementation head on PR #62, OR dezocode configures SAI_TRUSTED_REVIEWER_ROOT / decides bootstrap path, OR a fresh Saul run on a head that has a trusted base",
+  "physical_runtime_continuity": false,
+  "logical_runtime_continuity": true,
+  "model": "cursor-sonnet-5",
+  "role_boundary_note": "Sai (this task) did not implement the orphan-script fix and did not assume the ctr-code-pr62smoke identity; that would recreate the exact provenance risk (generic runtime committing under trailers for an identity it is not running as) flagged previously in Sai's own memory (GOV-004 pattern). Fix must land as a real ctr-code-pr62smoke commit under lease-c3a003pr62q1."
+}

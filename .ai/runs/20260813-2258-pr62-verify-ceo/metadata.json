@@ -1,0 +1,25 @@
+{
+  "task_id": "20260813-2258-pr62-verify-ceo",
+  "agent": "ceo",
+  "agent_name": "Sai",
+  "sai_agent_id": "ceo-automation",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "automation_branch": "cursor/event-driven-ceo-orchestration-1a71",
+  "observed_pr": "https://github.com/Dezocode/Sai/pull/62",
+  "observed_branch": "cursor/codebase-health-90ba",
+  "observed_head": "2ac83a149bfa69c2ce7e0c7675c492b45dba82f2",
+  "base_sha": "40efe0a0724764fc1cf3c45ed8498b5606a0f453",
+  "contract_id": "20260813-pr62-saul-smoke",
+  "contract_revision": "v3",
+  "lease_id": "lease-c3a003pr62q1",
+  "purpose": "Scheduled CEO protocol VERIFY on PR #62 synchronize trigger (head e2985da -> 2ac83a1); classify event, verify exact-state gates, route recoverable and human-required findings. Reporting/governance-artifact only; no application/product code changes.",
+  "status": "blocked-recoverable-plus-human-required",
+  "controlling_automation": "8d962ddf-7f4e-11f1-ba66-0e7d0216e441",
+  "trigger": "GitHub pull_request synchronize event, Dezocode/Sai PR #62 (40efe0a0724764fc1cf3c45ed8498b5606a0f453...2ac83a149bfa69c2ce7e0c7675c492b45dba82f2)",
+  "claimed_files": [
+    ".ai/runs/20260813-2258-pr62-verify-ceo/"
+  ],
+  "worktree": "isolated cloud-agent VM workspace (non-synced); automation branch is a separate checkout from the observed PR branch",
+  "note": "This run does not push to cursor/codebase-health-90ba. All governance artifacts are recorded on the automation's own branch per the Git Development Branch Requirements. Findings are routed to the owning agent/human via GitHub PR review + Slack; no commit lands on the PR branch from this run."
+}
