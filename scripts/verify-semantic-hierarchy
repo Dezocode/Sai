@@ -87,6 +87,9 @@ required = (
      "scripts/verify-contract-authorization", "scripts/invoke-saul-review",
      "scripts/consume-saul-contract-review",
      "scripts/sai-dispatch-transition",
+     "scripts/sai-identity-required",
+     "scripts/sai-event-adapter",
+     ".cursor/rules/sai-orchestration.mdc",
      ".ai/_config/authorization.yaml",
      ".ai/shared/schemas/task-request.schema.json",
      ".ai/shared/schemas/authorization.schema.json",
@@ -94,6 +97,7 @@ required = (
      ".ai/shared/schemas/contract-review.schema.json",
      ".ai/shared/schemas/contract-amendment.schema.json",
      ".ai/shared/schemas/remediation-item.schema.json",
+     ".ai/shared/schemas/coordinator-state.schema.json",
      ".github/workflows/saul-review.yml",
      ".ai/requests/README.md"]
     + ([".ai/shared/references/claude-agent-sdk.md"] if os.path.isfile(".ai/shared/references/claude-agent-sdk.md") else [])
@@ -149,8 +153,8 @@ if os.path.isdir(".ai/runs"):
                     inner = os.listdir(full)
                     if inner != ["output"] and set(inner) - {"output"}:
                         fail(f"{run}/{entry}: stage artifacts must live under output/, found {sorted(set(inner) - {'output'})}")
-            elif entry not in ("metadata.json", "events.jsonl", "handoff.md"):
-                fail(f"{run}: unexpected top-level file '{entry}' (allowed: metadata.json, events.jsonl, handoff.md, stage dirs)")
+            elif entry not in ("metadata.json", "events.jsonl", "handoff.md", "coordinator-state.json"):
+                fail(f"{run}: unexpected top-level file '{entry}' (allowed: metadata.json, events.jsonl, handoff.md, coordinator-state.json, stage dirs)")
         # stage-order provenance
         has_plan = "02_plan" in present or (meta or {}).get("plan_reference")
         if "03_implement" in present and not has_plan:

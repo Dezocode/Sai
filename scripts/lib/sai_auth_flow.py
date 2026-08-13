@@ -399,6 +399,60 @@ def cora_blocks_product(session, paths):
     return bad
 
 
+def detect_contract(root, branch=None):
+    """Find a tracked contract for this worktree/branch. Deterministic; no LLM."""
+    session = a.load_session(root)
+    if session and session.get("contract_id"):
+        return session["contract_id"]
+    base = Path(root) / ".ai/contracts"
+    if not base.is_dir():
+        return None
+    br = branch or a.current_branch(root)
+    aliases = {br, os.environ.get("GITHUB_HEAD_REF") or ""}
+    aliases.discard("")
+    for d in sorted(base.iterdir()):
+        if not d.is_dir() or d.name.startswith("_"):
+            continue
+        ptr = a.read_json(d / "contract.json") or {}
+        rev_l = ptr.get("current_revision")
+        if not rev_l:
+            continue
+        rev = a.read_yaml(d / "revisions" / f"{rev_l}.yaml") or {}
+        if rev.get("allowed_branch_or_worktree") in aliases:
+            return d.name
+        for row in ptr.get("assigned_contractors") or []:
+            if isinstance(row, dict) and row.get("branch") in aliases:
+                return d.name
+    return None
+
+
+def contractor_assignment(root, branch=None):
+    """Existing-contract fast path: assigned contractor on this branch, if any."""
+    cid = detect_contract(root, branch=branch)
+    if not cid:
+        return None
+    ptr = a.load_pointer(root, cid) or {}
+    rev_l = ptr.get("current_revision") or "v1"
+    rev = a.load_revision(root, cid, rev_l) or {}
+    br = branch or a.current_branch(root)
+    agent_id = None
+    for row in ptr.get("assigned_contractors") or []:
+        if not isinstance(row, dict) or not row.get("agent_id"):
+            continue
+        row_br = row.get("branch")
+        if row_br and br and row_br != br:
+            continue
+        agent_id = row.get("agent_id")
+        break
+    if not agent_id:
+        agent_id = rev.get("agent_id")
+    return {
+        "contract_id": cid,
+        "revision": a.revision_label(rev.get("revision_label") or rev_l),
+        "agent_id": agent_id or None,
+    }
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     rest = sys.argv[2:]

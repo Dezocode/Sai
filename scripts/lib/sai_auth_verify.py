@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
@@ -167,6 +168,39 @@ def verify_range(root, spec, *, branch=None):
     return 0
 
 
+def emit_identity_required(root, paths, *, branch=None):
+    """Block the write and print a machine-readable propel cue. Tree is unchanged."""
+    from sai_auth_cue import build_cue, emit_cue
+    cue = build_cue(root, paths, branch=branch)
+    git_dir = Path(root) / ".git"
+    if git_dir.is_dir():
+        a.write_json(git_dir / "sai-identity-required.json", cue)
+    emit_cue(cue, stream=sys.stdout)
+    print("FAIL no assumed identity; run sai-authorize-task / sai-assume-agent", file=sys.stderr)
+    return 1
+
+
+def cmd_identity_required(root):
+    session = a.load_session(root)
+    if session:
+        print(json.dumps({
+            "status": "IDENTITY_PRESENT",
+            "current_identity": session.get("agent_id"),
+            "allowed_read_only": False,
+        }))
+        return 0
+    cfg = a.load_config(root)
+    paths = a.staged_paths(root)
+    trailers = {
+        "Task-ID": os.environ.get("SAI_TASK_ID") or "",
+        "Agent": os.environ.get("SAI_AGENT_ID") or "cursor-cloud",
+    }
+    if paths and a.bootstrap_ok(cfg, trailers, paths, root=root, sha=None):
+        print("PASS pre-commit bootstrap")
+        return 0
+    return emit_identity_required(root, paths)
+
+
 def verify_pre_commit(root):
     cfg = a.load_config(root)
     session = a.load_session(root)
@@ -176,8 +210,7 @@ def verify_pre_commit(root):
         return 0
     a.ensure_primary_runtime(root)
     if not session:
-        reqs = list(Path(root).glob(".ai/requests/*/request.yaml"))
-        # unbound: only allowed if CONTRACT_REQUIRED intake paths or bootstrap
+        # unbound: only allowed if bootstrap still matches; else fail-closed + cue
         trailers = {
             "Task-ID": os.environ.get("SAI_TASK_ID") or "",
             "Agent": os.environ.get("SAI_AGENT_ID") or "cursor-cloud",
@@ -185,9 +218,7 @@ def verify_pre_commit(root):
         if a.bootstrap_ok(cfg, trailers, paths, root=root, sha=None):
             print("PASS pre-commit bootstrap")
             return 0
-        print("FAIL no assumed identity; run sai-authorize-task / sai-assume-agent", file=sys.stderr)
-        print("CONTRACT_REQUIRED", file=sys.stderr)
-        return 1
+        return emit_identity_required(root, paths)
     trailers = _trailers_from_session(session)
     br = a.current_branch(root)
     if session.get("branch") and session["branch"] != br:
@@ -337,30 +368,14 @@ def human_gate(root, cid=None, sha=None, ci_green=False):
 
 
 def _detect_contract(root):
-    session = a.load_session(root)
-    if session and session.get("contract_id"):
-        return session["contract_id"]
-    base = Path(root) / ".ai/contracts"
-    if not base.is_dir():
-        return None
-    br = a.current_branch(root)
-    aliases = {br, os.environ.get("GITHUB_HEAD_REF") or ""}
-    aliases.discard("")
-    for d in sorted(base.iterdir()):
-        if not d.is_dir():
-            continue
-        ptr = a.read_json(d / "contract.json") or {}
-        if ptr.get("current_revision"):
-            rev = a.read_yaml(d / "revisions" / f"{ptr['current_revision']}.yaml")
-            if rev and rev.get("allowed_branch_or_worktree") in aliases:
-                return d.name
-    return None
+    return flow.detect_contract(root)
 
 
 def cmd_verify_agent(argv=None):
     p = argparse.ArgumentParser(prog="verify-agent-authorization")
     p.add_argument("--self-test", action="store_true")
     p.add_argument("--pre-commit", action="store_true")
+    p.add_argument("--identity-required", action="store_true")
     p.add_argument("--commit-msg", default=None)
     p.add_argument("--prepare-commit-msg", default=None)
     p.add_argument("--branch", default=None)
@@ -368,10 +383,16 @@ def cmd_verify_agent(argv=None):
     range_spec = " ".join(extra).strip() or os.environ.get("SAI_AUTH_RANGE") or "HEAD"
     if args.self_test:
         from sai_auth_test import run_synthetic_fixtures
+        from sai_auth_cue_test import run_cue_fixtures
+        from sai_auth_event_test import run_event_fixtures
         n = run_synthetic_fixtures()
+        n |= run_cue_fixtures()
+        n |= run_event_fixtures()
         print(f"verify-agent-authorization self-test: {n} fixtures executed")
         return 0
     root = a.toplevel()
+    if args.identity_required:
+        return cmd_identity_required(root)
     if args.prepare_commit_msg:
         return append_trailers(root, args.prepare_commit_msg)
     if args.commit_msg:

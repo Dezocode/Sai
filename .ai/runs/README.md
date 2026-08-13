@@ -14,6 +14,7 @@ One directory per task, named by task ID:
   events.jsonl       <- every emitted event, one JSON object per line
                         (schema: .ai/shared/schemas/agent-event.schema.json)
   handoff.md         <- final state, evidence, risks, next safe action
+  coordinator-state.json <- optional compact primary-orchestrator pickup state
   01_intake/output/  <- one output directory per executed stage
   02_plan/output/
   03_implement/output/

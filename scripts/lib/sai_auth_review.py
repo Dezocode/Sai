@@ -14,20 +14,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sai_auth as a  # noqa: E402
 import sai_auth_flow as flow  # noqa: E402
 import sai_auth_verify as v  # noqa: E402
+from sai_auth_key import (  # noqa: E402
+    compute_saul_review_key, lookup_completed, remember_review,
+)
 from sai_auth_package import MARKER_B, MARKER_E, build_prompt  # noqa: E402
 
 
 def _codex_env():
-    """Optional API-key fallback. Not required when a local `codex` exists."""
     return os.environ.get("OPENAI_API_KEY") or os.environ.get("CODEX_API_KEY")
 
 
 def _codex_cmd():
     if os.environ.get("SAI_SKIP_CODEX") == "1":
         return None
-    # hostinger-saul-codex is already Docker-isolated with CapDrop. Default
-    # Codex bwrap/userns fails there (REVIEW_ENVIRONMENT_UNAVAILABLE) and
-    # that BLOCKED result is not a technical APPROVE/REQUEST_CHANGES.
     sandbox = os.environ.get("SAI_CODEX_SANDBOX", "danger-full-access").strip()
     extra = []
     if sandbox and sandbox != "default":
@@ -61,6 +60,34 @@ def _parse_yaml_block(text):
     return None
 
 
+def _find_prior_non_synthetic(root, cid, skey):
+    if not cid or not skey:
+        return None
+    d = a.reviews_dir(root, cid)
+    if not d.is_dir():
+        return None
+    for p in sorted(d.glob("*.yaml")):
+        doc = a.read_yaml(p) or {}
+        if doc.get("synthetic"):
+            continue
+        if (doc.get("saul_review_key") or "") == skey:
+            return doc
+    return None
+
+
+def _write_review_out(doc, dest=None, out=None):
+    try:
+        text = a.dump_yaml(doc)
+    except Exception:
+        text = json.dumps(doc, indent=2, default=str) + "\n"
+    if dest:
+        Path(dest).parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(text, encoding="utf-8")
+    if out:
+        Path(out).write_text(text, encoding="utf-8")
+    return text
+
+
 def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_event=None,
            out=None, force=False, fixture=None):
     cand = Path(os.environ.get("SAI_CANDIDATE_TREE") or root)
@@ -79,10 +106,26 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
         dest = a.reviews_dir(cand, cid) / f"saul-{review_type}-{key}.yaml"
         if os.environ.get("SAI_REVIEW_NO_TRACKED_WRITE") == "1":
             dest = None
-        if dest is not None and dest.is_file() and not force:
+    else:
+        key = a.review_key("", 0, sha, "saul", review_type)
+
+    skey = compute_saul_review_key(cand, cid, revision or rev_n, sha, review_type)
+    if not force:
+        prior = lookup_completed(skey)
+        if prior is not None and prior.get("synthetic"):
+            prior = None
+        if prior is None:
+            prior = _find_prior_non_synthetic(cand, cid, skey)
+        if prior is None and dest is not None and dest.is_file():
             existing = a.read_yaml(dest)
-            print(f"IDEMPOTENT_SKIP key={key} disposition={existing.get('disposition')}")
-            return 0, existing
+            if existing and not existing.get("synthetic"):
+                prior = existing
+        if prior is not None:
+            print(f"NOOP_ALREADY_REVIEWED key={skey}")
+            _write_review_out(prior, dest=None, out=out)
+            return 0, prior
+
+    if cid:
         last = v.latest_review(cand, cid, "saul", review_type)
         if (not force and last and last.get("disposition") == "REQUEST_CHANGES"
                 and a.revision_int(last.get("contract_revision")) == rev_n
@@ -90,9 +133,8 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
                 and (a.load_config(cand).get("idempotency") or {}).get(
                     "skip_if_unchanged_request_changes", True)):
             print("LOOP_PREVENTION skip re-invoke; revision and SHA unchanged after REQUEST_CHANGES")
+            _write_review_out(last, dest=None, out=out)
             return 0, last
-    else:
-        key = a.review_key("", 0, sha, "saul", review_type)
 
     doc = None
     reason = None
@@ -194,6 +236,7 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
                 }
 
     doc["idempotency_key"] = key
+    doc["saul_review_key"] = skey
     if github_run_id:
         doc["github_run_id"] = github_run_id
     if github_event:
@@ -204,17 +247,10 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
         if doc.get("synthetic") or not doc.get("codex_invoked"):
             doc["disposition"] = "BLOCKED"
             doc["reason"] = "REFUSED_UNVERIFIED_APPROVE"
-    try:
-        text = a.dump_yaml(doc)
-    except Exception:
-        text = json.dumps(doc, indent=2, default=str) + "\n"
-    if dest:
-        Path(dest).parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(text, encoding="utf-8")
-    if out:
-        Path(out).write_text(text, encoding="utf-8")
+    text = _write_review_out(doc, dest=dest, out=out)
+    remember_review(skey, doc)
     print(text)
-    print(f"SAUL_DISPOSITION {doc.get('disposition')} key={key} file={dest}")
+    print(f"SAUL_DISPOSITION {doc.get('disposition')} key={skey} file={dest}")
     rc = 0 if doc.get("disposition") == "APPROVE" else 1
     return rc, doc
 
@@ -376,7 +412,12 @@ def cmd_invoke(argv=None):
     if args.self_test:
         from sai_auth_test import run_saul_fixtures
         n = run_saul_fixtures()
-        print(f"invoke-saul-review self-test: {n} fixtures executed")
+        try:
+            from sai_auth_saul_test import run_saul_trust_fixtures
+            n |= run_saul_trust_fixtures()
+        except ImportError:
+            pass
+        print(f"invoke-saul-review self-test: {len(n)} fixtures executed")
         return 0
     root = a.toplevel()
     if args.detect_contract:

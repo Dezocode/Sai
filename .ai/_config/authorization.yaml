@@ -33,7 +33,9 @@ activation:
   durable_truth: git
   note: >
     Cursor sessions may read/inspect/plan freely. The write gate activates
-    on the first attempted repository mutation (pre-commit). Primary runtime
+    on the first attempted repository mutation (pre-commit). Unknown
+    identity emits SAI_IDENTITY_REQUIRED with SAI_CUE CORA_ADMISSION or
+    RESUME_CONTRACTOR (a router, not merely a wall). Primary runtime
     identity is registered only then. No manual per-session control-plane
     setup. Heavy work belongs in subagents; Saul runs on the self-hosted
     Codex runner; Cora is contract admin; Sai is governance.

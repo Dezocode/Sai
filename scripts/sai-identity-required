@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# sai-identity-required — emit SAI_IDENTITY_REQUIRED cue (fail-closed; no tree writes).
+# Unknown identity → JSON + SAI_CUE CORA_ADMISSION (or RESUME_CONTRACTOR).
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_verify.py" --identity-required "$@"

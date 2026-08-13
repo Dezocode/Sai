@@ -69,10 +69,9 @@ jobs:
             echo "codex_home_present=false"
           fi
 
-      # Candidate PR is DATA. Reviewer scripts run from a trusted tree.
-      # Residual until this workflow lives on default branch: GitHub still
-      # loads pull_request YAML from the PR head. Runner image
-      # SAI_TRUSTED_REVIEWER_ROOT and origin/main win when present.
+      # Candidate PR is DATA (CTO-012). Trusted reviewer comes from the
+      # runner image, PR base SHA, or default-branch SHA. Never populate
+      # the trusted tree from the candidate ref. If none exist: BLOCK.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -80,34 +79,47 @@ jobs:
 
       - name: Materialize trusted reviewer tree
         id: trust
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'main' }}
         run: |
           set -euo pipefail
-          BASE_SHA="${{ github.event.pull_request.base.sha || github.sha }}"
-          HEAD_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
           TRUSTED="${GITHUB_WORKSPACE}/trusted-reviewer"
-          mkdir -p "$TRUSTED"
-          TRUST_MODE=unknown
+          mkdir -p "$TRUSTED" /tmp/saul
+          TRUST_MODE=unavailable
+
+          archive_trusted() {
+            local sha="$1"
+            git archive "$sha" scripts .ai/agents/saul CODEX.md \
+              .ai/_config/authorization.yaml \
+              .ai/shared/memory/decisions/0006-agent-authorization-loop.md \
+              .ai/shared/schemas/contract-review.schema.json \
+              | tar -x -C "$TRUSTED"
+          }
+
           if [ -n "${SAI_TRUSTED_REVIEWER_ROOT:-}" ] && [ -x "${SAI_TRUSTED_REVIEWER_ROOT}/scripts/invoke-saul-review" ]; then
             cp -a "${SAI_TRUSTED_REVIEWER_ROOT}/." "$TRUSTED/"
             TRUST_MODE=runner-image
-          elif git cat-file -e "${BASE_SHA}:scripts/invoke-saul-review" 2>/dev/null; then
-            git archive "$BASE_SHA" scripts .ai/agents/saul CODEX.md \
-              .ai/_config/authorization.yaml \
-              .ai/shared/memory/decisions/0006-agent-authorization-loop.md \
-              .ai/shared/schemas/contract-review.schema.json \
-              | tar -x -C "$TRUSTED"
+          elif [ -n "${BASE_SHA:-}" ] && git cat-file -e "${BASE_SHA}:scripts/invoke-saul-review" 2>/dev/null; then
+            archive_trusted "$BASE_SHA"
             TRUST_MODE=base-ref
           else
-            git archive HEAD scripts .ai/agents/saul CODEX.md \
-              .ai/_config/authorization.yaml \
-              .ai/shared/memory/decisions/0006-agent-authorization-loop.md \
-              .ai/shared/schemas/contract-review.schema.json \
-              | tar -x -C "$TRUSTED"
-            TRUST_MODE=pr-bootstrap-until-main
-            echo "WARN base ref lacks Saul launcher; residual PR-controlled YAML/scripts until merge to main"
+            DEFAULT_SHA=""
+            for ref in "origin/${DEFAULT_BRANCH}" "origin/main"; do
+              if git rev-parse --verify "$ref" >/dev/null 2>&1; then
+                cand=$(git rev-parse "$ref")
+                if git cat-file -e "${cand}:scripts/invoke-saul-review" 2>/dev/null; then
+                  DEFAULT_SHA=$cand
+                  break
+                fi
+              fi
+            done
+            if [ -n "$DEFAULT_SHA" ]; then
+              archive_trusted "$DEFAULT_SHA"
+              TRUST_MODE=default-branch
+            fi
           fi
-          chmod +x "$TRUSTED/scripts/invoke-saul-review" \
-                   "$TRUSTED/scripts/sai-dispatch-transition" 2>/dev/null || true
+
           echo "TRUST_MODE=$TRUST_MODE"
           echo "trust_mode=$TRUST_MODE" >> "$GITHUB_OUTPUT"
           echo "SAI_TRUST_MODE=$TRUST_MODE" >> "$GITHUB_ENV"
@@ -115,7 +127,16 @@ jobs:
           echo "SAI_CANDIDATE_TREE=${GITHUB_WORKSPACE}" >> "$GITHUB_ENV"
           echo "SAI_REVIEW_NO_TRACKED_WRITE=1" >> "$GITHUB_ENV"
 
+          if [ "$TRUST_MODE" = "unavailable" ]; then
+            python3 -c 'from pathlib import Path; p=Path("/tmp/saul"); p.mkdir(parents=True, exist_ok=True); p.joinpath("review.yaml").write_text("reviewer: saul\nruntime: github-actions\ndisposition: BLOCKED\nreason: TRUSTED_REVIEWER_UNAVAILABLE\nsynthetic: false\ncodex_invoked: false\nfindings: []\ntrust_mode: unavailable\n"); p.joinpath("disposition").write_text("BLOCKED"); p.joinpath("reason").write_text("TRUSTED_REVIEWER_UNAVAILABLE"); p.joinpath("codex_invoked").write_text("false")'
+            echo "BLOCKED TRUSTED_REVIEWER_UNAVAILABLE — skipping Codex"
+            exit 0
+          fi
+          chmod +x "$TRUSTED/scripts/invoke-saul-review" \
+                   "$TRUSTED/scripts/sai-dispatch-transition" 2>/dev/null || true
+
       - name: Ensure PyYAML
+        if: steps.trust.outputs.trust_mode != 'unavailable'
         run: |
           if python3 -c 'import yaml' 2>/dev/null; then
             python3 -c 'import yaml; print("pyyaml=present", getattr(yaml, "__version__", ""))'
@@ -135,6 +156,7 @@ jobs:
 
       - name: Invoke Codex as Saul
         id: saul
+        if: steps.trust.outputs.trust_mode != 'unavailable'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -171,14 +193,7 @@ jobs:
           rc=$?
           set -e
           echo "exit=$rc" >> "$GITHUB_OUTPUT"
-          if [ -f /tmp/saul/review.yaml ]; then
-            python3 -c 'import yaml,sys; d=yaml.safe_load(open("/tmp/saul/review.yaml")); print("disposition="+str(d.get("disposition"))); print("reason="+str(d.get("reason") or "")); print("codex_invoked="+str(d.get("codex_invoked"))); print("synthetic="+str(d.get("synthetic")))' >> "$GITHUB_OUTPUT"
-          else
-            echo "disposition=BLOCKED" >> "$GITHUB_OUTPUT"
-            echo "reason=NO_ARTIFACT" >> "$GITHUB_OUTPUT"
-            echo "codex_invoked=False" >> "$GITHUB_OUTPUT"
-            echo "synthetic=False" >> "$GITHUB_OUTPUT"
-          fi
+          python3 -c 'from pathlib import Path; p=Path("/tmp/saul"); yp=p/"review.yaml"; yp.parent.mkdir(parents=True, exist_ok=True); yp.write_text("reviewer: saul\ndisposition: BLOCKED\nreason: NO_ARTIFACT\ncodex_invoked: false\nsynthetic: false\nfindings: []\n") if not yp.is_file() else None; lines=yp.read_text(encoding="utf-8").splitlines(); disp=next((ln.split(":",1)[1].strip() for ln in lines if ln.startswith("disposition:")), "BLOCKED"); reason=next((ln.split(":",1)[1].strip() for ln in lines if ln.startswith("reason:")), "NO_ARTIFACT"); invoked=next((ln.split(":",1)[1].strip() for ln in lines if ln.startswith("codex_invoked:")), "false"); (p/"disposition").write_text(disp); (p/"reason").write_text(reason); (p/"codex_invoked").write_text(invoked)'
           exit 0
 
       - name: Claim remediation transition
@@ -204,6 +219,7 @@ jobs:
           fi
 
       - name: Upload Saul review artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: saul-review-${{ github.run_id }}
@@ -213,7 +229,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Post review comment
-        if: github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -224,7 +240,6 @@ jobs:
               echo "run: ${{ github.run_id }}"
               echo "head: \`${{ github.event.pull_request.head.sha }}\`"
               echo "runner: \`${{ runner.name }}\`"
-              echo "codex_invoked: ${{ steps.saul.outputs.codex_invoked }}"
               echo
               echo '```yaml'
               cat /tmp/saul/review.yaml
@@ -234,25 +249,29 @@ jobs:
           fi
 
       - name: Commit status
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STATUS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          STATUS_REPO: ${{ github.repository }}
+          STATUS_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          SHA="${{ github.event.pull_request.head.sha || github.sha }}"
-          DISP="${{ steps.saul.outputs.disposition }}"
-          REASON="${{ steps.saul.outputs.reason }}"
-          STATE=failure
-          [ "$DISP" = "APPROVE" ] && STATE=success
-          [ "$DISP" = "REQUEST_CHANGES" ] && STATE=failure
-          [ "$DISP" = "BLOCKED" ] && STATE=failure
-          # Infrastructure BLOCKED is not a technical APPROVE/REQUEST_CHANGES.
-          DESC="Saul ${DISP} ${REASON}"
+          set -euo pipefail
+          if [ ! -f /tmp/saul/disposition ]; then
+            printf '%s' "BLOCKED" > /tmp/saul/disposition
+            printf '%s' "NO_ARTIFACT" > /tmp/saul/reason
+          fi
+          python3 -c 'from pathlib import Path; disp=Path("/tmp/saul/disposition").read_text(encoding="utf-8"); reason=Path("/tmp/saul/reason").read_text(encoding="utf-8"); desc=("Saul %s %s" % (disp, reason))[:140]; Path("/tmp/saul/status_desc").write_text(desc, encoding="utf-8"); Path("/tmp/saul/status_state").write_text("success" if disp.strip()=="APPROVE" else "failure", encoding="utf-8")'
+          STATE=$(cat /tmp/saul/status_state)
+          DESC=$(cat /tmp/saul/status_desc)
           DESC="${DESC:0:140}"
-          gh api repos/${{ github.repository }}/statuses/$SHA -f state="$STATE" \
+          DISP=$(cat /tmp/saul/disposition)
+          gh api "repos/${STATUS_REPO}/statuses/${STATUS_SHA}" -f state="$STATE" \
             -f context="saul-cto-review" \
             -f description="$DESC" \
-            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
+            -f target_url="$STATUS_URL" || true
           if [ "$DISP" = "APPROVE" ]; then
             exit 0
           fi
-          echo "Saul disposition $DISP is not APPROVE — CTO gate BLOCKED"
+          printf 'Saul disposition %s is not APPROVE — CTO gate BLOCKED\n' "$DISP"
           exit 1

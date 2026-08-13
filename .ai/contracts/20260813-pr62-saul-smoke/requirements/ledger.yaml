@@ -1,0 +1,32 @@
+ledger_id: 20260813-pr62-saul-smoke
+contract_id: 20260813-pr62-saul-smoke
+updated_at: "2026-08-13T22:30:00Z"
+requirements:
+  - requirement_id: REQ-5282088737
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
+    authority: dezocode
+    timestamp: "2026-08-13T00:00:00Z"
+    scope: architecture
+    digest: decision-0006-authorization-loop
+    status: accepted
+  - requirement_id: REQ-5285843795
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5285843795"
+    authority: dezocode
+    timestamp: "2026-08-13T20:00:00Z"
+    scope: queue-token-efficiency
+    digest: idempotent-dispatch-no-sai-ping-pong
+    status: implemented
+  - requirement_id: REQ-5287013791
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287013791"
+    authority: dezocode
+    timestamp: "2026-08-13T22:00:00Z"
+    scope: primary-orchestrator
+    digest: repo-native-sai-poteto-cora-admission-async-workers-waiting-nonterminal
+    status: in-progress
+    acceptance:
+      - ordinary-request-enters-primary-coordinator
+      - first-write-emits-SAI_IDENTITY_REQUIRED
+      - cora-admin-then-contractor-subagents
+      - waiting-is-not-finished
+      - candidate-HEAD-is-not-trusted-reviewer
+      - READY_FOR_HUMAN_REVIEW-requires-real-Saul-and-Sai-APPROVE

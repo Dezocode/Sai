@@ -351,6 +351,7 @@ def run_saul_fixtures():
         cid = _contract(d)
         os.environ.pop("OPENAI_API_KEY", None)
         os.environ.pop("CODEX_API_KEY", None)
+        os.environ["SAI_SAUL_KEY_CACHE"] = str(Path(tmp) / "saul-keys")
         from sai_auth_review import invoke
         rc, doc = invoke(d, cid, "v1", "deadbeef", "contract")
         executed.add("saul-unavailable-blocked")
@@ -410,7 +411,7 @@ def run_saul_fixtures():
             raise RuntimeError("invoke must run from SAI_TRUSTED_TREE, not PR-head scripts/")
         print("SELFTEST PASS  saul-trusted-launcher-not-pr-head")
         executed.add("saul-status-description-truncated")
-        if 'DESC="${DESC:0:140}"' not in text:
+        if "[:140]" not in text and 'DESC="${DESC:0:140}"' not in text:
             raise RuntimeError("saul-review.yml must cap commit status description at 140 chars")
         print("SELFTEST PASS  saul-status-description-truncated")
         os.environ.pop("SAI_SKIP_CODEX", None)

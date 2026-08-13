@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/coordinator-state.schema.json",
+  "title": "SAI primary coordinator compact state",
+  "description": "Durable pickup state for the standing primary orchestrator. Not a worker transcript.",
+  "type": "object",
+  "required": [
+    "task_id", "repo", "pr", "branch", "primary_logical_id",
+    "current_head", "liveness", "exit_predicate"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "task_id": { "type": "string" },
+    "repo": { "type": "string" },
+    "pr": { "type": ["integer", "string"] },
+    "branch": { "type": "string" },
+    "primary_logical_id": { "type": "string" },
+    "physical_runtime_id": { "type": ["string", "null"] },
+    "current_head": { "type": "string" },
+    "contract_id": { "type": ["string", "null"] },
+    "contract_revision": { "type": ["string", "integer", "null"] },
+    "requirement_digest": { "type": "string" },
+    "open_findings_digest": { "type": "string" },
+    "active_workers": { "type": "array" },
+    "pending_events": { "type": "array" },
+    "current_frontier": { "type": "string" },
+    "expected_next_state": { "type": "string" },
+    "exit_predicate": { "type": "string" },
+    "last_material_transition": { "type": "string" },
+    "liveness": {
+      "type": "string",
+      "enum": [
+        "ACTIVE", "WAITING_WORKER", "WAITING_EXTERNAL", "SUSPENDED",
+        "TOKEN_EXHAUSTED", "STALE", "LOST", "REPLACEMENT_REQUIRED",
+        "READY_FOR_HUMAN_REVIEW", "BLOCKED_HUMAN"
+      ]
+    },
+    "wake_condition": { "type": "string" },
+    "physical_runtime_continuity": { "type": ["boolean", "null"] }
+  }
+}
