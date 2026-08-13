@@ -76,9 +76,27 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
     rev_n = a.revision_int(revision) if revision else None
     if not cid:
         cid = v._detect_contract(root)
+    sha = sha or a.head_sha(root)
     if not cid:
-        print("FAIL no contract_id", file=sys.stderr)
-        return 1, None
+        reason = "CODEX_UNAVAILABLE" if not _codex_env() else "NO_CONTRACT"
+        doc = {
+            "reviewer": "saul",
+            "runtime": "codex",
+            "contract_id": None,
+            "contract_revision": None,
+            "implementation_head": sha,
+            "review_type": review_type,
+            "disposition": "BLOCKED",
+            "reason": reason,
+            "findings": [],
+            "synthetic": False,
+            "codex_invoked": False,
+        }
+        if out:
+            Path(out).write_text(a.dump_yaml(doc), encoding="utf-8")
+        print(a.dump_yaml(doc))
+        print(f"SAUL_DISPOSITION BLOCKED reason={reason}")
+        return 1, doc
     ptr = a.load_pointer(root, cid)
     if ptr and not revision:
         revision = ptr.get("current_revision")
