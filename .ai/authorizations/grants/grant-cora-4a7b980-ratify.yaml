@@ -1,0 +1,20 @@
+id: grant-cora-4a7b980-ratify
+principal: ctr-admin
+principal_name: Cora
+runtime: cursor-cloud-vm
+task_id: 20260813-1945-ri-subprocess-init
+covers_shas:
+  - 4a7b980db42542a15261288959bf9e24c2ef8f57
+paths:
+  - ".ai/contracts/**"
+  - ".ai/requests/**"
+  - ".ai/agents/**"
+  - ".ai/runs/**"
+actions:
+  - write
+issued_by: dezocode
+issued_at: "2026-08-14T00:05:00Z"
+source: "PR #64 principal requirement + Saul CTO-004; ratify Cora v2 amend only"
+note: >
+  Narrow human ratification of one Cora commit that created immutable v2.
+  Does not authorize later in-place edits of v2.yaml.

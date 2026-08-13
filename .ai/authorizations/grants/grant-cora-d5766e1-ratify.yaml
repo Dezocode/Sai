@@ -1,0 +1,20 @@
+id: grant-cora-d5766e1-ratify
+principal: ctr-admin
+principal_name: Cora
+runtime: cursor-cloud-vm
+task_id: 20260813-1945-ri-subprocess-init
+covers_shas:
+  - d5766e134eac0873378fa72f08377368864001f5
+paths:
+  - ".ai/contracts/**"
+  - ".ai/requests/**"
+  - ".ai/agents/**"
+  - ".ai/runs/**"
+actions:
+  - write
+issued_by: dezocode
+issued_at: "2026-08-14T00:05:00Z"
+source: "PR #64 principal requirement + Saul CTO-004; ratify Cora v1 draft only"
+note: >
+  Narrow human ratification of one Cora commit that created contract v1.
+  Does not waive later officer writes. Does not move required_after_sha.

@@ -74,16 +74,16 @@ bootstrap:
 
 officer_grants:
   required: true
-  # PR #64 Cora contract/amend commits d5766e1 and 4a7b980 predate tracked
-  # grants. Cutoff is that last Cora SHA (inclusive). Descendants still need
-  # grants. This SHA is not on PR #62 / main; those officer commits are not
-  # ancestors of it, so they still require grants if this file is reused.
-  required_after_sha: "4a7b980db42542a15261288959bf9e24c2ef8f57"
+  # Decision 0006 enforcement boundary. Do not move this SHA forward to
+  # ratify historical officer writes. Those writes use SHA-bound grant
+  # records under dir/ (covers_shas) instead.
+  required_after_sha: "d113fa0bf75b43491c25723f57cf9dec1e6196de"
   dir: ".ai/authorizations/grants"
   note: >
     Agent trailers are provenance, not authority. Officer writes after
     required_after_sha need a tracked grant bound to task, principal,
-    and paths.
+    and paths. Historical Cora SHAs d5766e1 and 4a7b980 are ratified by
+    narrow covers_shas grant records, not by moving this cutoff.
 
 runtimes:
   cursor_implementation:
