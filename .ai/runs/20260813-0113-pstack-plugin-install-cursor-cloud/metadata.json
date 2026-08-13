@@ -6,7 +6,7 @@
   "branch": "cursor/pstack-plugin-install-10de",
   "base_sha": "d07935113ee565281a91f98103832bab0fbe27db",
   "purpose": "Enable Cursor marketplace plugin pstack for project-scoped slash commands in cloud and local sessions, and index it under .ai/plugins/",
-  "status": "implement",
+  "status": "handoff",
   "claimed_files": [
     ".cursor/settings.json",
     ".ai/plugins/",
