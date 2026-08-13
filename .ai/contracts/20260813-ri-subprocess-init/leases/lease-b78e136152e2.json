@@ -1,0 +1,36 @@
+{
+  "lease_id": "lease-b78e136152e2",
+  "contract_id": "20260813-ri-subprocess-init",
+  "contract_revision": "v1",
+  "agent_id": "ctr-code-ri1",
+  "task_id": "20260813-1945-ri-subprocess-init",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/ri-subprocess-init-20260813",
+  "worktree": "sai-ri-subprocess-init",
+  "allowed_paths": [
+    ".ai/runs/**",
+    ".ai/requests/**",
+    ".ai/contracts/**",
+    ".ai/shared/skills/runtime-intelligence/**",
+    ".ai/shared/memory/runtimes/**",
+    ".ai/shared/memory/stubs/**",
+    "runtime-intelligence/**",
+    "scripts/runtime-intelligence/**",
+    "scripts/lib/sai_auth.py",
+    "tests/runtime-intelligence/**"
+  ],
+  "denied_paths": [
+    ".ai/agents/saul/**",
+    ".ai/shared/memory/decisions/**"
+  ],
+  "capabilities": [
+    "git-commit",
+    "git-push",
+    "draft-pr"
+  ],
+  "status": "active",
+  "execution_mode": "provisional",
+  "issued_at": "2026-08-13T19:56:46Z",
+  "issued_by": "ctr-admin",
+  "base_sha": "46e73c3aad16e033e2ffa5a6f113eca6de2d2c7a"
+}

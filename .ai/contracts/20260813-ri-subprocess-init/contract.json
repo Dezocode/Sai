@@ -1,0 +1,25 @@
+{
+  "contract_id": "20260813-ri-subprocess-init",
+  "project_slug": "ri-subprocess-init",
+  "project_name": "Runtime Intelligence subprocess initialization stacked on PR #62 (Decisions 0006/0007)",
+  "principal": "Runtime Intelligence subprocess (Hermes+Grok Telegram bridge on Hostinger)",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "primary_runtime": "cursor-cloud-vm",
+  "compatibility_layer": "sai-mac-ios-android",
+  "repository": "Dezocode/Sai",
+  "branch_prefix": "proj/auth/",
+  "status": "draft",
+  "schema_version": 2,
+  "current_revision": "v1",
+  "execution_mode": "provisional",
+  "created_by": "ctr-admin",
+  "contract_admin_agent_id": "ctr-admin",
+  "assigned_contractors": [
+    {
+      "agent_id": "ctr-code-ri1",
+      "status": "provisional",
+      "branch": "cursor/ri-subprocess-init-20260813"
+    }
+  ]
+}

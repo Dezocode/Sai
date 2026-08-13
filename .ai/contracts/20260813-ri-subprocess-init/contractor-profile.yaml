@@ -1,0 +1,10 @@
+agent_id: ctr-code-ri1
+name: Runtime Intelligence Init (provisional)
+role_title: Coding Contractor
+status: provisional
+primary_runtime: cursor-cloud-vm
+contract_id: 20260813-ri-subprocess-init
+created_by: ctr-admin
+created_at: '2026-08-13T19:56:46Z'
+note: Provisional identity; not a standing officer. Cora must not implement product
+  code as this identity.
