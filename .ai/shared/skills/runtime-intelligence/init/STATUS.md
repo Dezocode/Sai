@@ -1,6 +1,6 @@
 # Runtime Intelligence organizational status
 
-**Status: PROVISIONAL — NOT INITIALIZED**
+**Status: PROVISIONAL — NOT INITIALIZED** (contract drafted; triple approval still required)
 
 This file must never be flipped to ACTIVE by the subprocess itself.
 
@@ -18,6 +18,7 @@ This file must never be flipped to ACTIVE by the subprocess itself.
 | Phase I matrix 1–17 | RUNNER PRESENT (execute for measured results) |
 | Saul exact-state technical APPROVE | PENDING |
 | Sai exact-state governance APPROVE | PENDING |
+| Contract (Decision 0006) | DRAFTED `20260813-ri-subprocess-init` v1 provisional |
 | Human/co-founder admission | PENDING |
 
 Flip criteria: all three approvals bind the **same exact initialization SHA/revision**.

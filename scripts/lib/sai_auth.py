@@ -18,7 +18,7 @@ except ImportError:
 
 TRAILER = re.compile(r"^([A-Za-z0-9-]+):\s*(.*)$")
 POLICY = ".ai/_config/authorization.yaml"
-SESSION_REL = ".git/sai-session.json"
+SESSION_REL = "sai-session.json"  # under resolved git-dir (worktree-safe)
 
 
 def fail(msg):
@@ -154,8 +154,12 @@ def parse_trailers(msg):
 
 
 def glob_match(path, pattern):
-    path = path.replace("\\", "/").lstrip("./")
+    path = path.replace("\\", "/")
     pattern = pattern.replace("\\", "/")
+    # Only strip a leading "./" prefix — never lstrip("./") which also
+    # removes the leading "." from ".ai/..." paths (class-path bug).
+    if path.startswith("./"):
+        path = path[2:]
     if pattern.endswith("/**"):
         root = pattern[:-3].rstrip("/")
         return path == root or path.startswith(root + "/")
@@ -178,8 +182,35 @@ def path_allowed(path, allowed, denied):
     return any(glob_match(path, a) for a in allowed)
 
 
+def git_dir(root):
+    """Resolve actual git directory (handles linked worktrees where .git is a file)."""
+    try:
+        out = subprocess.check_output(
+            ["git", "-C", str(root), "rev-parse", "--git-dir"],
+            text=True,
+        ).strip()
+        gd = Path(out)
+        if not gd.is_absolute():
+            gd = Path(root) / gd
+        return gd.resolve()
+    except Exception:
+        p = Path(root) / ".git"
+        if p.is_file():
+            # gitdir: <path>
+            try:
+                line = p.read_text(encoding="utf-8").strip()
+                if line.startswith("gitdir:"):
+                    gd = Path(line.split(":", 1)[1].strip())
+                    if not gd.is_absolute():
+                        gd = (Path(root) / gd).resolve()
+                    return gd
+            except Exception:
+                pass
+        return p
+
+
 def session_path(root):
-    return Path(root) / SESSION_REL
+    return git_dir(root) / SESSION_REL
 
 
 def load_session(root):
@@ -381,10 +412,10 @@ def detect_runtime():
 
 def ensure_primary_runtime(root):
     """Register compact primary-runtime identity at first write-gate only."""
-    git_dir = Path(root) / ".git"
-    if not git_dir.is_dir():
+    gd = git_dir(root)
+    if not gd.is_dir():
         return None
-    path = git_dir / "sai-primary-runtime.json"
+    path = gd / "sai-primary-runtime.json"
     if path.is_file():
         return read_json(path)
     doc = {

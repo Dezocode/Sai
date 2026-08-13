@@ -1,25 +1,27 @@
-# Handoff — Runtime Intelligence init (PROVISIONAL)
+# Handoff — Runtime Intelligence init (PROVISIONAL + CONTRACT_DRAFTED)
 
 ## Exact state
-- Parent PR: #62 (`cursor/codebase-health-90ba`)
-- Parent head base: `d113fa0bf75b43491c25723f57cf9dec1e6196de`
-- Stacked branch: `cursor/ri-subprocess-init-20260813`
+- Parent PR: #62 (`cursor/codebase-health-90ba` @ d113fa0)
+- Stacked sub-PR: #64 `cursor/ri-subprocess-init-20260813`
 - Task-ID: `20260813-1945-ri-subprocess-init`
+- Contract-ID: `20260813-ri-subprocess-init` revision **v1**
+- Contractor: `ctr-code-ri1` (provisional lease `lease-b78e136152e2`)
 - Organizational status: **PROVISIONAL — NOT INITIALIZED**
 
-## Approvals required (same exact sub-PR SHA when ready)
-1. Saul technical APPROVE via formal Codex/Saul path
-2. Sai governance APPROVE of same SHA
-3. Explicit human/co-founder approval
+## Decision 0006 path (turn 3)
+1. authorize-task → CONTRACT_REQUIRED
+2. assume Cora (cursor-cloud-vm) → create contract v1 + lease
+3. Cora committed contract artifacts
+4. assume contractor for provisional implementation
+5. Fixed worktree session + `.ai` glob_match lstrip bug in `scripts/lib/sai_auth.py`
 
-## Next actions
-1. Push stacked branch and open sub-PR **against parent branch**, not main.
-2. Continue Phase C–I on subsequent turns.
-3. Route CONTRACT_REQUIRED / blockers to Sai triage.
-4. Do not merge; do not mark parent ready; do not self-declare ACTIVE.
+## Approvals still required
+1. Saul technical APPROVE (formal Codex path)
+2. Sai governance APPROVE
+3. Explicit human admission
 
-## Blockers
-- Grok not Dockerized
-- Decision 0006 write identity for RI subprocess not yet contracted
-- Triple approval missing
-- Parent PR CI red (context only; does not authorize bypass)
+## CI honesty
+Pre-contract commits lack Contract-ID. No force-push. New commits carry full trailers.
+
+## Never
+merge main / force-push / mark-ready / self-declare ACTIVE

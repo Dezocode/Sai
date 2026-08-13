@@ -1,27 +1,17 @@
-# Verification (turn 2)
+# Verification (turn 3 — Decision 0006)
 
-## Unit tests
-```text
-python3 tests/runtime-intelligence/test_negative_authority.py  # 6 ok
-python3 tests/runtime-intelligence/test_triage_and_policy.py   # 7 ok
-python3 tests/runtime-intelligence/test_integrated_state.py    # 2 ok
-```
-Total: **15/15 unit tests PASS**
+## Authorization sequence
+| Step | Result | Evidence |
+|------|--------|----------|
+| sai-authorize-task | CONTRACT_REQUIRED | d0006-authorize-task.txt |
+| sai-assume-agent ctr-admin | ASSUMED Cora | d0006-assume-cora.txt |
+| create-contract | CONTRACT_DRAFTED 20260813-ri-subprocess-init v1 | d0006-create-contract.txt |
+| assume ctr-code-ri1 | ASSUMED contractor + lease | d0006-assume-contractor.txt |
+| glob_match `.ai/**` | fixed (lstrip bug) | scripts/lib/sai_auth.py |
+| worktree session | fixed (git-dir) | scripts/lib/sai_auth.py |
 
-## Phase I matrix (intended_function)
-Evidence: `/opt/sai/runtime-intelligence/exports/phase-i-matrix-20260813T195225Z.json`
-- passed=18 failed=0 honest_fail_rate=0.0
-- Includes Docker high-reasoning status + refuse low-effort findings
-
-## Docker
-- image: `sai-grok-ri:provisional`
-- status: model=grok-4.5 effort=high grok_bin present version 1.0.3
-- low effort deep-findings: exit 3 REFUSED
-
-## Organizational gates
+## Org gates
 - STATUS: PROVISIONAL — NOT INITIALIZED
+- Contract: DRAFTED provisional
 - Saul/Sai/human: PENDING
 - self_declared_initialized: false
-
-## main merge
-- `/root/Sai` main @ d079351; deny-authority merge-main exit 13; PR #64 base parent branch

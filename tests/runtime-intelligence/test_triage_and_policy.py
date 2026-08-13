@@ -57,3 +57,15 @@ class TriagePolicyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class AuthPathGlobTests(unittest.TestCase):
+    def test_dot_ai_paths_match_class_globs(self):
+        # Regression: lstrip("./") broke ".ai/..." class paths.
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts/lib"))
+        import sai_auth as a
+        self.assertTrue(a.glob_match(".ai/contracts/x/y.json", ".ai/contracts/**"))
+        self.assertTrue(a.glob_match(".ai/runs/t/handoff.md", ".ai/runs/**"))
+        self.assertFalse(a.glob_match("scripts/foo.py", ".ai/contracts/**"))
