@@ -55,8 +55,6 @@ class TriagePolicyTests(unittest.TestCase):
         self.assertIn("NOT INITIALIZED", text)
 
 
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
 
 
 class AuthPathGlobTests(unittest.TestCase):
@@ -69,3 +67,6 @@ class AuthPathGlobTests(unittest.TestCase):
         self.assertTrue(a.glob_match(".ai/contracts/x/y.json", ".ai/contracts/**"))
         self.assertTrue(a.glob_match(".ai/runs/t/handoff.md", ".ai/runs/**"))
         self.assertFalse(a.glob_match("scripts/foo.py", ".ai/contracts/**"))
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
