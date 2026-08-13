@@ -1,0 +1,46 @@
+contract_id: 20260813-pr62-saul-smoke
+revision: 3
+revision_label: v3
+supersedes_revision: 2
+agent_id: ctr-code-pr62smoke
+contractor_name: ctr-code-pr62smoke
+requested_task: 20260813-2017-pr62-queue-ctr-code
+allowed_repository: Dezocode/Sai
+allowed_branch_or_worktree: cursor/codebase-health-90ba
+allowed_paths:
+- .ai/runs/**
+- .ai/contracts/20260813-pr62-saul-smoke/**
+- tests/**
+- scripts/**
+- .github/workflows/**
+- .ai/_config/**
+- .ai/shared/schemas/**
+denied_paths:
+- .ai/agents/saul/**
+- .ai/shared/memory/decisions/**
+capabilities:
+- git-commit
+- git-push
+verification_requirements:
+- scripts/verify-agent-authorization
+- scripts/verify-contract-authorization
+- scripts/sai-dispatch-transition --self-test
+- scripts/invoke-saul-review --self-test
+execution_mode: provisional
+amendment_ids:
+- A-002
+- A-003
+review_state:
+  saul:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+  sai:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+cora_admin_complete: false
+created_by: ctr-admin
+created_at: '2026-08-13T20:20:00Z'
+human_approval_ids:
+- human-pr62-keep-0007-and-path-expansion

@@ -1,0 +1,22 @@
+{
+  "task_id": "20260813-2016-pr62-queue-cora",
+  "agent": "ctr-admin",
+  "agent_name": "Cora",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/codebase-health-90ba",
+  "base_sha": "d113fa0bf75b43491c25723f57cf9dec1e6196de",
+  "purpose": "Consume Saul REQUEST_CHANGES 31736391403 into A-003/v3 and claim remediation routing.",
+  "status": "in-progress",
+  "plan_reference": ".ai/runs/20260813-2016-pr62-queue-cora/02_plan/output/plan.md",
+  "pr": "https://github.com/Dezocode/Sai/pull/62",
+  "contract_id": "20260813-pr62-saul-smoke",
+  "project_slug": "pr62-saul-smoke",
+  "contractor_type": "contract-admin",
+  "isolation_mode": "prototype",
+  "claimed_files": [
+    ".ai/contracts/20260813-pr62-saul-smoke/",
+    ".ai/runs/20260813-2016-pr62-queue-cora/",
+    ".ai/requests/20260813-2016-pr62-queue-cora/"
+  ]
+}

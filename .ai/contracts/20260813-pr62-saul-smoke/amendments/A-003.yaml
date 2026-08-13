@@ -1,0 +1,38 @@
+amendment_id: A-003
+contract_id: 20260813-pr62-saul-smoke
+from_revision: 2
+to_revision: 3
+finding_ids:
+- CTO-008
+- CTO-009
+- CTO-010
+- CTO-011
+authority_expanding: true
+human_approval_required: true
+human_approval_id: human-pr62-keep-0007-and-path-expansion
+human_approved_by: dezocode (U0BHYH0NMCY)
+summary: CTO-008 -> A-003 -> v3 (keep 0007; expand contractor paths); CTO-009 -> A-003 -> v3; CTO-010 -> A-003 -> v3; CTO-011 -> A-003 -> v3
+trace:
+- CTO-008 -> A-003 -> v3
+- CTO-009 -> A-003 -> v3
+- CTO-010 -> A-003 -> v3
+- CTO-011 -> A-003 -> v3
+changes:
+- finding_id: CTO-008
+  field: allowed_paths
+  action: expand
+  note: Human-approved. Keep Decision 0007. Do not revert. Expand contractor paths for remediation. decisions/** remain denied.
+- finding_id: CTO-009
+  field: authorization
+  action: add
+  note: Ordinary technical; contractor implements tracked officer grants + negative fixtures.
+- finding_id: CTO-010
+  field: saul_review_workflow
+  action: narrow
+  note: Ordinary technical; contractor implements trusted reviewer tree. PR is data.
+- finding_id: CTO-011
+  field: bootstrap
+  action: narrow
+  note: Ordinary technical; bootstrap until_sha closed at d113fa0.
+created_by: ctr-admin
+created_at: '2026-08-13T20:20:00Z'
