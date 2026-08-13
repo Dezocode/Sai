@@ -1,0 +1,6 @@
+{
+  "stage": "04_verify",
+  "task_id": "20260813-2015-pr62-queue-ceo",
+  "files": ["cursor-capabilities.md"],
+  "result": "physical_runtime_continuity=false; logical pickup required"
+}

@@ -18,8 +18,10 @@ State: `.ai/runs/20260813-2015-pr62-queue-ceo/coordinator-state.json`.
 
 ## Continuity (honest)
 
-Same-physical-P0 resume after Hostinger Saul: **unproven** in this
-runtime. Fallback is logical pickup via `coordinator-state.json`.
+- `physical_runtime_continuity` after WAITING_EXTERNAL: **false**
+  (GitHub cannot silently resume this Cloud conversation; a follow-up
+  prompt or a new agent with session-pickup is required).
+- Logical pickup: `coordinator-state.json`.
 Fresh-unknown Cloud smoke (a second bcId with an ordinary prompt):
 **not executed from this session** (would require launching another
 Cloud agent). In-process first-write cue is proven by
