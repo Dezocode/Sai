@@ -1,0 +1,5 @@
+{"event":"INTAKE","task_id":"20260813-1945-ri-subprocess-init","at":"2026-08-13T19:45:00Z","parent_pr":62,"parent_head":"d113fa0bf75b43491c25723f57cf9dec1e6196de","status":"PROVISIONAL"}
+{"event":"PLAN","task_id":"20260813-1945-ri-subprocess-init","at":"2026-08-13T19:45:30Z","phases":["A","B","C","D","E","F","G","H","I"]}
+{"event":"CHANGE","task_id":"20260813-1945-ri-subprocess-init","at":"2026-08-13T19:46:00Z","summary":"ICM run, request.yaml, negative tests, local memory, STATUS.md"}
+{"event":"VERIFY","task_id":"20260813-1945-ri-subprocess-init","at":"2026-08-13T19:46:30Z","negative_authority":"PASS","org_init":"PROVISIONAL"}
+{"event":"HANDOFF","task_id":"20260813-1945-ri-subprocess-init","at":"2026-08-13T19:47:00Z","note":"Stacked sub-PR open next; approvals PENDING"}

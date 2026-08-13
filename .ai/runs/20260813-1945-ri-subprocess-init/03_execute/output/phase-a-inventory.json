@@ -1,0 +1,42 @@
+{
+  "observed_at": "2026-08-13T19:43:00Z",
+  "host": {
+    "hostname": "srv1840454",
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.8.0-137-generic",
+    "arch": "x86_64"
+  },
+  "docker_version": "29.6.1",
+  "services": {
+    "hermes-gateway": "active",
+    "grok-telegram-poll": "active",
+    "grok-telegram-worker": "active",
+    "grok-telegram-control-relay": "active",
+    "openclaw-watchdog": "active",
+    "skill-lab-dash": "active",
+    "hostinger-saul-codex": "container-up"
+  },
+  "grok_cli": {
+    "version": "1.0.3",
+    "path": "/root/.grok/bin/grok",
+    "models": ["grok-4.6", "grok-4.5"],
+    "default_model_cli": "grok-4.6",
+    "bridge_default_model_fallback": "grok-4.5",
+    "bridge_default_effort_fallback": "high",
+    "dockerized": false
+  },
+  "openclaw": {
+    "container": "openclaw-fqy8-openclaw-1",
+    "image": "ghcr.io/hostinger/hvps-openclaw:latest",
+    "status": "running"
+  },
+  "github": {"account": "Dezocode", "authenticated": true},
+  "codex": {"version": "0.147.0", "path": "/root/.local/bin/codex"},
+  "ri_memory_root": "/opt/sai/runtime-intelligence",
+  "parent": {
+    "pr": 62,
+    "branch": "cursor/codebase-health-90ba",
+    "head": "d113fa0bf75b43491c25723f57cf9dec1e6196de"
+  },
+  "status": "PROVISIONAL"
+}

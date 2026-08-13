@@ -1,0 +1,27 @@
+task_id: "20260813-1945-ri-subprocess-init"
+requested_by: "Runtime Intelligence subprocess (Hermes+Grok Telegram bridge on Hostinger)"
+repository: Dezocode/Sai
+runtime: hermes-grok-telegram-bridge
+purpose: >
+  Organizational initialization of Hermes/Grok/OpenClaw as subordinate Runtime
+  Intelligence subprocess runners per Decision 0006 and 0007, stacked on PR #62.
+required_role: subprocess-runtime-intelligence
+state: PROVISIONAL_INIT
+contract_required: true
+resolved_agent: null
+contract_id: null
+parent_pr: 62
+parent_branch: cursor/codebase-health-90ba
+parent_head: d113fa0bf75b43491c25723f57cf9dec1e6196de
+stacked_branch: cursor/ri-subprocess-init-20260813
+notes: >
+  Subprocess must not self-declare ACTIVE. Needs Cora contract revision if Decision
+  0006 write path requires it; Saul technical review via formal Codex path; Sai
+  governance verification of exact SHA; explicit human approval. Bootstrap
+  task_ids in authorization.yaml are Cursor-only and do not authorize standing
+  RI implementation identity.
+controlling_decisions: ["0006", "0007"]
+approvals:
+  saul: PENDING
+  sai: PENDING
+  human: PENDING

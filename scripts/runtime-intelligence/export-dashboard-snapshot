@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Export a local Control Tower snapshot from SQLite (no secrets).
+set -euo pipefail
+DB="${RI_DB:-/opt/sai/runtime-intelligence/state/runtime-intel.db}"
+OUT_DIR="${RI_DASHBOARD:-/opt/sai/runtime-intelligence/dashboard}"
+mkdir -p "$OUT_DIR"
+TS=$(date -u +%Y%m%dT%H%M%SZ)
+OUT="$OUT_DIR/snapshot-$TS.json"
+python3 - "$DB" "$OUT" <<'PY'
+import json, sqlite3, sys, time
+db, out = sys.argv[1], sys.argv[2]
+con = sqlite3.connect(db)
+con.row_factory = sqlite3.Row
+def rows(q):
+    return [dict(r) for r in con.execute(q).fetchall()]
+payload = {
+    "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "init_gate": rows("SELECT * FROM init_gate"),
+    "runtime_health": rows("SELECT * FROM runtime_health ORDER BY id"),
+    "subprocess_runs": rows("SELECT * FROM subprocess_runs ORDER BY id DESC LIMIT 20"),
+    "findings": rows("SELECT * FROM findings ORDER BY id DESC LIMIT 50"),
+}
+with open(out, "w", encoding="utf-8") as f:
+    json.dump(payload, f, indent=2)
+print(out)
+PY
+# also copy latest
+cp -f "$OUT" "$OUT_DIR/latest-summary.json"
+echo "wrote $OUT and $OUT_DIR/latest-summary.json"
