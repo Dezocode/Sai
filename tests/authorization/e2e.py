@@ -45,6 +45,7 @@ def setup(tmp: Path):
         "scripts/lib/sai_auth_flow.py",
         "scripts/lib/sai_auth_verify.py",
         "scripts/lib/sai_auth_review.py",
+        "scripts/lib/sai_auth_package.py",
         "scripts/lib/sai_auth_test.py",
         "scripts/sai-authorize-task",
         "scripts/sai-assume-agent",

@@ -10,10 +10,24 @@ enforcement:
   session_file: ".git/sai-session.json"
   trust_session: false
 
+activation:
+  mode: lazy-first-write
+  session_start_init: false
+  register_primary_runtime_at: first_repository_mutation_gate
+  compact_orchestrator: true
+  durable_truth: git
+  note: >
+    Cursor sessions may read/inspect/plan freely. The write gate activates
+    on the first attempted repository mutation (pre-commit). Primary runtime
+    identity is registered only then. No manual per-session control-plane
+    setup. Heavy work belongs in subagents; Saul runs on the self-hosted
+    Codex runner; Cora is contract admin; Sai is governance.
+
 bootstrap:
   enabled: true
   task_ids:
     - "20260813-1517-auth-loop-cursor-cloud"
+    - "20260813-1752-saul-runner-cursor-cloud"
   agent_trailers:
     - cursor-cloud
     - cursor-cloud-vm
@@ -127,12 +141,18 @@ human_gate:
     - saul_not_synthetic
 
 codex:
-  github_secrets:
+  execution_host: dedicated-self-hosted-github-actions-runner
+  workflow: ".github/workflows/saul-review.yml"
+  runs_on: [self-hosted]
+  authentication: runner-local-codex-cli
+  github_api_keys_required: false
+  github_api_keys_optional_fallback:
     - OPENAI_API_KEY
     - CODEX_API_KEY
   missing_disposition: BLOCKED
   missing_reason: CODEX_UNAVAILABLE
   never_approve_without_codex: true
+  never_approve_synthetic: true
 
 idempotency:
   key_fields: [contract_id, contract_revision, implementation_head, reviewer, review_type]

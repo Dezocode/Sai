@@ -45,7 +45,9 @@ PRs targeting `main`:
 9. **`scripts/verify-contract-authorization --self-test`** plus Saul
    invoke/consume self-tests. Human-gate is recorded fail-closed.
 10. **`.github/workflows/saul-review.yml`** — GitHub event invokes Codex as
-    Saul. Missing `OPENAI_API_KEY`/`CODEX_API_KEY` is BLOCKED, not APPROVE.
+    Saul on the dedicated self-hosted runner using the runner's local
+    authenticated Codex CLI. Empty repository API secrets are not a
+    prerequisite. Missing or failed `codex exec` is BLOCKED, not APPROVE.
 
 ## Fork parity
 

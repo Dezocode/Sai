@@ -33,3 +33,7 @@ Rules:
   runtime change) MUST set `authority_expanding: true` and `action: expand`.
 - Never approve an unbound `cursor-cloud` identity as organizational authority.
 - If you cannot complete the review, `disposition: BLOCKED` with a reason.
+- FINAL review must cover the complete exact-head changed-file set and
+  complete diff. A commit message plus `git show --stat` is not enough
+  to APPROVE. Intermediate delta reviews may emphasize recent files;
+  FINAL still requires the complete set.

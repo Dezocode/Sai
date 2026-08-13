@@ -1,7 +1,8 @@
 name: saul-cto-review
 
-# GitHub event bus → Actions → Codex/Saul. Saul stays Codex-native.
-# Missing OPENAI_API_KEY / CODEX_API_KEY => BLOCKED, never APPROVE.
+# GitHub event bus → dedicated self-hosted Saul runner → local Codex CLI.
+# Empty GitHub API secrets are not a prerequisite. Missing local `codex`
+# or a failed `codex exec` => BLOCKED, never APPROVE.
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -36,8 +37,34 @@ permissions:
 
 jobs:
   invoke-saul:
-    runs-on: ubuntu-latest
+    # Built-in self-hosted label only. Custom labels are pinned after the
+    # Jobs API reports the assigned runner. Do not guess saul-codex.
+    runs-on: [self-hosted]
+    timeout-minutes: 45
     steps:
+      - name: Record runner identity
+        run: |
+          echo "runner.name=${{ runner.name }}"
+          echo "runner.os=${{ runner.os }}"
+          echo "runner.arch=${{ runner.arch }}"
+          echo "RUNNER_NAME=${RUNNER_NAME:-}"
+          echo "RUNNER_OS=${RUNNER_OS:-}"
+          echo "RUNNER_ARCH=${RUNNER_ARCH:-}"
+          echo "hostname=$(hostname 2>/dev/null || true)"
+          if command -v docker >/dev/null 2>&1; then echo "docker=present"; else echo "docker=absent"; fi
+          if [ -f /.dockerenv ]; then echo "containerized=dockerenv"; fi
+          if command -v codex >/dev/null 2>&1; then
+            echo "codex_bin=$(command -v codex)"
+            codex --version 2>/dev/null || echo "codex_version=unreported"
+          else
+            echo "codex_bin=missing"
+          fi
+          if [ -n "${HOME:-}" ] && [ -d "$HOME/.codex" ]; then
+            echo "codex_home_present=true"
+          else
+            echo "codex_home_present=false"
+          fi
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -45,12 +72,17 @@ jobs:
       - name: Invoke Codex as Saul
         id: saul
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+          SAI_SAUL_PACKAGE_DIR: /tmp/saul/package
+          SAI_SAUL_REVIEW_SCOPE: final
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x scripts/invoke-saul-review
-          HEAD_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          [ -z "${OPENAI_API_KEY:-}" ] && unset OPENAI_API_KEY
+          [ -z "${CODEX_API_KEY:-}" ] && unset CODEX_API_KEY
+          HEAD_SHA="${{ github.event.inputs.sha || github.event.pull_request.head.sha || github.sha }}"
           TYPE="${{ github.event.inputs.review_type || 'implementation' }}"
           CID="${{ github.event.inputs.contract_id }}"
           REV="${{ github.event.inputs.revision }}"
@@ -73,10 +105,12 @@ jobs:
           set -e
           echo "exit=$rc" >> "$GITHUB_OUTPUT"
           if [ -f /tmp/saul/review.yaml ]; then
-            python3 -c 'import yaml,sys; d=yaml.safe_load(open("/tmp/saul/review.yaml")); print("disposition="+str(d.get("disposition"))); print("reason="+str(d.get("reason") or ""))' >> "$GITHUB_OUTPUT"
+            python3 -c 'import yaml,sys; d=yaml.safe_load(open("/tmp/saul/review.yaml")); print("disposition="+str(d.get("disposition"))); print("reason="+str(d.get("reason") or "")); print("codex_invoked="+str(d.get("codex_invoked"))); print("synthetic="+str(d.get("synthetic")))' >> "$GITHUB_OUTPUT"
           else
             echo "disposition=BLOCKED" >> "$GITHUB_OUTPUT"
             echo "reason=NO_ARTIFACT" >> "$GITHUB_OUTPUT"
+            echo "codex_invoked=False" >> "$GITHUB_OUTPUT"
+            echo "synthetic=False" >> "$GITHUB_OUTPUT"
           fi
           exit 0
 
@@ -84,7 +118,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: saul-review-${{ github.run_id }}
-          path: /tmp/saul/review.yaml
+          path: |
+            /tmp/saul/review.yaml
+            /tmp/saul/package
           if-no-files-found: warn
 
       - name: Post review comment
@@ -98,6 +134,8 @@ jobs:
               echo
               echo "run: ${{ github.run_id }}"
               echo "head: \`${{ github.event.pull_request.head.sha }}\`"
+              echo "runner: \`${{ runner.name }}\`"
+              echo "codex_invoked: ${{ steps.saul.outputs.codex_invoked }}"
               echo
               echo '```yaml'
               cat /tmp/saul/review.yaml

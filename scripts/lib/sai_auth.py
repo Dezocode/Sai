@@ -377,3 +377,22 @@ def detect_runtime():
     if os.environ.get("CURSOR_CLOUD") or os.environ.get("CURSOR_AGENT"):
         return "cursor-cloud-vm"
     return "cursor-cloud-vm"
+
+
+def ensure_primary_runtime(root):
+    """Register compact primary-runtime identity at first write-gate only."""
+    git_dir = Path(root) / ".git"
+    if not git_dir.is_dir():
+        return None
+    path = git_dir / "sai-primary-runtime.json"
+    if path.is_file():
+        return read_json(path)
+    doc = {
+        "runtime": detect_runtime(),
+        "registered_at": utcnow(),
+        "activation": "lazy-first-write",
+        "session_start_init": False,
+        "note": "compact orchestrator; Git is durable truth",
+    }
+    write_json(path, doc)
+    return doc

@@ -21,6 +21,7 @@
     },
     "findings": { "type": "array" },
     "synthetic": { "type": "boolean" },
+    "codex_invoked": { "type": "boolean" },
     "github_run_id": { "type": ["string", "integer", "null"] },
     "idempotency_key": { "type": "string" },
     "reason": { "type": "string" }

@@ -14,48 +14,27 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sai_auth as a  # noqa: E402
 import sai_auth_flow as flow  # noqa: E402
 import sai_auth_verify as v  # noqa: E402
-
-MARKER_B, MARKER_E = "---SAUL_REVIEW_YAML---", "---END_SAUL_REVIEW_YAML---"
+from sai_auth_package import MARKER_B, MARKER_E, build_prompt  # noqa: E402
 
 
 def _codex_env():
-    key = os.environ.get("OPENAI_API_KEY") or os.environ.get("CODEX_API_KEY")
-    return key
+    """Optional API-key fallback. Not required when a local `codex` exists."""
+    return os.environ.get("OPENAI_API_KEY") or os.environ.get("CODEX_API_KEY")
 
 
 def _codex_cmd():
-    if shutil.which("codex"):
-        return ["codex", "exec", "--ephemeral", "-"]
+    if os.environ.get("SAI_SKIP_CODEX") == "1":
+        return None
+    exe = os.environ.get("SAI_CODEX_BIN") or shutil.which("codex")
+    if exe:
+        return [exe, "exec", "--ephemeral", "-"]
     if shutil.which("npx") and _codex_env():
         return ["npx", "--yes", "@openai/codex", "exec", "--ephemeral", "-"]
     return None
 
 
 def _prompt(root, cid, rev, sha, review_type):
-    parts = []
-    for rel in [
-        "CODEX.md",
-        ".ai/agents/saul/AGENT.md",
-        ".ai/agents/saul/runtimes/codex/automation/profile.md",
-        ".ai/agents/saul/runtimes/codex/prompts/cto-review.md",
-    ]:
-        p = Path(root) / rel
-        if p.is_file():
-            parts.append(f"# {rel}\n{p.read_text(encoding='utf-8')[:12000]}")
-    revdoc = a.load_revision(root, cid, rev) if cid else None
-    if revdoc:
-        parts.append("# contract revision\n" + a.dump_yaml(revdoc))
-    if sha:
-        msg = a.commit_message(root, sha)
-        parts.append(f"# implementation HEAD {sha}\n{msg}")
-        diff = a.git(root, "show", "--stat", sha).stdout
-        parts.append(diff[:8000])
-    parts.append(
-        f"Review type: {review_type}. Emit YAML between {MARKER_B} and {MARKER_E}. "
-        "disposition must be APPROVE, REQUEST_CHANGES, or BLOCKED. "
-        "You are Saul (dezo-sec-codex1), Codex-native CTO. Do not impersonate Cora or Sai."
-    )
-    return "\n\n".join(parts)
+    return build_prompt(root, cid, rev, sha, review_type)
 
 
 def _parse_yaml_block(text):
@@ -77,53 +56,39 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
     if not cid:
         cid = v._detect_contract(root)
     sha = sha or a.head_sha(root)
-    if not cid:
-        reason = "CODEX_UNAVAILABLE" if not _codex_env() else "NO_CONTRACT"
-        doc = {
-            "reviewer": "saul",
-            "runtime": "codex",
-            "contract_id": None,
-            "contract_revision": None,
-            "implementation_head": sha,
-            "review_type": review_type,
-            "disposition": "BLOCKED",
-            "reason": reason,
-            "findings": [],
-            "synthetic": False,
-            "codex_invoked": False,
-        }
-        if out:
-            Path(out).write_text(a.dump_yaml(doc), encoding="utf-8")
-        print(a.dump_yaml(doc))
-        print(f"SAUL_DISPOSITION BLOCKED reason={reason}")
-        return 1, doc
-    ptr = a.load_pointer(root, cid)
-    if ptr and not revision:
-        revision = ptr.get("current_revision")
-        rev_n = a.revision_int(revision)
-    sha = sha or a.head_sha(root)
-    key = a.review_key(cid, rev_n, sha, "saul", review_type)
-    dest = a.reviews_dir(root, cid) / f"saul-{review_type}-{key}.yaml"
-    if dest.is_file() and not force:
-        existing = a.read_yaml(dest)
-        print(f"IDEMPOTENT_SKIP key={key} disposition={existing.get('disposition')}")
-        return 0, existing
-    last = v.latest_review(root, cid, "saul", review_type)
-    if (not force and last and last.get("disposition") == "REQUEST_CHANGES"
-            and a.revision_int(last.get("contract_revision")) == rev_n
-            and (last.get("implementation_head") or "") == (sha or "")
-            and (a.load_config(root).get("idempotency") or {}).get("skip_if_unchanged_request_changes", True)):
-        print("LOOP_PREVENTION skip re-invoke; revision and SHA unchanged after REQUEST_CHANGES")
-        return 0, last
+    dest = None
+    key = None
+    if cid:
+        ptr = a.load_pointer(root, cid)
+        if ptr and not revision:
+            revision = ptr.get("current_revision")
+            rev_n = a.revision_int(revision)
+        key = a.review_key(cid, rev_n, sha, "saul", review_type)
+        dest = a.reviews_dir(root, cid) / f"saul-{review_type}-{key}.yaml"
+        if dest.is_file() and not force:
+            existing = a.read_yaml(dest)
+            print(f"IDEMPOTENT_SKIP key={key} disposition={existing.get('disposition')}")
+            return 0, existing
+        last = v.latest_review(root, cid, "saul", review_type)
+        if (not force and last and last.get("disposition") == "REQUEST_CHANGES"
+                and a.revision_int(last.get("contract_revision")) == rev_n
+                and (last.get("implementation_head") or "") == (sha or "")
+                and (a.load_config(root).get("idempotency") or {}).get(
+                    "skip_if_unchanged_request_changes", True)):
+            print("LOOP_PREVENTION skip re-invoke; revision and SHA unchanged after REQUEST_CHANGES")
+            return 0, last
+    else:
+        key = a.review_key("", 0, sha, "saul", review_type)
 
     doc = None
     reason = None
+    cmd = _codex_cmd()
     if fixture:
         doc = a.read_yaml(Path(fixture)) if not isinstance(fixture, dict) else fixture
         if doc is not None:
             doc["synthetic"] = True
             doc["runtime"] = doc.get("runtime") or "test-fixture"
-    elif not _codex_env() or not _codex_cmd():
+    elif not cmd:
         reason = "CODEX_UNAVAILABLE"
         doc = {
             "reviewer": "saul",
@@ -139,42 +104,80 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
             "codex_invoked": False,
         }
     else:
-        prompt = _prompt(root, cid, revision, sha, review_type)
         env = os.environ.copy()
-        if os.environ.get("CODEX_API_KEY") and not os.environ.get("OPENAI_API_KEY"):
-            env["OPENAI_API_KEY"] = os.environ["CODEX_API_KEY"]
+        for k in ("OPENAI_API_KEY", "CODEX_API_KEY"):
+            if not env.get(k):
+                env.pop(k, None)
+        if env.get("CODEX_API_KEY") and not env.get("OPENAI_API_KEY"):
+            env["OPENAI_API_KEY"] = env["CODEX_API_KEY"]
         try:
-            p = subprocess.run(
-                _codex_cmd(), input=prompt, capture_output=True, text=True,
-                env=env, timeout=600,
-            )
-            parsed = _parse_yaml_block(p.stdout + "\n" + p.stderr)
-            if not parsed or parsed.get("disposition") not in ("APPROVE", "REQUEST_CHANGES", "BLOCKED"):
-                doc = {
-                    "reviewer": "saul", "runtime": "codex", "contract_id": cid,
-                    "contract_revision": rev_n, "implementation_head": sha,
-                    "review_type": review_type, "disposition": "BLOCKED",
-                    "reason": "CODEX_OUTPUT_UNPARSEABLE", "codex_invoked": True,
-                    "exit_code": p.returncode, "findings": [],
-                }
-            else:
-                doc = parsed
-                doc.setdefault("reviewer", "saul")
-                doc["runtime"] = "codex"
-                doc["codex_invoked"] = True
-                doc["synthetic"] = False
-                doc["contract_id"] = cid
-                doc["contract_revision"] = rev_n
-                doc["implementation_head"] = sha
-                doc["review_type"] = review_type
+            prompt = _prompt(root, cid, revision, sha, review_type)
         except Exception as e:
             doc = {
                 "reviewer": "saul", "runtime": "codex", "contract_id": cid,
                 "contract_revision": rev_n, "implementation_head": sha,
                 "review_type": review_type, "disposition": "BLOCKED",
-                "reason": f"CODEX_INVOKE_ERROR:{type(e).__name__}",
+                "reason": f"REVIEW_PACKAGE_ERROR:{type(e).__name__}",
                 "codex_invoked": False, "findings": [],
             }
+            prompt = None
+        if prompt is not None:
+            try:
+                p = subprocess.run(
+                    cmd, input=prompt, capture_output=True, text=True,
+                    env=env, timeout=1200,
+                )
+                parsed = _parse_yaml_block((p.stdout or "") + "\n" + (p.stderr or ""))
+                if not parsed or parsed.get("disposition") not in (
+                    "APPROVE", "REQUEST_CHANGES", "BLOCKED",
+                ):
+                    reason = "CODEX_OUTPUT_UNPARSEABLE"
+                    err = ((p.stderr or "") + "\n" + (p.stdout or "")).lower()
+                    if p.returncode != 0 and any(
+                        x in err for x in ("auth", "login", "unauthorized", "not logged")
+                    ):
+                        reason = "CODEX_AUTH_FAILED"
+                    elif p.returncode != 0:
+                        reason = "CODEX_EXEC_FAILED"
+                    doc = {
+                        "reviewer": "saul", "runtime": "codex", "contract_id": cid,
+                        "contract_revision": rev_n, "implementation_head": sha,
+                        "review_type": review_type, "disposition": "BLOCKED",
+                        "reason": reason, "codex_invoked": True,
+                        "exit_code": p.returncode, "findings": [],
+                    }
+                else:
+                    doc = parsed
+                    doc.setdefault("reviewer", "saul")
+                    doc["runtime"] = "codex"
+                    doc["codex_invoked"] = True
+                    doc["synthetic"] = False
+                    doc["contract_id"] = cid
+                    doc["contract_revision"] = rev_n
+                    doc["implementation_head"] = sha
+                    doc["review_type"] = review_type
+            except subprocess.TimeoutExpired:
+                doc = {
+                    "reviewer": "saul", "runtime": "codex", "contract_id": cid,
+                    "contract_revision": rev_n, "implementation_head": sha,
+                    "review_type": review_type, "disposition": "BLOCKED",
+                    "reason": "CODEX_TIMEOUT", "codex_invoked": True, "findings": [],
+                }
+            except FileNotFoundError:
+                doc = {
+                    "reviewer": "saul", "runtime": "codex", "contract_id": cid,
+                    "contract_revision": rev_n, "implementation_head": sha,
+                    "review_type": review_type, "disposition": "BLOCKED",
+                    "reason": "CODEX_UNAVAILABLE", "codex_invoked": False, "findings": [],
+                }
+            except Exception as e:
+                doc = {
+                    "reviewer": "saul", "runtime": "codex", "contract_id": cid,
+                    "contract_revision": rev_n, "implementation_head": sha,
+                    "review_type": review_type, "disposition": "BLOCKED",
+                    "reason": f"CODEX_INVOKE_ERROR:{type(e).__name__}",
+                    "codex_invoked": True, "findings": [],
+                }
 
     doc["idempotency_key"] = key
     if github_run_id:
@@ -187,7 +190,8 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
         if doc.get("synthetic") or not doc.get("codex_invoked"):
             doc["disposition"] = "BLOCKED"
             doc["reason"] = "REFUSED_UNVERIFIED_APPROVE"
-    a.write_yaml(dest, doc)
+    if dest:
+        a.write_yaml(dest, doc)
     if out:
         Path(out).write_text(a.dump_yaml(doc), encoding="utf-8")
     print(a.dump_yaml(doc))

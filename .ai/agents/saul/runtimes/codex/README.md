@@ -6,9 +6,11 @@ This is Saul's primary runtime suite. Load `CODEX.md`, then
 session with `--environment codex-desktop`.
 
 Automation is session-driven on Codex Desktop. Unattended CTO review is
-invoked by **GitHub Actions** (`.github/workflows/saul-review.yml` →
-`scripts/invoke-saul-review`), which loads this Codex profile. That path
-is **not operational** until a human provisions `OPENAI_API_KEY` or
-`CODEX_API_KEY` on the GitHub repository and a real run records a Codex
-invocation. Missing credentials fail closed (`BLOCKED` /
-`CODEX_UNAVAILABLE`). Do not impersonate Saul on Cursor.
+invoked by **GitHub Actions** (`.github/workflows/saul-review.yml` on
+`[self-hosted]`) → dedicated Dockerized Saul runner → local authenticated
+Codex CLI → `scripts/invoke-saul-review`, which loads this Codex profile.
+Repository `OPENAI_API_KEY` / `CODEX_API_KEY` secrets are optional
+fallback only, not the production prerequisite. Missing or failed local
+`codex exec` fails closed (`BLOCKED` / truthful reason, with
+`codex_invoked` reflecting whether execution was attempted). Do not
+impersonate Saul on Cursor. Do not copy or commit Codex auth files.

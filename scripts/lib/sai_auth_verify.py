@@ -145,6 +145,7 @@ def verify_pre_commit(root):
     if not paths:
         print("verify-agent-authorization: nothing staged")
         return 0
+    a.ensure_primary_runtime(root)
     if not session:
         reqs = list(Path(root).glob(".ai/requests/*/request.yaml"))
         # unbound: only allowed if CONTRACT_REQUIRED intake paths or bootstrap
