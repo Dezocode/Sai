@@ -5,6 +5,6 @@
   "completed_at": "2026-08-13T03:15:00Z",
   "inputs": [".ai/runs/20260813-0307-quality-os-improve-cursor-cloud/05_review/output/review.md"],
   "outputs": [".ai/runs/20260813-0307-quality-os-improve-cursor-cloud/06_publish_sync/output/publish.md"],
-  "status": "partial",
+  "status": "complete",
   "human_edits": "none"
 }
