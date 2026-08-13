@@ -74,7 +74,11 @@ bootstrap:
 
 officer_grants:
   required: true
-  required_after_sha: "d113fa0bf75b43491c25723f57cf9dec1e6196de"
+  # PR #64 Cora contract/amend commits d5766e1 and 4a7b980 predate tracked
+  # grants. Cutoff is that last Cora SHA (inclusive). Descendants still need
+  # grants. This SHA is not on PR #62 / main; those officer commits are not
+  # ancestors of it, so they still require grants if this file is reused.
+  required_after_sha: "4a7b980db42542a15261288959bf9e24c2ef8f57"
   dir: ".ai/authorizations/grants"
   note: >
     Agent trailers are provenance, not authority. Officer writes after
