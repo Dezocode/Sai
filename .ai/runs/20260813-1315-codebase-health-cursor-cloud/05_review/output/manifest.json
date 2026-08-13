@@ -1,0 +1,17 @@
+{
+  "task_id": "20260813-1315-codebase-health-cursor-cloud",
+  "stage": "05_review",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T13:26:30Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260813-1315-codebase-health-cursor-cloud/04_verify/output/verification.md",
+    ".ai/_config/security-policy.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-1315-codebase-health-cursor-cloud/05_review/output/review.md"
+  ],
+  "decisions": ["0005"],
+  "human_edits": "none",
+  "notes": "Agent self-review. Co-founder merge authorization not granted."
+}

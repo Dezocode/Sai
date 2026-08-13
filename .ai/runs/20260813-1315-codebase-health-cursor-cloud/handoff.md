@@ -24,8 +24,18 @@ OpenClaw ingest-latency stub, secrets-compliance until explicitly activated.
 
 ## Evidence
 
-Recorded in `04_verify/output/verification.md` after the verify stage.
-Self-test and live scan passed locally before push.
+Local (this session):
+
+- `scripts/verify-code-health --self-test` PASS (8 fixture evaluations)
+- `scripts/verify-code-health` PASS (30)
+- `scripts/verify-semantic-hierarchy` OK
+- `scripts/verify-agent-audit origin/main..HEAD` OK
+- `scripts/verify-merge-handoff origin/main..HEAD` OK
+
+Draft PR: https://github.com/Dezocode/Sai/pull/62
+Remote SHA at first push: `716c5aba8fe89d897942f957ed02cd65f7a8c17c`
+
+GitHub Actions on the PR was not observed green in this session.
 
 ## Risks
 

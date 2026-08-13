@@ -6,7 +6,7 @@
   "branch": "cursor/codebase-health-90ba",
   "base_sha": "40efe0a0724764fc1cf3c45ed8498b5606a0f453",
   "purpose": "Install a registry-driven codebase health system (bloat, semantic/exact duplicates, orphans) with CI wiring and runtime self-tests before application code lands",
-  "status": "implementing",
+  "status": "handoff",
   "claimed_files": [
     ".ai/_config/code-health.yaml",
     ".ai/shared/references/code-health.md",

@@ -25,17 +25,20 @@ AUTOMATION_PROFILE = re.compile(
 
 
 class Result:
-    def __init__(self):
+    def __init__(self, quiet=False):
         self.fails = []
         self.passes = 0
+        self.quiet = quiet
 
     def fail(self, msg):
         self.fails.append(msg)
-        print(f"FAIL  {msg}", file=sys.stderr)
+        if not self.quiet:
+            print(f"FAIL  {msg}", file=sys.stderr)
 
     def ok(self, msg):
         self.passes += 1
-        print(f"PASS  {msg}")
+        if not self.quiet:
+            print(f"PASS  {msg}")
 
     def exit_code(self):
         return 1 if self.fails else 0
@@ -292,7 +295,7 @@ def self_test() -> int:
     errors = []
 
     def expect_fail(name, fn):
-        res = Result()
+        res = Result(quiet=True)
         fn(res)
         if not res.fails:
             errors.append(f"{name}: expected FAIL, got pass")
@@ -301,7 +304,7 @@ def self_test() -> int:
             print(f"SELFTEST PASS  {name} rejected bad input")
 
     def expect_pass(name, fn):
-        res = Result()
+        res = Result(quiet=True)
         fn(res)
         if res.fails:
             errors.append(f"{name}: expected PASS, got {res.fails}")
