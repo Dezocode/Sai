@@ -1,0 +1,49 @@
+{
+  "review_type": "implementation",
+  "review_scope": "final",
+  "contract_id": "20260813-ri-subprocess-init",
+  "contract_revision": "v1",
+  "implementation_head": "6c50e0b2c55b9741bcd5284511c16c65eccd08ca",
+  "base_ref": "cursor/codebase-health-90ba",
+  "changed_file_count": 48,
+  "diff_bytes": 80158,
+  "scope": {
+    "allowed_paths": [
+      ".ai/runs/**",
+      ".ai/requests/**",
+      ".ai/contracts/**",
+      ".ai/shared/skills/runtime-intelligence/**",
+      ".ai/shared/memory/runtimes/**",
+      ".ai/shared/memory/stubs/**",
+      "runtime-intelligence/**",
+      "scripts/runtime-intelligence/**",
+      "scripts/lib/sai_auth.py",
+      "tests/runtime-intelligence/**"
+    ],
+    "denied_paths": [
+      ".ai/agents/saul/**",
+      ".ai/shared/memory/decisions/**"
+    ],
+    "capabilities": [
+      "git-commit",
+      "git-push",
+      "draft-pr"
+    ],
+    "allowed_repository": "Dezocode/Sai",
+    "allowed_branch_or_worktree": "cursor/ri-subprocess-init-20260813",
+    "verification_requirements": [
+      "scripts/verify-agent-authorization",
+      "scripts/verify-contract-authorization"
+    ],
+    "agent_id": "ctr-code-ri1",
+    "cora_admin_complete": false
+  },
+  "repository": "Dezocode/Sai",
+  "pr_number": "64",
+  "head_ref": "cursor/ri-subprocess-init-20260813",
+  "github_run_id": null,
+  "github_event": null,
+  "runner_name": null,
+  "runner_os": null,
+  "runner_arch": null
+}

@@ -1,7 +1,10 @@
-# Review gate
+# Review gate (turn 4)
 
-Saul technical review: **PENDING** (must be formal Codex path, exact SHA package).
-Sai governance review: **PENDING**.
-Human admission: **PENDING**.
+| Gate | Status | Evidence |
+|------|--------|----------|
+| Saul technical (formal Codex GHA) | PENDING / RUN DISPATCHED | run 31738840708 |
+| Sai governance | REQUESTED (not APPROVE) | sai-governance-request.md |
+| Human admission | REQUESTED | human-admission-request.md |
+| Self-declared ACTIVE | **false** | STATUS.md |
 
-Subprocess must not write APPROVE here.
+Exact head: `6c50e0b2c55b9741bcd5284511c16c65eccd08ca`

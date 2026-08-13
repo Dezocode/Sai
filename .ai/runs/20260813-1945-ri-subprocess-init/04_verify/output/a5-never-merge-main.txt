@@ -1,0 +1,15 @@
+aspect=a5
+evidence_file=/root/skill-lab/evidence/deep-fulfillment-job-20260813T194159-edd0a4f4/a5-never-merge-main.txt
+main_HEAD=d07935113ee565281a91f98103832bab0fbe27db
+main_branch=main
+origin_main=d07935113ee565281a91f98103832bab0fbe27db
+pr64_base=cursor/codebase-health-90ba
+pr64_head=6c50e0b2c55b9741bcd5284511c16c65eccd08ca
+pr64_url=https://github.com/Dezocode/Sai/pull/64
+pr62_mergedAt=
+deny_merge_exit=13
+deny_merge_stderr=DENIED op=merge-main plane=runtime-intelligence status=PROVISIONAL
+force_push=false
+mark_ready=false
+merge_main=false
+LIVE_a5_never_merge=true

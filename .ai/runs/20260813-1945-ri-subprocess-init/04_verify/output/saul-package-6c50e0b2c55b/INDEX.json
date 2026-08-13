@@ -1,0 +1,23 @@
+{
+  "implementation_head": "6c50e0b2c55b9741bcd5284511c16c65eccd08ca",
+  "contract_id": "20260813-ri-subprocess-init",
+  "contract_revision": "v1",
+  "parent_pr": 62,
+  "init_pr": 64,
+  "base_branch": "cursor/codebase-health-90ba",
+  "package_local": "/opt/sai/runtime-intelligence/exports/saul-package-6c50e0b2c55b",
+  "package_git": ".ai/runs/20260813-1945-ri-subprocess-init/04_verify/output/saul-package-6c50e0b2c55b",
+  "changed_files_count": 48,
+  "diff_bytes": 79994,
+  "org_status": "PROVISIONAL",
+  "saul_status": "PENDING_FORMAL_REVIEW",
+  "sai_status": "PENDING",
+  "human_status": "PENDING",
+  "pre_contract_commits_missing_contract_id": [
+    "e9fcfaf43d5bc87d6683fa1291d56ba9e57789b5",
+    "e7d9e4e654478f3a21c08498a28d90e08725ddd1",
+    "46e73c3aad16e033e2ffa5a6f113eca6de2d2c7a"
+  ],
+  "force_push": false,
+  "self_declared_initialized": false
+}
