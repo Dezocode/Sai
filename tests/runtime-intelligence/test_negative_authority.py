@@ -59,6 +59,18 @@ class NegativeAuthorityTests(unittest.TestCase):
         may_claim = saul == "APPROVE" and sai == "APPROVE" and human == "APPROVE"
         self.assertFalse(may_claim, "default env must not allow initialized claim")
 
+    def test_status_names_current_contract_v3(self):
+        text = STATUS.read_text(encoding="utf-8")
+        self.assertIn("v3", text)
+        self.assertNotRegex(
+            text,
+            r"Contract \(Decision 0006\) \| DRAFTED `20260813-ri-subprocess-init` v1",
+        )
+        meta = (ROOT / ".ai/runs/20260813-1945-ri-subprocess-init/metadata.json").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('"contract_revision": "v3"', meta)
+
     def test_stacked_base_not_main(self):
         meta = (ROOT / ".ai/runs/20260813-1945-ri-subprocess-init/metadata.json").read_text(
             encoding="utf-8"

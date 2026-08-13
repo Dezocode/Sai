@@ -8,12 +8,13 @@
   "parent_pr": 62,
   "parent_branch": "cursor/codebase-health-90ba",
   "parent_head": "de821c737c8ef8fc7dff26ccb15e2ddf6184aa18",
+  "parent_head_note": "PR #62 has since advanced; live parent head fetch separately. Do not treat this as current #62 tip.",
   "stacked_branch": "cursor/ri-subprocess-init-20260813",
   "sub_pr": 64,
   "sub_pr_url": "https://github.com/Dezocode/Sai/pull/64",
   "sub_pr_draft": true,
   "contract_id": "20260813-ri-subprocess-init",
-  "contract_revision": "v2",
+  "contract_revision": "v3",
   "agent_provenance": "ctr-code-ri1 provisional contractor under Cora contract",
   "principal": "dezocode (U0BHYH0NMCY)",
   "decisions": [
@@ -23,6 +24,7 @@
   "bootstrap_prompt": ".ai/shared/skills/runtime-intelligence/TELEGRAM_BOOTSTRAP_PROMPT.md",
   "approvals": {
     "saul_technical": "REQUEST_CHANGES",
+    "saul_run": "31745529943",
     "sai_governance": "PENDING",
     "human": "PENDING"
   },

@@ -16,10 +16,10 @@ This file must never be flipped to ACTIVE by the subprocess itself.
 | Integrated-state harness | IN PROGRESS (script + tests) |
 | Negative authority tests | PRESENT |
 | Phase I matrix 1–17 | RUNNER PRESENT (execute for measured results) |
-| Saul exact-head package | built for 6c50e0b (git + Hostinger exports) |
-| Saul exact-state technical APPROVE | **REQUEST_CHANGES** run 31739344984 (package readable after sandbox fix; CTO-001..003) |
+| Saul exact-head package | last real review run 31745529943 on `c32303f` |
+| Saul exact-state technical APPROVE | **REQUEST_CHANGES** run 31745529943 (CTO-004/005/006); v3 consume recorded |
 | Sai exact-state governance APPROVE | REQUESTED (artifact; not self-APPROVE) |
-| Contract (Decision 0006) | DRAFTED `20260813-ri-subprocess-init` v1 provisional |
+| Contract (Decision 0006) | **v3** `20260813-ri-subprocess-init` (immutable; v2 lease stale; lease-774a407c44b4) |
 | Human/co-founder admission | REQUESTED (artifact; not self-granted) |
 
 Flip criteria: all three approvals bind the **same exact initialization SHA/revision**.

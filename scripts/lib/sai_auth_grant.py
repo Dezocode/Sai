@@ -60,7 +60,7 @@ def list_grants(root, sha=None):
     return out
 
 
-def grant_covers(grant, agent_id, task_id, paths, runtime=None) -> bool:
+def grant_covers(grant, agent_id, task_id, paths, runtime=None, sha=None) -> bool:
     if not grant or grant.get("principal") != agent_id:
         return False
     tids = list(grant.get("task_ids") or [])
@@ -76,14 +76,44 @@ def grant_covers(grant, agent_id, task_id, paths, runtime=None) -> bool:
     for p in paths or []:
         if not a.path_allowed(p, allowed, denied):
             return False
+    covers = [str(x) for x in (grant.get("covers_shas") or [])]
+    if covers and sha:
+        full = str(sha)
+        if not any(full == c or full.startswith(c) or c.startswith(full[:12]) for c in covers):
+            return False
     return True
 
 
+def _workdir_grants(root):
+    d = Path(root) / GRANTS_REL
+    if not d.is_dir():
+        return []
+    out = []
+    for p in sorted(d.glob("*.yaml")):
+        doc = a.read_yaml(p)
+        if isinstance(doc, dict):
+            out.append(doc)
+    return out
+
+
 def matching_grant(root, agent_id, task_id, paths, *, sha=None, grant_id=None, runtime=None):
-    for g in list_grants(root, sha=sha):
-        if grant_id and g.get("id") != grant_id:
+    seen = set()
+    candidates = list(list_grants(root, sha=sha))
+    # SHA-bound ratification grants live in the current tree; historical
+    # commits cannot contain them. Replay those only when covers_shas matches.
+    if sha:
+        for g in _workdir_grants(root):
+            if g.get("covers_shas"):
+                candidates.append(g)
+    for g in candidates:
+        gid = g.get("id")
+        if gid and gid in seen:
             continue
-        if grant_covers(g, agent_id, task_id, paths, runtime=runtime):
+        if gid:
+            seen.add(gid)
+        if grant_id and gid != grant_id:
+            continue
+        if grant_covers(g, agent_id, task_id, paths, runtime=runtime, sha=sha):
             return g
     return None
 

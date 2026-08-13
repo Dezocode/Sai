@@ -4,8 +4,9 @@
 - Parent PR: #62 (`cursor/codebase-health-90ba` @ de821c7)
 - Stacked sub-PR: #64 `cursor/ri-subprocess-init-20260813` (**draft**)
 - Task-ID: `20260813-1945-ri-subprocess-init`
-- Contract-ID: `20260813-ri-subprocess-init` revision **v2**
-- Contractor: `ctr-code-ri1` (provisional lease `lease-7a92205798c2`; registry-bound)
+- Contract-ID: `20260813-ri-subprocess-init` revision **v3**
+- Contractor: `ctr-code-ri1` (active lease `lease-774a407c44b4`; v2 lease stale)
+- Saul last exact-head: run `31745529943` REQUEST_CHANGES on `c32303f` (CTO-004/005/006)
 - Organizational status: **PROVISIONAL — NOT INITIALIZED**
 
 ## Decision 0006 path (turn 3)

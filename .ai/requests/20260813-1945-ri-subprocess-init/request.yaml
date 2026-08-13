@@ -5,10 +5,11 @@ runtime: hermes-grok-telegram-bridge
 purpose: 'Runtime Intelligence subprocess initialization stacked on PR #62 (Decisions
   0006/0007)'
 required_role: subprocess-runtime-intelligence
-state: CONTRACT_AMENDED_V2
+state: IMPLEMENTING
 contract_required: true
 resolved_agent: ctr-code-ri1
 contract_id: 20260813-ri-subprocess-init
+current_contract_revision: v3
 parent_pr: 62
 parent_branch: cursor/codebase-health-90ba
 parent_head: d113fa0bf75b43491c25723f57cf9dec1e6196de
@@ -23,6 +24,6 @@ controlling_decisions:
 - '0006'
 - '0007'
 approvals:
-  saul: PENDING
+  saul: REQUEST_CHANGES
   sai: PENDING
   human: PENDING
