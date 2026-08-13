@@ -1,0 +1,24 @@
+{
+  "updated_at": "2026-08-13T23:25:00Z",
+  "note": "Organizational identity is agent_id/name/role, not task_title.",
+  "workers": [
+    {
+      "agent_id": "ceo",
+      "name": "Sai",
+      "role": "Primary coordinator",
+      "parent_logical_runtime": null,
+      "parent_physical_runtime": null,
+      "logical_runtime": "pr62-primary",
+      "physical_runtime_id": "bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc",
+      "contract_id": "20260813-pr62-saul-smoke",
+      "contract_revision": "v3",
+      "authorization_id": "grant-pr62-queue-ceo",
+      "authorization_kind": "grant",
+      "work_item": "own-program-exit-predicate",
+      "base_sha": "2ac83a149bfa69c2ce7e0c7675c492b45dba82f2",
+      "model": "cursor-grok-4.6-high",
+      "state": "RUNNING",
+      "task_title": "PR #62 primary"
+    }
+  ]
+}

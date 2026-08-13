@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-13T22:30:00Z"
+updated_at: "2026-08-13T23:30:00Z"
 requirements:
   - requirement_id: REQ-5282088737
     source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
@@ -30,3 +30,21 @@ requirements:
       - waiting-is-not-finished
       - candidate-HEAD-is-not-trusted-reviewer
       - READY_FOR_HUMAN_REVIEW-requires-real-Saul-and-Sai-APPROVE
+  - requirement_id: REQ-5287297355
+    source: "https://github.com/Dezocode/Sai/pull/62#issuecomment-5287297355"
+    authority: dezocode
+    timestamp: "2026-08-13T22:53:29Z"
+    scope: persistent-primary-resume
+    digest: decision-0008-resume-sai-named-cora-watchdog-two-primary-cap
+    status: in-progress
+    blocking: true
+    acceptance:
+      - persistent-logical-primary-survives-physical-turn-end
+      - resume-sai-reconstructs-durable-state
+      - named-cora-and-contractor-identity
+      - watchdog-healthy-complete-stale-no-model
+      - two-primary-cap-ri-exempt
+      - empty-todo-is-not-exit
+      - trusted-reviewer-never-candidate-HEAD
+      - real-Saul-and-Sai-must-evaluate-exact-head
+      - do-not-merge-do-not-mark-ready

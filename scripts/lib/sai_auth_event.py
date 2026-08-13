@@ -16,6 +16,7 @@ EVENT_TYPES = (
     "CONTRACTOR_COMPLETE", "NEW_SHA", "CI_COMPLETE", "CI_FAILED",
     "SAUL_REQUEST_CHANGES", "SAUL_APPROVE", "SAI_REQUEST_CHANGES",
     "SAI_APPROVE", "HUMAN_DECISION", "AUTHORITY_REQUIRED",
+    "STALE_WORKER", "CONCENTRATION_GATE",
 )
 
 
@@ -32,7 +33,7 @@ def state_digest(payload: dict) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 
-def ingest(root, payload: dict, *, store_rel=".ai/runs/_coordinator/last-material-event.json"):
+def ingest(root, payload: dict, *, store_rel=".git/sai-last-material-event.json"):
     """Return (action, event). Duplicate digest => NOOP, no model."""
     et = payload.get("event_type") or payload.get("type")
     if et not in EVENT_TYPES:

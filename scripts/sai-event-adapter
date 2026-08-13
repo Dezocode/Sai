@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # sai-event-adapter — digest-compare GitHub/Saul payloads; NOOP duplicates.
+# referenced: scripts/lib/sai_auth_event_test.py
 set -euo pipefail
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 exec python3 "$ROOT/scripts/lib/sai_auth_event.py" "$@"

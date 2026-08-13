@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# provision-trusted-reviewer-root — copy invoke-saul-review from an explicit SHA.
+# Never defaults to HEAD. Candidate HEAD requires --confirm-trust (human).
+# referenced: scripts/lib/sai_auth_trust_root.py scripts/lib/sai_auth_trust_root_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_trust_root.py" "$@"

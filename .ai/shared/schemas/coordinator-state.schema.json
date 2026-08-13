@@ -36,6 +36,10 @@
       ]
     },
     "wake_condition": { "type": "string" },
-    "physical_runtime_continuity": { "type": ["boolean", "null"] }
+    "physical_runtime_continuity": { "type": ["boolean", "null"] },
+    "logical_runtime_continuity": { "type": ["boolean", "null"] },
+    "heartbeat_seconds": { "type": "integer" },
+    "workers": { "type": "array" },
+    "exit_predicate_satisfied": { "type": "boolean" }
   }
 }

@@ -42,7 +42,10 @@ jobs:
                    scripts/sai-authorize-task scripts/sai-assume-agent \
                    scripts/sai-release-agent scripts/invoke-saul-review \
                    scripts/consume-saul-contract-review scripts/record-sai-verification \
-                   scripts/sai-dispatch-transition
+                   scripts/sai-dispatch-transition \
+                   scripts/sai-resume scripts/sai-watchdog \
+                   scripts/sai-runtime-registry \
+                   scripts/provision-trusted-reviewer-root
 
       - name: Verify scaffold path safety
         run: scripts/verify-scaffold-safety
@@ -72,6 +75,10 @@ jobs:
           scripts/invoke-saul-review --self-test
           scripts/consume-saul-contract-review --self-test
           scripts/sai-dispatch-transition --self-test
+          scripts/sai-resume --self-test
+          scripts/sai-watchdog --self-test
+          scripts/sai-runtime-registry --self-test
+          scripts/provision-trusted-reviewer-root --self-test
 
       - name: Record dual-approval human gate
         continue-on-error: true

@@ -1,35 +1,25 @@
-# Handoff — contractor (CTO-012 + first-write cue)
+# Handoff — contractor (resume-sai control plane + trusted-root provisioner)
 
-Starting HEAD was `de821c737c8ef8fc7dff26ccb15e2ddf6184aa18`.
 Contract `20260813-pr62-saul-smoke` v3, lease `lease-c3a003pr62q1`.
+Base at start of this slice: `2ac83a149bfa69c2ce7e0c7675c492b45dba82f2`.
 
 ## What landed
 
-- **CTO-012:** `saul-review.yml` no longer `git archive HEAD` / 
-  `pr-bootstrap-until-main`. Trusted sources are runner-image
-  `SAI_TRUSTED_REVIEWER_ROOT` or `git archive` of **BASE_SHA**. Else
-  `BLOCKED` / `TRUSTED_REVIEWER_UNAVAILABLE` and Codex is not invoked.
-- **Shell-safety:** review `reason` is never interpolated via
-  `${{ steps.saul.outputs.* }}`. Disposition is read from
-  `/tmp/saul/review.yaml` and sanitized before `gh api`.
-- **saul_review_key:** same
-  `(repo, pr, type, contract, revision, head, requirement digest, scope)`
-  → `NOOP_ALREADY_REVIEWED` (cache + tracked reviews). 10 duplicate
-  lookups hit cache; new head or requirement digest mints a new key.
-- **First-write cue:** unbound pre-commit emits one-line JSON
-  `SAI_IDENTITY_REQUIRED` plus `SAI_CUE CORA_ADMISSION` or
-  `RESUME_CONTRACTOR`. Worktree is not mutated. Existing assignment on
-  the branch resumes the contractor.
-- **Event adapter:** `scripts/sai-event-adapter` digest-compares
-  material events; duplicates are NOOP.
-
-## Verify (this tree)
-
-`scripts/invoke-saul-review --self-test` and
-`scripts/verify-agent-authorization --self-test` passed, including
-cue, event, and trusted-reviewer negative fixtures.
+- `scripts/sai-resume` reconstructs the latest nonterminal logical primary
+  from `coordinator-state.json` and **refreshes live HEAD**. Empty workers
+  do not satisfy the exit predicate.
+- `scripts/sai-runtime-registry` named identity (Cora `ctr-admin` vs task
+  title). Cora does not wake on healthy progress.
+- `scripts/sai-watchdog` 1500s heartbeat: healthy NOOP, complete queues
+  `SUBAGENT_COMPLETE`, stale queues `STALE_WORKER`, no model.
+- Two-primary cap in `.ai/_config/primary-programs.yaml`; RI/stacked exempt.
+- `scripts/provision-trusted-reviewer-root` refuses symbolic/candidate HEAD
+  unless `--confirm-trust`. `saul-review.yml` also reads
+  `/opt/sai/trusted-reviewer`. Provision workflow never runs on pull_request.
+- Ledger `REQ-5287297355`. Orphan refs for cue/event/saul test modules.
 
 ## Next
 
-Push; allow real Hostinger Saul to review the new SHA. WAITING_EXTERNAL
-is nonterminal. Do not merge. Do not mark ready.
+Sai commit: Decision 0008, `/resume-sai` skill, architecture projection.
+Do not merge. Do not mark ready. Saul remains BLOCKED until Hostinger
+root is provisioned from a trusted SHA.

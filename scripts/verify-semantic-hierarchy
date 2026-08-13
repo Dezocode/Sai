@@ -89,7 +89,12 @@ required = (
      "scripts/sai-dispatch-transition",
      "scripts/sai-identity-required",
      "scripts/sai-event-adapter",
+     "scripts/sai-resume",
+     "scripts/sai-watchdog",
+     "scripts/sai-runtime-registry",
+     "scripts/provision-trusted-reviewer-root",
      ".cursor/rules/sai-orchestration.mdc",
+     ".cursor/skills/resume-sai/SKILL.md",
      ".ai/_config/authorization.yaml",
      ".ai/shared/schemas/task-request.schema.json",
      ".ai/shared/schemas/authorization.schema.json",
@@ -98,6 +103,7 @@ required = (
      ".ai/shared/schemas/contract-amendment.schema.json",
      ".ai/shared/schemas/remediation-item.schema.json",
      ".ai/shared/schemas/coordinator-state.schema.json",
+     ".ai/_config/primary-programs.yaml",
      ".github/workflows/saul-review.yml",
      ".ai/requests/README.md"]
     + ([".ai/shared/references/claude-agent-sdk.md"] if os.path.isfile(".ai/shared/references/claude-agent-sdk.md") else [])

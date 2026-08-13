@@ -4,6 +4,7 @@
 # Optional OPENAI_API_KEY/CODEX_API_KEY is npx fallback only.
 # Missing/failed Codex => disposition BLOCKED (never APPROVE).
 # Reviewer implementation MUST come from SAI_TRUSTED_TREE when set (CTO-010).
+# referenced: scripts/lib/sai_auth_saul_test.py
 set -euo pipefail
 if [ -n "${SAI_TRUSTED_TREE:-}" ] && [ -f "${SAI_TRUSTED_TREE}/scripts/lib/sai_auth_review.py" ]; then
   exec python3 "${SAI_TRUSTED_TREE}/scripts/lib/sai_auth_review.py" invoke "$@"

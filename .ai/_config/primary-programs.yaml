@@ -1,0 +1,21 @@
+max_active: 2
+heartbeat_seconds: 1500
+stale_after_seconds: 1800
+override: null
+# Count only kind: primary_implementation. Stacked / Runtime Intelligence /
+# telemetry / memory / read-only verification do not consume a slot.
+programs:
+  - logical_id: pr62-primary
+    pr: 62
+    kind: primary_implementation
+    status: active
+    branch: cursor/codebase-health-90ba
+    contract_id: 20260813-pr62-saul-smoke
+    note: "PR #62 authorization/orchestration program"
+  - logical_id: pr64-ri-subprocess
+    pr: 64
+    kind: runtime_intelligence
+    status: active
+    branch: cursor/ri-subprocess-init-20260813
+    base: cursor/codebase-health-90ba
+    note: "Decision 0007 stacked subordinate; does not consume a primary slot"

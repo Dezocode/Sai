@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# sai-watchdog — read-only liveness + concentration guard. No model.
+# referenced: scripts/lib/sai_auth_watchdog.py scripts/lib/sai_auth_watchdog_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_watchdog.py" "$@"
