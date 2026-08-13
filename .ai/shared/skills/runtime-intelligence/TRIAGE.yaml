@@ -1,0 +1,69 @@
+version: 1
+skill: sai-runtime-intelligence
+decisions: ["0006", "0007"]
+
+subprocess_only: true
+top_level_pr_requires_explicit_user_request: true
+
+triage:
+  T0: {name: observe, blocking: false, may_comment: false, may_issue: false, may_subpr: false}
+  T1: {name: analyze, blocking: false, may_comment: false, may_issue: false, may_subpr: false}
+  T2: {name: evidence_issue, blocking: false, may_comment: true, may_issue: true, may_subpr: false}
+  T3: {name: support_subpr, blocking: false, may_comment: true, may_issue: true, may_subpr: true}
+  T4:
+    name: cursor_capacity_fallback
+    blocking: false
+    requires_explicit_capacity_evidence: true
+    may_comment: true
+    may_issue: true
+    may_subpr: true
+  T5: {name: human_only, blocking: true, may_comment: true, may_issue: true, may_subpr: false}
+
+invariants:
+  never_merge_main: true
+  never_force_push: true
+  never_mark_pr_ready: true
+  never_close_parent_pr: true
+  never_replace_cursor_tests: true
+  never_replace_saul_review: true
+  never_replace_sai_verification: true
+  never_self_approve_initialization: true
+  test_only_complete_integrated_pr_state: true
+  nonblocking_by_default: true
+  git_is_organizational_truth: true
+  support_pr_base_is_parent_branch_by_default: true
+
+runtime:
+  grok:
+    containerized: true
+    model_policy: latest_stable_reasoning
+    current_verified_target: grok-4.5
+    reasoning_effort: high
+    fast_or_nonreasoning_for_final_findings: forbidden
+  hermes:
+    host: hostinger
+    role: runtime_intelligence_orchestrator
+  openclaw:
+    host: hostinger
+    containerized: true
+    role: bounded_background_assistant
+
+initialization_gate:
+  status_before_approval: provisional
+  require:
+    - icm_initialization_complete
+    - hooks_and_rules_verified
+    - tools_and_capabilities_verified
+    - docker_grok_reasoning_verified
+    - openclaw_scope_verified
+    - local_memory_verified
+    - dashboard_verified
+    - negative_authority_tests_pass
+    - sai_exact_state_approve
+    - saul_exact_state_approve
+    - human_approve
+
+memory:
+  local_root: /opt/sai/runtime-intelligence
+  raw_telemetry_in_git: false
+  wiki_is_projection: true
