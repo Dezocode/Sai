@@ -54,6 +54,13 @@ the output above.
    - Your `agent_id` must be unique: `ceo` (CEO only), `dezo-sec-<suffix>`, or
      `monae-sec-<suffix>`. Your folder must be your granted name slug (e.g.
      `sai`), never reuse an existing agent's folder or identity.
+   - **Cursor Cloud / ephemeral runs:** do not invent generic IDs such as
+     `cursor-cloud` or `cursoragent`. Before any agent commit, run artifact,
+     or `[SAI][*]` report, your `agent_id` must appear in
+     `.ai/agents/registry.json` with `status` `active` or `provisional`, or
+     you must complete this protocol through Phase 9 first. Unregistered IDs
+     break audit correlation and block CTO/CEO review (see Saul VERIFY
+     20260813-1511 on PR #61).
 
 **Verification:** you can state, in one sentence each: your principal, your
 charter path, your agent-id, your branch prefix, your default push target,
@@ -98,6 +105,15 @@ active.
 3. If Slack is unreachable, events queue via `scripts/agent-report` (never
    skipped, reordered, or fabricated). Read `.ai/audit/README.md` — you are
    responsible for flushing your queue.
+4. **Event audit trail:** every run's `.ai/runs/<task-id>/events.jsonl` must
+   contain one JSON object per line that satisfies
+   `.ai/shared/schemas/agent-event.schema.json` (required fields include
+   `event_id`, `event_type`, `task_id`, `actor`, `repository`, `timestamp`,
+   `purpose`, `result`). Emit events with `scripts/agent-report emit …` or
+   `scripts/agent-report` subcommands — **never** hand-write Slack-MCP-shaped
+   JSON (`agent_id`, `ts`, `delivery`, `message_ts`). CI runs
+   `scripts/verify-semantic-hierarchy` on every push/PR and rejects malformed
+   `events.jsonl` (common failure on fork/worktree runs).
 
 **Verification:** channel reads succeeded; you know your delivery path and
 its offline fallback. Record the evidence — it goes into `tools.json` in
@@ -144,7 +160,14 @@ and know what you can actually do. Guessing is prohibited in both.
 5. Read the two most recent completed runs in `.ai/runs/` (verification and
    handoff files) — they show how work is actually done here, including
    mistakes already made so you do not repeat them. When you create run
-   artifacts, follow `.ai/runs/README.md`: if a stage writes under
+   artifacts, follow `.ai/runs/README.md`: **`metadata.json` must include
+   the required fields `agent`, `repository`, and `status`** (your
+   `agent_id` / display name alone is not sufficient — CI reads `agent`).
+   Set `head_sha` to the **exact remote tip** after every push — stale
+   `head_sha` values break audit correlation and CTO review (see Saul VERIFY
+   20260813-1511 on PR #62). In `04_verify/output/verification.md`, record
+   the remote HEAD SHA and the GitHub Actions run URL for the current tip
+   (`gh run list --branch <branch> --limit 1`). If a stage writes under
    `06_publish_sync/output/`, you must also have `04_verify/output/` and
    `05_review/output/` — `scripts/verify-semantic-hierarchy` fails CI
    otherwise (common fork/worktree mistake).
@@ -387,8 +410,21 @@ stated) may you say you are initialized and accept tasks.
   artifacts in `.ai/runs/<task-id>/` — CI rejects malformed structure.
 - Every commit carries `Task-ID`/`Agent`/`Plan`/`Report-Event` trailers —
   `pre-push` and CI enforce this on protected refs for agent commits.
+  **`Agent:` is mandatory on every agent commit** — `scripts/verify-agent-audit`
+  fails without it (common contractor failure: `Task-ID` present but `Agent`
+  omitted). Example trailer block:
+  ```
+  Task-ID: 20260730-0127-example-task-ctr-code-alfred1
+  Agent: alfred
+  Plan: 02_plan/output/plan.md
+  Report-Event: CHANGE
+  ```
 - Every push is followed by remote-SHA confirmation; every event type in
-  `.ai/_config/reporting.yaml` is reported or queued.
+  `.ai/_config/reporting.yaml` is reported or queued via `scripts/agent-report`
+  and mirrored to schema-valid `events.jsonl` per
+  `.ai/shared/schemas/agent-event.schema.json`.
+- **`metadata.json` `head_sha` and verify artifacts** must match the remote
+  tip at handoff time; refresh after rebases and force-free fast-forwards.
 - **Merges to `main`:** every agent commit in the merge range must have
   `handoff.md` (or a HANDOFF event); the merge commit carries a Task-ID whose
   run documents the merge. CI runs `verify-merge-handoff` and posts a merge

@@ -28,6 +28,13 @@ write `output/manifest.json`
 
 ## Rules
 
+- **`metadata.json`:** required fields are `task_id`, `agent`, `repository`,
+  and `status`. Use a registered `agent_id` from `.ai/agents/registry.json`
+  — never generic placeholders such as `cursor-cloud`. After every push,
+  update `head_sha` to the verified remote tip (`git rev-parse origin/<branch>`).
+- **`04_verify/output/verification.md`:** must cite the exact remote HEAD SHA
+  and the GitHub Actions run URL for that tip (`gh run list --branch <branch>`).
+  Stale SHAs in verify artifacts block CTO/CEO review.
 - Run artifacts are the audit trail: commit them with the change they
   document.
 - Do **not** commit large generated artifacts, secrets, machine-specific

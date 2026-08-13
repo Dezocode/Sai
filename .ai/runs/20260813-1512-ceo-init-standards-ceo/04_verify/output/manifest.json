@@ -1,0 +1,11 @@
+{
+  "task_id": "20260813-1512-ceo-init-standards-ceo",
+  "stage": "04_verify",
+  "agent": "ceo-automation",
+  "head_sha": "40efe0a0724764fc1cf3c45ed8498b5606a0f453",
+  "ci_run_url": "https://github.com/Dezocode/Sai/actions/runs/31658479056",
+  "outputs": [
+    ".ai/runs/20260813-1512-ceo-init-standards-ceo/04_verify/output/verification.md",
+    ".ai/runs/20260813-1512-ceo-init-standards-ceo/04_verify/output/manifest.json"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "task_id": "20260813-1512-ceo-init-standards-ceo",
+  "stage": "03_implement",
+  "agent": "ceo-automation",
+  "outputs": [
+    ".ai/INITIALIZE.md",
+    ".ai/runs/README.md",
+    ".ai/runs/20260813-1512-ceo-init-standards-ceo/03_implement/output/changes.md",
+    ".ai/runs/20260813-1512-ceo-init-standards-ceo/03_implement/output/manifest.json"
+  ]
+}
