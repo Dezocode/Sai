@@ -74,12 +74,30 @@ jobs:
 
       - name: Ensure PyYAML
         run: |
+          set +e
           if python3 -c 'import yaml' 2>/dev/null; then
             python3 -c 'import yaml; print("pyyaml=present", getattr(yaml, "__version__", ""))'
             exit 0
           fi
+          python3 -m ensurepip --user
           python3 -m pip install --user PyYAML
-          python3 -c 'import yaml; print("pyyaml=installed", yaml.__version__)'
+          if python3 -c 'import yaml' 2>/dev/null; then
+            python3 -c 'import yaml; print("pyyaml=installed-pip", yaml.__version__)'
+            exit 0
+          fi
+          if command -v sudo >/dev/null 2>&1; then
+            sudo -n apt-get update -qq
+            sudo -n apt-get install -y -qq python3-yaml python3-pip
+          fi
+          if python3 -c 'import yaml' 2>/dev/null; then
+            python3 -c 'import yaml; print("pyyaml=installed-apt", getattr(yaml, "__version__", ""))'
+            exit 0
+          fi
+          curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+          python3 /tmp/get-pip.py --user
+          python3 -m pip install --user PyYAML
+          python3 -c 'import yaml; print("pyyaml=installed-getpip", yaml.__version__)'
+          set -e
 
       - name: Invoke Codex as Saul
         id: saul
