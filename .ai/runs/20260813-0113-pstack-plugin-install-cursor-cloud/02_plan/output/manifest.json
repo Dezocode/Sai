@@ -1,0 +1,29 @@
+{
+  "task_id": "20260813-0113-pstack-plugin-install-cursor-cloud",
+  "stage": "02_plan",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T01:13:30Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/01_intake/output/intake.md",
+    ".ai/shared/memory/architecture.md",
+    ".ai/shared/memory/conventions.md",
+    ".ai/shared/memory/known-issues.md",
+    ".ai/shared/memory/decisions/0001-adopt-icm-filesystem-architecture.md",
+    ".ai/shared/memory/decisions/0002-multi-runtime-agent-adapters.md",
+    ".ai/shared/references/testing.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/02_plan/output/plan.md",
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/02_plan/output/manifest.json"
+  ],
+  "decisions": [
+    "0004"
+  ],
+  "commits": [],
+  "events": [
+    "20260813-0113-pstack-plugin-install-cursor-cloud:plan"
+  ],
+  "human_edits": "none",
+  "notes": "Plan posted before material edits. Slash-command registration is .cursor/settings.json; .ai/plugins is ICM index only."
+}

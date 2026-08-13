@@ -1,0 +1,24 @@
+{
+  "task_id": "20260813-0113-pstack-plugin-install-cursor-cloud",
+  "agent": "cursor-cloud",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/pstack-plugin-install-10de",
+  "base_sha": "d07935113ee565281a91f98103832bab0fbe27db",
+  "purpose": "Enable Cursor marketplace plugin pstack for project-scoped slash commands in cloud and local sessions, and index it under .ai/plugins/",
+  "status": "implement",
+  "claimed_files": [
+    ".cursor/settings.json",
+    ".ai/plugins/",
+    ".ai/CONTEXT.md",
+    "AGENTS.md",
+    ".ai/shared/references/agent-runtimes.md",
+    ".ai/shared/memory/decisions/0004-cursor-project-plugins.md",
+    ".ai/shared/memory/conventions.md",
+    ".ai/shared/memory/architecture.md",
+    ".ai/shared/memory/repository-map.md",
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/"
+  ],
+  "trigger": "dezocode mobile Cloud Agent request: /add-plugin pstack; install into .ai; executable from command input in cloud and local sessions",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)"
+}

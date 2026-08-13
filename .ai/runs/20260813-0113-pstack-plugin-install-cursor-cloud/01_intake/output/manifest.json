@@ -1,0 +1,27 @@
+{
+  "task_id": "20260813-0113-pstack-plugin-install-cursor-cloud",
+  "stage": "01_intake",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T01:13:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/CONTEXT.md",
+    ".ai/_config/repositories.yaml",
+    ".ai/_config/reporting.yaml",
+    ".ai/_config/security-policy.md",
+    ".ai/agents/registry.json",
+    ".ai/runs/README.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/metadata.json",
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/01_intake/output/intake.md",
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/01_intake/output/manifest.json"
+  ],
+  "decisions": [],
+  "commits": [],
+  "events": [
+    "20260813-0113-pstack-plugin-install-cursor-cloud:intake"
+  ],
+  "human_edits": "none",
+  "notes": "Requester dezocode via mobile Cloud Agent. pstack is Cursor marketplace plugin 0.14.0 (MIT)."
+}

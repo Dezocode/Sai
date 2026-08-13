@@ -20,6 +20,9 @@ decision records once they exist.
 
 - ICM (arXiv:2603.16021) filesystem workspace under `.ai/` — see
   `.ai/CONTEXT.md` for the layer map.
+- Cursor Marketplace plugins are enabled at project scope in
+  `.cursor/settings.json` and indexed under `.ai/plugins/` (decision 0004).
+  First plugin: pstack (`/poteto-mode`).
 - Three agents: CEO (orchestrator), secretary-dezocode, secretary-monaecode.
   Charters under `.ai/agents/_roles/`; named agent profiles under
   `.ai/agents/<name>/`.

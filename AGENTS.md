@@ -30,6 +30,14 @@ Run the same suite CI runs — sources: `.github/workflows/agent-audit.yml` and
 - `scripts/verify-merge-handoff origin/main..HEAD` — HANDOFF documentation gate.
 - `python3 -m json.tool <file>` / `python3 -c 'import yaml,...'` — JSON/YAML lint.
 
+### Cursor plugins (slash commands)
+
+This repo enables the **pstack** marketplace plugin at project scope in
+`.cursor/settings.json`. After a **new** Cloud Agent or a local window
+reload on a commit that includes that file, type `/` in command input and
+use `/poteto-mode` (default) or `/setup-pstack`. ICM index:
+`.ai/plugins/pstack/`. Cursor does not load plugins from `.ai/`.
+
 ### Non-obvious gotchas
 - **Commit trailers are enforced.** The cloud git identity
   (`cursoragent@cursor.com`) matches the "agent commit" detector, so **every**

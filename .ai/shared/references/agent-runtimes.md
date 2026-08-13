@@ -18,7 +18,7 @@
 
 | Suite folder | `primary_runtime` values | Layer 0 entry | Automation mechanism |
 |---|---|---|---|
-| `runtimes/cursor/` | `cursor-desktop`, `cursor-cloud-vm` | `.cursor/rules/sai-coordination.mdc` + `@<name>` | Cursor Automations UI |
+| `runtimes/cursor/` | `cursor-desktop`, `cursor-cloud-vm` | `.cursor/rules/sai-coordination.mdc` + `@<name>`; project plugins via `.cursor/settings.json` (index: `.ai/plugins/`) | Cursor Automations UI |
 | `runtimes/claude/` | `claude-code-cli` | `CLAUDE.md` | Claude Code scheduled tasks / MCP connectors |
 | `runtimes/claude/agent-sdk/` | (same) | `.ai/shared/references/claude-agent-sdk.md` | **Agent SDK** `@anthropic-ai/claude-agent-sdk` / `claude-agent-sdk` — dispatch, hooks, MCP |
 | `runtimes/codex/` | `codex-desktop` | `CODEX.md` | Codex Desktop app (stub until live init) |
