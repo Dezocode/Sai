@@ -6,7 +6,7 @@
   "branch": "cursor/redact-intake-email-10de",
   "base_sha": "3186cfbad7f4c8fb91043b365a569fdfae4eac27",
   "purpose": "Redact personal email from merged pstack run intake per Codex P1 and dezocode fix request on PR #57",
-  "status": "implement",
+  "status": "handoff",
   "claimed_files": [
     ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/01_intake/output/intake.md",
     ".ai/shared/memory/conventions.md",
