@@ -14,16 +14,24 @@ Enforce codebase health through a versioned **check registry**
 
 1. Every health check is either `active` (wired in CI, has a self-test) or
    `deferred` (named trigger; not yet a gate).
-2. A meta-check fails if an active check's `ci_marker` is missing from
-   `.github/workflows/agent-audit.yml`, or if a root `scripts/verify-*` file
-   is not registered.
+2. A meta-check fails unless each **active** check's `command` is an
+   executable `run:` invocation in `.github/workflows/agent-audit.yml`
+   (token-prefix match, longest command wins). Mentions in `grep`,
+   comments, `test -f`, `echo`, or `chmod` do not count. A root
+   `scripts/verify-*` file must be registered.
 3. Active dispatcher scans cover **bloat** (line/byte limits), **duplicates**
    (exact hash and line-shingle near-copies), and **orphans** (unreferenced
-   scripts).
-4. Runtime evaluation (`--self-test`) must run in CI before the live scan.
-5. Language-specific lint, coverage, import-graph orphans, and AST clone
+   scripts). Duplicate-family exemptions are YAML `duplicates.families`
+   patterns, not hardcoded names.
+4. `self_test` is an enum: `synthetic`, `live-pass`, or `none`. Class
+   `health-detector` requires `synthetic` plus named positive and negative
+   fixtures that `--self-test` actually executes. `live-pass` means this
+   tree currently passes; it is **not** a negative evaluation of the
+   checker.
+5. Runtime evaluation (`--self-test`) must run in CI before the live scan.
+6. Language-specific lint, coverage, import-graph orphans, and AST clone
    detection stay **deferred** until an accepted application stack decision
-   exists.
+   exists. Line-shingle Jaccard is not semantic clone detection.
 
 ## Context
 
@@ -45,10 +53,11 @@ has no accepted product stack (DR-20260724).
 
 ## Rationale
 
-A registry is the inventory Saul's lane asked for, and it works before a
-stack exists. The meta-check is what makes "every health check is in CI"
-true as agents add verifiers. Self-tests prove detectors fail on bad input,
-not only that the current tree is green.
+A registry is a **health-check inventory**, not Saul's module/interface
+semantic-tracking schema. The meta-check makes "every active check is
+executed in CI" true only if it inspects `run:` invocations, not raw
+workflow text. Synthetic fixtures prove dispatcher detectors fail on bad
+input; `live-pass` does not.
 
 ## Consequences
 
@@ -59,7 +68,17 @@ not only that the current tree is green.
 - Thresholds and allowlists live in the YAML; raising a limit requires a
   reviewed commit with a reason.
 - Forks inherit the workflow by SHA sync per `icm-ci-policy.md`.
+- Saul roadmap: **Code-health inventory** is `active`; **Semantic tracking**
+  stays `proposed` until module/interface/AST/import analysis exists.
+
+## Amendment (2026-08-13, PR #62 CTO REQUEST CHANGES)
+
+Executable `run:` matching replaced substring `ci_marker` search. Self-test
+modes are validated as an enum with required fixtures for `health-detector`.
+Duplicate families are YAML patterns. Duplicate PASS is emitted only when
+that detector recorded zero failures.
 
 ## Supersedes
 
-Nothing. Complements 0001 (ICM CI) and Saul roadmap lane `observability`.
+Nothing. Complements 0001 (ICM CI). Does **not** activate the Semantic
+tracking roadmap lane.

@@ -19,9 +19,11 @@ they exist.
 
 Code health is enforced independently of the stack via
 `.ai/_config/code-health.yaml` and `scripts/verify-code-health` (decision
-0005): bloat, duplicates, orphans, CI coverage for every active check, and
-runtime `--self-test`. Language-specific tests stay deferred until a stack
-decision exists.
+0005): bloat, duplicates, orphans, and CI coverage that requires an
+executable `run:` step for every active check. Dispatcher detectors have
+synthetic positive/negative fixtures. `live-pass` is not a negative
+evaluation. Language-specific tests stay deferred until a stack decision
+exists. Line-shingle Jaccard is not semantic clone detection.
 
 ## Agent system architecture
 

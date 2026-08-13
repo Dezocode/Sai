@@ -80,6 +80,7 @@ required = (
      "scripts/agent-contract-scaffold", "scripts/agent-contract-pr-review",
      "scripts/verify-scaffold-safety", "scripts/verify-agent-setup",
      "scripts/verify-code-health", "scripts/lib/code-health.py",
+     "scripts/lib/code-health-ci.py",
      "scripts/lib/agent-path-guards.sh"]
     + ([".ai/shared/references/claude-agent-sdk.md"] if os.path.isfile(".ai/shared/references/claude-agent-sdk.md") else [])
     + [f".ai/stages/{s}/CONTEXT.md" for s in STAGES]

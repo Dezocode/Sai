@@ -19,15 +19,17 @@ on every push and every PR to `main`.
 
 1. Implement a deterministic command (prefer `scripts/verify-<name>`).
 2. Add a row to `checks:` in `.ai/_config/code-health.yaml` with `status`,
-   `command`, `ci_marker`, and `self_test`.
-3. If `active`: put `ci_marker` verbatim in `agent-audit.yml` and give the
-   check a self-test (`synthetic` for dispatcher detectors, `live-pass` for
-   existing verifiers that already run on this repo).
+   `command`, `class`, and `self_test` (`synthetic`, `live-pass`, or `none`).
+3. If `active`: the `command` must appear as an executable `run:` step in
+   `agent-audit.yml` (not merely in `grep -q`, a comment, `test -f`, `echo`,
+   or `chmod`). Class `health-detector` requires `self_test: synthetic` and
+   named positive+negative `fixtures` that `--self-test` executes.
 4. If the stack does not exist yet, add `status: deferred` and
    `activate_when` instead of a silent skip.
 5. Run `scripts/verify-code-health --self-test` and `scripts/verify-code-health`.
 
-The meta-check **fails CI** when step 3 is skipped.
+The meta-check **fails CI** when an active `command` is not an executable
+`run:` step.
 
 ## What each live detector means
 
@@ -36,7 +38,7 @@ The meta-check **fails CI** when step 3 is skipped.
 | **Bloat** | Tracked file exceeds line/byte limit for its extension | Paths in `bloat.allowlist` (must include a reason in the commit) |
 | **Duplicates** | Unexpected identical content, or Jaccard ≥ threshold on line shingles | Empty files; ICM families (runtime README stubs; mirrored `automation/profile.md`); excluded basenames (`CONTEXT.md`, `tools.json`, …) |
 | **Orphans** | A file under `orphans.roots` is never mentioned by another tracked file | Mentions in docs, CI, hooks, or other scripts; `.ai/runs/` is not a scan corpus |
-| **CI coverage** | Active `ci_marker` missing from the workflow, or a root `scripts/verify-*` is unregistered | `deferred` checks with a written `activate_when` |
+| **CI coverage** | An active check's `command` is not an executable `run:` invocation, or a root `scripts/verify-*` is unregistered | `grep`/`test`/`echo`/`chmod`/comment mentions; `deferred` rows with `activate_when` |
 
 ## When the app stack is chosen
 
@@ -46,6 +48,12 @@ record and the real commands. Do not invent npm/pip tools before that
 commit.
 
 ## Runtime evaluation
+
+`self_test` is an enum. `synthetic` (required for class `health-detector`)
+means named fixtures include at least one negative and one positive case
+and `--self-test` executes them. `live-pass` means the current repository
+passes that command; it does **not** prove the checker rejects invalid
+input.
 
 See `tests/code-health/README.md`. Fixture trees are built in `/tmp` so
 known-bad oversized files are never committed.

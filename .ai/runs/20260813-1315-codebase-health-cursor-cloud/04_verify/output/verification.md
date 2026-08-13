@@ -26,6 +26,22 @@
 - Drive sync: pending (`rclone` / `SAI_DRIVE_REMOTE` unset).
 - `openclaw-dashboard/scripts/verify-secrets-compliance.sh` and `verify-ingest-latency.sh`: registered `deferred`, not executed as gates.
 
+## CTO remediation (Saul REQUEST CHANGES)
+
+Local, after implementing executable `run:` matching, self-test enum,
+YAML families, roadmap lane split, and duplicate PASS gating:
+
+| Command | Result |
+|---|---|
+| `scripts/verify-code-health --self-test` | PASS — 12 fixtures including `ci-coverage-mention-only`, `registry-mode-invalid`, `registry-health-detector-livepass` |
+| `scripts/verify-code-health` | PASS — 30 PASS, active rows reported as **executed** |
+| `scripts/verify-semantic-hierarchy` | PASS |
+
+GitHub Actions on the remediated head is not yet observed in this
+section; it must re-run after push. Prior green CI on `0b89c13` does
+**not** close the P1s — that is what Saul reviewed.
+
 ## Notes
 
 Self-test prints `SELFTEST PASS` only (detector FAIL lines are quiet during fixtures so CI logs are not ambiguous).
+`live-pass` is not claimed as negative evaluation.

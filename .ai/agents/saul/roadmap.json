@@ -16,6 +16,7 @@
     {"id": "prototypes", "label": "Prototype environments", "status": "proposed", "next": "Define prototype intake and compatibility manifest"},
     {"id": "agents", "label": "Agent runtime integrity", "status": "active", "next": "Audit runtime-specific capability evidence"},
     {"id": "ci", "label": "Development CI", "status": "active", "next": "Add stack checks only when the stack exists"},
-    {"id": "observability", "label": "Semantic tracking", "status": "active", "next": "Keep code-health.yaml complete; promote deferred app checks when the stack lands"}
+    {"id": "code-health", "label": "Code-health inventory", "status": "active", "next": "Keep code-health.yaml complete; promote deferred app checks when the stack lands"},
+    {"id": "observability", "label": "Semantic tracking", "status": "proposed", "next": "Define module/interface inventory and AST/import clone detection after the stack decision"}
   ]
 }

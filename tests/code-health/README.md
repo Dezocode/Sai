@@ -11,8 +11,11 @@ asserts:
 | two distinct files | duplicates | PASS |
 | unreferenced `scripts/*` | orphans | FAIL |
 | script mentioned in README | orphans | PASS |
-| workflow missing `ci_marker` | ci-coverage | FAIL |
-| workflow contains marker | ci-coverage | PASS |
+| workflow missing the command | ci-coverage | FAIL |
+| workflow `run:` actually invokes the command | ci-coverage | PASS |
+| command only in `grep` / comment / `test` / `echo` / `chmod` | ci-coverage | FAIL |
+| `self_test: totally-made-up` | registry | FAIL |
+| class `health-detector` with `live-pass` | registry | FAIL |
 
 CI runs `--self-test` **before** the live scan so a broken detector cannot
 silently pass an empty or already-green tree.

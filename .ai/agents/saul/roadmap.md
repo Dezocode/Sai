@@ -26,7 +26,8 @@ flowchart LR
 | Prototype environments | proposed | Define prototype intake and compatibility manifests |
 | Agent runtime integrity | active | Audit runtime-specific capability evidence |
 | Development CI | active | Add stack checks when the stack exists |
-| Semantic tracking | active | Keep `.ai/_config/code-health.yaml` complete; promote deferred app checks when the stack lands |
+| Code-health inventory | active | Keep `.ai/_config/code-health.yaml` complete; promote deferred app checks when the stack lands |
+| Semantic tracking | proposed | Define a module/interface inventory and AST/import clone detection after the stack decision |
 
 ## Operating rules
 
