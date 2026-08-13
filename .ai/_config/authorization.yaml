@@ -142,6 +142,8 @@ human_gate:
 
 codex:
   execution_host: dedicated-self-hosted-github-actions-runner
+  proven_runner_name: hostinger-saul-codex
+  proven_github_run_id: "31728732258"
   workflow: ".github/workflows/saul-review.yml"
   runs_on: [self-hosted]
   authentication: runner-local-codex-cli

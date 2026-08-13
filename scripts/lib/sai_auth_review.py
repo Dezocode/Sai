@@ -190,11 +190,16 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
         if doc.get("synthetic") or not doc.get("codex_invoked"):
             doc["disposition"] = "BLOCKED"
             doc["reason"] = "REFUSED_UNVERIFIED_APPROVE"
+    try:
+        text = a.dump_yaml(doc)
+    except Exception:
+        text = json.dumps(doc, indent=2, default=str) + "\n"
     if dest:
-        a.write_yaml(dest, doc)
+        Path(dest).parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(text, encoding="utf-8")
     if out:
-        Path(out).write_text(a.dump_yaml(doc), encoding="utf-8")
-    print(a.dump_yaml(doc))
+        Path(out).write_text(text, encoding="utf-8")
+    print(text)
     print(f"SAUL_DISPOSITION {doc.get('disposition')} key={key} file={dest}")
     rc = 0 if doc.get("disposition") == "APPROVE" else 1
     return rc, doc

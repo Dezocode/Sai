@@ -37,8 +37,11 @@ permissions:
 
 jobs:
   invoke-saul:
-    # Built-in self-hosted label only. Custom labels are pinned after the
-    # Jobs API reports the assigned runner. Do not guess saul-codex.
+    # Proven 2026-08-13 run 31728732258: runner_name=hostinger-saul-codex,
+    # runner_group=Default, labels used=[self-hosted], Linux/X64,
+    # hostname=c775b2b0df55, /.dockerenv present, docker CLI absent,
+    # codex-cli 0.147.0 at /usr/bin/codex, ~/.codex present.
+    # Jobs API did not return extra custom labels; do not guess saul-codex.
     runs-on: [self-hosted]
     timeout-minutes: 45
     steps:
@@ -68,6 +71,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Ensure PyYAML
+        run: |
+          if python3 -c 'import yaml' 2>/dev/null; then
+            python3 -c 'import yaml; print("pyyaml=present", getattr(yaml, "__version__", ""))'
+            exit 0
+          fi
+          python3 -m pip install --user PyYAML
+          python3 -c 'import yaml; print("pyyaml=installed", yaml.__version__)'
 
       - name: Invoke Codex as Saul
         id: saul
