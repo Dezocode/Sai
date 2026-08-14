@@ -24,9 +24,10 @@ audit:
     - sha: "d14402e625aad54a5dff5d0f00785291d83c414a"
       original_task_id: "20260813-runtime-intelligence-plane"
       reason: "human Decision 0007 docs commit; grammar exception only"
-  # CTO-028: SHA-bound pins are not loaded from this contractor-writable file.
+  # CTO-028/029: SHA-bound pins are not loaded from this contractor-writable file.
   # Source is git show HEAD:.ai/authorizations/sha-bound-authorization.yaml
-  # (officer issuer + issuer_grant). Ignore sha_bound_authorization if present.
+  # proven at introduced_by_sha (officer commit-time grant, not HEAD grant).
+  # Ignore sha_bound_authorization if present.
 
 activation:
   mode: lazy-first-write

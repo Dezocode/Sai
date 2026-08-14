@@ -79,17 +79,46 @@ def _issuer_ok(cfg, issuer):
     return issuer in PIN_ISSUERS and issuer in (cfg.get("officers") or {})
 
 
-def _issuer_grant_ok(root, grant_id, issuer):
-    if not grant_id or not issuer:
+def _hex40(v):
+    s = str(v or "").strip().lower()
+    return s if len(s) == 40 and all(c in "0123456789abcdef" for c in s) else ""
+
+
+def _pin_ident(r):
+    return (r.get("sha"), r.get("agent_id"), r.get("task_id"), r.get("authorization_id"))
+
+
+def _field(row, doc, key):
+    return row.get(key) or (doc or {}).get(key)
+
+
+def _find_pin(doc, ident):
+    if not isinstance(doc, dict):
+        return None
+    for ir in doc.get("pins") or []:
+        if isinstance(ir, dict) and _pin_ident(ir) == ident:
+            return ir
+    return None
+
+
+def _introducer_ok(root, cfg, intro, issuer, grant_id):
+    """Commit-time officer grant at introduced_by_sha; never HEAD grants or pins."""
+    if a.git(root, "cat-file", "-e", intro).returncode != 0:
         return False
-    for g in list_grants(root, sha="HEAD"):
-        if g.get("id") == grant_id and g.get("principal") == issuer:
-            return True
-    return False
+    if a.git(root, "cat-file", "-e", f"{intro}:{SHA_BOUND_REL}").returncode != 0:
+        return False
+    tr = a.parse_trailers(a.commit_message(root, intro))
+    agent, task, auth = tr.get("Agent"), tr.get("Task-ID"), tr.get("Authorization-ID")
+    if agent != issuer or not _issuer_ok(cfg, agent) or not grant_id or grant_id != auth:
+        return False
+    return bool(matching_grant(
+        root, agent, task, a.commit_paths(root, intro),
+        sha=intro, grant_id=grant_id, runtime=tr.get("Runtime"), use_pins=False,
+    ))
 
 
 def sha_bound_rows(root, cfg=None):
-    """Officer SHA-bound pins from git show HEAD, never working tree or _config."""
+    """Pins via git show HEAD, proven at introduced_by_sha (CTO-029). Never WT/_config."""
     text = a.git_show(root, "HEAD", SHA_BOUND_REL)
     if not text:
         return []
@@ -97,20 +126,35 @@ def sha_bound_rows(root, cfg=None):
     if not isinstance(doc, dict):
         return []
     cfg = cfg or a.load_config(root)
-    file_issuer = doc.get("issuer")
-    file_grant = doc.get("issuer_grant")
-    rows = doc.get("pins") or []
     out = []
-    for r in rows:
+    for r in doc.get("pins") or []:
         if not isinstance(r, dict):
             continue
-        issuer = r.get("issuer") or file_issuer
-        grant_id = r.get("issuer_grant") or file_grant
-        if not _issuer_ok(cfg, issuer) or not _issuer_grant_ok(root, grant_id, issuer):
+        source = str(_field(r, doc, "source") or "").strip()
+        intro = _hex40(_field(r, doc, "introduced_by_sha"))
+        issuer = _field(r, doc, "issuer")
+        grant_id = _field(r, doc, "issuer_grant")
+        ident = _pin_ident(r)
+        if not source or not intro or not all(ident) or not _issuer_ok(cfg, issuer):
             continue
-        row = dict(r)
-        row["issuer"] = issuer
-        row["issuer_grant"] = grant_id
+        intro_doc = a.load_yaml(a.git_show(root, intro, SHA_BOUND_REL) or "")
+        found = _find_pin(intro_doc, ident)
+        if not found:
+            continue
+        bound_grant = _field(found, intro_doc, "issuer_grant")
+        bound_source = str(_field(found, intro_doc, "source") or "").strip()
+        bound_issuer = _field(found, intro_doc, "issuer")
+        if not bound_source or bound_source != source:
+            continue
+        if bound_grant != grant_id or bound_issuer != issuer:
+            continue
+        if not _introducer_ok(root, cfg, intro, bound_issuer, bound_grant):
+            continue
+        row = dict(found)
+        row.update(
+            issuer=bound_issuer, issuer_grant=bound_grant,
+            source=bound_source, introduced_by_sha=intro,
+        )
         out.append(row)
     return out
 
@@ -150,11 +194,15 @@ def grant_covers(grant, agent_id, task_id, paths, runtime=None, extra_task_ids=N
     return True
 
 
-def matching_grant(root, agent_id, task_id, paths, *, sha=None, grant_id=None, runtime=None):
+def matching_grant(root, agent_id, task_id, paths, *, sha=None, grant_id=None,
+                   runtime=None, use_pins=True):
     for g in list_grants(root, sha=sha):
         if grant_id and g.get("id") != grant_id:
             continue
-        extra = sha_bound_task_ids(root, sha, agent_id, g.get("id")) if sha else []
+        extra = (
+            sha_bound_task_ids(root, sha, agent_id, g.get("id"))
+            if sha and use_pins else []
+        )
         if grant_covers(g, agent_id, task_id, paths, runtime=runtime, extra_task_ids=extra):
             return g
     return None

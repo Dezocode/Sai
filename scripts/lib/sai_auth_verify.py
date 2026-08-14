@@ -14,8 +14,8 @@ import sai_auth_flow as flow  # noqa: E402
 from sai_auth_grant import (  # noqa: E402
     matching_grant, officer_grant_required, lease_task_id_bound,
 )
-# CTO-028: SHA-bound pins load only via sai_auth_grant.sha_bound_rows
-# (git show HEAD:.ai/authorizations/sha-bound-authorization.yaml).
+# CTO-029: SHA-bound pins load via sha_bound_rows (git show HEAD pin file,
+# proven at introduced_by_sha with commit-time officer grant, not HEAD grant).
 
 
 def _trailers_from_session(session):

@@ -20,6 +20,7 @@ ADMIN_GRANT = "grant-test-ctr-admin"
 POLICY = ".ai/_config/authorization.yaml"
 PIN_REL = ".ai/authorizations/sha-bound-authorization.yaml"
 REASON = "wave used new Task-ID before grant/lease aliases existed; no history rewrite"
+SOURCE = "https://github.com/Dezocode/Sai/pull/62#issuecomment-5288630796"
 
 
 def _fails(d, sha, branch="feat/auth"):
@@ -104,10 +105,12 @@ def _add_pin(cfg, sha, agent_id, task_id, auth_id):
     return cfg
 
 
-def _pin_yaml(sha, agent_id, task_id, auth_id, issuer="ceo", issuer_grant=GRANT_ID):
-    return a.dump_yaml({
+def _pin_yaml(sha, agent_id, task_id, auth_id, issuer="ceo", issuer_grant=GRANT_ID,
+              source=SOURCE, introduced_by_sha=None):
+    doc = {
         "issuer": issuer,
         "issuer_grant": issuer_grant,
+        "source": source,
         "pins": [{
             "sha": sha,
             "agent_id": agent_id,
@@ -115,7 +118,14 @@ def _pin_yaml(sha, agent_id, task_id, auth_id, issuer="ceo", issuer_grant=GRANT_
             "authorization_id": auth_id,
             "reason": REASON,
         }],
-    })
+    }
+    if introduced_by_sha:
+        doc["introduced_by_sha"] = introduced_by_sha
+        doc["pins"][0]["introduced_by_sha"] = introduced_by_sha
+        doc["pins"][0]["source"] = source
+        doc["pins"][0]["issuer"] = issuer
+        doc["pins"][0]["issuer_grant"] = issuer_grant
+    return a.dump_yaml(doc)
 
 
 def _pin_tr(issuer="ceo"):
@@ -131,10 +141,18 @@ def _pin_tr(issuer="ceo"):
 
 def _commit_pin(d, sha, agent_id, task_id, auth_id, issuer="ceo", issuer_grant=None):
     issuer_grant = issuer_grant or (GRANT_ID if issuer == "ceo" else ADMIN_GRANT)
-    return _commit(
+    intro = _commit(
         d, {PIN_REL: _pin_yaml(sha, agent_id, task_id, auth_id, issuer, issuer_grant)},
         "officer sha-bound pin", _pin_tr(issuer),
     )
+    _commit(
+        d, {PIN_REL: _pin_yaml(
+            sha, agent_id, task_id, auth_id, issuer, issuer_grant,
+            introduced_by_sha=intro,
+        )},
+        "officer pin provenance", _pin_tr(issuer),
+    )
+    return intro
 
 
 def _commit_config_pin(d, sha, agent_id, task_id, auth_id):
@@ -285,6 +303,48 @@ def run_rebind_fixtures():
             any("path out of scope" in x for x in bad),
             bad,
         )
+
+        d = _init(tmp / "forged-missing")
+        _write_grant(d)
+        _commit(d, {GRANT_REL: (d / GRANT_REL).read_text(), ".ai/runs/old.md": "a\n"},
+                "grant old", _ceo_tr(CEO_OLD))
+        sha = _commit(d, {".ai/runs/new.md": "b\n"}, "wave", _ceo_tr(CEO_NEW))
+        _commit(d, {PIN_REL: _pin_yaml(sha, "ceo", CEO_NEW, GRANT_ID)},
+                "forged officer pin no intro", _pin_tr())
+        bad = _fails(d, sha)
+        _expect("forged-head-pin-missing-introduced-by-sha-bad", bool(bad), bad)
+        executed.add("forged-head-pin-missing-introduced-by-sha-bad")
+        _commit(
+            d, {PIN_REL: _pin_yaml(
+                sha, "ceo", CEO_NEW, GRANT_ID, introduced_by_sha=sha,
+            )},
+            "forged intro points at wave", _pin_tr(),
+        )
+        bad = _fails(d, sha)
+        _expect("forged-head-pin-wrong-introduced-by-sha-bad", bool(bad), bad)
+        executed.add("forged-head-pin-wrong-introduced-by-sha-bad")
+
+        d = _init(tmp / "head-grant-rewrite")
+        _write_grant(d)
+        _commit(d, {GRANT_REL: (d / GRANT_REL).read_text(), ".ai/runs/old.md": "a\n"},
+                "grant old", _ceo_tr(CEO_OLD))
+        sha = _commit(d, {".ai/runs/new.md": "b\n"}, "wave", _ceo_tr(CEO_NEW))
+        intro = _commit(
+            d, {PIN_REL: _pin_yaml(sha, "ceo", CEO_NEW, GRANT_ID)},
+            "pin intro unauthorized task", _ceo_tr(CEO_NEW),
+        )
+        _commit(
+            d, {PIN_REL: _pin_yaml(
+                sha, "ceo", CEO_NEW, GRANT_ID, introduced_by_sha=intro,
+            )},
+            "stamp intro sha", _ceo_tr(CEO_OLD),
+        )
+        _write_grant(d, task_ids=[CEO_OLD, CEO_NEW])
+        _commit(d, {GRANT_REL: (d / GRANT_REL).read_text()},
+                "rewrite HEAD grant", _ceo_tr(CEO_OLD))
+        bad = _fails(d, sha)
+        _expect("rewritten-head-grant-does-not-authorize-intro-bad", bool(bad), bad)
+        executed.add("rewritten-head-grant-does-not-authorize-intro-bad")
 
         root = tmp / "self-pass"
         rel = "ledger.yaml"
