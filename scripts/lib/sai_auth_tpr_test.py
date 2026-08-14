@@ -54,6 +54,20 @@ def _step_chunk(text: str, name: str) -> str:
     return text.split(needle, 1)[1].split("\n      - name:", 1)[0]
 
 
+def _blank(value) -> bool:
+    if value is None:
+        return True
+    return isinstance(value, str) and not str(value).strip()
+
+
+def _yaml_empty_override(chunk: str, key: str) -> bool:
+    for line in chunk.splitlines():
+        s = line.strip()
+        if s == f'{key}: ""' or s == f"{key}: ''" or s == f"{key}:":
+            return True
+    return False
+
+
 def _step_env(doc: dict, name: str) -> dict:
     jobs = doc.get("jobs") if isinstance(doc, dict) else None
     if not isinstance(jobs, dict):
@@ -110,10 +124,20 @@ def run_tpr_fixtures():
     if not isolated.get("OPENAI_API_KEY") or not isolated.get("CODEX_API_KEY"):
         raise RuntimeError("model keys must remain")
     invoke_env = _step_env(trusted_doc, "Invoke Codex as Saul")
-    if "GITHUB_TOKEN" in invoke_env:
-        raise RuntimeError("Invoke Codex env must not contain GITHUB_TOKEN")
-    if "GITHUB_TOKEN:" in _step_chunk(trusted_text, "Invoke Codex as Saul"):
-        raise RuntimeError("Invoke Codex env block contains GITHUB_TOKEN:")
+    chunk = _step_chunk(trusted_text, "Invoke Codex as Saul")
+    for key in ("GITHUB_TOKEN", "GH_TOKEN"):
+        if key not in invoke_env:
+            raise RuntimeError(f"Invoke Codex env must explicitly override {key}")
+        if not _blank(invoke_env.get(key)):
+            raise RuntimeError(f"Invoke Codex {key} must be empty")
+        if not _yaml_empty_override(chunk, key):
+            raise RuntimeError(f'Invoke Codex must contain {key}: "" (or YAML empty)')
+    post = _step_chunk(trusted_text, "Post review comment")
+    status = _step_chunk(trusted_text, "Commit status")
+    claim = _step_chunk(trusted_text, "Claim remediation transition")
+    for pub, label in ((post, "Post review comment"), (status, "Commit status"), (claim, "Claim")):
+        if "GH_TOKEN:" not in pub:
+            raise RuntimeError(f"{label} must keep GH_TOKEN")
     print("SELFTEST PASS  tpr-d-codex-env-no-github-token")
 
     executed.add("tpr-e-codex-env-no-ssh-docker")

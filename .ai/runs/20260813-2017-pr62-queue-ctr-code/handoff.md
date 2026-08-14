@@ -25,5 +25,11 @@ weak in Hostinger container; runner-group UNKNOWN/VERIFY_REQUIRED.
 
 `self_pass: false`. `do_not_merge: true`. `do_not_push: true`.
 
+TPR-002 follow-up (Cora v12 reuse, no A-013): Invoke Codex as
+Saul now sets `GITHUB_TOKEN: ""` / `GH_TOKEN: ""` and unsets both
+before chmod/invoke. Publisher Claim/Post/Status keep GH_TOKEN.
+tpr-d requires the empty override. Status stays
+IMPLEMENTED_AWAITING_SAUL. Did not PASS. Did not push.
+
 Next: qualifying Saul review of this exact head. Human merge of
 PR #62 remains the trusted-workflow activation event.

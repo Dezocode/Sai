@@ -33,3 +33,4 @@
 "notes":
 - "IMPLEMENTED_AWAITING_SAUL. Not PASSED. Do not default danger-full-access. Do not merge."
 - "Residual: OPENAI_API_KEY/CODEX_API_KEY remain for the model; Landlock not claimed absolute."
+- "20260814: Invoke Codex now blanks GITHUB_TOKEN/GH_TOKEN (yml env + unset); publisher GH_TOKEN kept. Not PASS."
