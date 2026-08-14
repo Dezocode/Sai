@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# sai-wait — non-model primary wait (~15 min default). Early-wake on digest.
+# referenced: scripts/lib/sai_auth_wait.py scripts/lib/sai_auth_wait_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_wait.py" "$@"

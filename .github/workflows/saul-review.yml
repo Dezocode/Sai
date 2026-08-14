@@ -103,6 +103,9 @@ jobs:
           elif [ -x /opt/sai/trusted-reviewer/scripts/invoke-saul-review ]; then
             cp -a /opt/sai/trusted-reviewer/. "$TRUSTED/"
             TRUST_MODE=runner-image
+          elif [ -x "${HOME}/sai/trusted-reviewer/scripts/invoke-saul-review" ]; then
+            cp -a "${HOME}/sai/trusted-reviewer/." "$TRUSTED/"
+            TRUST_MODE=runner-image
           elif [ -n "${BASE_SHA:-}" ] && git cat-file -e "${BASE_SHA}:scripts/invoke-saul-review" 2>/dev/null; then
             archive_trusted "$BASE_SHA"
             TRUST_MODE=base-ref

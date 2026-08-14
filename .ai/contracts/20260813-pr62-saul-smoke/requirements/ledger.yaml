@@ -48,3 +48,11 @@ requirements:
       - trusted-reviewer-never-candidate-HEAD
       - real-Saul-and-Sai-must-evaluate-exact-head
       - do-not-merge-do-not-mark-ready
+  - requirement_id: REQ-20260813-blocker-authority
+    source: "PR #62 max-effort continuation (persistent primary + blocker authority)"
+    authority: dezocode
+    timestamp: "2026-08-13T23:54:00Z"
+    scope: blocker-authority-and-qualifying-saul
+    digest: discovery-not-clearance-saul-technical-sai-governance-15min-wait
+    status: in-progress
+    blocking: true

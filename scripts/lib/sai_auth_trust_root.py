@@ -23,6 +23,16 @@ ARCHIVE_PATHS = (
     ".ai/shared/schemas/contract-review.schema.json",
     ".ai/shared/memory/decisions/0006-agent-authorization-loop.md",
 )
+OPTIONAL_ARCHIVE = (
+    ".ai/agents/saul",
+    ".ai/agents/_roles/secretary-dezocode",
+    ".ai/CONTEXT.md",
+    ".ai/shared/memory/decisions/0008-persistent-primary-cursor-orchestrator.md",
+)
+
+
+def _in_tree(root, sha, rel):
+    return a.git(root, "cat-file", "-e", f"{sha}:{rel}").returncode == 0
 
 
 def _rev_parse(root, rev):
@@ -51,7 +61,10 @@ def provision(root, dest, from_sha, *, confirm_trust=False, actor="unknown"):
     dest_path = Path(dest)
     dest_path.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
-        cmd = ["git", "-C", str(root), "archive", resolved, *ARCHIVE_PATHS]
+        cmd = ["git", "-C", str(root), "archive", resolved]
+        for rel in list(ARCHIVE_PATHS) + list(OPTIONAL_ARCHIVE):
+            if _in_tree(root, resolved, rel):
+                cmd.append(rel)
         proc = subprocess.run(cmd, capture_output=True)
         if proc.returncode != 0:
             return {

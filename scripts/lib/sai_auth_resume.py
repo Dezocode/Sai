@@ -78,7 +78,7 @@ def latest_saul(root, contract_id, *, prefer_head=None, state_saul=None):
     if matching:
         matching.sort(key=lambda x: x[0], reverse=True)
         return matching[0][1]
-    if isinstance(state_saul, dict):
+    if isinstance(state_saul, dict) and (not prefer_head or _head(state_saul) == prefer_head):
         return state_saul
     return None
 

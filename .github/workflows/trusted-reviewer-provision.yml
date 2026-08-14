@@ -40,7 +40,17 @@ jobs:
           set -euo pipefail
           chmod +x scripts/provision-trusted-reviewer-root
           SHA="${{ github.event.inputs.from_sha || github.sha }}"
-          DEST="${SAI_TRUSTED_REVIEWER_ROOT:-/opt/sai/trusted-reviewer}"
+          DEST="${SAI_TRUSTED_REVIEWER_ROOT:-}"
+          if [ -z "$DEST" ]; then
+            if mkdir -p /opt/sai/trusted-reviewer 2>/dev/null; then
+              DEST=/opt/sai/trusted-reviewer
+            else
+              DEST="${HOME}/sai/trusted-reviewer"
+              mkdir -p "$DEST"
+            fi
+          else
+            mkdir -p "$DEST"
+          fi
           CONFIRM=""
           if [ "${{ github.event_name }}" = "push" ]; then
             CONFIRM="--confirm-trust"

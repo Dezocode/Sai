@@ -19,6 +19,7 @@ PROFILE_PATHS = [
 ]
 DOC_PATHS = [
     ".ai/shared/memory/decisions/0006-agent-authorization-loop.md",
+    ".ai/shared/memory/decisions/0008-persistent-primary-cursor-orchestrator.md",
     ".ai/_config/authorization.yaml",
     ".ai/_config/security-policy.md",
     ".ai/shared/schemas/contract-review.schema.json",
@@ -169,6 +170,12 @@ def write_package(root, cid, revision, sha, review_type, dest_dir):
     (dest / "diff.patch").write_text(diff, encoding="utf-8")
     (dest / "prior-findings.yaml").write_text(a.dump_yaml(prior), encoding="utf-8")
     (dest / "ci-status.txt").write_text(_ci_status(sha), encoding="utf-8")
+    ledger = cand / ".ai/contracts" / (cid or "") / "blockers" / "ledger.yaml"
+    if cid and ledger.is_file():
+        (dest / "blocker-ledger.yaml").write_text(ledger.read_text(encoding="utf-8"), encoding="utf-8")
+    reqs = cand / ".ai/contracts" / (cid or "") / "requirements" / "ledger.yaml"
+    if cid and reqs.is_file():
+        (dest / "requirement-ledger.yaml").write_text(reqs.read_text(encoding="utf-8"), encoding="utf-8")
     if revdoc:
         (dest / "contract-revision.yaml").write_text(a.dump_yaml(revdoc), encoding="utf-8")
     return dest, meta, files, diff, revdoc, prior
@@ -215,6 +222,11 @@ def build_prompt(root, cid, revision, sha, review_type, package_dir=None):
     parts.append(
         f"Review type: {review_type}. Review scope: {scope}. "
         "FINAL CTO review MUST cover the complete changed-file set and complete diff. "
+        "Inspect every applicable changed path. For human-readable source/config/docs/"
+        "scripts, evaluate the material changed lines (line-by-line where meaningful). "
+        "For binary/generated artifacts, record an equivalent path-level validation. "
+        "Do not claim line-by-line review from a file list alone. "
+        "You MAY append new technical blockers (CTO-N) not already in the ledger. "
         "Do not APPROVE if you only inspected a commit message or git show --stat. "
         "Intermediate delta reviews may emphasize files changed since the last Saul "
         "finding, but FINAL still requires the complete exact-head set. "

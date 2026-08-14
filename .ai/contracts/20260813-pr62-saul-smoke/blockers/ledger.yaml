@@ -1,0 +1,91 @@
+ledger_id: 20260813-pr62-saul-smoke-blockers
+contract_id: 20260813-pr62-saul-smoke
+updated_at: "2026-08-13T23:56:00Z"
+policy:
+  discovery: any-authorized-participant
+  technical_clearance: saul
+  governance_clearance: ceo
+  implemented_is_not_passed: true
+  never_delete_history: true
+blockers:
+  - blocker_id: B-TRUST-001
+    source: "https://github.com/Dezocode/Sai/pull/62#issuecomment-5287514717"
+    source_actor: saul
+    source_runtime: hostinger-saul-codex
+    created_at: "2026-08-13T23:23:27Z"
+    first_seen_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+    current_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+    category: technical
+    severity: P0
+    severity_assigned_by: saul-infrastructure
+    description: TRUSTED_REVIEWER_UNAVAILABLE — no independently trusted Saul reviewer source on Hostinger; Codex skipped.
+    evidence:
+      - "GitHub Actions run 31753627528"
+      - "disposition BLOCKED; codex_invoked false; trust_mode unavailable"
+    affected_paths:
+      - .github/workflows/saul-review.yml
+      - scripts/provision-trusted-reviewer-root
+    dependencies: []
+    assigned_owner: ctr-code-pr62smoke
+    work_item: freeze-runner-image-trusted-root-not-candidate-HEAD
+    contract: 20260813-pr62-saul-smoke
+    revision: v3
+    implementation_state: implementing
+    verification_state: unverified
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null
+    status: IMPLEMENTING
+  - blocker_id: B-RESUME-001
+    source: cursor-primary
+    source_actor: ceo
+    source_runtime: bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc
+    created_at: "2026-08-13T23:55:00Z"
+    first_seen_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+    current_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+    category: technical
+    severity: PROVISIONAL-P0
+    severity_assigned_by: cursor-provisional
+    description: scripts/sai-resume returned a Saul snapshot whose head did not match live HEAD (2ac83a1 vs 4f9ec01).
+    evidence:
+      - "scripts/sai-resume latest_saul.head=2ac83a1 while git HEAD=4f9ec01"
+      - "GitHub Saul comment 5287514717 is the live-head result"
+    affected_paths:
+      - scripts/lib/sai_auth_resume.py
+    dependencies: []
+    assigned_owner: ctr-code-pr62smoke
+    work_item: refuse-mismatched-state-saul-snapshot
+    contract: 20260813-pr62-saul-smoke
+    revision: v3
+    implementation_state: implemented-locally
+    verification_state: self-test-passed
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null
+    status: IMPLEMENTED_AWAITING_SAUL
+  - blocker_id: B-ORCH-001
+    source: cursor-primary
+    source_actor: ceo
+    source_runtime: bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc
+    created_at: "2026-08-13T23:56:00Z"
+    first_seen_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+    current_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+    category: technical
+    severity: PROVISIONAL-P1
+    severity_assigned_by: cursor-provisional
+    description: Physical primary wait (~15 min non-model) was specified but not yet live-proven on this bcId.
+    evidence:
+      - "Decision 0008 recorded pickup; 15-minute resident wait not measured"
+    affected_paths:
+      - scripts/lib/sai_auth_wait.py
+    dependencies: []
+    assigned_owner: ceo
+    work_item: live-15-minute-same-bcid-wait
+    contract: 20260813-pr62-saul-smoke
+    revision: v3
+    implementation_state: implementing
+    verification_state: unverified
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null
+    status: IMPLEMENTING

@@ -45,7 +45,8 @@ jobs:
                    scripts/sai-dispatch-transition \
                    scripts/sai-resume scripts/sai-watchdog \
                    scripts/sai-runtime-registry \
-                   scripts/provision-trusted-reviewer-root
+                   scripts/provision-trusted-reviewer-root \
+                   scripts/sai-blockers scripts/sai-wait
 
       - name: Verify scaffold path safety
         run: scripts/verify-scaffold-safety
@@ -79,6 +80,8 @@ jobs:
           scripts/sai-watchdog --self-test
           scripts/sai-runtime-registry --self-test
           scripts/provision-trusted-reviewer-root --self-test
+          scripts/sai-blockers --self-test
+          scripts/sai-wait --self-test
 
       - name: Record dual-approval human gate
         continue-on-error: true

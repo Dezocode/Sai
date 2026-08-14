@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# sai-blockers — durable blocker ledger. Discovery != clearance.
+# referenced: scripts/lib/sai_auth_blockers.py scripts/lib/sai_auth_blockers_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_blockers.py" "$@"

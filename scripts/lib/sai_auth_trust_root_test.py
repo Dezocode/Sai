@@ -64,6 +64,16 @@ def run_trust_root_fixtures():
         if "scripts/invoke-saul-review" not in ARCHIVE_PATHS:
             raise RuntimeError(ARCHIVE_PATHS)
         print("SELFTEST PASS  archive-paths-documented")
+
+        executed.add("candidate-mutation-does-not-change-root")
+        invoke = dest / "scripts" / "invoke-saul-review"
+        pinned = invoke.read_text()
+        (root / "scripts" / "invoke-saul-review").write_text("#!/bin/sh\necho pwned\n")
+        if invoke.read_text() != pinned:
+            raise RuntimeError("trusted root mutated with candidate")
+        if "pwned" not in (root / "scripts" / "invoke-saul-review").read_text():
+            raise RuntimeError("candidate not mutated")
+        print("SELFTEST PASS  candidate-mutation-does-not-change-root")
     finally:
         tmp.cleanup()
     return executed

@@ -93,6 +93,8 @@ required = (
      "scripts/sai-watchdog",
      "scripts/sai-runtime-registry",
      "scripts/provision-trusted-reviewer-root",
+     "scripts/sai-blockers",
+     "scripts/sai-wait",
      ".cursor/rules/sai-orchestration.mdc",
      ".cursor/skills/resume-sai/SKILL.md",
      ".ai/_config/authorization.yaml",

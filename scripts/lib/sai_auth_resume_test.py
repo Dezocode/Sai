@@ -96,6 +96,14 @@ def run_resume_fixtures():
         if got.get("disposition") != "BLOCKED" or got.get("head") != live:
             raise RuntimeError(got)
         print("SELFTEST PASS  resume-prefers-live-head-saul")
+        executed.add("resume-rejects-mismatched-saul-snapshot")
+        miss = latest_saul(
+            root, "no-such-contract", prefer_head=live,
+            state_saul={"head": "aa" * 20, "disposition": "APPROVE"},
+        )
+        if miss is not None:
+            raise RuntimeError(miss)
+        print("SELFTEST PASS  resume-rejects-mismatched-saul-snapshot")
     return executed
 
 
