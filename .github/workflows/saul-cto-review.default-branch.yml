@@ -1,14 +1,13 @@
-name: saul-cto-review
+name: saul-cto-review-trusted
 
-# TRANSITIONAL pull_request trigger: Hostinger Saul still runs from this
-# PR-tree workflow until saul-cto-review.default-branch.yml exists on main.
-# CTO-021 remains OPEN until that default-branch activation.
-# pull_request_target on this PR branch is not used by GitHub.
-# Do not reintroduce candidate empty-dest freeze (CTO-015/012).
-# GitHub event bus → dedicated self-hosted Saul runner → local Codex CLI.
-# Missing local `codex` or a failed `codex exec` => BLOCKED, never APPROVE.
+# INTENDED default-branch workflow for CTO-021.
+# GitHub only loads pull_request_target from the default branch.
+# origin/main currently has no Saul workflow; this file does not activate
+# until it exists on main. Presence on this PR branch is not production trust.
+# Candidate SHA is DATA. Executable tree is runner-image or default-branch
+# checkout only. Do not freeze from candidate (CTO-015/012).
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
@@ -30,113 +29,73 @@ on:
         default: false
 
 concurrency:
-  group: saul-review-${{ github.event.pull_request.number || github.sha }}
+  group: saul-review-trusted-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: false
 
 permissions:
   contents: read
   pull-requests: write
   statuses: write
-  checks: write
 
 jobs:
   invoke-saul:
-    # Proven 2026-08-13 run 31728732258: runner_name=hostinger-saul-codex,
-    # runner_group=Default, labels used=[self-hosted], Linux/X64,
-    # hostname=c775b2b0df55, /.dockerenv present, docker CLI absent,
-    # codex-cli 0.147.0 at /usr/bin/codex, ~/.codex present.
-    # Jobs API did not return extra custom labels; do not guess saul-codex.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted]
     timeout-minutes: 45
     steps:
       - name: Record runner identity
         run: |
           echo "runner.name=${{ runner.name }}"
-          echo "runner.os=${{ runner.os }}"
-          echo "runner.arch=${{ runner.arch }}"
-          echo "RUNNER_NAME=${RUNNER_NAME:-}"
-          echo "RUNNER_OS=${RUNNER_OS:-}"
-          echo "RUNNER_ARCH=${RUNNER_ARCH:-}"
           echo "hostname=$(hostname 2>/dev/null || true)"
-          if command -v docker >/dev/null 2>&1; then echo "docker=present"; else echo "docker=absent"; fi
-          if [ -f /.dockerenv ]; then echo "containerized=dockerenv"; fi
           if command -v codex >/dev/null 2>&1; then
             echo "codex_bin=$(command -v codex)"
             codex --version 2>/dev/null || echo "codex_version=unreported"
           else
             echo "codex_bin=missing"
           fi
-          if [ -n "${HOME:-}" ] && [ -d "$HOME/.codex" ]; then
-            echo "codex_home_present=true"
-          else
-            echo "codex_home_present=false"
-          fi
 
-      # Candidate PR is DATA (CTO-012). Trusted reviewer comes from the
-      # runner image, PR base SHA, or default-branch SHA. Never populate
-      # the trusted tree from the candidate ref. If none exist: BLOCK.
-      - uses: actions/checkout@v4
+      - name: Checkout default branch as trusted fallback
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch || 'main' }}
           persist-credentials: false
+          path: trusted-default-branch
 
-      - name: Materialize trusted reviewer tree
+      - name: Fetch candidate SHA as DATA
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.event.inputs.sha || github.sha }}
+          persist-credentials: false
+          path: candidate-data
+          fetch-depth: 1
+
+      - name: Resolve trusted executable tree
         id: trust
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'main' }}
         run: |
           set -euo pipefail
-          TRUSTED="${GITHUB_WORKSPACE}/trusted-reviewer"
-          mkdir -p "$TRUSTED" /tmp/saul
+          mkdir -p /tmp/saul
+          TRUSTED=""
           TRUST_MODE=unavailable
-
-          archive_trusted() {
-            local sha="$1"
-            git archive "$sha" scripts .ai/agents/saul CODEX.md \
-              .ai/_config/authorization.yaml \
-              .ai/shared/memory/decisions/0006-agent-authorization-loop.md \
-              .ai/shared/schemas/contract-review.schema.json \
-              | tar -x -C "$TRUSTED"
-          }
-
           if [ -n "${SAI_TRUSTED_REVIEWER_ROOT:-}" ] && [ -x "${SAI_TRUSTED_REVIEWER_ROOT}/scripts/invoke-saul-review" ]; then
-            cp -a "${SAI_TRUSTED_REVIEWER_ROOT}/." "$TRUSTED/"
+            TRUSTED="${SAI_TRUSTED_REVIEWER_ROOT}"
             TRUST_MODE=runner-image
           elif [ -x /opt/sai/trusted-reviewer/scripts/invoke-saul-review ]; then
-            cp -a /opt/sai/trusted-reviewer/. "$TRUSTED/"
+            TRUSTED=/opt/sai/trusted-reviewer
             TRUST_MODE=runner-image
           elif [ -x "${HOME}/sai/trusted-reviewer/scripts/invoke-saul-review" ]; then
-            cp -a "${HOME}/sai/trusted-reviewer/." "$TRUSTED/"
+            TRUSTED="${HOME}/sai/trusted-reviewer"
             TRUST_MODE=runner-image
-          elif [ -n "${BASE_SHA:-}" ] && git cat-file -e "${BASE_SHA}:scripts/invoke-saul-review" 2>/dev/null; then
-            archive_trusted "$BASE_SHA"
-            TRUST_MODE=base-ref
-          else
-            DEFAULT_SHA=""
-            for ref in "origin/${DEFAULT_BRANCH}" "origin/main"; do
-              if git rev-parse --verify "$ref" >/dev/null 2>&1; then
-                cand=$(git rev-parse "$ref")
-                if git cat-file -e "${cand}:scripts/invoke-saul-review" 2>/dev/null; then
-                  DEFAULT_SHA=$cand
-                  break
-                fi
-              fi
-            done
-            if [ -n "$DEFAULT_SHA" ]; then
-              archive_trusted "$DEFAULT_SHA"
-              TRUST_MODE=default-branch
-            fi
+          elif [ -x "${GITHUB_WORKSPACE}/trusted-default-branch/scripts/invoke-saul-review" ]; then
+            TRUSTED="${GITHUB_WORKSPACE}/trusted-default-branch"
+            TRUST_MODE=default-branch
           fi
-
           echo "TRUST_MODE=$TRUST_MODE"
           echo "trust_mode=$TRUST_MODE" >> "$GITHUB_OUTPUT"
           echo "SAI_TRUST_MODE=$TRUST_MODE" >> "$GITHUB_ENV"
           echo "SAI_TRUSTED_TREE=$TRUSTED" >> "$GITHUB_ENV"
-          echo "SAI_CANDIDATE_TREE=${GITHUB_WORKSPACE}" >> "$GITHUB_ENV"
+          echo "SAI_CANDIDATE_TREE=${GITHUB_WORKSPACE}/candidate-data" >> "$GITHUB_ENV"
           echo "SAI_REVIEW_NO_TRACKED_WRITE=1" >> "$GITHUB_ENV"
-
           if [ "$TRUST_MODE" = "unavailable" ]; then
             python3 -c 'from pathlib import Path; p=Path("/tmp/saul"); p.mkdir(parents=True, exist_ok=True); p.joinpath("review.yaml").write_text("reviewer: saul\nruntime: github-actions\ndisposition: BLOCKED\nreason: TRUSTED_REVIEWER_UNAVAILABLE\nsynthetic: false\ncodex_invoked: false\nfindings: []\ntrust_mode: unavailable\n"); p.joinpath("disposition").write_text("BLOCKED"); p.joinpath("reason").write_text("TRUSTED_REVIEWER_UNAVAILABLE"); p.joinpath("codex_invoked").write_text("false")'
             echo "BLOCKED TRUSTED_REVIEWER_UNAVAILABLE — skipping Codex"
@@ -161,8 +120,6 @@ jobs:
           mkdir -p "$WORKDIR/lib"
           cp -a "$WORKDIR"/pyyaml-6.0.3/lib/yaml "$WORKDIR/lib/yaml"
           echo "PYTHONPATH=$WORKDIR/lib${PYTHONPATH:+:$PYTHONPATH}" >> "$GITHUB_ENV"
-          PYTHONPATH="$WORKDIR/lib${PYTHONPATH:+:$PYTHONPATH}" \
-            python3 -c 'import yaml; print("pyyaml=sdist", yaml.__version__)'
 
       - name: Invoke Codex as Saul
         id: saul
@@ -172,8 +129,8 @@ jobs:
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
           SAI_SAUL_PACKAGE_DIR: ${{ github.workspace }}/.saul-review-package
           SAI_SAUL_REVIEW_SCOPE: final
-          SAI_TRUSTED_TREE: ${{ github.workspace }}/trusted-reviewer
-          SAI_CANDIDATE_TREE: ${{ github.workspace }}
+          SAI_TRUSTED_TREE: ${{ env.SAI_TRUSTED_TREE }}
+          SAI_CANDIDATE_TREE: ${{ github.workspace }}/candidate-data
           SAI_REVIEW_NO_TRACKED_WRITE: "1"
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
@@ -209,15 +166,14 @@ jobs:
       - name: Claim remediation transition
         if: always()
         env:
-          SAI_TRUSTED_TREE: ${{ github.workspace }}/trusted-reviewer
-          SAI_CANDIDATE_TREE: ${{ github.workspace }}
+          SAI_CANDIDATE_TREE: ${{ github.workspace }}/candidate-data
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ ! -f /tmp/saul/review.yaml ]; then
             echo "NOOP no review artifact"
             exit 0
           fi
-          if [ -x "$SAI_TRUSTED_TREE/scripts/sai-dispatch-transition" ]; then
+          if [ -x "${SAI_TRUSTED_TREE:-}/scripts/sai-dispatch-transition" ]; then
             chmod +x "$SAI_TRUSTED_TREE/scripts/sai-dispatch-transition"
             "$SAI_TRUSTED_TREE/scripts/sai-dispatch-transition" \
               --from-file /tmp/saul/review.yaml \
@@ -239,7 +195,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Post review comment
-        if: always() && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request_target'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

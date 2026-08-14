@@ -228,6 +228,13 @@ checks:
     command: "scripts/verify-contract-authorization --self-test"
     self_test: live-pass
 
+  - id: saul-workflow-trust
+    class: governance
+    status: active
+    command: "scripts/verify-saul-workflow-trust --self-test"
+    self_test: live-pass
+    note: "CTO-021: default-branch workflow must not execute candidate-tree scripts. Not activation on main."
+
   - id: saul-invoke-self-test
     class: governance
     status: active

@@ -47,7 +47,8 @@ jobs:
                    scripts/sai-runtime-registry \
                    scripts/provision-trusted-reviewer-root \
                    scripts/freeze-trusted-reviewer-once \
-                   scripts/sai-blockers scripts/sai-wait
+                   scripts/sai-blockers scripts/sai-wait \
+                   scripts/verify-saul-workflow-trust
 
       - name: Verify scaffold path safety
         run: scripts/verify-scaffold-safety
@@ -83,6 +84,7 @@ jobs:
           scripts/provision-trusted-reviewer-root --self-test
           scripts/sai-blockers --self-test
           scripts/sai-wait --self-test
+          scripts/verify-saul-workflow-trust --self-test
 
       - name: Record dual-approval human gate
         continue-on-error: true
