@@ -1,0 +1,39 @@
+amendment_id: A-008
+contract_id: 20260813-pr62-saul-smoke
+from_revision: 7
+to_revision: 8
+finding_ids:
+- CTO-028
+- CTO-025
+- CTO-026
+- CTO-027
+authority_expanding: false
+human_approval_required: false
+human_approval_ids:
+- grant-pr62-queue-ceo
+- human-pr62-keep-0007-and-path-expansion
+summary: "Saul REQUEST_CHANGES 31761796169 / comment 5288500483 exact head f4443fa -> A-008 -> v8. Bind CTO-028 P0 (contractor-authored sha_bound_authorization in .ai/_config is invalid; pins must live in contractor-DENIED independently approved records with issuer/source/provenance; negative: contractor HEAD pin cannot authorize a historical commit). Keep CTO-025 open BLOCKED_EXTERNAL. Keep CTO-026 uncleared. CTO-027 P1: icm-enforcement SUCCESS on f4443fa is not technical PASS. allowed_paths unchanged. denied_paths adds .ai/authorizations/** (narrow). Officer pins already at 2a57842; Cora does not write authorizations or _config."
+trace:
+- CTO-028 -> A-008 -> v8
+- CTO-025 -> A-008 -> v8
+- CTO-026 -> A-008 -> v8
+- CTO-027 -> A-008 -> v8
+changes:
+- finding_id: CTO-028
+  field: authorization
+  action: narrow
+  note: "Remove contractor-authored sha_bound_authorization rows as an authorization source. Verifier currently loads those rows from current HEAD while contract v7 permits this contractor to modify .ai/_config/**, so the contractor can retrospectively authorize its own or officer commits. Store each remediation pin in a contractor-DENIED independently approved record with verifiable issuer/source and commit provenance (.ai/authorizations/, already officer-authored at 2a578424f4879f2bad4e4391deff5f30231db19f). Replay must validate that provenance. Negative fixture: a contractor-authored HEAD pin cannot authorize a historical commit. Cora does not write .ai/authorizations or .ai/_config. Contractor removes _config pins and rewires the verifier."
+- finding_id: CTO-025
+  field: saul_review_workflow
+  action: narrow
+  note: "Keep CTO-021/025 open BLOCKED_EXTERNAL. origin/main still lacks the trusted pull_request_target workflow (only agent-audit.yml). Transitional pull_request workflow remains candidate-defined on the persistent authenticated runner. Human-review and land the trusted workflow on the default branch before disabling the transitional trigger. PR artifact and static regression are not activation or clearance. authority_expanding false. Do not restore candidate-HEAD trust."
+- finding_id: CTO-026
+  field: verification_requirements
+  action: add
+  note: "Keep uncleared. Do not mark the outstanding exact-head technical ledger cleared. B-RALPH-001 cannot pass while CTO-025 and CTO-028 remain unresolved. Implementation/self-tests do not constitute technical clearance. Exact-head Saul clearance still required for CTO-015..021 and B-CORA-TODO-001 / B-RALPH-001 / B-NO-IDLE-SAUL-001. Do not treat older-head remediation as clearance. Do not mark them PASSED."
+- finding_id: CTO-027
+  field: human_gate
+  action: add
+  note: "icm-enforcement already SUCCESS on exact head f4443fa0b00ec950768ba7aff14020732e338e9d (agent-audit 31761796108 pull_request and 31761793891 push). That is not technical PASS. Saul package combined_state pending; REQUEST_CHANGES remains. After issuing A-008/v8, set cora_admin_complete true. That is administration complete for this wave, NOT technical PASS."
+created_by: ctr-admin
+created_at: "2026-08-14T01:58:54Z"

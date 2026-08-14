@@ -1,0 +1,89 @@
+contract_id: 20260813-pr62-saul-smoke
+revision: 8
+revision_label: v8
+supersedes_revision: 7
+agent_id: ctr-code-pr62smoke
+contractor_name: ctr-code-pr62smoke
+requested_task: 20260813-2017-pr62-queue-ctr-code
+allowed_repository: Dezocode/Sai
+allowed_branch_or_worktree: cursor/codebase-health-90ba
+allowed_paths:
+- .ai/runs/**
+- .ai/contracts/20260813-pr62-saul-smoke/**
+- tests/**
+- scripts/**
+- .github/workflows/**
+- .ai/_config/**
+- .ai/shared/schemas/**
+denied_paths:
+- .ai/agents/saul/**
+- .ai/shared/memory/decisions/**
+- .ai/authorizations/**
+officer_scope:
+  grant: grant-pr62-queue-ceo
+  agent_id: ceo
+  paths:
+  - .ai/**
+  - .cursor/**
+  note: "Decision records 0005-0008 on this PR are officer-authored. Contractors remain prohibited from those trees and from .ai/authorizations/**. A-008 officer work: Sai writes independently approved SHA-bound pin records under .ai/authorizations/ with issuer, source, and commit provenance (already landed at 2a578424f4879f2bad4e4391deff5f30231db19f). Cora does not write .ai/authorizations or .ai/_config. Activating pull_request_target on default branch is a human security gate, not a Cora or contractor PASS."
+capabilities:
+- git-commit
+- git-push
+verification_requirements:
+- scripts/verify-agent-authorization
+- scripts/verify-contract-authorization
+- scripts/sai-dispatch-transition --self-test
+- scripts/invoke-saul-review --self-test
+- scripts/sai-blockers --self-test
+- "officer: amend Decision 0008 in place and update .cursor/rules/sai-orchestration.mdc under grant-pr62-queue-ceo"
+- "contractor: add mechanical tests/scripts for Cora-per-todo, Ralph loop, and no-idle-Saul under existing allowed_paths only"
+- "contractor: trusted default-branch workflow artifact + regression that candidate saul-review.yml changes cannot change persistent-runner commands; do not mark PASSED"
+- "origin/main currently has no saul-review.yml (only agent-audit.yml); activating pull_request_target requires the trusted workflow on default branch; merging to main is a human security gate"
+- "Saul stating CTO-015..020 were remediated on 0df32c7446b95bda1f83137f8384a03135a959f6 is not clearance of those blockers on later heads; do not mark them PASSED"
+- "Do not restore candidate-HEAD trust"
+- "contractor: revert retrospective HEAD/working-tree task_id aliasing (HEAD-union); auth replay must use immutable auth at that commit OR an independently approved SHA-bound remediation record"
+- "contractor: negative fixtures proving uncommitted and later-HEAD aliases cannot alter historical authorization"
+- "contractor: remove contractor-authored sha_bound_authorization rows from .ai/_config as an authorization source; verifier loads only officer/independently-approved contractor-DENIED records under .ai/authorizations/"
+- "contractor: negative fixture proving a contractor-authored HEAD pin cannot authorize a historical commit"
+- "contractor: append CTO-028 blocker item without PASS; keep CTO-025 BLOCKED_EXTERNAL; keep CTO-026 uncleared; do not PASS CTO-024..027"
+- "exact-head Saul clearance still required for CTO-015..021 and B-CORA-TODO-001 / B-RALPH-001 / B-NO-IDLE-SAUL-001; do not treat older-head remediation as clearance"
+- "Do not disable Hostinger pull_request trigger until origin/main has the trusted workflow file; PR artifact is not activation"
+- "icm-enforcement SUCCESS on f4443fa0b00ec950768ba7aff14020732e338e9d is not technical PASS"
+- "cora_admin_complete true on v8 is administration complete, not technical PASS"
+execution_mode: provisional
+amendment_ids:
+- A-002
+- A-003
+- A-004
+- A-005
+- A-006
+- A-007
+- A-008
+review_state:
+  saul:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+  sai:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+cora_admin_complete: true
+created_by: ctr-admin
+created_at: "2026-08-14T01:58:54Z"
+human_approval_ids:
+- human-pr62-keep-0007-and-path-expansion
+- grant-pr62-queue-ceo
+notes:
+- "origin/main currently has NO saul-review.yml (only agent-audit.yml)."
+- "Activating pull_request_target requires the trusted workflow to exist on default branch; merging to main is a human security gate."
+- "Contractor implements the trusted workflow artifact + regression test on this PR. Do not call that PASSED. Do not restore candidate-HEAD trust."
+- "Do not tell the contractor to disable the Hostinger pull_request trigger until main has the trusted file."
+- "Exact-head Saul clearance is still required for CTO-015..021 and B-CORA-TODO-001 / B-RALPH-001 / B-NO-IDLE-SAUL-001. Do not treat older-head remediation as clearance. Do not mark them PASSED."
+- "Keep CTO-025 open BLOCKED_EXTERNAL. Keep CTO-026 uncleared."
+- "Remove contractor-authored sha_bound_authorization rows from .ai/_config. Pins live in contractor-DENIED independently approved records with issuer/source/provenance under .ai/authorizations/."
+- "Negative fixture: a contractor-authored HEAD pin cannot authorize a historical commit."
+- "Officer SHA-bound pins already recorded at 2a578424f4879f2bad4e4391deff5f30231db19f. Cora does not rewrite them."
+- "cora_admin_complete true is administration complete for this wave, NOT technical PASS."
+- "icm-enforcement SUCCESS on f4443fa is not technical PASS."
+- "Qualifying Saul run 31761796169; comment 5288500483; head f4443fa0b00ec950768ba7aff14020732e338e9d; disposition REQUEST_CHANGES; codex_invoked true; synthetic false; authority_expanding false."

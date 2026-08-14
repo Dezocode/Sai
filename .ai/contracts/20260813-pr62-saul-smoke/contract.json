@@ -11,7 +11,7 @@
   "branch_prefix": "proj/auth/",
   "status": "draft",
   "schema_version": 2,
-  "current_revision": "v7",
+  "current_revision": "v8",
   "execution_mode": "provisional",
   "created_by": "ctr-admin",
   "contract_admin_agent_id": "ctr-admin",

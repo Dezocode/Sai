@@ -15,3 +15,12 @@ changing paths, agent, status, or v6. Kept task_id
 20260813-2017-pr62-queue-ctr-code and added task_ids including
 20260814-0052-pr62-queue-ctr-code so HEAD can union the wave. Did not
 mark cora_admin_complete. Did not PASS blockers. Do not merge.
+
+## A-008 / v8 (grant Task-ID standing run)
+
+Issued A-008 → v8 from Saul run 31761796169 comment 5288500483 on
+exact head f4443fa. cora_admin_complete true is administration
+complete, not technical PASS. Wave artifacts:
+`.ai/runs/20260814-0158-pr62-queue-cora/`. implements false.
+do_not_merge true.
+
