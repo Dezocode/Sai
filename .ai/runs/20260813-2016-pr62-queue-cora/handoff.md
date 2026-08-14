@@ -49,4 +49,25 @@ B-MERGE-PKG-001 without PASS. Officer next: Decision 0008 in
 place + orchestration pointer. CONDITIONAL_PASS_ON_HUMAN_MERGE
 is Saul-only. Do not merge. Do not mark ready.
 
+## A-011 / v11 (grant Task-ID standing run)
+
+Issued A-011 → v11 from operational evidence on exact head
+6ad1dc6: Cloud gh workflow_dispatch HTTP 403; accepted
+permissions actions=read; no Saul run on 6ad1dc6; ICM
+agent-audit SUCCESS 31770830268/31770828271. Not a Saul
+consume. Not a waiver. Not path expansion.
+cora_admin_complete true is administration complete, not
+technical PASS. technical_pass false. Did not PASS CTO-025
+or B-META-P0-001. Wave artifacts:
+`.ai/runs/20260814-0448-pr62-queue-cora/`. implements false.
+do_not_merge true. do_not_push true. denied_paths unchanged.
+lease-c3a003pr62q1 reused (v11). Contractor next: restore
+narrow pull_request plus post-merge skip-guard
+TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN; keep workflow_dispatch;
+replace candidate-pr-trigger-retired; hermetic skip-guard
+fixture; update threat-trace + merge-readiness. Officer
+optional: one-sentence Decision 0008 note (Sai, not Cora).
+CONDITIONAL_PASS_ON_HUMAN_MERGE is Saul-only. Do not merge.
+Do not push. Do not mark ready.
+
 

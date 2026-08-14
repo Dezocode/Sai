@@ -1,0 +1,118 @@
+contract_id: 20260813-pr62-saul-smoke
+revision: 11
+revision_label: v11
+supersedes_revision: 10
+agent_id: ctr-code-pr62smoke
+contractor_name: ctr-code-pr62smoke
+requested_task: 20260813-2017-pr62-queue-ctr-code
+allowed_repository: Dezocode/Sai
+allowed_branch_or_worktree: cursor/codebase-health-90ba
+allowed_paths:
+- .ai/runs/**
+- .ai/contracts/20260813-pr62-saul-smoke/**
+- tests/**
+- scripts/**
+- .github/workflows/**
+- .ai/_config/**
+- .ai/shared/schemas/**
+denied_paths:
+- .ai/agents/saul/**
+- .ai/shared/memory/decisions/**
+- .ai/authorizations/**
+officer_scope:
+  grant: grant-pr62-queue-ceo
+  agent_id: ceo
+  paths:
+  - .ai/**
+  - .cursor/**
+  note: "Decision records 0005-0008 on this PR are officer-authored. Contractors remain prohibited from those trees and from .ai/authorizations/**. A-009 officer work already landed at e84e5d7a7e76c5f9da567c8b8df9d75e9d4cb087. A-010 officer work already landed at 121430d: Sai amended Decision 0008 in place (no 0009) plus .cursor/rules/sai-orchestration.mdc pointer. Decision 0008 already covers merge-activation. A one-sentence A-011 0008 note is OPTIONAL and is Sai's job, not Cora's. Cora does not write .ai/authorizations, .ai/shared/memory/decisions, .cursor, or .ai/_config. Human merge of PR #62 remains the trusted-workflow activation event, not a Cora or contractor PASS."
+capabilities:
+- git-commit
+- git-push
+verification_requirements:
+- scripts/verify-agent-authorization
+- scripts/verify-contract-authorization
+- scripts/sai-dispatch-transition --self-test
+- scripts/invoke-saul-review --self-test
+- scripts/sai-blockers --self-test
+- "officer: amend Decision 0008 in place and update .cursor/rules/sai-orchestration.mdc under grant-pr62-queue-ceo"
+- "contractor: add mechanical tests/scripts for Cora-per-todo, Ralph loop, and no-idle-Saul under existing allowed_paths only"
+- "contractor: trusted default-branch workflow artifact + regression that candidate saul-review.yml changes cannot change persistent-runner commands; do not mark PASSED"
+- "origin/main currently has no saul-review.yml (only agent-audit.yml); activating pull_request_target requires the trusted workflow on default branch; merging to main is a human security gate"
+- "Saul stating CTO-015..020 were remediated on 0df32c7446b95bda1f83137f8384a03135a959f6 is not clearance of those blockers on later heads; do not mark them PASSED"
+- "Do not restore candidate-HEAD trust"
+- "contractor: revert retrospective HEAD/working-tree task_id aliasing (HEAD-union); auth replay must use immutable auth at that commit OR an independently approved SHA-bound remediation record"
+- "contractor: negative fixtures proving uncommitted and later-HEAD aliases cannot alter historical authorization"
+- "contractor: remove contractor-authored sha_bound_authorization rows from .ai/_config as an authorization source; verifier loads only officer/independently-approved contractor-DENIED records under .ai/authorizations/"
+- "contractor: negative fixture proving a contractor-authored HEAD pin cannot authorize a historical commit"
+- "officer: introduced_by_sha/source/source_head already on .ai/authorizations/sha-bound-authorization.yaml at e84e5d7a7e76c5f9da567c8b8df9d75e9d4cb087; Cora does not rewrite this file"
+- "contractor: sha_bound_rows() must validate the pin was introduced by an independently authorized officer commit; bind approval source and issuer grant immutably; do not accept a HEAD pin merely because issuer is officer and issuer_grant matches the HEAD grant"
+- "contractor: negative fixtures proving forged metadata or a later rewritten HEAD grant cannot retrospectively authorize a historical commit"
+- "contractor: append CTO-029 blocker item without PASS; keep CTO-026 uncleared; do not PASS CTO-024..029"
+- "exact-head Saul clearance still required for CTO-015..021 and B-CORA-TODO-001 / B-RALPH-001 / B-NO-IDLE-SAUL-001; do not treat older-head remediation as clearance"
+- "icm-enforcement SUCCESS on 9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2 is not technical PASS"
+- "cora_admin_complete true on v9 is administration complete, not technical PASS"
+- "contractor: compact quality profile under contract tree; do not claim SLSA level"
+- "contractor: package architectural-review + quality profile + merge package into Saul review package via sai_auth_package.py only"
+- "contractor: anti-ballooning warning policy in _config; review-surface metric compact"
+- "contractor: append blocker items B-META-P0-001 / B-QUALITY-001 / B-MERGE-PKG-001 without PASS; keep ledger yaml ≤300"
+- "officer: amend Decision 0008 in place; small orchestration pointer (already at 121430d)"
+- "A-010 full candidate pull_request retirement as the remaining-this-PR invocation path is superseded by A-011: restore narrow on: pull_request (opened/synchronize/reopened/ready_for_review) AND keep workflow_dispatch. Cloud gh cannot workflow_dispatch (HTTP 403; accepted permissions actions=read). All prior qualifying Saul runs were event pull_request, never agent dispatch."
+- "contractor: fail-closed skip in the transitional job if origin/main:.github/workflows/saul-cto-review.default-branch.yml exists (or default_branch equivalent): do not invoke Codex; record TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN; exit 0 without failing the PR. During this PR origin/main still lacks that file so Codex still runs"
+- "Do not fake the trusted file onto origin/main. Do not restore candidate-HEAD trust. Do not add allow-unsafe-pr-checkout. Keep candidate DATA on the trusted workflow"
+- "contractor: replace fixture candidate-pr-trigger-retired: candidate MAY declare pull_request again; MUST have skip-guard; MUST keep workflow_dispatch; trusted MUST still have pull_request_target; keep evil-run isolation; keep cto021-not-faked-on-main. Add a hermetic fixture proving skip-guard logic without mutating origin/main"
+- "contractor: update threat-trace + merge-readiness notes: A-010 full trigger removal is operationally incompatible with actions=read; invocation auto-retires after merge via skip-guard; residual = future PR deleting the guard (collaborator; DEFERRED_NONBLOCKING / runner-group UNKNOWN)"
+- "Do not rework CTO-015..021, 024, 028, 029 IMPLEMENTED_AWAITING_SAUL. Keep CTO-026 uncleared. Do not PASS CTO-025 or B-META-P0-001. Contractor may append a short note on the CTO-025 item that A-011 amends the retirement mechanism (trigger kept, invocation skipped post-merge)"
+- "Do not grow sai_auth_review.py; package via sai_auth_package.py only. Do not rewrite .ai/agents/saul/**"
+- "A-011 is REQUIRED_FOR_CURRENT_BLOCKER (Saul continuity + merge-activation invariant), not path expansion, not a waiver"
+- "Do not merge; do not mark ready; this Cora wave does not push"
+- "cora_admin_complete true on v11 is administration complete, not technical PASS"
+- "CONDITIONAL_PASS_ON_HUMAN_MERGE is Saul-only; Cora/contractor must not emit it as clearance"
+- "icm-enforcement SUCCESS on 6ad1dc6bf6b0727b1bd4581695667ed6cfd7c2dc is not technical PASS"
+- "No Saul run exists on 6ad1dc6; latest Saul is 31764010391 on c51c9cf"
+- "YAML files must stay ≤300 lines. Do not raise global limits. Do not balloon PR #62"
+execution_mode: provisional
+amendment_ids:
+- A-002
+- A-003
+- A-004
+- A-005
+- A-006
+- A-007
+- A-008
+- A-009
+- A-010
+- A-011
+review_state:
+  saul:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+  sai:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+cora_admin_complete: true
+created_by: ctr-admin
+created_at: "2026-08-14T04:48:00Z"
+human_approval_ids:
+- human-pr62-keep-0007-and-path-expansion
+- grant-pr62-queue-ceo
+notes:
+- "origin/main currently has NO saul-review.yml (only agent-audit.yml)."
+- "A-010: human merge of PR #62 is the trusted-workflow activation event. Package activation into THIS PR rather than an intermediate bootstrap PR."
+- "A-011 supersedes A-010 full trigger removal as the remaining-this-PR invocation path. Restore narrow pull_request; keep workflow_dispatch; skip Codex once trusted file exists on origin/main."
+- "A-010 assumed remaining this-PR Saul reviews could use workflow_dispatch. False for this Cloud gh: HTTP 403; accepted permissions actions=read. No Saul run on 6ad1dc6. Latest Saul 31764010391 on c51c9cf event pull_request. ICM agent-audit SUCCESS 31770830268/31770828271."
+- "Do not restore candidate-HEAD trust. Do not fake the trusted file onto origin/main. Do not add allow-unsafe-pr-checkout."
+- "Exact-head Saul clearance is still required for CTO-015..021 and B-CORA-TODO-001 / B-RALPH-001 / B-NO-IDLE-SAUL-001. Do not treat older-head remediation as clearance. Do not mark them PASSED."
+- "Keep CTO-026 uncleared. Do not rework CTO-015..021, 024, 028, 029 IMPLEMENTED_AWAITING_SAUL."
+- "Do not PASS CTO-025 or B-META-P0-001. Saul may classify CONDITIONAL_PASS_ON_HUMAN_MERGE; Cora/contractor must not emit that as clearance."
+- "Complete CTO-028 provenance: sha_bound_rows() must not accept a HEAD pin merely because issuer is officer and issuer_grant matches the HEAD grant."
+- "Officer (Sai) already added introduced_by_sha/source/source_head on the pin file at e84e5d7. Cora does not rewrite .ai/authorizations."
+- "Officer (Sai) already amended Decision 0008 at 121430d. Optional A-011 one-sentence note is Sai, not Cora."
+- "Do not grow sai_auth_review.py; package via sai_auth_package.py only. Do not rewrite .ai/agents/saul/**."
+- "YAML files must stay ≤300 lines. Do not raise global limits. Do not balloon PR #62."
+- "cora_admin_complete true is administration complete for this wave, NOT technical PASS."
+- "icm-enforcement SUCCESS on 6ad1dc6 is not technical PASS."
+- "A-011 is REQUIRED_FOR_CURRENT_BLOCKER, not a waiver, not path expansion."
+- "Do not put tokens in files. Cite HTTP 403 on Actions dispatches; actions=read; no Saul run on 6ad1dc6; ICM green."

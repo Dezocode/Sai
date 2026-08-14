@@ -1,0 +1,54 @@
+reviewer: ctr-admin
+review_type: operational-evidence
+not_a_saul_consume: true
+consume_script_invoked: false
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: 10
+implementation_head: 6ad1dc6bf6b0727b1bd4581695667ed6cfd7c2dc
+source: operational Cloud gh Actions dispatch
+authority: dezocode
+created_at: "2026-08-14T04:48:00Z"
+ingested_at: "2026-08-14T04:48:00Z"
+ingested_by: ctr-admin
+amendment_id: A-011
+result_revision: v11
+authority_expanding: false
+path_expansion: false
+latest_qualifying_saul_run: '31764010391'
+latest_qualifying_saul_head: c51c9cf221a8f4682e2c9e2287bd06d550c6c44e
+latest_qualifying_saul_event: pull_request
+latest_qualifying_saul_disposition: REQUEST_CHANGES
+icm_agent_audit:
+  pull_request: '31770830268'
+  push: '31770828271'
+  head: 6ad1dc6bf6b0727b1bd4581695667ed6cfd7c2dc
+  conclusion: SUCCESS
+saul_run_on_head: none
+dispatch_evidence:
+  command: gh workflow run saul-review.yml --ref cursor/codebase-health-90ba
+  http_status: 403
+  github_message: Resource not accessible by integration
+  accepted_permissions: actions=read
+  header: X-Accepted-Github-Permissions
+  tokens_recorded: false
+reason: A-010 assumed remaining this-PR Saul reviews could use
+  workflow_dispatch. That assumption is false for this Cloud gh
+  runtime. All prior qualifying Saul runs were event pull_request,
+  never agent dispatch. Empty frontier while needing Saul would
+  force a human to dispatch. Principal P0 5289020312 forbids leaving
+  Dezocode an intermediate chore. A-011 is REQUIRED_FOR_CURRENT_BLOCKER,
+  not a waiver, not path expansion. Cora does not PASS any technical
+  blocker. CONDITIONAL_PASS_ON_HUMAN_MERGE is Saul-only.
+findings_bound:
+- id: REQ-A011-DISPATCH-403
+  severity: P0
+  note: restore narrow pull_request plus post-merge skip-guard
+- id: REQ-5289020312
+  severity: P0
+  note: do not leave Dezocode an intermediate dispatch chore
+- id: CTO-025
+  severity: P0
+  note: amend A-010 retirement mechanism; do not PASS
+- id: B-META-P0-001
+  severity: P0
+  note: do not PASS; A-011 is not a waiver

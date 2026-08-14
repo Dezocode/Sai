@@ -1,0 +1,21 @@
+{
+  "task_id": "20260814-0448-pr62-queue-cora",
+  "stage": "01_intake",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-14T04:48:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/CONTEXT.md",
+    ".ai/agents/_roles/contract-administrator/CHARTER.md",
+    ".ai/agents/cora/AGENT.md",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v10.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/amendments/A-010.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json",
+    ".ai/authorizations/grants/grant-pr62-queue-cora.yaml"
+  ],
+  "outputs": [
+    ".ai/runs/20260814-0448-pr62-queue-cora/01_intake/output/intake.md"
+  ],
+  "notes": "Operational A-011. Not a Saul consume. No Saul run on 6ad1dc6. Latest Saul 31764010391 on c51c9cf event pull_request. ICM agent-audit SUCCESS 31770830268/31770828271. Cora does not load authorizations pins for editing. Do not put tokens in files."
+}

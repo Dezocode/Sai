@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-14T04:20:00Z"
+updated_at: "2026-08-14T04:48:00Z"
 requirements:
   - requirement_id: REQ-5282088737
     source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
@@ -111,3 +111,20 @@ requirements:
       - merge-readiness-package
       - do-not-merge-do-not-mark-ready
       - conditional-pass-on-human-merge-is-saul-only
+  - requirement_id: REQ-A011-DISPATCH-403
+    source: "operational: gh workflow run saul-review.yml HTTP 403; X-Accepted-Github-Permissions: actions=read; no Saul run on 6ad1dc6; ICM agent-audit SUCCESS 31770830268/31770828271"
+    authority: dezocode
+    timestamp: "2026-08-14T04:48:00Z"
+    scope: saul-continuity-merge-activation
+    digest: restore-narrow-pull_request-plus-post-merge-skip-guard
+    status: in-progress
+    blocking: true
+    acceptance:
+      - restore-on-pull_request-types-opened-synchronize-reopened-ready_for_review
+      - keep-workflow_dispatch
+      - fail-closed-skip-when-trusted-file-on-origin-main
+      - reason-TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN
+      - do-not-fake-trusted-file-on-main
+      - do-not-pass-cto-025-or-b-meta-p0-001
+      - required-for-current-blocker-not-path-expansion
+      - no-tokens-in-files

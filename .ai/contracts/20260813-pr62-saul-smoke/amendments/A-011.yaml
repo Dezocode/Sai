@@ -1,0 +1,39 @@
+amendment_id: A-011
+contract_id: 20260813-pr62-saul-smoke
+from_revision: 10
+to_revision: 11
+finding_ids:
+- REQ-A011-DISPATCH-403
+- REQ-5289020312
+- CTO-025
+- B-META-P0-001
+authority_expanding: false
+human_approval_required: false
+human_approval_ids:
+- grant-pr62-queue-ceo
+- human-pr62-keep-0007-and-path-expansion
+summary: "Operational A-011 -> v11. NOT a Saul consume. NOT a waiver. A-010 assumed remaining this-PR Saul reviews could use workflow_dispatch; that is false for this Cloud gh runtime (HTTP 403 Resource not accessible by integration; X-Accepted-Github-Permissions: actions=read). No Saul run on 6ad1dc6. Latest Saul 31764010391 on c51c9cf event pull_request. ICM agent-audit SUCCESS 31770830268/31770828271. Restore narrow on: pull_request and keep workflow_dispatch. Add post-merge skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN. REQUIRED_FOR_CURRENT_BLOCKER (Saul continuity + merge-activation invariant). allowed_paths unchanged. denied_paths unchanged. Cora does not write blockers items, scripts, workflows, decisions, .cursor, or authorizations. Do not put tokens in files."
+trace:
+- REQ-A011-DISPATCH-403 -> A-011 -> v11
+- REQ-5289020312 -> A-011 -> v11
+- CTO-025 -> A-011 -> v11
+- B-META-P0-001 -> A-011 -> v11
+changes:
+- finding_id: REQ-A011-DISPATCH-403
+  field: saul_review_workflow
+  action: narrow
+  note: "Restore on: pull_request (types opened/synchronize/reopened/ready_for_review) on .github/workflows/saul-review.yml AND keep workflow_dispatch. Add a fail-closed skip in that transitional job: if origin/main:.github/workflows/saul-cto-review.default-branch.yml exists (or default_branch equivalent), do not invoke Codex; record reason TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN; exit 0 without failing the PR. During this PR origin/main still lacks that file, so Codex still runs (Saul continuity). Do not fake the trusted file onto origin/main. Do not restore candidate-HEAD trust. Do not add allow-unsafe-pr-checkout. Keep candidate DATA on the trusted workflow. Replace fixture candidate-pr-trigger-retired: candidate MAY declare pull_request again; MUST have skip-guard; MUST keep workflow_dispatch; trusted MUST still have pull_request_target; keep evil-run isolation; keep cto021-not-faked-on-main. Add a hermetic fixture proving skip-guard logic without mutating origin/main. Update threat-trace + merge-readiness notes: A-010 full trigger removal is operationally incompatible with actions=read; invocation auto-retires after merge via skip-guard; residual = future PR deleting the guard (collaborator; DEFERRED_NONBLOCKING / runner-group UNKNOWN). Do not grow sai_auth_review.py."
+- finding_id: CTO-025
+  field: saul_review_workflow
+  action: narrow
+  note: "A-011 amends the A-010 retirement mechanism: keep the narrow pull_request trigger for this-PR Saul continuity; skip Codex invocation after the trusted file exists on origin/main. Trusted pull_request_target file still merges as the activation path. Do not PASS CTO-025. Status may remain IMPLEMENTED_AWAITING_SAUL. Contractor may append a short note on the CTO-025 item; Cora does not write blockers/items. CONDITIONAL_PASS_ON_HUMAN_MERGE remains Saul-only. authority_expanding false."
+- finding_id: REQ-5289020312
+  field: human_gate
+  action: add
+  note: "Principal P0 5289020312 forbids leaving Dezocode an intermediate chore. Empty frontier while needing Saul must not require a human to dispatch workflow_dispatch. GitHub auto-start via restored pull_request is REQUIRED_FOR_CURRENT_BLOCKER. Do not merge. Do not mark ready. Do not push from this Cora wave."
+- finding_id: B-META-P0-001
+  field: verification_requirements
+  action: add
+  note: "Do not PASS B-META-P0-001. A-011 is not a waiver of overnight-convergence quality/architecture gates. Keep CTO-015..021, 024, 028, 029 IMPLEMENTED_AWAITING_SAUL; do not rework. Keep CTO-026 uncleared. After issuing A-011/v11, set cora_admin_complete true. That is administration complete for this wave, NOT technical PASS."
+created_by: ctr-admin
+created_at: "2026-08-14T04:48:00Z"

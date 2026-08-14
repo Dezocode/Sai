@@ -1,7 +1,7 @@
 {
   "lease_id": "lease-c3a003pr62q1",
   "contract_id": "20260813-pr62-saul-smoke",
-  "contract_revision": "v10",
+  "contract_revision": "v11",
   "agent_id": "ctr-code-pr62smoke",
   "task_id": "20260813-2017-pr62-queue-ctr-code",
   "task_ids": [

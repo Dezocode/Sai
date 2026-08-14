@@ -1,0 +1,18 @@
+{
+  "task_id": "20260814-0448-pr62-queue-cora",
+  "stage": "02_plan",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-14T04:48:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260814-0448-pr62-queue-cora/01_intake/output/intake.md",
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v10.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/amendments/A-010.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json"
+  ],
+  "outputs": [
+    ".ai/runs/20260814-0448-pr62-queue-cora/02_plan/output/plan.md"
+  ],
+  "notes": "Did not load or edit blockers/ledger.yaml. Cora appends REQ-A011-DISPATCH-403 to requirements/ledger.yaml. Contractor implements skip-guard and may append a short CTO-025 note. Officer already amended Decision 0008 at 121430d; optional A-011 sentence is Sai not Cora. A-011 reason = dispatch 403 / actions=read."
+}
