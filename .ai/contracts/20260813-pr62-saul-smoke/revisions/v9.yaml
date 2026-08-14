@@ -1,0 +1,94 @@
+contract_id: 20260813-pr62-saul-smoke
+revision: 9
+revision_label: v9
+supersedes_revision: 8
+agent_id: ctr-code-pr62smoke
+contractor_name: ctr-code-pr62smoke
+requested_task: 20260813-2017-pr62-queue-ctr-code
+allowed_repository: Dezocode/Sai
+allowed_branch_or_worktree: cursor/codebase-health-90ba
+allowed_paths:
+- .ai/runs/**
+- .ai/contracts/20260813-pr62-saul-smoke/**
+- tests/**
+- scripts/**
+- .github/workflows/**
+- .ai/_config/**
+- .ai/shared/schemas/**
+denied_paths:
+- .ai/agents/saul/**
+- .ai/shared/memory/decisions/**
+- .ai/authorizations/**
+officer_scope:
+  grant: grant-pr62-queue-ceo
+  agent_id: ceo
+  paths:
+  - .ai/**
+  - .cursor/**
+  note: "Decision records 0005-0008 on this PR are officer-authored. Contractors remain prohibited from those trees and from .ai/authorizations/**. A-009 officer work already landed at e84e5d7a7e76c5f9da567c8b8df9d75e9d4cb087: Sai added introduced_by_sha/source/source_head on .ai/authorizations/sha-bound-authorization.yaml (introduced_by_sha=2a578424f4879f2bad4e4391deff5f30231db19f, source_head=9382d1f). Cora does not write .ai/authorizations or .ai/_config. Activating pull_request_target on default branch is a human security gate, not a Cora or contractor PASS."
+capabilities:
+- git-commit
+- git-push
+verification_requirements:
+- scripts/verify-agent-authorization
+- scripts/verify-contract-authorization
+- scripts/sai-dispatch-transition --self-test
+- scripts/invoke-saul-review --self-test
+- scripts/sai-blockers --self-test
+- "officer: amend Decision 0008 in place and update .cursor/rules/sai-orchestration.mdc under grant-pr62-queue-ceo"
+- "contractor: add mechanical tests/scripts for Cora-per-todo, Ralph loop, and no-idle-Saul under existing allowed_paths only"
+- "contractor: trusted default-branch workflow artifact + regression that candidate saul-review.yml changes cannot change persistent-runner commands; do not mark PASSED"
+- "origin/main currently has no saul-review.yml (only agent-audit.yml); activating pull_request_target requires the trusted workflow on default branch; merging to main is a human security gate"
+- "Saul stating CTO-015..020 were remediated on 0df32c7446b95bda1f83137f8384a03135a959f6 is not clearance of those blockers on later heads; do not mark them PASSED"
+- "Do not restore candidate-HEAD trust"
+- "contractor: revert retrospective HEAD/working-tree task_id aliasing (HEAD-union); auth replay must use immutable auth at that commit OR an independently approved SHA-bound remediation record"
+- "contractor: negative fixtures proving uncommitted and later-HEAD aliases cannot alter historical authorization"
+- "contractor: remove contractor-authored sha_bound_authorization rows from .ai/_config as an authorization source; verifier loads only officer/independently-approved contractor-DENIED records under .ai/authorizations/"
+- "contractor: negative fixture proving a contractor-authored HEAD pin cannot authorize a historical commit"
+- "officer: introduced_by_sha/source/source_head already on .ai/authorizations/sha-bound-authorization.yaml at e84e5d7a7e76c5f9da567c8b8df9d75e9d4cb087; Cora does not rewrite this file"
+- "contractor: sha_bound_rows() must validate the pin was introduced by an independently authorized officer commit; bind approval source and issuer grant immutably; do not accept a HEAD pin merely because issuer is officer and issuer_grant matches the HEAD grant"
+- "contractor: negative fixtures proving forged metadata or a later rewritten HEAD grant cannot retrospectively authorize a historical commit"
+- "contractor: append CTO-029 blocker item without PASS; keep CTO-025 BLOCKED_EXTERNAL; keep CTO-026 uncleared; do not PASS CTO-024..029"
+- "exact-head Saul clearance still required for CTO-015..021 and B-CORA-TODO-001 / B-RALPH-001 / B-NO-IDLE-SAUL-001; do not treat older-head remediation as clearance"
+- "Do not disable Hostinger pull_request trigger until origin/main has the trusted workflow file; PR artifact is not activation"
+- "icm-enforcement SUCCESS on 9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2 is not technical PASS"
+- "cora_admin_complete true on v9 is administration complete, not technical PASS"
+execution_mode: provisional
+amendment_ids:
+- A-002
+- A-003
+- A-004
+- A-005
+- A-006
+- A-007
+- A-008
+- A-009
+review_state:
+  saul:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+  sai:
+    status: pending
+    reviewed_revision: null
+    reviewed_implementation_sha: null
+cora_admin_complete: true
+created_by: ctr-admin
+created_at: "2026-08-14T02:19:49Z"
+human_approval_ids:
+- human-pr62-keep-0007-and-path-expansion
+- grant-pr62-queue-ceo
+notes:
+- "origin/main currently has NO saul-review.yml (only agent-audit.yml)."
+- "Activating pull_request_target requires the trusted workflow to exist on default branch; merging to main is a human security gate."
+- "Contractor implements the trusted workflow artifact + regression test on this PR. Do not call that PASSED. Do not restore candidate-HEAD trust."
+- "Do not tell the contractor to disable the Hostinger pull_request trigger until main has the trusted file."
+- "Exact-head Saul clearance is still required for CTO-015..021 and B-CORA-TODO-001 / B-RALPH-001 / B-NO-IDLE-SAUL-001. Do not treat older-head remediation as clearance. Do not mark them PASSED."
+- "Keep CTO-025 open BLOCKED_EXTERNAL. Keep CTO-026 uncleared."
+- "Complete CTO-028 provenance: sha_bound_rows() must not accept a HEAD pin merely because issuer is officer and issuer_grant matches the HEAD grant."
+- "Officer (Sai) already added introduced_by_sha/source/source_head on the pin file at e84e5d7. Cora does not rewrite .ai/authorizations."
+- "Contractor enforces pin provenance in the verifier and adds negative fixtures for forged metadata and rewritten HEAD grants."
+- "Negative fixture: forged metadata or a later rewritten HEAD grant cannot retrospectively authorize a historical commit."
+- "cora_admin_complete true is administration complete for this wave, NOT technical PASS."
+- "icm-enforcement SUCCESS on 9382d1f is not technical PASS."
+- "Qualifying Saul run 31763018964; comment 5288630796; head 9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2; disposition REQUEST_CHANGES; codex_invoked true; synthetic false; authority_expanding false."

@@ -24,3 +24,12 @@ complete, not technical PASS. Wave artifacts:
 `.ai/runs/20260814-0158-pr62-queue-cora/`. implements false.
 do_not_merge true.
 
+## A-009 / v9 (grant Task-ID standing run)
+
+Issued A-009 → v9 from Saul run 31763018964 comment 5288630796 on
+exact head 9382d1f. cora_admin_complete true is administration
+complete, not technical PASS. Wave artifacts:
+`.ai/runs/20260814-0218-pr62-queue-cora/`. implements false.
+do_not_merge true. denied_paths unchanged. Officer pin provenance
+already at e84e5d7; contractor enforces verifier provenance.
+

@@ -1,0 +1,67 @@
+reviewer: saul
+runtime: codex
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: 8
+implementation_head: 9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2
+review_type: implementation
+disposition: REQUEST_CHANGES
+codex_invoked: true
+synthetic: false
+github_run_id: '31763018964'
+idempotency_key: 93557ddc83fb7a3c
+saul_review_key: 5a081e55a855d53c
+github_event: pull_request
+source: https://github.com/Dezocode/Sai/pull/62#issuecomment-5288630796
+runner_name: hostinger-saul-codex
+consumed_at: "2026-08-14T02:19:49Z"
+consumed_by: ctr-admin
+amendment_id: A-009
+result_revision: v9
+reason: The complete 311-path, 856728-byte exact-head diff was reviewed from the trusted
+  runner package. All changed paths received path-level validation; JSON/YAML parsing,
+  Python compilation, shell syntax, and diff-integrity checks passed. Approval is
+  unavailable because exact-head CI is pending, default-branch runner isolation remains
+  externally unactivated, and the CTO-028 implementation does not validate the required
+  approval/source/commit provenance of SHA-bound authorization records.
+findings:
+- id: CTO-029
+  severity: P0
+  contract_field: authorization
+  action: narrow
+  requested_change: Complete CTO-028 provenance enforcement. sha_bound_rows() currently
+    accepts a HEAD pin when issuer names an officer and issuer_grant names a HEAD
+    grant for that principal; it ignores approved_by, source, source_head, and the
+    commit provenance that introduced the pin record. The positive fixture likewise
+    succeeds with no independent approval/source provenance. Validate that the pin
+    record was introduced by an independently authorized officer commit, bind its
+    approval source and issuer grant immutably, and add negative fixtures proving
+    forged metadata or a later rewritten HEAD grant cannot retrospectively authorize
+    a historical commit.
+  authority_expanding: false
+- id: CTO-025
+  severity: P0
+  contract_field: saul_review_workflow
+  action: narrow
+  requested_change: Keep CTO-021/025 BLOCKED_EXTERNAL. origin/main still lacks the
+    trusted pull_request_target workflow, so the transitional pull_request workflow
+    remains candidate-defined on the persistent authenticated runner. Human-review
+    and land the trusted workflow on the default branch before disabling the transitional
+    trigger. The PR artifact and static regression are not activation or clearance.
+  authority_expanding: false
+- id: CTO-026
+  severity: P0
+  contract_field: verification_requirements
+  action: add
+  requested_change: Keep the exact-head technical ledger uncleared. CTO-029 and CTO-025
+    remain open, so B-RALPH-001 cannot pass; do not convert IMPLEMENTED_AWAITING_SAUL,
+    DISCOVERED, or TRIAGED entries into technical PASS based on implementation, self-tests,
+    older-head reviews, or this partial clearance.
+  authority_expanding: false
+- id: CTO-027
+  severity: P1
+  contract_field: human_gate
+  action: add
+  requested_change: Obtain green required CI for exact head 9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2.
+    The supplied trusted package reports combined_state=pending. cora_admin_complete=true
+    remains administration completion only and is not technical PASS.
+  authority_expanding: false

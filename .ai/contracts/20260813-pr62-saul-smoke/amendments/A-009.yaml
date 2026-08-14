@@ -1,0 +1,39 @@
+amendment_id: A-009
+contract_id: 20260813-pr62-saul-smoke
+from_revision: 8
+to_revision: 9
+finding_ids:
+- CTO-029
+- CTO-025
+- CTO-026
+- CTO-027
+authority_expanding: false
+human_approval_required: false
+human_approval_ids:
+- grant-pr62-queue-ceo
+- human-pr62-keep-0007-and-path-expansion
+summary: "Saul REQUEST_CHANGES 31763018964 / comment 5288630796 exact head 9382d1f -> A-009 -> v9. Bind CTO-029 P0 (complete CTO-028 provenance: sha_bound_rows() must not accept a HEAD pin merely because issuer is officer and issuer_grant matches HEAD grant; validate independently authorized officer commit that introduced the pin; bind approval source and issuer grant immutably; negative: forged metadata or later rewritten HEAD grant cannot retrospectively authorize a historical commit). Keep CTO-025 open BLOCKED_EXTERNAL. Keep CTO-026 uncleared. CTO-027 P1: icm-enforcement SUCCESS on 9382d1f is not technical PASS. allowed_paths unchanged. denied_paths unchanged. Officer provenance fields already at e84e5d7; Cora does not write authorizations or _config."
+trace:
+- CTO-029 -> A-009 -> v9
+- CTO-025 -> A-009 -> v9
+- CTO-026 -> A-009 -> v9
+- CTO-027 -> A-009 -> v9
+changes:
+- finding_id: CTO-029
+  field: authorization
+  action: narrow
+  note: "Complete CTO-028 provenance enforcement. sha_bound_rows() currently accepts a HEAD pin when issuer names an officer and issuer_grant names a HEAD grant for that principal; it ignores approved_by, source, source_head, and the commit provenance that introduced the pin. Officer (Sai) already added introduced_by_sha/source/source_head at e84e5d7a7e76c5f9da567c8b8df9d75e9d4cb087 (introduced_by_sha=2a578424f4879f2bad4e4391deff5f30231db19f, source_head=9382d1f). Cora does not rewrite that tree. Contractor enforces provenance in the verifier: validate the pin was introduced by an independently authorized officer commit; bind approval source and issuer grant immutably. Negative fixtures: forged metadata or a later rewritten HEAD grant cannot retrospectively authorize a historical commit. Cora does not write .ai/authorizations, .ai/_config, or blockers items."
+- finding_id: CTO-025
+  field: saul_review_workflow
+  action: narrow
+  note: "Keep CTO-021/025 open BLOCKED_EXTERNAL. origin/main still lacks the trusted pull_request_target workflow (only agent-audit.yml). Transitional pull_request workflow remains candidate-defined on the persistent authenticated runner. Human-review and land the trusted workflow on the default branch before disabling the transitional trigger. PR artifact and static regression are not activation or clearance. authority_expanding false. Do not restore candidate-HEAD trust."
+- finding_id: CTO-026
+  field: verification_requirements
+  action: add
+  note: "Keep uncleared. Do not mark the outstanding exact-head technical ledger cleared. B-RALPH-001 cannot pass while CTO-025 and CTO-029 remain unresolved. Implementation/self-tests do not constitute technical clearance. Exact-head Saul clearance still required for CTO-015..021 and B-CORA-TODO-001 / B-RALPH-001 / B-NO-IDLE-SAUL-001. Do not treat older-head remediation as clearance. Do not mark them PASSED."
+- finding_id: CTO-027
+  field: human_gate
+  action: add
+  note: "icm-enforcement already SUCCESS on exact head 9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2 (agent-audit 31763018953 pull_request and 31763016803 push). That is not technical PASS. Saul package combined_state pending; REQUEST_CHANGES remains. After issuing A-009/v9, set cora_admin_complete true. That is administration complete for this wave, NOT technical PASS."
+created_by: ctr-admin
+created_at: "2026-08-14T02:19:49Z"
