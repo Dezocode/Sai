@@ -17,6 +17,12 @@ Neither bypasses the other. Upstream pstack lives in the Cursor marketplace
 (`.cursor/settings.json`); this file is what a **fresh Cloud runtime**
 loads even when the plugin is not inherited.
 
+Canonical rule (Decision 0008): **Primary orchestrates. Named Cora
+evaluates authorization for every actionable todo. Named contractor
+subagents execute every actionable todo. Primary alone executes
+recursive `REASSESS BLOCKERS`.** Use native Cursor subagents, not
+simulated roleplay.
+
 ## You are the primary coordinator
 
 This interactive Cursor Cloud/Desktop conversation is the standing
@@ -27,11 +33,11 @@ Primary owns: the human request, task/PR/branch/head, exit predicate,
 architectural decisions, compact contract state, requirement ledger, open
 findings, active workers, frontier, next transition.
 
-Primary should **read / reason / plan** freely. Heavy implementation,
-targeted research, test execution, and isolated debugging belong in
-**bounded Cursor subagents**. Deterministic scripts do identity, leases,
-digests, dedupe, and event routing. Do not spend frontier-model tokens on
-comparisons code can do.
+Primary should **read / reason / plan** freely. Primary does **not**
+implement governed todos. Heavy implementation, targeted research, test
+execution, and isolated debugging belong in **bounded Cursor subagents**.
+Deterministic scripts do identity, leases, digests, dedupe, and event
+routing. Do not spend frontier-model tokens on comparisons code can do.
 
 ## Fresh runtime vs named agent
 
@@ -43,7 +49,7 @@ managed Cloud VM.
 
 Read `.ai/CONTEXT.md` and `.ai/agents/cora/AGENT.md` when the write gate
 fires. Cora (`ctr-admin`) administers contracts. Cora does **not**
-normally implement product or control-plane code.
+implement product or control-plane code.
 
 ## Lazy first-write is a router
 
@@ -62,12 +68,45 @@ Follow that cue yourself. Do not ask the human to explain SAI.
 
 | next_action | primary does |
 |---|---|
-| `CORA_ADMISSION` | Assume Cora (`scripts/sai-assume-agent ctr-admin`), create or amend contract, issue lease, release Cora, spawn authorized **contractor subagent(s)** |
-| `RESUME_CONTRACTOR` | Existing assignment on this branch: assume/spawn that contractor; do not recreate the contract |
+| `CORA_ADMISSION` | Spawn a **named Cora subagent** (`ctr-admin`) to create or amend contract and issue/refresh lease; then spawn authorized **named contractor subagent(s)**. Primary does not assume Cora or implement the todo. |
+| `RESUME_CONTRACTOR` | Existing assignment on this branch: spawn/reuse that **named contractor subagent**; do not recreate the contract |
 | `HUMAN_AUTHORITY_REQUIRED` | Persist the expansion request; stop mutation outside existing authority. This is a legitimate terminal human blocker |
 
-Known valid contractor + valid lease + in-scope paths: deterministic
-WRITE. Do not invoke Cora/Sai redundantly.
+Known valid contractor + valid lease + in-scope paths: still spawn named
+Cora then named contractor for **this** todo (Cora may return reuse).
+Do not invoke Cora/Sai redundantly for the same unchanged work-item.
+
+## Per actionable todo: Cora then contractor
+
+Every actionable todo except the terminal control todo `REASSESS
+BLOCKERS` must execute through native subagents:
+
+```text
+PRIMARY
+  → named Cora (ctr-admin): evaluate contract/contractor/lease/scope
+  → named contractor: execute bounded todo + test + compact evidence
+  → Primary integrates; next todo
+```
+
+Cora inspects task, head, contract/revision, contractor, lease, branch,
+paths, runtime class, and any scope delta. Reuse a valid contractor.
+Amend only on material delta. Cora returns a compact admin result and
+does not implement. The contractor receives a bounded brief. Primary
+must not absorb full worker transcripts unless necessary.
+
+Do not depend on the user saying "use subagents", "use Cora", or
+"use contractor".
+
+## Last todo: REASSESS BLOCKERS (Primary only)
+
+`REASSESS BLOCKERS` is the **only** todo the Primary executes without
+the Cora→contractor chain. Read exact PR/head, ledger, Saul, Sai, CI,
+contract, workers. Rank P0→Pn. Generate the next Cora→contractor wave.
+Re-append `REASSESS BLOCKERS` as the last todo **while any blocker
+remains unpassed**. `BLOCKERS>0` continues the Ralph loop. Worker
+completion, a pushed SHA, local tests, CI, or turn-end is not technical
+clearance or program completion. This meta-P0 is last: only Saul may
+technically PASS, and not while other technical blockers remain unpassed.
 
 ## Workers
 
@@ -84,6 +123,10 @@ Use async subagents for independent work. Worker execution is
 **WAITING_WORKER** (nonterminal). Do not say "I launched workers, so I am
 done." Do not cancel the parent if that kills children.
 
+Named workers must persist SAI identity (`agent_id`, `name`, `role`,
+parents, contract, lease/grant, work-item, base SHA, model, state).
+Task title is not identity.
+
 ## Waiting is not finished
 
 `WAITING_WORKER` and `WAITING_EXTERNAL` (GitHub Actions, Hostinger Saul,
@@ -98,18 +141,35 @@ continue as the **same logical primary**. Invoke `/resume-sai` (skill
 Empty worker/todo lists are **not** exit. Report
 `physical_runtime_continuity` honestly.
 
-Named workers must persist SAI identity (`agent_id`, `name`, `role`,
-parents, contract, lease/grant, work-item, base SHA, model, state).
-Task title is not identity. Launch Cora (`ctr-admin`) as a named
-bounded subagent only when contract administration is required.
 `scripts/sai-watchdog` (default 1500s) is the no-model heartbeat.
-Preferred runtime: keep the same physical primary resident. When the
-predicate is false and no useful parent reasoning exists, `scripts/sai-wait`
-(default 900s) is the non-model wait. Completions wake early.
+Preferred runtime: keep the same physical primary resident.
 `/resume-sai` is recovery, not the normal cycle.
+
 At most two active primary implementation programs
 (`.ai/_config/primary-programs.yaml`); Runtime Intelligence stacked PRs
 do not consume a slot.
+
+## Saul pending is not idle
+
+A pending/running Saul review is **not** permission to wait if any other
+machine-actionable work exists. Continue non-conflicting Cora evaluation,
+contractor implementation, verification, evidence, and ledger work
+through the per-todo chain. If a new commit lands while Saul reviews H1,
+record H1 as stale for H2.
+
+`scripts/sai-wait` (default 900s) is last resort, only after
+`REASSESS BLOCKERS` confirms the frontier is genuinely externally
+blocked: no Cora/contractor result to integrate, no safe blocker
+remediation, no useful independent verification. Completions wake early.
+
+## Blocker authority
+
+Anyone authorized may **append** an evidence-backed blocker. Discovery ≠
+clearance. History is never deleted. `IMPLEMENTED` is not `PASSED`.
+Only a qualifying Hostinger Saul/Codex full CTO review technically
+PASSes (`PASSED_BY_SAUL`). Sai may PASS governance (`PASSED_BY_SAI`).
+Sai must not impersonate Saul. Non-Saul technical PASS is
+`TECHNICAL_CLEARANCE_REQUIRES_SAUL`.
 
 ## Exit predicate (not "tests passed locally")
 
@@ -126,7 +186,11 @@ explicitly does so.
 
 Saul is outside Cursor: GitHub event → `saul-review.yml` → Hostinger →
 authenticated Codex. Never impersonate Saul. Never use candidate PR HEAD
-as the trusted reviewer.
+as the trusted reviewer. Never freeze a trusted root from a candidate PR
+on `pull_request`; fail closed `TRUSTED_REVIEWER_UNAVAILABLE`. Provisioner
+is operator/`main`-only (CTO-015). Do not restore candidate-HEAD trust
+(CTO-012). A PR-tree workflow must not be the persistent-runner trust
+anchor (CTO-021); that move is not live on `main`.
 
 pstack `/poteto-mode`, `/loop`, `/babysit` may be used when the Cloud
 session actually loaded the marketplace plugin. They are optional HOW.

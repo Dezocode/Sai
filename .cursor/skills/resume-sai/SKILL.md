@@ -60,6 +60,9 @@ Use the script output, then refresh anything the script marks stale against **li
 - Empty todo list ≠ exit. Worker completion is a queue event.
 - Task title ≠ SAI identity. Persist `agent_id`, `name`, `role`, parents, contract, lease/grant, work-item, base SHA, model, state.
 - Cora (`ctr-admin`) is a named bounded subagent for contract administration only. Do not make Cora implement. Do not stream worker transcripts to Cora.
+- Per actionable todo: named Cora subagent, then named contractor subagent (native Cursor subagents, not roleplay). Primary does not implement governed todos.
+- Last todo `REASSESS BLOCKERS` is Primary-only and re-appends itself while any blocker remains unpassed. `BLOCKERS>0` continues the Ralph loop. Only Saul technically PASSes; this meta-P0 is last.
+- Saul pending ≠ idle. Continue other machine-actionable work. `sai-wait` is last resort after REASSESS confirms an empty frontier.
 - Do not resume a worker merely to inspect it. Read durable status.
 - Heartbeat is `scripts/sai-watchdog` (default 1500s). It must not invoke a model just to compare status.
 - At most **two** active primary implementation programs unless Dezocode overrides. Stacked / Runtime Intelligence / telemetry / read-only verification PRs do not consume a slot.

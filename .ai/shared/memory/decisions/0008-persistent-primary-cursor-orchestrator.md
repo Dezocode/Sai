@@ -8,7 +8,8 @@
 - Depends on: Decision 0006 (authorization loop), Decision 0007 (Runtime
   Intelligence plane). This record does not supersede 0006 or 0007.
 - Source: https://github.com/Dezocode/Sai/pull/62#issuecomment-5287297355
-- Also binds: comments 5287013791, 5285843795, 5282088737
+- Also binds: comments 5287013791, 5285843795, 5282088737,
+  5287857514, 5287878905, 5287885878
 
 ## Decision
 
@@ -249,15 +250,102 @@ APPROVE of the same exact state, CI green, no unresolved P0…Pn, trusted
 reviewer independence proven. Then stop for Dezocode. Do not merge.
 
 Preferred runtime: keep the same physical primary resident; ~15-minute
-non-model wait (`scripts/sai-wait`, default 900s) when idle; `/resume-sai`
-is recovery, not the normal cycle. Finishing the primary while the
-predicate is false and machine work exists is `PREMATURE_PRIMARY_TERMINATION`.
+non-model wait (`scripts/sai-wait`, default 900s) only when the
+machine-actionable frontier is empty (see 2026-08-14 amendment);
+`/resume-sai` is recovery, not the normal cycle. Finishing the primary
+while the predicate is false and machine work exists is
+`PREMATURE_PRIMARY_TERMINATION`.
 
-Trusted reviewer bootstrap: freeze a runner-image root from an explicit
-SHA. `workflow_dispatch` of `trusted-reviewer-provision.yml` 404s until
-that workflow exists on the default branch. Authorized machine path:
-empty-dest first-writer-wins inside `saul-review.yml` on the self-hosted
-runner, using the explicit 40-hex PR head SHA (not symbolic HEAD). If
-`MANIFEST.json` already exists, do not overwrite. This is a one-time
-freeze, not a standing candidate-HEAD trust path. After freeze, candidate
-mutations must not change Saul launcher behavior.
+Trusted reviewer bootstrap (**replaces** the empty-dest first-writer
+freeze previously recommended in this paragraph; Saul rejected that as
+CTO-015 P0): never freeze a trusted root from a candidate PR on
+`pull_request`. Fail closed `TRUSTED_REVIEWER_UNAVAILABLE` and skip
+Codex. The provisioner (`trusted-reviewer-provision.yml`) is
+operator/`main`-only. Do not restore candidate-HEAD trust (CTO-012).
+
+CTO-021 (Saul run 31758118443, comment 5288037039): a PR-tree
+`saul-review.yml` must not be the persistent-runner trust anchor.
+Default-branch or another immutable trusted source is required (candidate
+checked out strictly as data). This is recorded policy. It is **not**
+already live on `Dezocode/Sai:main` (`main` has no `saul-review.yml`).
+Contractor implementation of that move is outside this officer record.
+
+## Amendment 2026-08-14 (Cora-per-todo / Ralph / no-idle-Saul)
+
+Sources (append-only; 0006/0007 and prior 0008 text stay in force):
+
+- https://github.com/Dezocode/Sai/issues/62#issuecomment-5287857514
+- https://github.com/Dezocode/Sai/issues/62#issuecomment-5287878905
+- https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885878
+
+Canonical rule:
+
+> Primary orchestrates. Named Cora evaluates authorization for every
+> actionable todo. Named contractor subagents execute every actionable
+> todo. Primary alone executes recursive `REASSESS BLOCKERS`.
+
+Use **native Cursor subagents**, not simulated roleplay in the Primary
+context. `.cursor/rules/sai-orchestration.mdc` (`alwaysApply`) must force
+this for fresh Cloud agents. It must not depend on the human saying
+"use subagents", "use Cora", or "use contractor".
+
+### Per actionable todo (5287857514)
+
+For every governed implementation todo except the terminal control todo
+`REASSESS BLOCKERS`:
+
+1. Named Cora (`ctr-admin`) evaluates contract / contractor / lease /
+   scope for **this** todo. Reuse a valid contractor. Amend only on
+   material delta. Cora does not implement.
+2. Named contractor subagent executes the bounded todo, tests, and
+   returns compact evidence to Primary.
+3. Primary integrates, updates durable state, and selects the next todo.
+
+Primary does not implement governed todos. Task title is not identity.
+
+### `BLOCKERS>0` continues the Ralph loop (5287878905)
+
+Any unpassed blocker → continue the Ralph-style primary loop. Worker
+completion, a pushed SHA, local tests, CI, Cursor/Cora/contractor
+judgment, an empty temporary todo list, or the end of a model turn is
+not technical clearance or program completion.
+
+`REASSESS BLOCKERS` is Primary-only. It ranks the P0→Pn frontier,
+generates the next Cora→contractor wave, and re-appends itself while any
+blocker remains unpassed.
+
+Only Saul may technically PASS. This meta-P0 is last: Saul must not PASS
+it while other applicable technical blockers remain unpassed.
+
+### Never idle-wait on Saul (5287885878)
+
+`SAUL_PENDING` is an external-review state, not an orchestration stop.
+If any other machine-actionable work exists, continue through
+Cora→contractor. The ~15-minute `scripts/sai-wait` is last resort after
+`REASSESS BLOCKERS` confirms an empty machine-actionable frontier.
+
+New commits while Saul reviews H1 mark that review stale for H2. Do not
+misapply an old exact-head review.
+
+### Blocker authority (restated)
+
+- Anyone authorized may **append** an evidence-backed blocker.
+  Discovery ≠ clearance. History is never deleted.
+- `IMPLEMENTED` is not `PASSED`. Technical PASS requires a qualifying
+  Hostinger Saul/Codex full CTO review (`codex_invoked=true`,
+  `synthetic=false`, trusted reviewer source, Saul persona from the
+  trusted tree, exact head + revision, complete diff coverage) →
+  `PASSED_BY_SAUL`. Non-Saul technical PASS is
+  `TECHNICAL_CLEARANCE_REQUIRES_SAUL`.
+- Sai may PASS governance blockers (`PASSED_BY_SAI`). Sai must not
+  impersonate Saul.
+- Human (dezocode/monaecode) holds initial and final authority. After
+  Saul technical APPROVE + Sai governance APPROVE of the same exact
+  state, CI green, no unresolved P0…Pn: `READY_FOR_HUMAN_REVIEW`, stop
+  for Dezocode. Do not merge. Do not mark ready.
+
+### Unchanged from this record
+
+Two-primary implementation cap. `/resume-sai` is recovery, not the
+normal cycle. Prefer physical persistence + `sai-wait` when the frontier
+is genuinely empty. Never merge or mark the PR ready.
