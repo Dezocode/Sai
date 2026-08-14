@@ -1,0 +1,32 @@
+"blocker_id": "CTO-024"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5288363871"
+"source_actor": "saul"
+"source_runtime": "hostinger-saul-codex"
+"created_at": "2026-08-14T01:34:00Z"
+"first_seen_head": "5ad0b94035182bf088715dd36b95db14fc496a98"
+"current_head": "5ad0b94035182bf088715dd36b95db14fc496a98"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "saul"
+"description": "Remove retrospective HEAD/working-tree task authorization from matching_grant and lease_task_id_bound. Replay must use immutable authorization at that commit or a SHA-bound remediation record loaded from git show HEAD, never the dirty working tree."
+"evidence":
+- "GitHub Actions run 31760665414"
+- "comment 5288363871"
+- "head 5ad0b94035182bf088715dd36b95db14fc496a98"
+"affected_paths":
+- "scripts/lib/sai_auth_grant.py"
+- "scripts/lib/sai_auth_rebind_test.py"
+- ".ai/_config/authorization.yaml"
+"dependencies": []
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "sha-bound-authorization-not-head-union"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v6"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-push"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "IMPLEMENTING then IMPLEMENTED_AWAITING_SAUL after SHA-bound pins. Not PASSED."

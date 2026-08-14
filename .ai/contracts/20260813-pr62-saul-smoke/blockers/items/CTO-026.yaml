@@ -1,0 +1,32 @@
+"blocker_id": "CTO-026"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5288363871"
+"source_actor": "saul"
+"source_runtime": "hostinger-saul-codex"
+"created_at": "2026-08-14T01:34:00Z"
+"first_seen_head": "5ad0b94035182bf088715dd36b95db14fc496a98"
+"current_head": "5ad0b94035182bf088715dd36b95db14fc496a98"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "saul"
+"description": "Exact-head Saul clearance is still required for the outstanding technical blocker ledger. CTO-015 through CTO-021 remain IMPLEMENTED_AWAITING_SAUL. B-CORA-TODO-001, B-RALPH-001, and B-NO-IDLE-SAUL-001 remain DISCOVERED. Older-head remediation statements are not clearance."
+"evidence":
+- "GitHub Actions run 31760665414"
+- "comment 5288363871"
+- "contract v6 prohibits treating older-head remediation as clearance"
+"affected_paths":
+- ".ai/contracts/20260813-pr62-saul-smoke/blockers/"
+"dependencies":
+- "CTO-015"
+- "CTO-021"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "exact-head-saul-clearance-meta"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v6"
+"status": "TRIAGED"
+"implementation_state": "open"
+"verification_state": "unverified"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "Meta tracker. Not self-passed. DISCOVERED then TRIAGED only."

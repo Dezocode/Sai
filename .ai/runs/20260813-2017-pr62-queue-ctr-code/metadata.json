@@ -19,12 +19,13 @@
     ".github/workflows/saul-review.yml",
     ".github/workflows/agent-audit.yml",
     ".github/workflows/trusted-reviewer-provision.yml",
-    ".ai/contracts/20260813-pr62-saul-smoke/",
+    ".ai/contracts/20260813-pr62-saul-smoke/blockers/",
     "tests/authorization/",
     ".ai/runs/20260813-2017-pr62-queue-ctr-code/",
     "scripts/lib/sai_auth_grant.py",
     "scripts/lib/sai_auth_verify.py",
-    "scripts/lib/sai_auth_rebind_test.py"
+    "scripts/lib/sai_auth_rebind_test.py",
+    ".ai/_config/authorization.yaml"
   ],
   "do_not_merge": true,
   "self_pass": false

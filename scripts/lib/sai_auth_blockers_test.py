@@ -11,7 +11,9 @@ from sai_auth_blockers import (
     item_path, load_ledger, save_ledger, set_status,
 )
 
-LIVE_REQUIRED = REQUIRED_HISTORY + ("CTO-021", "B-BLOAT-001")
+LIVE_REQUIRED = REQUIRED_HISTORY + (
+    "CTO-021", "B-BLOAT-001", "CTO-024", "CTO-025", "CTO-026", "CTO-027",
+)
 NON_SAUL_ACTORS = ("cursor", "contractor", "ctr-admin", "ctr-code-pr62smoke", "ceo")
 
 
@@ -163,7 +165,8 @@ def run_blocker_fixtures():
     for b in data["blockers"]:
         st = str(b.get("status") or "")
         if st in ("PASSED", "PASSED_BY_SAUL", "PASSED_BY_SAI") and b.get("blocker_id") in (
-            "CTO-015", "CTO-016", "CTO-017", "CTO-018", "CTO-019", "CTO-020", "CTO-021", "B-BLOAT-001",
+            "CTO-015", "CTO-016", "CTO-017", "CTO-018", "CTO-019", "CTO-020",
+            "CTO-021", "CTO-024", "CTO-025", "CTO-026", "CTO-027", "B-BLOAT-001",
         ):
             raise RuntimeError(f"contractor must not PASS {b.get('blocker_id')}")
     print("SELFTEST PASS  live-no-self-pass")

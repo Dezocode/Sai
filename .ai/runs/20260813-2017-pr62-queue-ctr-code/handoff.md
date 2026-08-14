@@ -1,20 +1,22 @@
-# Handoff — contractor (Saul 31756720206 remediations)
+# Handoff — ctr-code-pr62smoke (CTO-024 SHA-bound)
 
-Contract v4, lease `lease-c3a003pr62q1`.
+Lease `lease-c3a003pr62q1`, contract v6, Task-ID
+`20260813-2017-pr62-queue-ctr-code`.
 
-Ingested qualifying Saul REQUEST_CHANGES (comment 5287885648):
-CTO-015, CTO-016, CTO-017, CTO-018.
+Saul run 31760665414 / comment 5288363871 rejected HEAD/working-tree
+retrospective authorization. Replay now uses commit-time grants/leases plus
+SHA-bound rows from committed HEAD only.
 
-- Removed candidate empty-dest freeze from `saul-review.yml` (CTO-015).
-- Hermetic `invoke-saul-review --self-test` (CTO-017).
-- Quoted blocker ledger YAML and parse it in self-test (CTO-018).
-- Did not technically PASS any blocker.
+Pinned wave SHAs (full 40 hex): f2ab0b55, ff0a18f6, 97527f38 (contractor
+0052); 854e578c, b9f13f09, eab6b0c0 (ceo 0052);
+ec183590 (cora 0052); bb519c29 (cora 0041). Did not pin 5ad0b94 / 7b03b97
+/ 5684304.
 
-## 2026-08-14 HEAD task_id union (scripts only)
+CTO-025 remains BLOCKED_EXTERNAL (main merge required). Candidate
+`saul-review.yml` pull_request self-hosted job is still enabled.
+CTO-026 TRIAGED meta. CTO-027 assigned ctr-admin.
 
-`matching_grant` / `lease_task_id_bound` keep commit-time paths and also
-union HEAD/working-tree `task_id`/`task_ids` for the same grant/lease id
-and principal/agent. Leases honor `task_ids[]`. Self-PASS still rejected.
-Do not merge. `self_pass: false`. Range replay may still fail until Cora/Sai
-HEAD rebind is visible to the verifier; this commit does not edit grants or
-leases.
+Cora has an untracked A-007/v7 run; this commit keeps v6 trailers.
+
+`self_pass: false`. `do_not_merge: true`. Next: Cora v7 if pushed, then
+fresh Saul review. Do not merge.
