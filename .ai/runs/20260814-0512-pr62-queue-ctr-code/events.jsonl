@@ -1,0 +1,2 @@
+{"event_id": "20260814-0512-pr62-queue-ctr-code:cto030-plan", "event_type": "PLAN", "task_id": "20260814-0512-pr62-queue-ctr-code", "actor": "ctr-code-pr62smoke", "repository": "Dezocode/Sai", "timestamp": "2026-08-14T05:21:00Z", "purpose": "CTO-030 delete candidate Hostinger path"}
+{"event_id": "20260814-0512-pr62-queue-ctr-code:cto030-handoff", "event_type": "HANDOFF", "task_id": "20260814-0512-pr62-queue-ctr-code", "actor": "ctr-code-pr62smoke", "repository": "Dezocode/Sai", "timestamp": "2026-08-14T05:26:00Z", "purpose": "Handoff CTO-030 without PASS or merge"}

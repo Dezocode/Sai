@@ -1,8 +1,12 @@
 # Architectural review contract (Saul package)
 
-Contract `20260813-pr62-saul-smoke` v10. Classification:
+Contract `20260813-pr62-saul-smoke` v12. Classification:
 `REQUIRED_FOR_FINAL_MERGE_QUALITY`. Do not rewrite `.ai/agents/saul/**`.
 This file is a candidate-packaged evaluation contract. It is not a PASS.
+Merge-activated state = trusted file on main + no `saul-review.yml`;
+dispatch only from default branch. Residual = new collaborator
+self-hosted workflow (runner-group UNKNOWN/VERIFY_REQUIRED). Last
+qualifying Saul 31771910025 on 4503f55.
 
 Saul evaluates **two planes** on the exact head:
 
@@ -72,8 +76,10 @@ does not execute `candidate-data/scripts`.
 
 ### WHAT WOULD PREVENT MAIN REGRESSION
 `git cat-file -e origin/main:.github/workflows/saul-cto-review.default-branch.yml`
-after merge; confirm `saul-review.yml` on main has no `pull_request`
-trigger.
+after merge; confirm `saul-review.yml` is absent; dispatch only from
+the default branch. Residual: new collaborator self-hosted workflow
+(runner-group UNKNOWN/VERIFY_REQUIRED). Last qualifying Saul
+31771910025 on 4503f55.
 
 ### SMALLEST NEXT REMEDIATION FRONTIER
 If not merge-viable: the smallest next machine or human action. Do

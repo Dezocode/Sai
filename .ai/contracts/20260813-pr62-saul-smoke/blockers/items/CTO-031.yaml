@@ -1,0 +1,33 @@
+"blocker_id": "CTO-031"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5289717183"
+"source_actor": "saul"
+"source_runtime": "hostinger-saul-codex"
+"created_at": "2026-08-14T05:14:00Z"
+"first_seen_head": "4503f55250efde4166e4877473d4a9268b37c166"
+"current_head": "4503f55250efde4166e4877473d4a9268b37c166"
+"category": "technical"
+"severity": "P1"
+"severity_assigned_by": "saul"
+"description": "icm-enforcement SUCCESS on 4503f55 is not technical PASS. agent-audit pull_request run 31771910146 and push 31771907870 succeeded after Saul snapshot. The A-012 contractor SHA needs its own CI. Do not PASS."
+"evidence":
+- "GitHub Actions run 31771910146"
+- "GitHub Actions run 31771907870"
+- "comment 5289717183"
+- "A-012 / v12"
+"affected_paths":
+- ".github/workflows/agent-audit.yml"
+"dependencies":
+- "CTO-030"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "cto-031-exact-head-ci"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v12"
+"status": "TRIAGED"
+"implementation_state": "open"
+"verification_state": "unverified"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "TRIAGED. Not PASSED. 4503f55 CI SUCCESS does not clear a later SHA."
+- "Keep uncleared until the implementing SHA has its own green required CI."

@@ -396,22 +396,22 @@ def run_saul_fixtures():
         if state == "READY" or not any("codex_invoked" in x for x in fails):
             raise RuntimeError(f"omitted codex_invoked must block human_gate, got {state} {fails}")
         print("SELFTEST PASS  saul-omitted-codex-invoked-blocked")
-        wf = Path(__file__).resolve().parents[2] / ".github/workflows/saul-review.yml"
+        wf = Path(__file__).resolve().parents[2] / ".github/workflows/saul-cto-review.default-branch.yml"
         text = wf.read_text(encoding="utf-8")
         job = text.split("invoke-saul:", 1)[1].split("steps:", 1)[0]
         executed.add("saul-workflow-job-if-same-repo")
         if "head.repo.full_name" not in job or "github.repository" not in job:
-            raise RuntimeError("saul-review.yml job must skip fork PRs before runs-on")
+            raise RuntimeError("trusted job must skip fork PRs before runs-on")
         print("SELFTEST PASS  saul-workflow-job-if-same-repo")
         executed.add("saul-trusted-launcher-not-pr-head")
         if "SAI_TRUSTED_TREE" not in text or "SAI_CANDIDATE_TREE" not in text:
-            raise RuntimeError("saul-review.yml must set trusted vs candidate trees")
+            raise RuntimeError("trusted workflow must set trusted vs candidate trees")
         if '"$SAI_TRUSTED_TREE/scripts/invoke-saul-review"' not in text:
             raise RuntimeError("invoke must run from SAI_TRUSTED_TREE, not PR-head scripts/")
         print("SELFTEST PASS  saul-trusted-launcher-not-pr-head")
         executed.add("saul-status-description-truncated")
         if "[:140]" not in text and 'DESC="${DESC:0:140}"' not in text:
-            raise RuntimeError("saul-review.yml must cap commit status description at 140 chars")
+            raise RuntimeError("trusted workflow must cap commit status description at 140 chars")
         print("SELFTEST PASS  saul-status-description-truncated")
         os.environ.pop("SAI_SKIP_CODEX", None)
         os.environ["SAI_CODEX_BIN"] = "/bin/true"

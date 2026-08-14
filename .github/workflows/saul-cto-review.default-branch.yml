@@ -10,6 +10,9 @@ name: saul-cto-review-trusted
 # (GitHub pwn-request). Split-path design is required. Fail closed
 # TRUSTED_REVIEWER_UNAVAILABLE. Same-repo only. Do not add
 # allow-unsafe-pr-checkout. Do not freeze from candidate (CTO-015/012).
+# Do not add on: pull_request. Job-level if: is evaluated before
+# runner assignment: feature-branch / mutable-ref workflow_dispatch
+# must not acquire Hostinger. Dispatch only from the default branch.
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -43,7 +46,9 @@ permissions:
 
 jobs:
   invoke-saul:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    # Evaluated before runner assignment. Hostinger only for same-repo
+    # pull_request_target, or workflow_dispatch from the default branch.
+    if: "(github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'workflow_dispatch' && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || github.ref == 'refs/heads/main'))"
     runs-on: [self-hosted]
     timeout-minutes: 45
     steps:

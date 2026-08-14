@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""CTO-021: parse the intended default-branch Saul workflow as the trusted source.
+"""CTO-021/030: parse the intended default-branch Saul workflow as the trusted source.
 
 Candidate PR YAML is DATA. Commands executed by the persistent runner must come
-from the default-branch workflow (or runner-image), never from a mutated
-saul-review.yml on the candidate tree.
+from the default-branch workflow (or runner-image). saul-review.yml may be
+absent (preferred A-012); if present it must not acquire self-hosted.
 """
 from __future__ import annotations
 
@@ -96,25 +96,53 @@ def git_path_exists(rev_path: str) -> bool:
     return p.returncode == 0
 
 
-def should_skip_transitional(trusted_exists: bool) -> bool:
-    """Hermetic A-011 skip-guard: skip Codex iff trusted file exists on main.
-
-    Does not mutate origin/main. Maps git cat-file existence to skip=true.
-    """
-    return bool(trusted_exists)
-
-
-def step_if(doc: dict, step_id: str) -> str:
+def job_if(doc: dict, job_id: str | None = None) -> str:
     jobs = doc.get("jobs") if isinstance(doc, dict) else None
     if not isinstance(jobs, dict):
         return ""
+    if job_id and isinstance(jobs.get(job_id), dict):
+        return " ".join(str(jobs[job_id].get("if") or "").split())
     for job in jobs.values():
-        if not isinstance(job, dict):
-            continue
-        for step in job.get("steps") or []:
-            if isinstance(step, dict) and step.get("id") == step_id:
-                return str(step.get("if") or "")
+        if isinstance(job, dict) and job.get("if"):
+            return " ".join(str(job.get("if") or "").split())
     return ""
+
+
+def would_acquire(
+    event_name: str,
+    *,
+    ref: str = "",
+    default_branch: str = "main",
+    head_repo: str = "",
+    repository: str = "",
+) -> bool:
+    """Hermetic mirror of the trusted job if: (evaluated before runner assignment)."""
+    prt = (
+        event_name == "pull_request_target"
+        and bool(repository)
+        and head_repo == repository
+    )
+    dispatch = event_name == "workflow_dispatch" and ref in (
+        f"refs/heads/{default_branch}",
+        "refs/heads/main",
+    )
+    return bool(prt or dispatch)
+
+
+def assert_candidate_cannot_acquire(path: Path) -> list[str]:
+    """Absent saul-review.yml is PASS. Present file must not acquire Hostinger."""
+    if not path.is_file():
+        return []
+    doc = load_workflow(path.read_text(encoding="utf-8"))
+    fails = []
+    hosted = runs_on_self_hosted(doc)
+    on = workflow_on(doc)
+    has_pr = isinstance(on, dict) and "pull_request" in on
+    if hosted:
+        fails.append("saul-review.yml must not run on self-hosted")
+    if hosted and has_pr:
+        fails.append("saul-review.yml must not combine pull_request with self-hosted")
+    return fails
 
 
 def assert_trusted_workflow(text: str) -> list[str]:
@@ -124,8 +152,22 @@ def assert_trusted_workflow(text: str) -> list[str]:
     if "workflow_dispatch" not in text:
         fails.append("trusted workflow must allow workflow_dispatch")
     doc = load_workflow(text)
+    on = workflow_on(doc)
+    if isinstance(on, dict) and "pull_request" in on:
+        fails.append("trusted file must not declare on: pull_request")
     if not runs_on_self_hosted(doc):
         fails.append("runs-on must include self-hosted")
+    pred = job_if(doc, "invoke-saul")
+    if "github.event_name == 'pull_request_target'" not in pred:
+        fails.append("job if: must require pull_request_target")
+    if "head.repo.full_name" not in pred or "github.repository" not in pred:
+        fails.append("job if: must require same-repo before runs-on")
+    if "github.event_name == 'workflow_dispatch'" not in pred:
+        fails.append("job if: must mention workflow_dispatch")
+    if "github.ref" not in pred:
+        fails.append("job if: must constrain workflow_dispatch by github.ref")
+    if "default_branch" not in pred and "refs/heads/main" not in pred:
+        fails.append("job if: dispatch must be default-branch refs only")
     cmds = run_commands(doc)
     blob = "\n".join(cmds)
     for tok in FORBIDDEN_IN_TRUSTED_RUN:
@@ -137,6 +179,10 @@ def assert_trusted_workflow(text: str) -> list[str]:
         fails.append("must set SAI_CANDIDATE_TREE")
     if "SAI_TRUSTED_REVIEWER_ROOT" not in text and "/opt/sai/trusted-reviewer" not in text:
         fails.append("runner-image trusted root missing")
+    if "TRUSTED_REVIEWER_UNAVAILABLE" not in text:
+        fails.append("must fail closed TRUSTED_REVIEWER_UNAVAILABLE")
+    if "allow-unsafe-pr-checkout: true" in text:
+        fails.append("must not add allow-unsafe-pr-checkout: true")
     checkouts = checkout_steps(doc)
     cand = [s for s in checkouts if (s.get("with") or {}).get("path") in ("candidate-data", "candidate")]
     if not cand:
@@ -160,6 +206,7 @@ def cmd(argv=None):
         return 0
     text = TRUSTED_WF.read_text(encoding="utf-8")
     fails = assert_trusted_workflow(text)
+    fails.extend(assert_candidate_cannot_acquire(CANDIDATE_WF))
     if fails:
         for f in fails:
             print(f"FAIL {f}")

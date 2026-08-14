@@ -1,0 +1,36 @@
+"blocker_id": "CTO-030"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5289717183"
+"source_actor": "saul"
+"source_runtime": "hostinger-saul-codex"
+"created_at": "2026-08-14T05:14:00Z"
+"first_seen_head": "4503f55250efde4166e4877473d4a9268b37c166"
+"current_head": "307df46937c98283f693fad20c4d5783f799c4d9"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "saul"
+"description": "Remove the candidate-controlled Hostinger path. Delete .github/workflows/saul-review.yml. Skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN is insufficient: it lives in candidate-controlled YAML. Trusted saul-cto-review.default-branch.yml is the only self-hosted Saul workflow: pull_request_target plus workflow_dispatch with job-level if: so feature-branch dispatch does not acquire Hostinger. Do not PASS."
+"evidence":
+- "GitHub Actions run 31771910025"
+- "comment 5289717183"
+- "A-012 / v12"
+- "head 4503f55250efde4166e4877473d4a9268b37c166"
+"affected_paths":
+- ".github/workflows/saul-review.yml"
+- ".github/workflows/saul-cto-review.default-branch.yml"
+- "scripts/lib/sai_auth_workflow_trust.py"
+"dependencies":
+- "CTO-021"
+- "CTO-025"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "cto-030-delete-candidate-self-hosted"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v12"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-commit"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "IMPLEMENTED_AWAITING_SAUL. Not PASSED. Skip-guard superseded. Do not merge."
+- "Last qualifying Saul 31771910025 on 4503f55. This Cloud gh cannot workflow_dispatch (403)."

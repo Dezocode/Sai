@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
-"""CTO-021/025 regression: candidate saul-review.yml cannot change trusted commands.
+"""CTO-021/030 regression: candidate saul-review.yml cannot acquire Hostinger.
 
-A-011: candidate MUST declare pull_request AND workflow_dispatch, MUST contain
-skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN plus trusted-file cat-file.
-Trusted file MUST declare pull_request_target. origin/main must not be faked.
+A-012: saul-review.yml absent OR cannot acquire self-hosted. Trusted file MUST
+declare pull_request_target (not pull_request). Evil-run isolation. origin/main
+must not be faked. Hermetic job-if: dispatch from a non-default ref must not
+match the acquire predicate (evaluated before runner assignment).
 """
 from __future__ import annotations
 
 from sai_auth_workflow_trust import (
-    CANDIDATE_WF, EVIL_RUN, TRUSTED_WF, assert_trusted_workflow,
-    git_path_exists, load_workflow, run_commands, should_skip_transitional,
-    step_if, workflow_on,
+    CANDIDATE_WF, EVIL_RUN, TRUSTED_WF, assert_candidate_cannot_acquire,
+    assert_trusted_workflow, git_path_exists, job_if, load_workflow,
+    run_commands, would_acquire, workflow_on,
 )
 
 
 def run_workflow_trust_fixtures():
     executed = set()
     trusted_text = TRUSTED_WF.read_text(encoding="utf-8")
-    candidate_text = CANDIDATE_WF.read_text(encoding="utf-8")
+    trusted_doc = load_workflow(trusted_text)
 
     executed.add("trusted-workflow-constraints")
     fails = assert_trusted_workflow(trusted_text)
@@ -25,12 +26,25 @@ def run_workflow_trust_fixtures():
         raise RuntimeError(fails)
     print("SELFTEST PASS  trusted-workflow-constraints")
 
+    executed.add("candidate-path-removed")
+    cand_fails = assert_candidate_cannot_acquire(CANDIDATE_WF)
+    if cand_fails:
+        raise RuntimeError(cand_fails)
+    if CANDIDATE_WF.is_file():
+        print("SELFTEST PASS  candidate-path-removed (present but cannot acquire self-hosted)")
+    else:
+        print("SELFTEST PASS  candidate-path-removed (absent)")
+
     executed.add("candidate-evil-run-ignored")
-    mutated = candidate_text + (
+    synthetic = (
+        "name: evil\non:\n  pull_request:\njobs:\n  x:\n"
+        "    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n"
+    )
+    mutated = synthetic + (
         "\n      - name: pwn-from-candidate\n"
         f"        run: {EVIL_RUN}\n"
     )
-    trusted_cmds = run_commands(load_workflow(trusted_text))
+    trusted_cmds = run_commands(trusted_doc)
     trusted_blob = "\n".join(trusted_cmds)
     if EVIL_RUN in trusted_text or EVIL_RUN in trusted_blob:
         raise RuntimeError("evil candidate run leaked into trusted workflow")
@@ -41,42 +55,52 @@ def run_workflow_trust_fixtures():
         raise RuntimeError("trusted executed commands include candidate evil run")
     print("SELFTEST PASS  candidate-evil-run-ignored")
 
-    executed.add("candidate-pr-trigger-retired")
-    cand_doc = load_workflow(candidate_text)
-    cand_on = workflow_on(cand_doc)
-    if not isinstance(cand_on, dict):
-        raise RuntimeError("candidate on: must be a mapping")
-    if "pull_request" not in cand_on:
-        raise RuntimeError("candidate saul-review.yml must declare pull_request")
-    if "workflow_dispatch" not in cand_on:
-        raise RuntimeError("candidate saul-review.yml must declare workflow_dispatch")
-    if "TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN" not in candidate_text:
-        raise RuntimeError("candidate must contain skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN")
-    if "saul-cto-review.default-branch.yml" not in candidate_text:
-        raise RuntimeError("candidate skip-guard must cat-file saul-cto-review.default-branch.yml")
-    if "git cat-file -e" not in candidate_text:
-        raise RuntimeError("candidate skip-guard must git cat-file -e the trusted workflow")
-    invoke_if = step_if(cand_doc, "saul")
-    if "steps.retire.outputs.skip" not in invoke_if:
-        raise RuntimeError("invoke step if: must mention steps.retire.outputs.skip")
-    trust_on = workflow_on(load_workflow(trusted_text))
+    executed.add("trusted-still-pull-request-target")
+    trust_on = workflow_on(trusted_doc)
     if not isinstance(trust_on, dict) or "pull_request_target" not in trust_on:
         raise RuntimeError("trusted file must declare pull_request_target")
-    if "freeze-trusted-reviewer-once" in candidate_text:
-        raise RuntimeError("CTO-015: do not reintroduce candidate freeze")
+    if "pull_request" in trust_on:
+        raise RuntimeError("trusted file must not declare on: pull_request")
     if "allow-unsafe-pr-checkout: true" in trusted_text:
         raise RuntimeError("must not add allow-unsafe-pr-checkout: true")
-    blob = "\n".join(run_commands(load_workflow(trusted_text)))
+    blob = "\n".join(trusted_cmds)
     if "candidate-data/scripts/" in blob or "$SAI_CANDIDATE_TREE/scripts/" in blob:
         raise RuntimeError("trusted run blob must not execute candidate scripts")
-    print("SELFTEST PASS  candidate-pr-trigger-retired")
+    print("SELFTEST PASS  trusted-still-pull-request-target")
 
-    executed.add("hermetic-skip-guard")
-    if not should_skip_transitional(True):
-        raise RuntimeError("trusted_exists True must skip transitional Codex")
-    if should_skip_transitional(False):
-        raise RuntimeError("trusted_exists False must not skip (this PR still needs Codex)")
-    print("SELFTEST PASS  hermetic-skip-guard")
+    executed.add("hermetic-job-if-dispatch-ref")
+    pred = job_if(trusted_doc, "invoke-saul")
+    if "github.ref" not in pred:
+        raise RuntimeError("job if: missing github.ref dispatch guard")
+    if would_acquire(
+        "workflow_dispatch",
+        ref="refs/heads/cursor/codebase-health-90ba",
+        default_branch="main",
+    ):
+        raise RuntimeError("dispatch from non-default ref must not acquire Hostinger")
+    if not would_acquire(
+        "workflow_dispatch", ref="refs/heads/main", default_branch="main",
+    ):
+        raise RuntimeError("dispatch from default branch must match acquire predicate")
+    if not would_acquire(
+        "pull_request_target",
+        head_repo="Dezocode/Sai",
+        repository="Dezocode/Sai",
+    ):
+        raise RuntimeError("same-repo pull_request_target must acquire")
+    if would_acquire(
+        "pull_request_target",
+        head_repo="evil/Sai",
+        repository="Dezocode/Sai",
+    ):
+        raise RuntimeError("fork pull_request_target must not acquire")
+    if would_acquire(
+        "pull_request",
+        head_repo="Dezocode/Sai",
+        repository="Dezocode/Sai",
+    ):
+        raise RuntimeError("on: pull_request must not acquire on the trusted file")
+    print("SELFTEST PASS  hermetic-job-if-dispatch-ref")
 
     executed.add("cto021-not-faked-on-main")
     on_main = git_path_exists("origin/main:.github/workflows/saul-cto-review.default-branch.yml")

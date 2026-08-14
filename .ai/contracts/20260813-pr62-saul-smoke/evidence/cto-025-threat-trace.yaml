@@ -4,7 +4,7 @@ classification: REQUIRED_FOR_CURRENT_BLOCKER
 status: IMPLEMENTED_AWAITING_SAUL
 clearance_authority: saul
 do_not_pass: true
-note: "Contractor packages merge-activation evidence. Saul may later classify CONDITIONAL_PASS_ON_HUMAN_MERGE. Cora/contractor must not emit that as clearance."
+note: "A-012 / CTO-030 supersedes the A-011 skip-guard. Contractor packages merge-activation evidence. Saul may later classify CONDITIONAL_PASS_ON_HUMAN_MERGE. Cora/contractor must not emit that as clearance. Last qualifying Saul 31771910025 on 4503f55."
 guidance: "https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target"
 scenarios:
   - id: insecure-pwn-request
@@ -17,42 +17,43 @@ scenarios:
     why_forbidden: "Split-path design keeps executable tree on runner-image or default-branch checkout; candidate is DATA at path: candidate-data with persist-credentials: false. Trusted run: must not contain $SAI_CANDIDATE_TREE/scripts/, candidate-data/scripts/, ./scripts/invoke-saul-review, or python3 scripts/. Fail closed TRUSTED_REVIEWER_UNAVAILABLE. Same-repo only. No allow-unsafe-pr-checkout."
   - id: origin-main-gap
     label: Current origin/main gap
-    attacker_input: "Candidate .github/workflows/saul-review.yml on this PR (historically on: pull_request)"
-    trust_crossing: "GitHub loads pull_request workflows from the head SHA. origin/main has no saul-cto-review.default-branch.yml, so pull_request_target is not live."
+    attacker_input: "Deleted candidate .github/workflows/saul-review.yml (was pull_request + self-hosted)"
+    trust_crossing: "GitHub loads pull_request_target from the default branch only. origin/main has no saul-cto-review.default-branch.yml, so pull_request_target is not live yet."
     privilege: "self-hosted runner claimed by any matching workflow; GITHUB_TOKEN of the repo"
-    execution_path: "Until this SHA, Hostinger auto-ran candidate saul-review.yml on pull_request"
-    damage: "candidate-defined run steps on the persistent authenticated runner (CTO-021)"
-    current_mitigation: "A-010 full trigger removal is operationally incompatible with Cloud gh actions=read HTTP 403. A-011 restores narrow pull_request plus workflow_dispatch. Skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN skips Codex once trusted file exists on origin/main. During this PR origin/main still lacks that file so Codex still runs."
+    execution_path: "This SHA deletes candidate saul-review.yml so Hostinger is not acquired from candidate pull_request. Continuity is last qualifying Saul 31771910025 on 4503f55. This Cloud gh cannot workflow_dispatch (actions=read / 403)."
+    damage: "none from deleted candidate file; trusted file on this branch is not live until human merge"
+    current_mitigation: "A-012 deletes candidate-controlled saul-review.yml. Skip-guard inside that file is not a trust boundary. Trusted job-level if: acquires Hostinger only for same-repo pull_request_target or workflow_dispatch from the default-branch ref (evaluated before runner assignment)."
   - id: post-merge-intended
     label: Post-merge intended state
     attacker_input: "Future PRs against main"
     trust_crossing: "GitHub loads pull_request_target from protected main only"
     privilege: "base-repo token + self-hosted runner, constrained by same-repo if: and DATA-only candidate checkout"
-    execution_path: "trusted workflow from main; candidate SHA fetched to candidate-data; invoke scripts from runner-image or trusted-default-branch"
-    damage_if_intact: "candidate cannot change executed commands by mutating saul-review.yml"
-    post_merge_expected: "saul-cto-review.default-branch.yml exists on origin/main with pull_request_target; transitional saul-review.yml skip-guard stops Codex (TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN) even if pull_request remains"
-  - id: residual-dispatch-or-new-pr-workflow
-    label: Residual collaborator dispatch / future PR deleting the skip-guard
-    attacker_input: "Collaborator workflow_dispatch of candidate YAML, or a future PR deleting the TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN skip-guard"
-    trust_crossing: "Dispatch YAML comes from the dispatched ref; deleting the skip-guard would re-invoke Codex from transitional pull_request after merge"
+    execution_path: "trusted workflow from main; candidate SHA fetched to candidate-data; invoke scripts from runner-image or trusted-default-branch; dispatch only from default-branch refs"
+    damage_if_intact: "candidate cannot change executed commands; saul-review.yml is absent"
+    post_merge_expected: "saul-cto-review.default-branch.yml exists on origin/main with pull_request_target; saul-review.yml is absent; workflow_dispatch from mutable non-default refs does not acquire Hostinger"
+  - id: residual-new-collaborator-self-hosted
+    label: Residual new collaborator self-hosted workflow
+    attacker_input: "A later collaborator PR adding a new workflow file with runs-on: self-hosted"
+    trust_crossing: "GitHub loads pull_request workflows from the head SHA; a new file is not the deleted saul-review.yml"
     privilege: "write collaborators already have repo write; runner-group restriction is UNKNOWN/VERIFY_REQUIRED"
-    execution_path: "gh workflow run saul-review.yml --ref <branch>; or a later PR that removes the skip-guard while leaving on: pull_request"
-    damage: "collaborator-level (not anonymous fork) Codex on the Saul runner after trusted path is live"
+    execution_path: "new .github/workflows/*.yml with self-hosted on pull_request or unrestricted workflow_dispatch"
+    damage: "collaborator-level (not anonymous fork) code on the Saul runner after trusted path is live"
     classification: DEFERRED_NONBLOCKING
     state: UNKNOWN/VERIFY_REQUIRED
-    reason: "Runner-group restriction is uninspected. Residual = future PR deleting the guard (collaborator; DEFERRED_NONBLOCKING). Human merge of PR #62 remains the trusted-workflow activation event."
+    reason: "Runner-group restriction is uninspected (403). Residual = new collaborator self-hosted workflow file, not skip-guard deletion. Human merge of PR #62 remains the trusted-workflow activation event."
 merge_activation:
-  condition: "Trusted pull_request_target artifact is reviewed in this PR; only missing property is presence on protected main; A-011 keeps pull_request for this-PR continuity and skip-guards Codex after merge."
+  condition: "Trusted pull_request_target artifact is reviewed in this PR; only missing property is presence on protected main; A-012 merge-activated state = trusted file on main + no saul-review.yml; dispatch only from default branch."
   activation_event: "human merge of PR #62"
   post_merge_expected_state:
     - "origin/main:.github/workflows/saul-cto-review.default-branch.yml exists"
-    - "that file declares pull_request_target"
-    - "transitional saul-review.yml skip-guard skips Codex when that file exists"
+    - "that file declares pull_request_target (not pull_request)"
+    - "saul-review.yml is absent on origin/main"
+    - "job if: dispatch only from default-branch refs"
     - "candidate remains DATA at path candidate-data"
   rollback:
     - "Revert the merge commit on main"
     - "Restore previous main workflow set (agent-audit.yml only, no Saul trusted file)"
   verification:
     - "git cat-file -e origin/main:.github/workflows/saul-cto-review.default-branch.yml"
-    - "confirm skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN still present on main saul-review.yml"
+    - "test ! -f / confirm origin/main has no saul-review.yml"
   not_activation: "Presence of the trusted file on cursor/codebase-health-90ba is not live trust."

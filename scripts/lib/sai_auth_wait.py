@@ -30,7 +30,7 @@ def remote_snapshot() -> str:
     return "\n".join(filter(None, [
         _run(["git", "ls-remote", "origin", f"refs/heads/{BRANCH}"]),
         _run([
-            "gh", "run", "list", "--workflow=saul-review.yml",
+            "gh", "run", "list", "--workflow=saul-cto-review.default-branch.yml",
             "--branch", BRANCH, "--limit", "1",
             "--json", "databaseId,conclusion,headSha,status",
         ]),

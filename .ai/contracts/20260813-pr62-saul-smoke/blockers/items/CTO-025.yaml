@@ -35,3 +35,4 @@
 - "IMPLEMENTED_AWAITING_SAUL. Not PASSED. Saul may classify CONDITIONAL_PASS_ON_HUMAN_MERGE. Cora/contractor must not emit that as clearance."
 - "cto025_activation_on_main remains false until human merge."
 - "A-011 amends the retirement mechanism: keep narrow pull_request for this-PR Saul continuity; skip Codex after trusted file exists on origin/main (TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN). Trigger kept, invocation skipped post-merge. Status stays IMPLEMENTED_AWAITING_SAUL. Do not PASS."
+- "A-012 / CTO-030 supersedes the A-011 skip-guard as the remaining runner-boundary defect. Candidate saul-review.yml is deleted; skip-guard inside candidate-controlled YAML is not a trust boundary. Status stays IMPLEMENTED_AWAITING_SAUL. Do not PASS CTO-025."

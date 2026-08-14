@@ -11,7 +11,7 @@ import sai_auth as a
 from sai_auth_key import remember_review, lookup_completed, saul_review_key
 
 
-WORKFLOW = Path(__file__).resolve().parents[2] / ".github/workflows/saul-review.yml"
+WORKFLOW = Path(__file__).resolve().parents[2] / ".github/workflows/saul-cto-review.default-branch.yml"
 
 
 def isolate_saul_selftest_env(tmp):
@@ -52,17 +52,29 @@ def run_saul_trust_fixtures():
 
     executed.add("saul-empty-dest-freeze-once")
     if "freeze-trusted-reviewer-once" in text or "empty-dest-bootstrap" in text:
-        raise RuntimeError("CTO-015: pull_request workflow must not freeze from candidate SHA")
+        raise RuntimeError("CTO-015: trusted workflow must not freeze from candidate SHA")
     if "--confirm-trust" in text:
-        raise RuntimeError("CTO-015: saul-review.yml must not pass confirm_trust")
+        raise RuntimeError("CTO-015: trusted workflow must not pass confirm_trust")
     print("SELFTEST PASS  saul-empty-dest-freeze-once")
 
     executed.add("saul-trusted-sources-only")
     if "SAI_TRUSTED_REVIEWER_ROOT" not in text:
         raise RuntimeError("runner-image trusted root missing")
-    if "git archive" not in text or "BASE_SHA" not in text:
-        raise RuntimeError("base-ref archive of BASE_SHA missing")
+    if "trusted-default-branch" not in text:
+        raise RuntimeError("default-branch trusted checkout missing")
+    if "path: candidate-data" not in text:
+        raise RuntimeError("candidate DATA path missing")
     print("SELFTEST PASS  saul-trusted-sources-only")
+
+    executed.add("saul-trusted-job-if-guards")
+    job = text.split("invoke-saul:", 1)[1].split("steps:", 1)[0]
+    if "head.repo.full_name" not in job or "github.repository" not in job:
+        raise RuntimeError("trusted job if must skip fork PRs before runs-on")
+    if "workflow_dispatch" not in job or "github.ref" not in job:
+        raise RuntimeError("trusted job if must constrain dispatch to default-branch refs")
+    if "pull_request_target" not in job:
+        raise RuntimeError("trusted job if must require pull_request_target")
+    print("SELFTEST PASS  saul-trusted-job-if-guards")
 
     executed.add("saul-shell-no-reason-interpolation")
     forbidden = (

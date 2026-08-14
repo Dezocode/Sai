@@ -108,7 +108,6 @@ required = (
      ".ai/shared/schemas/remediation-item.schema.json",
      ".ai/shared/schemas/coordinator-state.schema.json",
      ".ai/_config/primary-programs.yaml",
-     ".github/workflows/saul-review.yml",
      ".github/workflows/saul-cto-review.default-branch.yml",
      ".ai/requests/README.md"]
     + ([".ai/shared/references/claude-agent-sdk.md"] if os.path.isfile(".ai/shared/references/claude-agent-sdk.md") else [])

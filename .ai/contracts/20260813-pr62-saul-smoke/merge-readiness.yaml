@@ -8,7 +8,7 @@ mark_ready_automatically: false
 human_action: "review PR; merge if satisfied"
 exact_head: "FILLED_LIVE_AT_REVIEW_TIME"
 exact_base: "FILLED_LIVE_AT_REVIEW_TIME"
-note: "exact_head/exact_base are placeholders; Saul/Sai fill from the reviewed SHA."
+note: "exact_head/exact_base are placeholders; Saul/Sai fill from the reviewed SHA. Last qualifying Saul 31771910025 on 4503f55."
 mergeability: UNKNOWN/VERIFY_REQUIRED
 ci: UNKNOWN/VERIFY_REQUIRED
 saul_disposition: pending
@@ -26,6 +26,7 @@ p0_pn_summary:
     - CTO-025
     - CTO-028
     - CTO-029
+    - CTO-030
     - B-RESUME-001
     - B-ORCH-001
     - B-BLOAT-001
@@ -35,6 +36,7 @@ p0_pn_summary:
   uncleared:
     - CTO-026
     - CTO-027
+    - CTO-031
     - B-CORA-TODO-001
     - B-RALPH-001
     - B-NO-IDLE-SAUL-001
@@ -42,18 +44,19 @@ conditional_activation:
   semantics: "Saul-only CONDITIONAL_PASS_ON_HUMAN_MERGE if predicates hold. Not contractor clearance."
   activation_event: "human merge of PR #62"
   artifact: ".github/workflows/saul-cto-review.default-branch.yml"
-  same_sha_retirement: "A-011 restores narrow pull_request plus workflow_dispatch; skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN skips Codex once trusted file exists on origin/main"
+  merge_activated_state: "trusted file on main + no saul-review.yml; dispatch only from default branch"
+  same_sha_retirement: "A-012 deletes candidate saul-review.yml; skip-guard superseded; job-level if: blocks feature-branch dispatch"
 quality_profile: .ai/contracts/20260813-pr62-saul-smoke/quality-profile.yaml
 security_trust_summary: .ai/contracts/20260813-pr62-saul-smoke/evidence/cto-025-threat-trace.yaml
 nonblocking_follow_ups:
   - "Pin actions/checkout to a SHA (DEFERRED_NONBLOCKING)"
   - "Inspect branch protection and runner-group restriction (UNKNOWN/VERIFY_REQUIRED)"
-  - "Collaborator workflow_dispatch of candidate YAML remains residual"
-  - "Future PR deleting the TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN skip-guard (DEFERRED_NONBLOCKING)"
+  - "Residual: new collaborator workflow file with self-hosted (runner-group UNKNOWN/VERIFY_REQUIRED)"
 rollback:
   - "Revert the merge on main"
   - "Restore previous main workflow set"
 post_merge_check:
   - "git cat-file -e origin/main:.github/workflows/saul-cto-review.default-branch.yml"
-  - "confirm skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN on origin/main saul-review.yml"
+  - "confirm origin/main has no saul-review.yml"
+  - "confirm job if: dispatch only from default-branch refs"
 architectural_review: .ai/contracts/20260813-pr62-saul-smoke/saul/architectural-review.md
