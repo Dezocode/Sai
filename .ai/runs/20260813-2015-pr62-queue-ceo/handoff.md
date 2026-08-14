@@ -1,27 +1,21 @@
-# Handoff — Sai (Decision 0008 / `/resume-sai` / comment 5287297355)
+# Handoff — 20260813-2015-pr62-queue-ceo (Sai)
 
-Logical primary: `pr62-primary`.
-Physical runtime: `bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc`.
-State: `.ai/runs/20260813-2015-pr62-queue-ceo/coordinator-state.json`.
+## What happened
+Max-effort continuation. Reconciled live PR #62 head `4f9ec01` (pre-this-commit) with Saul run 31753627528: BLOCKED TRUSTED_REVIEWER_UNAVAILABLE, codex_invoked=false. Did not restore candidate-HEAD trust. Amended Decision 0008: any authorized actor may append evidence-backed blockers; discovering/implementing does not grant clearance; technical PASS requires qualifying Saul; Saul may append new CTO findings; Sai may append/clear governance; Primary owns remediation; human is initial+final; 15-minute same-bcId wait is preferred; /resume-sai is recovery.
 
-## What landed (governance)
+Cursor discovered B-RESUME-001 (stale Saul pickup). Contractor implemented resume + blocker ledger + wait + HOME trust fallback. Cursor cannot PASS B-RESUME-001. B-TRUST-001 remains P0 until runner freeze.
 
-- Decision 0008 (does not overwrite 0006/0007).
-- `/resume-sai` Agent Skill + legacy command shim.
-- Architecture.md and Runtime Intelligence MEMORY_ARCHITECTURE projection.
-- Cora AGENT.md: named child, silent supervision.
-- Continuity rule: child-task completion is not program completion.
+## Next
+1. Push this wave.
+2. Dispatch trusted-reviewer-provision.yml --ref cursor/codebase-health-90ba -f from_sha=<new> -f confirm_trust=true.
+3. Live 900s sai-wait on same bcId.
+4. Trigger Saul; ingest every finding; do not self-PASS.
+5. Sai governance after Saul technical plane.
+6. READY_FOR_HUMAN_REVIEW only after both APPROVE same SHA. Do not merge.
 
-## Continuity (honest)
-
-- Physical same-`bcId` follow-up: **supported only with an explicit prompt**
-  (`POST /v1/agents/{id}/runs` or SDK `Agent.resume`+`send`).
-- Silent GitHub wake: **unsupported**.
-- `CURSOR_API_KEY` on this VM: **absent**. Logical pickup is required.
-- Wake probe worker: `bc-cba5edfb-e6ef-59bd-bff6-850b0fd7bcdc` (read-only).
-
-## Exit
-
-READY_FOR_HUMAN_REVIEW: **no**. Needs Hostinger trusted-reviewer root or
-protected-branch scripts, then real Saul APPROVE + Sai APPROVE + CI green
-on the exact new SHA. Do not merge. Do not mark ready.
+## Evidence
+- `.ai/shared/memory/decisions/0008-persistent-primary-logical-pickup.md` amended
+- RI MEMORY_ARCHITECTURE.md projection
+- sai-orchestration.mdc 900s wait
+- REQ-20260813-blocker-authority
+- coordinator-state: Saul 31753627528

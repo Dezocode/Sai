@@ -76,6 +76,11 @@ primary-implementation slot (kind `runtime_intelligence` / `stacked`).
 Physical Cloud `bcId` resume requires an official follow-up prompt; silent
 GitHub wake is unsupported. Logical pickup is `/resume-sai`.
 
+Blocker authority (Decision 0008 amendment): any authorized agent may
+append evidence-backed blockers. Only Saul technically PASSes via a
+qualifying full CTO review. Sai PASSes governance blockers only. Project
+the open-blocker set onto the Control Tower; do not delete history.
+
 ## Live dashboard
 Host on Hostinger. Hermes/OpenClaw may continuously refresh it from local telemetry. Grok may contribute adversarial/comparative interpretation but must not overwrite measured telemetry.
 

@@ -103,6 +103,10 @@ parents, contract, lease/grant, work-item, base SHA, model, state).
 Task title is not identity. Launch Cora (`ctr-admin`) as a named
 bounded subagent only when contract administration is required.
 `scripts/sai-watchdog` (default 1500s) is the no-model heartbeat.
+Preferred runtime: keep the same physical primary resident. When the
+predicate is false and no useful parent reasoning exists, `scripts/sai-wait`
+(default 900s) is the non-model wait. Completions wake early.
+`/resume-sai` is recovery, not the normal cycle.
 At most two active primary implementation programs
 (`.ai/_config/primary-programs.yaml`); Runtime Intelligence stacked PRs
 do not consume a slot.

@@ -218,3 +218,42 @@ supported resume surface that does not require conversation replay.
 - Requirement ledger `REQ-5287297355`
 - Runtime Intelligence wiki/memory **projects** this decision; they do
   not replace it
+
+## Amendment 2026-08-13 (blocker authority / max-effort continuation)
+
+Discovery authority is not clearance authority.
+
+Any authorized participant (Primary Cursor, Cora, contractor, verifier,
+Runtime Intelligence, CI, Sai, Saul) may **append** an evidence-backed
+blocker. They must not hide findings to keep the ledger small. Historical
+blockers are never deleted.
+
+`IMPLEMENTED` is not `PASSED`. Technical blockers become
+`IMPLEMENTED_AWAITING_SAUL` until a **qualifying** Hostinger Saul/Codex
+review (`codex_invoked=true`, `synthetic=false`, trusted reviewer source,
+Saul persona from the trusted tree, exact head + revision, complete diff
+and changed-path coverage) explicitly verifies the blocker is gone on
+that exact state (`PASSED_BY_SAUL`). Cursor/Cora/contractor/RI/CI/Sai
+cannot technically self-pass. Mechanical reject:
+`TECHNICAL_CLEARANCE_REQUIRES_SAUL`.
+
+Saul may discover additional CTO-N findings during every qualifying
+review and those append automatically. Prior PASS on an older head is
+stale if the new head changes relevant code.
+
+Sai may append and, within CEO scope, clear **governance** blockers
+(`PASSED_BY_SAI`). Sai must not impersonate Saul.
+
+READY_FOR_HUMAN_REVIEW requires Saul technical APPROVE and Sai governance
+APPROVE of the same exact state, CI green, no unresolved P0…Pn, trusted
+reviewer independence proven. Then stop for Dezocode. Do not merge.
+
+Preferred runtime: keep the same physical primary resident; ~15-minute
+non-model wait (`scripts/sai-wait`, default 900s) when idle; `/resume-sai`
+is recovery, not the normal cycle. Finishing the primary while the
+predicate is false and machine work exists is `PREMATURE_PRIMARY_TERMINATION`.
+
+Trusted reviewer bootstrap: freeze a runner-image root from an explicit
+SHA via `workflow_dispatch` (never `pull_request`). Candidate HEAD is
+never a success path. After freeze, candidate mutations must not change
+Saul launcher behavior.
