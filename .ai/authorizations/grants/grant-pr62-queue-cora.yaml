@@ -3,6 +3,10 @@ principal: ctr-admin
 principal_name: Cora
 runtime: cursor-cloud-vm
 task_id: 20260813-2016-pr62-queue-cora
+task_ids:
+  - 20260813-2016-pr62-queue-cora
+  - 20260814-0041-pr62-queue-cora
+  - 20260814-0052-pr62-queue-cora
 paths:
   - ".ai/contracts/**"
   - ".ai/requests/**"
