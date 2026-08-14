@@ -203,3 +203,31 @@ blockers:
     clearance_authority: saul
     clearance_review_id: null
     clearance_head: null
+  - blocker_id: CTO-019
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287965694"
+    source_actor: saul
+    source_runtime: hostinger-saul-codex
+    created_at: "2026-08-14T00:30:58Z"
+    first_seen_head: "7fad00c5a4312426784b8ff252029249d1620cf4"
+    current_head: "7fad00c5a4312426784b8ff252029249d1620cf4"
+    category: technical
+    severity: P0
+    severity_assigned_by: saul
+    description: "invoke-saul-review --self-test delegated through ambient SAI_TRUSTED_TREE and mutated the live .saul-review-package."
+    evidence:
+      - "GitHub Actions run 31757433946"
+      - "comment 5287965694"
+    affected_paths:
+      - scripts/invoke-saul-review
+    dependencies:
+      - CTO-017
+    assigned_owner: ctr-code-pr62smoke
+    work_item: wrapper-self-test-bypasses-trusted-tree
+    contract: 20260813-pr62-saul-smoke
+    revision: v4
+    status: IMPLEMENTED_AWAITING_SAUL
+    implementation_state: implemented-locally
+    verification_state: self-test-pending-push
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null

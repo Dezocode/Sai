@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -162,6 +163,33 @@ def run_saul_trust_fixtures():
         if not doc or doc.get("reason") != "CODEX_UNAVAILABLE":
             raise RuntimeError(doc)
         print("SELFTEST PASS  saul-selftest-hermetic-with-prod-env")
+
+    if os.environ.get("SAI_SELFTEST_INNER") == "1":
+        return executed
+    executed.add("saul-wrapper-selftest-does-not-mutate-prod-package")
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(__file__).resolve().parents[2]
+        prod_pkg = Path(tmp) / "prod-pkg"
+        prod_pkg.mkdir()
+        sentinel = prod_pkg / "metadata.json"
+        sentinel.write_text('{"live":true}\n', encoding="utf-8")
+        before = sentinel.read_bytes()
+        env = os.environ.copy()
+        env["SAI_TRUSTED_TREE"] = str(Path(tmp) / "trusted")
+        env["SAI_CANDIDATE_TREE"] = str(Path(tmp) / "candidate")
+        env["SAI_SAUL_PACKAGE_DIR"] = str(prod_pkg)
+        env["SAI_SKIP_CODEX"] = "1"
+        env["SAI_SELFTEST_INNER"] = "1"
+        env["PYTHONPATH"] = str(root / "scripts" / "lib")
+        proc = subprocess.run(
+            [str(root / "scripts" / "invoke-saul-review"), "--self-test"],
+            cwd=str(root), env=env, capture_output=True, text=True, timeout=60,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(proc.stdout + proc.stderr)
+        if sentinel.read_bytes() != before:
+            raise RuntimeError("production package mutated by --self-test")
+        print("SELFTEST PASS  saul-wrapper-selftest-does-not-mutate-prod-package")
     return executed
 
 

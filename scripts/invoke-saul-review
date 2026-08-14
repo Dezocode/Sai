@@ -4,8 +4,17 @@
 # Optional OPENAI_API_KEY/CODEX_API_KEY is npx fallback only.
 # Missing/failed Codex => disposition BLOCKED (never APPROVE).
 # Reviewer implementation MUST come from SAI_TRUSTED_TREE when set (CTO-010).
+# --self-test never delegates through the production trusted tree (CTO-019).
 # referenced: scripts/lib/sai_auth_saul_test.py
 set -euo pipefail
+for arg in "$@"; do
+  if [ "$arg" = "--self-test" ]; then
+    ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+    export SAI_SKIP_CODEX=1
+    unset SAI_TRUSTED_TREE SAI_CANDIDATE_TREE SAI_SAUL_PACKAGE_DIR SAI_TRUST_MODE || true
+    exec python3 "$ROOT/scripts/lib/sai_auth_review.py" invoke --self-test
+  fi
+done
 if [ -n "${SAI_TRUSTED_TREE:-}" ] && [ -f "${SAI_TRUSTED_TREE}/scripts/lib/sai_auth_review.py" ]; then
   exec python3 "${SAI_TRUSTED_TREE}/scripts/lib/sai_auth_review.py" invoke "$@"
 fi
