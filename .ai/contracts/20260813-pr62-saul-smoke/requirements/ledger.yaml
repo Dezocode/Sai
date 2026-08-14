@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-14T17:03:00Z"
+updated_at: "2026-08-14T20:08:00Z"
 requirements:
   - requirement_id: REQ-5282088737
     source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
@@ -178,3 +178,43 @@ requirements:
       - append-blocker-discovered-or-implemented-awaiting-saul-not-pass
       - do-not-restore-saul-review-yml
       - contractor-must-not-write-authorizations-or-production-private-key
+  - requirement_id: REQ-SAUL-BOOTSTRAP-HEAD-001
+    source: "real Hostinger Codex review of 0df9a51; SIGNED_ARTIFACT none; disposition BLOCKED; TRUSTED_BOOTSTRAP_NOT_ESTABLISHED; P0-B"
+    authority: saul
+    timestamp: "2026-08-14T20:08:00Z"
+    scope: hostinger-bootstrap-head-proof
+    digest: prove-candidate-tree-head-equals-dash-dash-head
+    status: in-progress
+    blocking: true
+    acceptance:
+      - bootstrap-proves-sai-candidate-tree-head-equals-head
+      - do-not-pass
+      - reuse-v12-no-a013
+  - requirement_id: REQ-SAUL-BOOTSTRAP-FALLBACK-001
+    source: "real Hostinger Codex review of 0df9a51; P0-C confirmed scripts/saul-hostinger-bootstrap-review lines 66-69"
+    authority: saul
+    timestamp: "2026-08-14T20:08:00Z"
+    scope: hostinger-bootstrap-no-candidate-fallback
+    digest: refuse-root-scripts-invoke-and-attest-fallback
+    status: in-progress
+    blocking: true
+    acceptance:
+      - no-fallback-to-candidate-invoke-saul-review
+      - no-fallback-to-candidate-saul-attest
+      - trusted-tree-scripts-only
+      - do-not-pass
+      - reuse-v12-no-a013
+  - requirement_id: REQ-SAUL-BOOTSTRAP-EXT-001
+    source: "real external Hostinger Codex review (not Cursor); SIGNED_ARTIFACT none; disposition BLOCKED; TRUSTED_BOOTSTRAP_NOT_ESTABLISHED"
+    authority: saul
+    timestamp: "2026-08-14T20:08:00Z"
+    scope: external-hostinger-blocked-event
+    digest: record-blocked-p0a-waiting-external-p1d-deferred
+    status: in-progress
+    blocking: false
+    acceptance:
+      - p0-a-waiting-external-operator-opt-sai-trusted-reviewer
+      - cursor-must-not-provision-hostinger
+      - p1-d-generic-self-hosted-deferred-nonblocking
+      - do-not-create-p1-d-blocker
+      - do-not-pass

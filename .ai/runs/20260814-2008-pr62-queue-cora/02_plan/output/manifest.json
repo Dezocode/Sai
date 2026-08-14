@@ -1,0 +1,16 @@
+{
+  "task_id": "20260814-2008-pr62-queue-cora",
+  "stage": "02_plan",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-14T20:08:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260814-2008-pr62-queue-cora/01_intake/output/intake.md",
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v12.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json"
+  ],
+  "outputs": [
+    ".ai/runs/20260814-2008-pr62-queue-cora/02_plan/output/plan.md"
+  ],
+  "notes": "reuse=true v13=false. Cora appends bootstrap REQs only. P0-A WAITING_EXTERNAL_OPERATOR. P1-D DEFERRED_NONBLOCKING. Do not PASS."
+}

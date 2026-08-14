@@ -145,4 +145,32 @@ Hostinger Codex with unforgeable attestation may PASS.
 Do not self-PASS. Do not merge. Do not push. Do not mark
 ready.
 
+## Hostinger bootstrap P0-B/P0-C reuse v12 (grant Task-ID standing run)
+
+Evaluated real external Hostinger Codex review on exact
+head 0df9a51. SIGNED_ARTIFACT none, disposition BLOCKED,
+reason TRUSTED_BOOTSTRAP_NOT_ESTABLISHED. reuse=true.
+v13=false. Did not issue A-013. allowed_paths already
+cover bootstrap script/tests (scripts/**, tests/**,
+contract tree). denied_paths unchanged.
+lease-c3a003pr62q1 reused (v12). ctr-code-pr62smoke
+reused. Appended REQ-SAUL-BOOTSTRAP-HEAD-001 /
+REQ-SAUL-BOOTSTRAP-FALLBACK-001 /
+REQ-SAUL-BOOTSTRAP-EXT-001 without PASS. Did not write
+blockers/items. Wave artifacts:
+`.ai/runs/20260814-2008-pr62-queue-cora/`. implements
+false. do_not_merge true. do_not_push true.
+technical_pass false. P0-A `/opt/sai/trusted-reviewer`
+absent is WAITING_EXTERNAL_OPERATOR; Cursor must not
+provision Hostinger. P1-D generic `[self-hosted]` is
+DEFERRED_NONBLOCKING; do not create a blocker.
+Contractor next: prove SAI_CANDIDATE_TREE HEAD equals
+`--head`; refuse fallback to candidate
+root/scripts/invoke-saul-review and saul-attest (lines
+66-69); append HEAD/FALLBACK blocker
+DISCOVERED or IMPLEMENTED_AWAITING_SAUL not PASS. Do
+not provision Hostinger. Do not create a P1-D blocker.
+Do not restore saul-review.yml. Do not PASS. Do not
+merge. Do not push. Do not mark ready.
+
 
