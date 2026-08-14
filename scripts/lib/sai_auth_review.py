@@ -17,7 +17,7 @@ import sai_auth_verify as v  # noqa: E402
 from sai_auth_key import (  # noqa: E402
     compute_saul_review_key, lookup_completed, remember_review,
 )
-from sai_auth_package import MARKER_B, MARKER_E, build_prompt  # noqa: E402
+from sai_auth_package import MARKER_B, MARKER_E, build_prompt, codex_exec_env  # noqa: E402
 
 
 def _codex_env():
@@ -27,14 +27,14 @@ def _codex_env():
 def _codex_cmd():
     if os.environ.get("SAI_SKIP_CODEX") == "1":
         return None
-    sandbox = os.environ.get("SAI_CODEX_SANDBOX", "danger-full-access").strip()
+    sandbox = os.environ.get("SAI_CODEX_SANDBOX", "workspace-write").strip()
     extra = []
     if sandbox and sandbox != "default":
         if sandbox in ("bypass", "dangerously-bypass"):
             extra.append("--dangerously-bypass-approvals-and-sandbox")
         else:
             extra.extend(["-s", sandbox])
-    extra.append("--skip-git-repo-check")
+    extra.extend(["--skip-git-repo-check", "--ignore-user-config"])
     exe = os.environ.get("SAI_CODEX_BIN") or shutil.which("codex")
     if exe:
         return [exe, "exec", "--ephemeral", *extra, "-"]
@@ -160,12 +160,6 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
             "codex_invoked": False,
         }
     else:
-        env = os.environ.copy()
-        for k in ("OPENAI_API_KEY", "CODEX_API_KEY"):
-            if not env.get(k):
-                env.pop(k, None)
-        if env.get("CODEX_API_KEY") and not env.get("OPENAI_API_KEY"):
-            env["OPENAI_API_KEY"] = env["CODEX_API_KEY"]
         try:
             prompt = _prompt(cand, cid, revision, sha, review_type)
         except Exception as e:
@@ -181,7 +175,7 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
             try:
                 p = subprocess.run(
                     cmd, input=prompt, capture_output=True, text=True,
-                    env=env, timeout=1200,
+                    env=codex_exec_env(os.environ), timeout=1200,
                 )
                 parsed = _parse_yaml_block((p.stdout or "") + "\n" + (p.stderr or ""))
                 if not parsed or parsed.get("disposition") not in (
@@ -411,7 +405,8 @@ def cmd_invoke(argv=None):
     args = p.parse_args(argv)
     if args.self_test:
         from sai_auth_test import run_saul_fixtures
-        n = run_saul_fixtures()
+        from sai_auth_tpr_test import run_tpr_fixtures
+        n = run_saul_fixtures() | run_tpr_fixtures()
         try:
             from sai_auth_saul_test import run_saul_trust_fixtures
             n |= run_saul_trust_fixtures()

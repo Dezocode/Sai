@@ -418,10 +418,10 @@ def run_saul_fixtures():
         os.environ.pop("SAI_CODEX_SANDBOX", None)
         from sai_auth_review import _codex_cmd
         cmd = _codex_cmd()
-        executed.add("saul-sandbox-default-danger-full-access")
-        if cmd is None or "-s" not in cmd or "danger-full-access" not in cmd:
-            raise RuntimeError(f"default Codex sandbox must be danger-full-access, got {cmd}")
-        print("SELFTEST PASS  saul-sandbox-default-danger-full-access")
+        executed.add("saul-sandbox-default-workspace-write")
+        if cmd is None or "-s" not in cmd or "workspace-write" not in cmd:
+            raise RuntimeError(f"default Codex sandbox must be workspace-write, got {cmd}")
+        print("SELFTEST PASS  saul-sandbox-default-workspace-write")
         os.environ["SAI_CODEX_SANDBOX"] = "read-only"
         cmd_ro = _codex_cmd()
         executed.add("saul-sandbox-env-override")

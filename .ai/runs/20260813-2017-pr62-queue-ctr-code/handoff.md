@@ -1,38 +1,29 @@
-# Handoff — ctr-code-pr62smoke (A-012/v12 CTO-030)
+# Handoff — ctr-code-pr62smoke (TPR-001 / TPR-002)
 
-Lease `lease-c3a003pr62q1`, contract v12 (Cora A-012 at `307df46`).
+Lease `lease-c3a003pr62q1`, contract v12 (Cora reused; no A-013).
 Task-ID `20260813-2017-pr62-queue-ctr-code`. Wave
-`20260814-0512-pr62-queue-ctr-code`.
+`20260814-1540-pr62-queue-ctr-code`. Parent pr62-primary.
 
-Deleted `.github/workflows/saul-review.yml` (candidate-controlled
-Hostinger `pull_request` + `workflow_dispatch` path). Skip-guard is
-not a trust boundary. Hardened
-`.github/workflows/saul-cto-review.default-branch.yml` job-level
-`if:`: Hostinger only for same-repo `pull_request_target` OR
-`workflow_dispatch` from the default-branch ref (evaluated before
-runner assignment). Candidate remains DATA at `path: candidate-data`,
-`persist-credentials: false`. No `on: pull_request` on the trusted
-file. No `allow-unsafe-pr-checkout`. Fail closed
-`TRUSTED_REVIEWER_UNAVAILABLE`.
+TPR-001: deleted `.github/workflows/trusted-reviewer-provision.yml`.
+Stopped `sai_auth_wait.py` provisioner poll. Kept provision python
+module + `--self-test`. Hermetic `assert_provisioner_workflow()`
+rejects `checkout ref: from_sha` then execute provisioner. Live
+file absent. Did not execute freeze-from-candidate. Did not
+delete Decision 0008. Did not add `on: pull_request`.
 
-Retargeted trust tests. Absent `saul-review.yml` is PASS.
-`authorization.yaml` workflow pointer now names the trusted file.
-Ledger: CTO-030 IMPLEMENTED_AWAITING_SAUL; CTO-031 TRIAGED;
-CTO-025 note that CTO-030 supersedes skip-guard; 026 uncleared.
-Did not PASS. Did not merge. Did not push. Did not write
-denied_paths. Did not grow `sai_auth_review.py` (500) or
-`sai_auth_test.py` (497). Did not fake the trusted file onto
-origin/main.
+TPR-002: Codex default sandbox `workspace-write`; `--ephemeral`
+kept; `--ignore-user-config` on skip-git line. `codex_exec_env`
+strips GITHUB_TOKEN/GH_TOKEN/SSH_AUTH_SOCK/DOCKER_HOST; keeps
+model keys. Invoke Codex env has no GITHUB_TOKEN. Token remains
+on Post/Status/Claim. Fixture retargeted in place.
 
-Merge-activated state = trusted file on main + no
-`saul-review.yml`; dispatch only from default branch. Residual =
-new collaborator self-hosted workflow (runner-group
-UNKNOWN/VERIFY_REQUIRED). Last qualifying Saul 31771910025 on
-4503f55.
+Ledger: TPR-001 / TPR-002 IMPLEMENTED_AWAITING_SAUL; clearance
+Saul. Did not PASS. Did not merge. Did not push. Did not restore
+`saul-review.yml`. Did not write denied_paths. Did not rework
+CTO-015..030. Residual: Codex model credential; Landlock may be
+weak in Hostinger container; runner-group UNKNOWN/VERIFY_REQUIRED.
 
 `self_pass: false`. `do_not_merge: true`. `do_not_push: true`.
-`cto025_activation_on_main: false`.
 
 Next: qualifying Saul review of this exact head. Human merge of
-PR #62 remains the trusted-workflow activation event. New SHA
-needs its own CI (CTO-031).
+PR #62 remains the trusted-workflow activation event.

@@ -1,0 +1,35 @@
+"blocker_id": "TPR-002"
+"source": "independent third-party review of 01fe606; clearance Saul; not PASS"
+"source_actor": "dezocode"
+"source_runtime": "cursor-cloud-vm"
+"created_at": "2026-08-14T15:50:00Z"
+"first_seen_head": "01fe60609d6d61d71cb401a06619b71601ed94f6"
+"current_head": "effc68a2ebce9d1b6dc9f420654e431785d0e399"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "Isolate Codex from the trusted publisher. Default SAI_CODEX_SANDBOX to workspace-write (not danger-full-access). Strip GITHUB_TOKEN, GH_TOKEN, SSH_AUTH_SOCK, DOCKER_HOST from Codex exec env. Remove GITHUB_TOKEN from Invoke Codex env; keep token only on Post/Status/Claim. Residual: Codex model credential still present; Landlock may be weak inside Hostinger container. Do not PASS."
+"evidence":
+- "REQ-TPR-002"
+- "v12 reuse; no A-013"
+- "head 01fe60609d6d61d71cb401a06619b71601ed94f6"
+"affected_paths":
+- "scripts/lib/sai_auth_review.py"
+- "scripts/lib/sai_auth_package.py"
+- ".github/workflows/saul-cto-review.default-branch.yml"
+"dependencies":
+- "TPR-001"
+- "CTO-030"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "tpr-002-isolate-codex-review-from-publish"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v12"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-commit"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "IMPLEMENTED_AWAITING_SAUL. Not PASSED. Do not default danger-full-access. Do not merge."
+- "Residual: OPENAI_API_KEY/CODEX_API_KEY remain for the model; Landlock not claimed absolute."

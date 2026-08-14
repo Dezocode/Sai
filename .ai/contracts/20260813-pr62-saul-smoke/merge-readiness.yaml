@@ -27,6 +27,8 @@ p0_pn_summary:
     - CTO-028
     - CTO-029
     - CTO-030
+    - TPR-001
+    - TPR-002
     - B-RESUME-001
     - B-ORCH-001
     - B-BLOAT-001
@@ -44,19 +46,22 @@ conditional_activation:
   semantics: "Saul-only CONDITIONAL_PASS_ON_HUMAN_MERGE if predicates hold. Not contractor clearance."
   activation_event: "human merge of PR #62"
   artifact: ".github/workflows/saul-cto-review.default-branch.yml"
-  merge_activated_state: "trusted file on main + no saul-review.yml; dispatch only from default branch"
-  same_sha_retirement: "A-012 deletes candidate saul-review.yml; skip-guard superseded; job-level if: blocks feature-branch dispatch"
+  merge_activated_state: "trusted file on main + no saul-review.yml + no trusted-reviewer-provision.yml; Codex sandbox workspace-write; no GITHUB_TOKEN in review env"
+  same_sha_retirement: "A-012 deletes candidate saul-review.yml; TPR-001 deletes circular provisioner; TPR-002 isolates Codex from publisher token"
 quality_profile: .ai/contracts/20260813-pr62-saul-smoke/quality-profile.yaml
 security_trust_summary: .ai/contracts/20260813-pr62-saul-smoke/evidence/cto-025-threat-trace.yaml
 nonblocking_follow_ups:
   - "Pin actions/checkout to a SHA (DEFERRED_NONBLOCKING)"
   - "Inspect branch protection and runner-group restriction (UNKNOWN/VERIFY_REQUIRED)"
   - "Residual: new collaborator workflow file with self-hosted (runner-group UNKNOWN/VERIFY_REQUIRED)"
+  - "Residual: Codex model credential still present; Landlock may be weak inside Hostinger container — document, not absolute isolation"
+  - "Optional post-merge: pin runner-group restriction if gh inspection (currently 403) later succeeds"
 rollback:
   - "Revert the merge on main"
   - "Restore previous main workflow set"
 post_merge_check:
   - "git cat-file -e origin/main:.github/workflows/saul-cto-review.default-branch.yml"
   - "confirm origin/main has no saul-review.yml"
+  - "confirm origin/main has no trusted-reviewer-provision.yml"
   - "confirm job if: dispatch only from default-branch refs"
 architectural_review: .ai/contracts/20260813-pr62-saul-smoke/saul/architectural-review.md

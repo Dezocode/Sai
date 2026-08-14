@@ -138,7 +138,6 @@ jobs:
         id: saul
         if: steps.trust.outputs.trust_mode != 'unavailable'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
           SAI_SAUL_PACKAGE_DIR: ${{ github.workspace }}/.saul-review-package
           SAI_SAUL_REVIEW_SCOPE: final

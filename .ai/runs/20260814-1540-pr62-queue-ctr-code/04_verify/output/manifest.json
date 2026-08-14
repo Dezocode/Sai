@@ -1,0 +1,16 @@
+{
+  "task_id": "20260814-1540-pr62-queue-ctr-code",
+  "stage": "04_verify",
+  "agent": "ctr-code-pr62smoke",
+  "completed_at": "2026-08-14T15:55:00Z",
+  "status": "complete",
+  "inputs": [
+    "scripts/verify-saul-workflow-trust",
+    "scripts/invoke-saul-review",
+    "scripts/sai-blockers",
+    "scripts/verify-code-health"
+  ],
+  "outputs": [
+    ".ai/runs/20260814-1540-pr62-queue-ctr-code/04_verify/output/verification.md"
+  ]
+}

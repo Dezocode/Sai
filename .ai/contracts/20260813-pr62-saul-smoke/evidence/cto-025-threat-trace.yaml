@@ -4,7 +4,7 @@ classification: REQUIRED_FOR_CURRENT_BLOCKER
 status: IMPLEMENTED_AWAITING_SAUL
 clearance_authority: saul
 do_not_pass: true
-note: "A-012 / CTO-030 supersedes the A-011 skip-guard. Contractor packages merge-activation evidence. Saul may later classify CONDITIONAL_PASS_ON_HUMAN_MERGE. Cora/contractor must not emit that as clearance. Last qualifying Saul 31771910025 on 4503f55."
+note: "A-012 / CTO-030 supersedes the A-011 skip-guard. TPR-001 deletes trusted-reviewer-provision.yml (circular from_sha checkout+execute). TPR-002 Codex sandbox workspace-write; no GITHUB_TOKEN in Invoke Codex env. Residual: Codex model credential still present; Landlock may be weak inside Hostinger container — not absolute isolation. Runner-group UNKNOWN/VERIFY_REQUIRED (gh 403). Contractor packages merge-activation evidence. Saul may later classify CONDITIONAL_PASS_ON_HUMAN_MERGE. Cora/contractor must not emit that as clearance. Last qualifying Saul 31771910025 on 4503f55."
 guidance: "https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target"
 scenarios:
   - id: insecure-pwn-request
@@ -40,7 +40,7 @@ scenarios:
     damage: "collaborator-level (not anonymous fork) code on the Saul runner after trusted path is live"
     classification: DEFERRED_NONBLOCKING
     state: UNKNOWN/VERIFY_REQUIRED
-    reason: "Runner-group restriction is uninspected (403). Residual = new collaborator self-hosted workflow file, not skip-guard deletion. Human merge of PR #62 remains the trusted-workflow activation event."
+    reason: "Runner-group restriction is uninspected (403). Residual = new collaborator self-hosted workflow file, not skip-guard deletion. Optional post-merge hardening: pin runner-group if inspection later succeeds. Human merge of PR #62 remains the trusted-workflow activation event."
 merge_activation:
   condition: "Trusted pull_request_target artifact is reviewed in this PR; only missing property is presence on protected main; A-012 merge-activated state = trusted file on main + no saul-review.yml; dispatch only from default branch."
   activation_event: "human merge of PR #62"
@@ -48,8 +48,10 @@ merge_activation:
     - "origin/main:.github/workflows/saul-cto-review.default-branch.yml exists"
     - "that file declares pull_request_target (not pull_request)"
     - "saul-review.yml is absent on origin/main"
+    - "trusted-reviewer-provision.yml is absent on origin/main (provisioner path removed)"
     - "job if: dispatch only from default-branch refs"
     - "candidate remains DATA at path candidate-data"
+    - "Invoke Codex env has no GITHUB_TOKEN; Codex sandbox default workspace-write"
   rollback:
     - "Revert the merge commit on main"
     - "Restore previous main workflow set (agent-audit.yml only, no Saul trusted file)"

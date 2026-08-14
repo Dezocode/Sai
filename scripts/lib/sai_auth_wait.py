@@ -35,11 +35,6 @@ def remote_snapshot() -> str:
             "--json", "databaseId,conclusion,headSha,status",
         ]),
         _run([
-            "gh", "run", "list", "--workflow=trusted-reviewer-provision.yml",
-            "--limit", "1",
-            "--json", "databaseId,conclusion,headSha,status,event",
-        ], timeout=30),
-        _run([
             "gh", "pr", "view", "62", "--json", "headRefOid,isDraft",
         ]),
     ]))

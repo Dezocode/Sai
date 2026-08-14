@@ -5,7 +5,7 @@
 # Missing/failed Codex => disposition BLOCKED (never APPROVE).
 # Reviewer implementation MUST come from SAI_TRUSTED_TREE when set (CTO-010).
 # --self-test never delegates through the production trusted tree (CTO-019).
-# referenced: scripts/lib/sai_auth_saul_test.py
+# referenced: scripts/lib/sai_auth_saul_test.py scripts/lib/sai_auth_tpr_test.py
 set -euo pipefail
 for arg in "$@"; do
   if [ "$arg" = "--self-test" ]; then

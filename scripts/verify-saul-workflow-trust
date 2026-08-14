@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # verify-saul-workflow-trust — CTO-021/025 default-branch workflow constraints.
-# referenced: scripts/lib/sai_auth_workflow_trust.py scripts/lib/sai_auth_workflow_trust_test.py
+# referenced: scripts/lib/sai_auth_workflow_trust.py scripts/lib/sai_auth_workflow_trust_test.py scripts/lib/sai_auth_tpr_test.py
 # A-012: saul-review.yml absent (or cannot acquire self-hosted); trusted job-if.
 set -euo pipefail
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)

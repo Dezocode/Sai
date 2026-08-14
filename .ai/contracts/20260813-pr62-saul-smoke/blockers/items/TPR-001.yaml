@@ -1,0 +1,35 @@
+"blocker_id": "TPR-001"
+"source": "independent third-party review of 01fe606; clearance Saul; not PASS"
+"source_actor": "dezocode"
+"source_runtime": "cursor-cloud-vm"
+"created_at": "2026-08-14T15:50:00Z"
+"first_seen_head": "01fe60609d6d61d71cb401a06619b71601ed94f6"
+"current_head": "effc68a2ebce9d1b6dc9f420654e431785d0e399"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "DELETE circular provisioner. trusted-reviewer-provision.yml checked out from_sha then ran scripts/provision-trusted-reviewer-root from that checkout, so the selected SHA executed before validation. After human merge, saul-cto-review.default-branch.yml uses trusted-default-branch/scripts/invoke-saul-review. No Hostinger provisioner is required. Do not PASS."
+"evidence":
+- "REQ-TPR-001"
+- "v12 reuse; no A-013"
+- "head 01fe60609d6d61d71cb401a06619b71601ed94f6"
+"affected_paths":
+- ".github/workflows/trusted-reviewer-provision.yml"
+- "scripts/lib/sai_auth_wait.py"
+- "scripts/lib/sai_auth_tpr_test.py"
+"dependencies":
+- "CTO-021"
+- "CTO-030"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "tpr-001-delete-circular-provisioner"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v12"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-commit"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "IMPLEMENTED_AWAITING_SAUL. Not PASSED. Provisioner path removed. Do not merge."
+- "Keep provision python module as hermetic negative; live workflow file absent."

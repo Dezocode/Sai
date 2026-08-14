@@ -26,9 +26,10 @@
     ".ai/runs/20260813-2017-pr62-queue-ctr-code/",
     ".ai/runs/20260814-0435-pr62-queue-ctr-code/",
     ".ai/runs/20260814-0450-pr62-queue-ctr-code/",
-    ".ai/runs/20260814-0512-pr62-queue-ctr-code/"
+    ".ai/runs/20260814-0512-pr62-queue-ctr-code/",
+    ".ai/runs/20260814-1540-pr62-queue-ctr-code/"
   ],
-  "wave": "20260814-0512-pr62-queue-ctr-code",
+  "wave": "20260814-1540-pr62-queue-ctr-code",
   "contract_revision": "v12",
   "authorization_id": "lease-c3a003pr62q1",
   "do_not_merge": true,
@@ -36,5 +37,7 @@
   "self_pass": false,
   "cto028": "officer-pins-only",
   "cto029": "introducer-provenance",
-  "cto025_activation_on_main": false
+  "cto025_activation_on_main": false,
+  "tpr001": "provisioner-deleted",
+  "tpr002": "codex-workspace-write-token-strip"
 }

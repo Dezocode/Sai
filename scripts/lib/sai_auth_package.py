@@ -14,6 +14,20 @@ from pathlib import Path
 import sai_auth as a
 
 MARKER_B, MARKER_E = "---SAUL_REVIEW_YAML---", "---END_SAUL_REVIEW_YAML---"
+STRIP_FROM_CODEX = ("GITHUB_TOKEN", "GH_TOKEN", "SSH_AUTH_SOCK", "DOCKER_HOST")
+
+
+def codex_exec_env(base: dict) -> dict:
+    """Isolate Codex from publisher credentials. Keep model API keys."""
+    env = dict(base)
+    for k in STRIP_FROM_CODEX:
+        env.pop(k, None)
+    for k in ("OPENAI_API_KEY", "CODEX_API_KEY"):
+        if not env.get(k):
+            env.pop(k, None)
+    if env.get("CODEX_API_KEY") and not env.get("OPENAI_API_KEY"):
+        env["OPENAI_API_KEY"] = env["CODEX_API_KEY"]
+    return env
 
 PROFILE_PATHS = [
     "CODEX.md",
