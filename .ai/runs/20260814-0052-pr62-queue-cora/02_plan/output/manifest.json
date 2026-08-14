@@ -1,0 +1,17 @@
+{
+  "task_id": "20260814-0052-pr62-queue-cora",
+  "stage": "02_plan",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-14T00:57:31Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v5.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/amendments/A-005.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json"
+  ],
+  "outputs": [
+    ".ai/runs/20260814-0052-pr62-queue-cora/02_plan/output/plan.md"
+  ],
+  "notes": "Did not load or edit blockers/ledger.yaml or requirements/ledger.yaml; contractor is sharding blockers in parallel."
+}

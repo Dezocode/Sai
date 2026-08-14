@@ -1,0 +1,16 @@
+task_id: 20260814-0052-pr62-queue-cora
+requested_by: dezocode (U0BHYH0NMCY)
+repository: Dezocode/Sai
+runtime: cursor-cloud-vm
+purpose: "Consume qualifying Saul REQUEST_CHANGES 31758118443 (CTO-021) into A-006/v6. Contractor paths unchanged. Do not PASS CTO-015..020 or CTO-021."
+required_role: contract-administrator
+state: IMPLEMENTING
+resolved_agent: ctr-admin
+contract_id: 20260813-pr62-saul-smoke
+authorization_id: grant-pr62-queue-cora
+work_item: consume-cto-021-a006-v6
+parent_logical_runtime: pr62-primary
+parent_physical_runtime: bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc
+qualifying_saul_run: "31758118443"
+qualifying_comment: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288037039"
+qualifying_head: "0df32c7446b95bda1f83137f8384a03135a959f6"
