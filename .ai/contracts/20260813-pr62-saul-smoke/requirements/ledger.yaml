@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-14T04:48:00Z"
+updated_at: "2026-08-14T05:14:00Z"
 requirements:
   - requirement_id: REQ-5282088737
     source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
@@ -128,3 +128,19 @@ requirements:
       - do-not-pass-cto-025-or-b-meta-p0-001
       - required-for-current-blocker-not-path-expansion
       - no-tokens-in-files
+  - requirement_id: REQ-CTO-030
+    source: "https://github.com/Dezocode/Sai/pull/62#issuecomment-5289717183"
+    authority: saul
+    timestamp: "2026-08-14T05:07:32Z"
+    scope: persistent-runner-trust-boundary
+    digest: remove-candidate-self-hosted-saul-review-yml
+    status: in-progress
+    blocking: true
+    acceptance:
+      - delete-or-convert-saul-review-yml-no-self-hosted-acquire
+      - trusted-default-branch-file-only-self-hosted-saul-workflow
+      - job-level-if-blocks-mutable-ref-workflow-dispatch-on-hostinger
+      - no-on-pull_request-on-trusted-file
+      - candidate-remains-data
+      - do-not-pass-cto-030-or-cto-031
+      - required-for-current-blocker-not-path-expansion

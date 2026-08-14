@@ -1,0 +1,18 @@
+{
+  "task_id": "20260814-0510-pr62-queue-cora",
+  "stage": "04_verify",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-14T05:16:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/contracts/20260813-pr62-saul-smoke/amendments/A-012.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v12.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/reviews/consumed-08c26942e30d3e7c.yaml"
+  ],
+  "outputs": [
+    ".ai/runs/20260814-0510-pr62-queue-cora/04_verify/output/verify.md"
+  ],
+  "notes": "JSON/YAML lint OK. YAML line counts ≤300. allowed_paths/denied_paths unchanged. verify-semantic-hierarchy OK. technical_pass false. Did not push."
+}

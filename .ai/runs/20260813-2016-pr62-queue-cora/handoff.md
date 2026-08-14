@@ -70,4 +70,31 @@ optional: one-sentence Decision 0008 note (Sai, not Cora).
 CONDITIONAL_PASS_ON_HUMAN_MERGE is Saul-only. Do not merge.
 Do not push. Do not mark ready.
 
+## A-012 / v12 (grant Task-ID standing run)
+
+Issued A-012 → v12 from Saul run 31771910025 comment
+5289717183 on exact head 4503f55. REQUEST_CHANGES,
+codex_invoked true, synthetic false, runner
+hostinger-saul-codex, contract_revision 11.
+cora_admin_complete true is administration
+complete, not technical PASS. technical_pass false.
+Did not PASS CTO-030, CTO-031, or CTO-025.
+Wave artifacts:
+`.ai/runs/20260814-0510-pr62-queue-cora/`. implements false.
+do_not_merge true. do_not_push true. denied_paths unchanged.
+lease-c3a003pr62q1 reused (v12). consume_script_invoked false
+(mechanical consume would omit contractor notes and stale the
+lease). Contractor next: remove candidate self-hosted
+saul-review.yml Hostinger path; keep/harden trusted
+default-branch file as the only self-hosted Saul workflow
+with job-level if: on workflow_dispatch; retarget tests;
+update authorization.yaml pointer; append CTO-030/CTO-031
+items without PASS; threat-trace + merge-readiness.
+CTO-025 may stay IMPLEMENTED_AWAITING_SAUL with a history
+note that CTO-030 supersedes the skip-guard. Keep CTO-026
+uncleared. Last this-PR Hostinger continuity is Saul
+31771910025 on 4503f55; post-merge path is trusted
+pull_request_target. CONDITIONAL_PASS_ON_HUMAN_MERGE is
+Saul-only. Do not merge. Do not push. Do not mark ready.
+
 

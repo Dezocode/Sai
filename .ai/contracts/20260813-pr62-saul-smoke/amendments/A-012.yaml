@@ -1,0 +1,45 @@
+amendment_id: A-012
+contract_id: 20260813-pr62-saul-smoke
+from_revision: 11
+to_revision: 12
+finding_ids:
+- CTO-030
+- CTO-031
+- CTO-025
+- CTO-026
+- REQ-5289020312
+authority_expanding: false
+human_approval_required: false
+human_approval_ids:
+- grant-pr62-queue-ceo
+- human-pr62-keep-0007-and-path-expansion
+summary: "Saul REQUEST_CHANGES 31771910025 / comment 5289717183 exact head 4503f55 -> A-012 -> v12. Bind CTO-030 P0 (remove candidate-controlled Hostinger path from saul-review.yml; skip-guard insufficient; trusted default-branch file is the only self-hosted Saul workflow; job-level if: so workflow_dispatch from mutable non-default refs does not acquire Hostinger). Bind CTO-031 P1 (icm-enforcement SUCCESS on 4503f55 is not technical PASS; new SHA needs its own CI). allowed_paths unchanged. denied_paths unchanged. Cora does not write blockers items, scripts, workflows, decisions, .cursor, _config, or authorizations. Do not PASS."
+trace:
+- CTO-030 -> A-012 -> v12
+- CTO-031 -> A-012 -> v12
+- CTO-025 -> A-012 -> v12
+- CTO-026 -> A-012 -> v12
+- REQ-5289020312 -> A-012 -> v12
+changes:
+- finding_id: CTO-030
+  field: saul_review_workflow
+  action: narrow
+  note: "Remove the Hostinger invocation path from saul-review.yml. Preferred: delete .github/workflows/saul-review.yml entirely, OR convert it so it has neither runs-on: self-hosted nor any trigger that can acquire the persistent Saul runner (pull_request/workflow_dispatch + self-hosted). A-011 skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN is insufficient: it lives in the same candidate-controlled workflow; a future collaborator PR can delete or bypass it, add an earlier run step, and execute arbitrary code before any trusted-tree check. This is the CTO-021 persistent-runner trust boundary, not DEFERRED_NONBLOCKING. Keep/harden .github/workflows/saul-cto-review.default-branch.yml as the only self-hosted Saul workflow: pull_request_target (executable from default branch after merge) + workflow_dispatch with a job-level if: evaluated before runner assignment so a feature-branch dispatch does not acquire Hostinger. pull_request_target from same-repo PRs remains allowed. Do not add on: pull_request to the trusted file (that would make HEAD YAML the executable workflow). Candidate remains DATA (path: candidate-data, persist-credentials false, never execute candidate scripts). No allow-unsafe-pr-checkout. No candidate-HEAD trust. Retarget tests that currently parse saul-review.yml (sai_auth_saul_test.py WORKFLOW, sai_auth_test.py ~399, sai_auth_workflow_trust.py CANDIDATE_WF) at the trusted default-branch file and/or assert saul-review.yml is absent or cannot acquire self-hosted. Do not grow sai_auth_review.py (500) or sai_auth_test.py (~497); only tiny path edits or move fixtures to sai_auth_saul_test.py / sai_auth_workflow_trust_test.py. Contractor updates .ai/_config/authorization.yaml workflow pointer if it still names saul-review.yml. Update threat-trace + merge-readiness: merge-activated state = trusted file on main + no candidate self-hosted saul-review.yml; residual new-file self-hosted workflows = runner-group UNKNOWN/VERIFY_REQUIRED DEFERRED_NONBLOCKING (cannot inspect; 403). Preserve this-PR review continuity through a mechanism whose executable workflow is independently trusted. Last qualifying Saul is 31771910025 on 4503f55; after removing the candidate self-hosted pull_request workflow this Cloud gh cannot workflow_dispatch (actions=read / 403). The merge-activated trusted pull_request_target is the post-merge review path. Do not fake origin/main. Do not leave Dezocode a required dispatch chore as the only path. authority_expanding false."
+- finding_id: CTO-025
+  field: saul_review_workflow
+  action: narrow
+  note: "CTO-030 supersedes the A-011 skip-guard as the remaining runner-boundary defect. CTO-025 may stay IMPLEMENTED_AWAITING_SAUL with a history note. Do not PASS CTO-025. Contractor may append that note on the CTO-025 item; Cora does not write blockers/items. CONDITIONAL_PASS_ON_HUMAN_MERGE remains Saul-only."
+- finding_id: CTO-031
+  field: human_gate
+  action: add
+  note: "Obtain green required CI for exact head 4503f55250efde4166e4877473d4a9268b37c166. Package said pending. Evidence AFTER Saul: icm-enforcement SUCCESS on 4503f55 (agent-audit pull_request run 31771910146 conclusion success; push 31771907870 success). That is not technical PASS. After A-012, the contractor SHA will need its own CI. Do not PASS CTO-031. After issuing A-012/v12, set cora_admin_complete true. That is administration complete for this wave, NOT technical PASS."
+- finding_id: CTO-026
+  field: verification_requirements
+  action: add
+  note: "Keep uncleared. Do not rework CTO-015..021, 024, 028, 029 IMPLEMENTED_AWAITING_SAUL. Contractor appends CTO-030 / CTO-031 blocker items without PASS. Do not mark them PASSED."
+- finding_id: REQ-5289020312
+  field: human_gate
+  action: add
+  note: "Principal P0 5289020312 forbids leaving Dezocode an intermediate chore. After removing candidate self-hosted pull_request, this Cloud gh still cannot workflow_dispatch (HTTP 403; actions=read). Do not leave a required human dispatch as the only this-PR path. Continuity evidence is last qualifying Saul 31771910025 on 4503f55. Post-merge review path is trusted pull_request_target on main. Do not merge. Do not mark ready. Do not push from this Cora wave."
+created_by: ctr-admin
+created_at: "2026-08-14T05:14:00Z"

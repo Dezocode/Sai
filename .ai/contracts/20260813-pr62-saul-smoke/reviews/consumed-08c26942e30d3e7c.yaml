@@ -1,0 +1,51 @@
+reviewer: saul
+runtime: codex
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: 11
+implementation_head: 4503f55250efde4166e4877473d4a9268b37c166
+review_type: implementation
+disposition: REQUEST_CHANGES
+codex_invoked: true
+synthetic: false
+github_run_id: '31771910025'
+idempotency_key: 08c26942e30d3e7c
+saul_review_key: 90688f9c7a497a46
+github_event: pull_request
+source: https://github.com/Dezocode/Sai/pull/62#issuecomment-5289717183
+runner_name: hostinger-saul-codex
+consumed_at: "2026-08-14T05:14:00Z"
+consumed_by: ctr-admin
+amendment_id: A-012
+result_revision: v12
+consume_script_invoked: false
+reason: Final review covered all 366 changed paths and the complete 1,056,648-byte
+  package diff. Required local authorization, contract, workflow-trust, blocker, semantic,
+  code-health, audit, and handoff checks pass. Approval remains unavailable because
+  A-011 leaves a candidate-controlled pull_request workflow capable of acquiring the
+  persistent authenticated runner and bypassing or deleting its own skip guard on
+  a future PR; exact-head CI is also pending.
+findings:
+- id: CTO-030
+  severity: P0
+  contract_field: saul_review_workflow
+  action: narrow
+  requested_change: 'Do not leave .github/workflows/saul-review.yml as a candidate-controlled
+    pull_request workflow on the persistent self-hosted Saul runner after trusted
+    pull_request_target activation. The TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN guard
+    is inside the same candidate-controlled workflow: a future collaborator PR can
+    delete or bypass the guard, add an earlier run step, and execute arbitrary code
+    before any trusted-tree check. This is the CTO-021 persistent-runner trust boundary,
+    not a DEFERRED_NONBLOCKING residual. Ensure the merge-activated state has no candidate-controlled
+    persistent-runner invocation path; workflow_dispatch from mutable refs must likewise
+    not execute on that runner. Preserve this-PR review continuity through a mechanism
+    whose executable workflow is independently trusted.'
+  authority_expanding: false
+- id: CTO-031
+  severity: P1
+  contract_field: human_gate
+  action: add
+  requested_change: Obtain green required CI for exact head 4503f55250efde4166e4877473d4a9268b37c166
+    before final approval. The supplied package reports combined_state=pending. Local
+    checks and cora_admin_complete=true do not constitute exact-head CI or technical
+    PASS.
+  authority_expanding: false
