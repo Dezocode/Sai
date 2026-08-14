@@ -45,3 +45,14 @@ key in repo. Did not push. Did not merge. Did not restore saul-review.yml.
 
 Next safe action: Hostinger Saul signs this exact head; humans merge PR #62
 if satisfied. Do not claim READY_FOR_HUMAN_REVIEW.
+
+## Wave live-rev callers (20260814-saul-identity-live-rev)
+
+`attempt_clear` and `consume` now compare attestation to the live
+pointer revision and live HEAD, not the review's self-claim.
+Hermetic fixtures without a pointer still fall back to the review
+revision. Signed rev 11 vs live v12 → REJECT INVALID_SAUL_IDENTITY.
+Did not PASS. Did not push. `sai_auth_review.py` remains 500 lines.
+
+Next safe action: Hostinger Saul signs this exact head against v12.
+Do not claim READY_FOR_HUMAN_REVIEW.

@@ -231,9 +231,19 @@ def attempt_clear(root, blocker_id, actor, *, review_id=None, head=None,
         return {"status": "REJECT", "reason": reason, "actor": actor, "blocker_id": blocker_id}
     if not head:
         return {"status": "REJECT", "reason": "CLEARANCE_REQUIRES_REVIEW_AND_HEAD"}
-    ok, reason = qualifying_saul_review(
-        doc, head, doc.get("contract_revision") if doc.get("contract_revision") not in (None, "") else 12,
-    )
+    live_rev = None
+    try:
+        ptr = a.load_pointer(
+            root,
+            doc.get("contract_id") or data.get("contract_id") or "20260813-pr62-saul-smoke",
+        )
+        if ptr:
+            live_rev = a.revision_int(ptr.get("current_revision"))
+    except Exception:
+        live_rev = None
+    if live_rev is None:
+        live_rev = doc.get("contract_revision")
+    ok, reason = qualifying_saul_review(doc, head, live_rev)
     if not ok:
         return {"status": "REJECT", "reason": INVALID_SAUL_IDENTITY, "actor": actor,
                 "blocker_id": blocker_id}

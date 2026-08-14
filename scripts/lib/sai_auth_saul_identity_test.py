@@ -147,6 +147,23 @@ def run_identity_fixtures():
         old = os.environ.get("SAI_SAUL_ATTEST_PUB")
         os.environ["SAI_SAUL_ATTEST_PUB"] = str(pub)
         try:
+            cid = "20260813-pr62-saul-smoke"
+            (td / ".ai/contracts" / cid).mkdir(parents=True)
+            a.write_json(td / ".ai/contracts" / cid / "contract.json", {
+                "contract_id": cid, "current_revision": "v12",
+            })
+            stale = make_signed_review(
+                str(priv), str(pub), implementation_head=HEAD_A,
+                contract_revision=11,
+            )
+            r = attempt_clear(
+                td, "B-001", "saul", review_id=None, head=HEAD_A, rel=rel,
+                review=stale,
+            )
+            executed.add("signed-rev11-live-pointer-v12")
+            if r.get("status") != "REJECT" or r.get("reason") != INVALID_SAUL_IDENTITY:
+                raise RuntimeError(r)
+            print("SELFTEST PASS  signed-rev11-live-pointer-v12")
             r = attempt_clear(
                 td, "B-001", "cursor", review_id=None, head=HEAD_A, rel=rel,
                 from_file=str(yml),

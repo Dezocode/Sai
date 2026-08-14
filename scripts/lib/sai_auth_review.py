@@ -237,10 +237,9 @@ def invoke(root, cid, revision, sha, review_type, github_run_id=None, github_eve
         doc["github_event"] = github_event
     doc.setdefault("findings", [])
     # Never allow fixture/missing-codex to become a valid APPROVE
-    if doc.get("disposition") == "APPROVE":
-        if doc.get("synthetic") or not doc.get("codex_invoked"):
-            doc["disposition"] = "BLOCKED"
-            doc["reason"] = "REFUSED_UNVERIFIED_APPROVE"
+    if doc.get("disposition") == "APPROVE" and (doc.get("synthetic") or not doc.get("codex_invoked")):
+        doc["disposition"] = "BLOCKED"
+        doc["reason"] = "REFUSED_UNVERIFIED_APPROVE"
     text = _write_review_out(doc, dest=dest, out=out)
     remember_review(skey, doc)
     print(text)
@@ -286,13 +285,14 @@ def consume(root, cid, src, session_ok=True):
     ptr = a.load_pointer(root, cid)
     current = a.revision_int(ptr.get("current_revision"))
     tracked = a.reviews_dir(root, cid) / f"consumed-{review.get('idempotency_key') or 'na'}.yaml"
-    a.write_yaml(tracked, review)
     if review.get("disposition") == "APPROVE":
         from sai_auth_saul_identity import qualifying_saul_review
-        ok, _r = qualifying_saul_review(review, review.get("implementation_head") or "", review.get("contract_revision") or current)
+        ok, _r = qualifying_saul_review(review, a.head_sha(root), current)
         if not ok:
             print("FAIL INVALID_SAUL_IDENTITY", file=sys.stderr)
             return 1
+    a.write_yaml(tracked, review)
+    if review.get("disposition") == "APPROVE":
         rev = a.load_revision(root, cid, current)
         rs = rev.setdefault("review_state", {}).setdefault("saul", {})
         rs["status"] = "approved"
