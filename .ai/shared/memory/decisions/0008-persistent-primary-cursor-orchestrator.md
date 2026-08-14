@@ -254,6 +254,10 @@ is recovery, not the normal cycle. Finishing the primary while the
 predicate is false and machine work exists is `PREMATURE_PRIMARY_TERMINATION`.
 
 Trusted reviewer bootstrap: freeze a runner-image root from an explicit
-SHA via `workflow_dispatch` (never `pull_request`). Candidate HEAD is
-never a success path. After freeze, candidate mutations must not change
-Saul launcher behavior.
+SHA. `workflow_dispatch` of `trusted-reviewer-provision.yml` 404s until
+that workflow exists on the default branch. Authorized machine path:
+empty-dest first-writer-wins inside `saul-review.yml` on the self-hosted
+runner, using the explicit 40-hex PR head SHA (not symbolic HEAD). If
+`MANIFEST.json` already exists, do not overwrite. This is a one-time
+freeze, not a standing candidate-HEAD trust path. After freeze, candidate
+mutations must not change Saul launcher behavior.
