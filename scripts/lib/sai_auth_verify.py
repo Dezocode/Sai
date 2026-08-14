@@ -111,7 +111,8 @@ def verify_paths(cfg, trailers, paths, *, root, sha=None, session=None, branch=N
         fails.append(f"lease {lease.get('lease_id')} status={lease.get('status')}")
     if a.revision_label(lease.get("contract_revision")) != a.revision_label(current or rev_l):
         fails.append("lease bound to stale contract revision")
-    if lease.get("task_id") and lease.get("task_id") != task_id:
+    from sai_auth_grant import lease_task_id_bound
+    if not lease_task_id_bound(root, cid, lease, task_id, agent_id, sha=sha):
         fails.append("lease task_id mismatch")
     allowed = lease.get("allowed_paths") or rev.get("allowed_paths") or []
     denied = list(lease.get("denied_paths") or rev.get("denied_paths") or [])
@@ -385,9 +386,11 @@ def cmd_verify_agent(argv=None):
         from sai_auth_test import run_synthetic_fixtures
         from sai_auth_cue_test import run_cue_fixtures
         from sai_auth_event_test import run_event_fixtures
+        from sai_auth_rebind_test import run_rebind_fixtures
         n = run_synthetic_fixtures()
         n |= run_cue_fixtures()
         n |= run_event_fixtures()
+        n |= run_rebind_fixtures()
         print(f"verify-agent-authorization self-test: {n} fixtures executed")
         return 0
     root = a.toplevel()

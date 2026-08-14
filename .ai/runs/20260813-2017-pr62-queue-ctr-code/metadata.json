@@ -21,6 +21,11 @@
     ".github/workflows/trusted-reviewer-provision.yml",
     ".ai/contracts/20260813-pr62-saul-smoke/",
     "tests/authorization/",
-    ".ai/runs/20260813-2017-pr62-queue-ctr-code/"
-  ]
+    ".ai/runs/20260813-2017-pr62-queue-ctr-code/",
+    "scripts/lib/sai_auth_grant.py",
+    "scripts/lib/sai_auth_verify.py",
+    "scripts/lib/sai_auth_rebind_test.py"
+  ],
+  "do_not_merge": true,
+  "self_pass": false
 }
