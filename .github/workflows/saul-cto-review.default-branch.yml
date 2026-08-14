@@ -178,6 +178,18 @@ jobs:
           python3 -c 'from pathlib import Path; p=Path("/tmp/saul"); yp=p/"review.yaml"; yp.parent.mkdir(parents=True, exist_ok=True); yp.write_text("reviewer: saul\ndisposition: BLOCKED\nreason: NO_ARTIFACT\ncodex_invoked: false\nsynthetic: false\nfindings: []\n") if not yp.is_file() else None; lines=yp.read_text(encoding="utf-8").splitlines(); disp=next((ln.split(":",1)[1].strip() for ln in lines if ln.startswith("disposition:")), "BLOCKED"); reason=next((ln.split(":",1)[1].strip() for ln in lines if ln.startswith("reason:")), "NO_ARTIFACT"); invoked=next((ln.split(":",1)[1].strip() for ln in lines if ln.startswith("codex_invoked:")), "false"); (p/"disposition").write_text(disp); (p/"reason").write_text(reason); (p/"codex_invoked").write_text(invoked)'
           exit 0
 
+      - name: Attest Saul review
+        if: always() && steps.trust.outputs.trust_mode != 'unavailable'
+        run: |
+          KEY="${SAI_SAUL_ATTEST_KEY:-/opt/sai/saul-attest/ed25519.pem}"
+          ATTEST="${SAI_TRUSTED_TREE:-}/scripts/saul-attest"
+          if [ -f /tmp/saul/review.yaml ] && [ -f "$KEY" ] && [ -x "$ATTEST" ]; then
+            "$ATTEST" sign --in /tmp/saul/review.yaml --out /tmp/saul/review.yaml --key "$KEY" \
+              || echo "attest failed; verifier fail-closed"
+          else
+            echo "unsigned; verifier fail-closed (missing key or saul-attest)"
+          fi
+
       - name: Claim remediation transition
         if: always()
         env:

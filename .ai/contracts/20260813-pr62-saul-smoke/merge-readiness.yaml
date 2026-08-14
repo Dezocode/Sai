@@ -8,7 +8,7 @@ mark_ready_automatically: false
 human_action: "review PR; merge if satisfied"
 exact_head: "FILLED_LIVE_AT_REVIEW_TIME"
 exact_base: "FILLED_LIVE_AT_REVIEW_TIME"
-note: "exact_head/exact_base are placeholders; Saul/Sai fill from the reviewed SHA. Last qualifying Saul 31771910025 on 4503f55."
+note: "WAITING_EXTERNAL; voided Cursor Saul APPROVE on 11c39ae; do not claim READY_FOR_HUMAN_REVIEW. exact_head/exact_base are placeholders. Last Hostinger Saul 31771910025 on 4503f55 is not identity clearance of a Cursor-named Saul."
 mergeability: UNKNOWN/VERIFY_REQUIRED
 ci: UNKNOWN/VERIFY_REQUIRED
 saul_disposition: pending
@@ -35,6 +35,7 @@ p0_pn_summary:
     - B-META-P0-001
     - B-QUALITY-001
     - B-MERGE-PKG-001
+    - SAUL-IDENTITY-001
   uncleared:
     - CTO-026
     - CTO-027

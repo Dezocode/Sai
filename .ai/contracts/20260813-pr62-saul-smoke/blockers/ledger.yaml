@@ -64,3 +64,5 @@ blockers:
   status: IMPLEMENTED_AWAITING_SAUL
 - blocker_id: TPR-002
   status: IMPLEMENTED_AWAITING_SAUL
+- blocker_id: SAUL-IDENTITY-001
+  status: IMPLEMENTED_AWAITING_SAUL

@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""Operator runs this ON Hostinger; Cursor is not Saul.
+
+One-time operator script. Invokes trusted invoke-saul-review against --head
+as DATA (SAI_CANDIDATE_TREE) then saul-attest sign. Does not generate keys
+into git. Cursor must not successfully impersonate Hostinger Saul.
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+import sai_auth as a  # noqa: E402
+from sai_auth_saul_identity import key_inside_worktree  # noqa: E402
+
+
+def _fail_not_hostinger():
+    print("NOT_HOSTINGER_SAUL", file=sys.stderr)
+    return 2
+
+
+def main(argv=None):
+    p = argparse.ArgumentParser(prog="saul-hostinger-bootstrap-review")
+    p.add_argument("--self-test", action="store_true")
+    p.add_argument("--head", default=None)
+    p.add_argument("--contract-id", default="20260813-pr62-saul-smoke")
+    p.add_argument("--out", default="/tmp/saul/review.yaml")
+    args = p.parse_args(argv)
+    if args.self_test:
+        return _fail_not_hostinger()
+
+    root = Path(a.toplevel() or os.getcwd())
+    if os.environ.get("SAI_SAUL_BOOTSTRAP") != "1":
+        return _fail_not_hostinger()
+    key = os.environ.get("SAI_SAUL_ATTEST_KEY") or ""
+    if not key or key_inside_worktree(key, root):
+        return _fail_not_hostinger()
+    key_path = Path(key)
+    if os.environ.get("SAI_SAUL_ATTEST_ALLOW_GENERATE") == "1" and not key_path.is_file():
+        key_path.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            ["openssl", "genpkey", "-algorithm", "Ed25519", "-out", str(key_path)],
+            check=True, capture_output=True,
+        )
+        pub = subprocess.check_output(
+            ["openssl", "pkey", "-in", str(key_path), "-pubout"], text=True,
+        )
+        print(pub, end="")
+    if not key_path.is_file():
+        return _fail_not_hostinger()
+    trusted = os.environ.get("SAI_TRUSTED_TREE") or ""
+    if not trusted and Path("/opt/sai/trusted-reviewer").is_dir():
+        trusted = "/opt/sai/trusted-reviewer"
+    if not trusted or not Path(trusted).is_dir():
+        return _fail_not_hostinger()
+    invoke = Path(trusted) / "scripts" / "invoke-saul-review"
+    attest = Path(trusted) / "scripts" / "saul-attest"
+    if not invoke.is_file():
+        invoke = root / "scripts" / "invoke-saul-review"
+    if not attest.is_file():
+        attest = root / "scripts" / "saul-attest"
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    env = dict(os.environ)
+    env["SAI_CANDIDATE_TREE"] = env.get("SAI_CANDIDATE_TREE") or str(root)
+    env["SAI_TRUSTED_TREE"] = trusted
+    cmd = [str(invoke), "--contract-id", args.contract_id, "--out", str(out)]
+    if args.head:
+        cmd.extend(["--head", args.head])
+    subprocess.run(cmd, check=False, env=env)
+    return subprocess.call(
+        [str(attest), "sign", "--in", str(out), "--out", str(out), "--key", str(key_path)],
+        env=env,
+    )
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

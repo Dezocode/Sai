@@ -288,6 +288,11 @@ def consume(root, cid, src, session_ok=True):
     tracked = a.reviews_dir(root, cid) / f"consumed-{review.get('idempotency_key') or 'na'}.yaml"
     a.write_yaml(tracked, review)
     if review.get("disposition") == "APPROVE":
+        from sai_auth_saul_identity import qualifying_saul_review
+        ok, _r = qualifying_saul_review(review, review.get("implementation_head") or "", review.get("contract_revision") or current)
+        if not ok:
+            print("FAIL INVALID_SAUL_IDENTITY", file=sys.stderr)
+            return 1
         rev = a.load_revision(root, cid, current)
         rs = rev.setdefault("review_state", {}).setdefault("saul", {})
         rs["status"] = "approved"

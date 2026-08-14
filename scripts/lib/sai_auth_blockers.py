@@ -161,39 +161,92 @@ def append_blocker(root, blocker: dict, *, rel=LEDGER_REL):
     return "appended", blocker
 
 
+def _load_review(review, from_file, root):
+    if isinstance(review, dict):
+        return review
+    if from_file:
+        p = Path(from_file)
+        if not p.is_file():
+            p = Path(root) / from_file
+        return a.read_yaml(p) if p.is_file() else None
+    return None
+
+
+def _review_id(review, fallback=None):
+    att = review.get("attestation") if isinstance(review.get("attestation"), dict) else {}
+    return (
+        (att or {}).get("review_id") or review.get("saul_review_key")
+        or review.get("idempotency_key") or review.get("github_run_id")
+        or fallback
+    )
+
+
+def _covers(review, blocker_id):
+    disp = str(review.get("disposition") or "").upper()
+    if disp == "APPROVE":
+        return True
+    for f in review.get("findings") or []:
+        if not isinstance(f, dict):
+            continue
+        fid = f.get("id") or f.get("blocker_id") or f.get("finding_id")
+        st = str(f.get("status") or "").upper()
+        if fid == blocker_id and st in (
+            "PASS", "CONFIRMED_AND_REMEDIATED", "CONDITIONAL_PASS_ON_HUMAN_MERGE",
+        ):
+            return True
+    return False
+
+
 def attempt_clear(root, blocker_id, actor, *, review_id=None, head=None,
-                  rel=LEDGER_REL):
-    """Mechanical reject: discoverer/implementer cannot self-certify PASS."""
+                  rel=LEDGER_REL, from_file=None, review=None):
+    """Technical PASS requires qualifying Saul attestation, not actor strings."""
+    from sai_auth_saul_identity import (
+        INVALID_SAUL_IDENTITY, qualifying_saul_review,
+    )
     data, path = load_ledger(root, rel)
     row = next((b for b in data["blockers"] if b.get("blocker_id") == blocker_id), None)
     if not row:
         return {"status": "REJECT", "reason": "UNKNOWN_BLOCKER"}
     cat = row.get("category") or "technical"
-    auth = row.get("clearance_authority") or (
-        GOVERNANCE_CLEARANCE if cat == "governance" else TECHNICAL_CLEARANCE
-    )
-    if cat != "governance" and actor != TECHNICAL_CLEARANCE:
-        return {
-            "status": "REJECT",
-            "reason": "TECHNICAL_CLEARANCE_REQUIRES_SAUL",
-            "actor": actor,
-            "blocker_id": blocker_id,
-        }
-    if cat == "governance" and actor != GOVERNANCE_CLEARANCE:
-        return {
-            "status": "REJECT",
-            "reason": "GOVERNANCE_CLEARANCE_REQUIRES_SAI",
-            "actor": actor,
-            "blocker_id": blocker_id,
-        }
-    if not review_id or not head:
+    if cat == "governance":
+        if actor != GOVERNANCE_CLEARANCE:
+            return {
+                "status": "REJECT", "reason": "GOVERNANCE_CLEARANCE_REQUIRES_SAI",
+                "actor": actor, "blocker_id": blocker_id,
+            }
+        if not review_id or not head:
+            return {"status": "REJECT", "reason": "CLEARANCE_REQUIRES_REVIEW_AND_HEAD"}
+        row["status"] = "PASSED_BY_SAI"
+        row["clearance_review_id"] = review_id
+        row["clearance_head"] = head
+        row["clearance_at"] = a.utcnow()
+        save_ledger(path, data)
+        return {"status": row["status"], "blocker_id": blocker_id, "clearance_head": head}
+    doc = _load_review(review, from_file, root)
+    if not isinstance(doc, dict):
+        reason = (
+            INVALID_SAUL_IDENTITY if actor == TECHNICAL_CLEARANCE
+            else "TECHNICAL_CLEARANCE_REQUIRES_SAUL"
+        )
+        return {"status": "REJECT", "reason": reason, "actor": actor, "blocker_id": blocker_id}
+    if not head:
         return {"status": "REJECT", "reason": "CLEARANCE_REQUIRES_REVIEW_AND_HEAD"}
-    row["status"] = "PASSED_BY_SAUL" if actor == TECHNICAL_CLEARANCE else "PASSED_BY_SAI"
-    row["clearance_review_id"] = review_id
+    ok, reason = qualifying_saul_review(
+        doc, head, doc.get("contract_revision") if doc.get("contract_revision") not in (None, "") else 12,
+    )
+    if not ok:
+        return {"status": "REJECT", "reason": INVALID_SAUL_IDENTITY, "actor": actor,
+                "blocker_id": blocker_id}
+    if not _covers(doc, blocker_id):
+        return {"status": "REJECT", "reason": "BLOCKER_NOT_COVERED", "blocker_id": blocker_id}
+    rid = _review_id(doc, review_id)
+    row["status"] = "PASSED_BY_SAUL"
+    row["clearance_review_id"] = rid
     row["clearance_head"] = head
     row["clearance_at"] = a.utcnow()
     save_ledger(path, data)
-    return {"status": row["status"], "blocker_id": blocker_id, "clearance_head": head}
+    return {"status": "PASSED_BY_SAUL", "blocker_id": blocker_id,
+            "clearance_head": head, "clearance_review_id": rid}
 
 
 def set_status(root, blocker_id, status, *, actor=None, rel=LEDGER_REL):
@@ -218,16 +271,25 @@ def cmd(argv=None):
     p.add_argument("--actor", default="cursor")
     p.add_argument("--review-id", default=None)
     p.add_argument("--head", default=None)
+    p.add_argument("--from-file", default=None)
     args = p.parse_args(argv)
     if args.self_test:
         from sai_auth_blockers_test import run_blocker_fixtures
+        from sai_auth_saul_identity_test import run_identity_fixtures
         n = run_blocker_fixtures()
+        n |= run_identity_fixtures()
         print(f"sai-blockers self-test: {len(n)} fixtures executed")
         return 0
     if args.clear:
+        from sai_auth_saul_identity import INVALID_SAUL_IDENTITY
+        if args.actor == "saul" and not args.from_file:
+            print(json.dumps({
+                "status": "REJECT", "reason": INVALID_SAUL_IDENTITY,
+            }, indent=2))
+            return 0
         print(json.dumps(attempt_clear(
             a.toplevel(), args.clear, args.actor,
-            review_id=args.review_id, head=args.head,
+            review_id=args.review_id, head=args.head, from_file=args.from_file,
         ), indent=2))
         return 0
     data, _ = load_ledger(a.toplevel())

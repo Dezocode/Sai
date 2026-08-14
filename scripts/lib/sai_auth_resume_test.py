@@ -104,6 +104,36 @@ def run_resume_fixtures():
         if miss is not None:
             raise RuntimeError(miss)
         print("SELFTEST PASS  resume-rejects-mismatched-saul-snapshot")
+
+        from sai_auth_resume import exit_satisfied
+        spoof = {
+            "reviewer": "saul", "disposition": "APPROVE", "head": live,
+            "runtime": "cursor", "codex_invoked": False,
+        }
+        executed.add("resume-spoof-cursor-saul-not-exit")
+        if exit_satisfied(
+            dict(state, sai_disposition="APPROVE", contract_revision="v12"),
+            live, spoof, "APPROVE",
+        ):
+            raise RuntimeError("spoof cursor Saul must not satisfy exit")
+        print("SELFTEST PASS  resume-spoof-cursor-saul-not-exit")
+
+        ready_spoof = dict(
+            state, liveness="READY_FOR_HUMAN_REVIEW", sai_disposition="APPROVE",
+            saul=spoof, current_head=live,
+        )
+        (run / "coordinator-state.json").write_text(json.dumps(ready_spoof), encoding="utf-8")
+        compact2 = reconstruct(root)
+        executed.add("resume-invalid-ready-nonqualifying-saul")
+        if compact2.get("exit_predicate_satisfied"):
+            raise RuntimeError(compact2)
+        if compact2.get("invalid_ready_state") != "INVALID_READY_STATE_NONQUALIFYING_SAUL":
+            raise RuntimeError(compact2)
+        if compact2.get("liveness") == "READY_FOR_HUMAN_REVIEW":
+            raise RuntimeError("invalid ready must not stay terminal")
+        if not compact2.get("continue"):
+            raise RuntimeError(compact2)
+        print("SELFTEST PASS  resume-invalid-ready-nonqualifying-saul")
     return executed
 
 

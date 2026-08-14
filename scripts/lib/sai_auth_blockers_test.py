@@ -14,7 +14,7 @@ from sai_auth_blockers import (
 LIVE_REQUIRED = REQUIRED_HISTORY + (
     "CTO-021", "B-BLOAT-001", "CTO-024", "CTO-025", "CTO-026", "CTO-027",
     "B-META-P0-001", "B-QUALITY-001", "B-MERGE-PKG-001",
-    "CTO-030", "CTO-031",
+    "CTO-030", "CTO-031", "SAUL-IDENTITY-001",
 )
 NON_SAUL_ACTORS = ("cursor", "contractor", "ctr-admin", "ctr-code-pr62smoke", "ceo")
 
@@ -71,16 +71,16 @@ def run_blocker_fixtures():
 
         executed.add("saul-can-pass-technical")
         r = attempt_clear(root, "B-001", "saul", review_id="3175", head="b" * 40, rel=rel)
-        if r["status"] != "PASSED_BY_SAUL":
+        if r["status"] != "REJECT" or r["reason"] != "INVALID_SAUL_IDENTITY":
             raise RuntimeError(r)
         print("SELFTEST PASS  saul-can-pass-technical")
 
         executed.add("history-not-deleted")
         data, _ = load_ledger(root, rel)
-        if len(data["blockers"]) != 1 or data["blockers"][0]["status"] != "PASSED_BY_SAUL":
+        if len(data["blockers"]) != 1:
             raise RuntimeError(data["blockers"])
         if not item_path(Path(root) / rel, "B-001").is_file():
-            raise RuntimeError("item deleted after pass")
+            raise RuntimeError("item deleted after reject")
         print("SELFTEST PASS  history-not-deleted")
 
         gov = {
@@ -171,6 +171,7 @@ def run_blocker_fixtures():
             "CTO-021", "CTO-024", "CTO-025", "CTO-026", "CTO-027", "CTO-030",
             "CTO-031", "B-BLOAT-001",
             "B-META-P0-001", "B-QUALITY-001", "B-MERGE-PKG-001",
+            "SAUL-IDENTITY-001",
         ):
             raise RuntimeError(f"contractor must not PASS {b.get('blocker_id')}")
     print("SELFTEST PASS  live-no-self-pass")

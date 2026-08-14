@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# saul-attest — sign/verify Hostinger Saul review attestation. Cursor is not Saul.
+# referenced: scripts/lib/sai_auth_saul_identity.py scripts/lib/sai_auth_saul_identity_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+export PYTHONPATH="$ROOT/scripts/lib${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 "$ROOT/scripts/lib/sai_auth_saul_identity.py" "$@"

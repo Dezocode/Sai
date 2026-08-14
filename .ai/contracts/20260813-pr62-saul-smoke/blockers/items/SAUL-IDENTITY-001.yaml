@@ -1,0 +1,37 @@
+"blocker_id": "SAUL-IDENTITY-001"
+"source": "parent pr62-primary; Cursor named subagent projected as Saul"
+"source_actor": "dezocode"
+"source_runtime": "cursor-cloud-vm"
+"created_at": "2026-08-14T17:20:00Z"
+"first_seen_head": "11c39ae4443f125a1cf8bd8a49bb04ba49651c3b"
+"current_head": "ded38e3a2c66b5c8cfe526082e521187b2eeb24d"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "Cursor-native subagent was accepted/projected as Saul despite not being Hostinger Codex; Saul identity is claim-based rather than independently attested. Do not PASS."
+"evidence":
+- "REQ-SAUL-IDENTITY-001"
+- "v12 reuse; no A-013"
+- "voided Cursor Saul APPROVE on 11c39ae"
+"affected_paths":
+- "scripts/lib/sai_auth_saul_identity.py"
+- "scripts/lib/sai_auth_blockers.py"
+- "scripts/lib/sai_auth_resume.py"
+- "scripts/lib/sai_auth_verify.py"
+- "scripts/lib/sai_auth_review.py"
+"dependencies":
+- "CTO-021"
+- "TPR-002"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "saul-identity-001-hostinger-attestation"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v12"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-commit"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "IMPLEMENTED_AWAITING_SAUL. Not PASSED. Actor strings are not Saul identity."
+- "Do not claim READY_FOR_HUMAN_REVIEW. WAITING_EXTERNAL until Hostinger-attested Saul."

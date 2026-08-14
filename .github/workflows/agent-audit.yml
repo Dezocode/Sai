@@ -48,7 +48,8 @@ jobs:
                    scripts/provision-trusted-reviewer-root \
                    scripts/freeze-trusted-reviewer-once \
                    scripts/sai-blockers scripts/sai-wait \
-                   scripts/verify-saul-workflow-trust
+                   scripts/verify-saul-workflow-trust \
+                   scripts/saul-attest scripts/saul-hostinger-bootstrap-review
 
       - name: Verify scaffold path safety
         run: scripts/verify-scaffold-safety
@@ -83,6 +84,7 @@ jobs:
           scripts/sai-runtime-registry --self-test
           scripts/provision-trusted-reviewer-root --self-test
           scripts/sai-blockers --self-test
+          scripts/saul-attest --self-test
           scripts/sai-wait --self-test
           scripts/verify-saul-workflow-trust --self-test
 

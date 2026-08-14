@@ -14,6 +14,7 @@ import sai_auth_flow as flow  # noqa: E402
 from sai_auth_grant import (  # noqa: E402
     matching_grant, officer_grant_required, lease_task_id_bound,
 )
+from sai_auth_saul_identity import qualifying_saul_review  # noqa: E402
 # CTO-029: SHA-bound pins load via sha_bound_rows (git show HEAD pin file,
 # proven at introduced_by_sha with commit-time officer grant, not HEAD grant).
 
@@ -354,6 +355,9 @@ def human_gate(root, cid=None, sha=None, ci_green=False):
                 fails.append("Saul approval must have codex_invoked: true")
             if revw.get("runtime") != "codex":
                 fails.append("Saul approval must have runtime: codex")
+            ok, reason = qualifying_saul_review(revw, sha, n)
+            if not ok:
+                fails.append(reason)
 
     check(saul_c, "contract", "saul")
     check(saul_i, "implementation", "saul")

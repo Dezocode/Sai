@@ -33,3 +33,15 @@ IMPLEMENTED_AWAITING_SAUL. Did not PASS. Did not push.
 
 Next: qualifying Saul review of this exact head. Human merge of
 PR #62 remains the trusted-workflow activation event.
+
+## Wave SAUL-IDENTITY-001 (v12 reuse, no A-013)
+
+Canonical Hostinger Ed25519 attestation. Cursor named subagent is not
+Saul. `attempt_clear` actor=saul without `--from-file` → REJECT
+INVALID_SAUL_IDENTITY. resume spoof `{reviewer:saul, runtime:cursor}`
+does not satisfy exit. consume APPROVE unsigned → FAIL. Blocker
+SAUL-IDENTITY-001 IMPLEMENTED_AWAITING_SAUL, not PASSED. No production
+key in repo. Did not push. Did not merge. Did not restore saul-review.yml.
+
+Next safe action: Hostinger Saul signs this exact head; humans merge PR #62
+if satisfied. Do not claim READY_FOR_HUMAN_REVIEW.

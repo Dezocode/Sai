@@ -7,6 +7,9 @@ import json
 from pathlib import Path
 
 import sai_auth as a
+from sai_auth_saul_identity import (
+    INVALID_READY_STATE_NONQUALIFYING_SAUL, merge_viable_saul,
+)
 from sai_auth_watchdog import HEARTBEAT_SECONDS_DEFAULT, active_primary_count, load_programs
 
 TERMINAL = {"READY_FOR_HUMAN_REVIEW"}
@@ -84,30 +87,36 @@ def latest_saul(root, contract_id, *, prefer_head=None, state_saul=None):
 
 
 def exit_satisfied(state: dict, head: str, saul, sai_disp) -> bool:
-    """READY_FOR_HUMAN_REVIEW is mechanical. Empty todos are not enough."""
-    if (state.get("liveness") or "") == "READY_FOR_HUMAN_REVIEW":
-        return False  # still require evidence fields below
-    saul_ok = bool(saul) and str(saul.get("disposition") or "").upper() == "APPROVE"
-    saul_head = (saul or {}).get("head") or (saul or {}).get("implementation_sha")
+    """READY_FOR_HUMAN_REVIEW requires merge-viable attested Saul, not YAML claims."""
+    if not saul:
+        return False
+    rev = state.get("contract_revision")
+    viable, _ = merge_viable_saul(saul, head, rev)
+    if not viable:
+        return False
+    saul_head = saul.get("head") or saul.get("implementation_head") or saul.get("implementation_sha")
     sai_ok = str(sai_disp or "").upper() == "APPROVE"
-    return bool(
-        saul_ok and sai_ok and saul_head == head
-        and not state.get("open_findings_digest")
-    )
+    return bool(sai_ok and saul_head == head and not state.get("open_findings_digest"))
 
 
 def reconstruct(root) -> dict:
     head = a.head_sha(root) or ""
     branch = a.current_branch(root)
-    path, state = pick_active(find_coordinator_states(root))
+    states = find_coordinator_states(root)
+    path, state = pick_active(states)
     if not state:
-        return {
-            "status": "NO_ACTIVE_PRIMARY",
-            "current_head": head,
-            "branch": branch,
-            "playbook": "none",
-            "do_not_redo": True,
-        }
+        claimed = [(p, r) for p, r in states
+                   if (r.get("liveness") or "") == "READY_FOR_HUMAN_REVIEW"]
+        if claimed:
+            path, state = claimed[0]
+        else:
+            return {
+                "status": "NO_ACTIVE_PRIMARY",
+                "current_head": head,
+                "branch": branch,
+                "playbook": "none",
+                "do_not_redo": True,
+            }
     # Durable JSON may lag git. Pickup uses live HEAD, never a stale snapshot SHA.
     live_head = head or state.get("current_head")
     contract_id = state.get("contract_id")
@@ -118,6 +127,10 @@ def reconstruct(root) -> dict:
     programs, _ = load_programs(root)
     workers = state.get("workers") or state.get("active_workers") or []
     liveness = state.get("liveness")
+    viable, _ = merge_viable_saul(saul or {}, live_head, state.get("contract_revision"))
+    invalid_ready = liveness == "READY_FOR_HUMAN_REVIEW" and not viable
+    if invalid_ready:
+        liveness = "WAITING_EXTERNAL"
     predicate_false = not exit_satisfied(state, live_head, saul, state.get("sai_disposition"))
     playbook = "session-pickup"
     if liveness == "WAITING_WORKER":
@@ -156,7 +169,9 @@ def reconstruct(root) -> dict:
         "expected_next_state": state.get("expected_next_state"),
         "last_material_transition": state.get("last_material_transition"),
         "exit_predicate": state.get("exit_predicate"),
-        "exit_predicate_satisfied": not predicate_false and liveness in TERMINAL,
+        "exit_predicate_satisfied": (
+            False if invalid_ready else (not predicate_false and liveness in TERMINAL)
+        ),
         "liveness": liveness,
         "physical_runtime_continuity": state.get("physical_runtime_continuity"),
         "logical_runtime_continuity": True,
@@ -166,8 +181,10 @@ def reconstruct(root) -> dict:
         "playbook": playbook,
         "do_not_redo": True,
         "empty_todo_is_not_exit": True,
-        "continue": predicate_false or liveness not in TERMINAL,
+        "continue": True if invalid_ready else (predicate_false or liveness not in TERMINAL),
     }
+    if invalid_ready:
+        compact["invalid_ready_state"] = INVALID_READY_STATE_NONQUALIFYING_SAUL
     return compact
 
 

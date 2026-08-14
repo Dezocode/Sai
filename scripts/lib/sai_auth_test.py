@@ -393,7 +393,7 @@ def run_saul_fixtures():
         })
         fails, state = human_gate(d2, cid2, ci_green=True)
         executed.add("saul-omitted-codex-invoked-blocked")
-        if state == "READY" or not any("codex_invoked" in x for x in fails):
+        if state == "READY" or not any("codex_invoked" in x or "INVALID_SAUL_IDENTITY" in x for x in fails):
             raise RuntimeError(f"omitted codex_invoked must block human_gate, got {state} {fails}")
         print("SELFTEST PASS  saul-omitted-codex-invoked-blocked")
         wf = Path(__file__).resolve().parents[2] / ".github/workflows/saul-cto-review.default-branch.yml"
