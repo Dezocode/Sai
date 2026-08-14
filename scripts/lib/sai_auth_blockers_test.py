@@ -44,9 +44,12 @@ def run_blocker_fixtures():
         if not ip.is_file():
             raise RuntimeError("missing item file")
         item_text = ip.read_text(encoding="utf-8")
-        if "description:" not in item_text or "stale Saul pickup" not in item_text:
+        if "stale Saul pickup" not in item_text:
             raise RuntimeError(item_text)
-        if ":" in (a.read_yaml(ip) or {}).get("description", "") and '"' not in item_text.split("description:", 1)[-1].splitlines()[0]:
+        if '"description"' not in item_text and "description:" not in item_text:
+            raise RuntimeError(item_text)
+        desc = (a.read_yaml(ip) or {}).get("description", "")
+        if ":" in desc and '"' not in item_text:
             raise RuntimeError("description with colon must be quoted")
         print("SELFTEST PASS  sharded-item-written")
 

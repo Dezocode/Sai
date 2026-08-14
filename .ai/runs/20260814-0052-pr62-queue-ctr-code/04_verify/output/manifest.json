@@ -1,0 +1,14 @@
+{
+  "task_id": "20260814-0052-pr62-queue-ctr-code",
+  "stage": "04_verify",
+  "agent": "ctr-code-pr62smoke",
+  "completed_at": "2026-08-14T01:12:00Z",
+  "status": "partial",
+  "inputs": [
+    ".ai/runs/20260814-0052-pr62-queue-ctr-code/03_implement/output/changes.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260814-0052-pr62-queue-ctr-code/04_verify/output/verification.md"
+  ],
+  "notes": "Local self-tests PASS. verify-agent-authorization on origin/main..HEAD FAILs lease task_id mismatch for this Task-ID vs lease-c3a003pr62q1.task_id. Lease file is denied to this contractor."
+}
