@@ -1,0 +1,17 @@
+{
+  "task_id": "20260814-0132-pr62-queue-cora",
+  "stage": "02_plan",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-14T01:37:34Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v6.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/amendments/A-006.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json"
+  ],
+  "outputs": [
+    ".ai/runs/20260814-0132-pr62-queue-cora/02_plan/output/plan.md"
+  ],
+  "notes": "Did not load or edit blockers/ledger.yaml or requirements/ledger.yaml; contractor appends CTO-024..027. Qualifying Saul 31760665414 comment 5288363871 head 5ad0b94."
+}
