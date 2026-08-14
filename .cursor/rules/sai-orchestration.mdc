@@ -175,22 +175,32 @@ Sai must not impersonate Saul. Non-Saul technical PASS is
 
 For implementation PRs, **READY_FOR_HUMAN_REVIEW** only when: contract
 coherent, Cora admin complete, contractor fulfillment complete,
-requirement ledger satisfied, P0/P1 Saul findings resolved, exact-head CI
+requirement ledger satisfied, P0/P1 Saul findings resolved or
+Saul-classified with narrow documented merge-conditions, exact-head CI
 green, **real Hostinger Saul/Codex APPROVE** of the exact SHA and
-contract revision, Sai CEO APPROVE of the same state, no stale approvals,
-no REQUEST_CHANGES, no unresolved authority expansion, no synthetic
-review. Until then the program stays ACTIVE.
+contract revision **or** Saul APPROVE with those narrow merge-conditions
+(Saul-classified), Sai CEO APPROVE of the same exact state, merge package
+complete, no stale approvals, no REQUEST_CHANGES, no unresolved authority
+expansion, no synthetic review. `CONDITIONAL_PASS_ON_HUMAN_MERGE` is
+Saul-only and is not agent merge permission. Until then the program
+stays ACTIVE.
 
 Do **not** merge. Do **not** mark ready for review unless dezocode
-explicitly does so.
+explicitly does so. Agents never merge PR #62.
 
-Saul is outside Cursor: GitHub event → `saul-review.yml` → Hostinger →
-authenticated Codex. Never impersonate Saul. Never use candidate PR HEAD
-as the trusted reviewer. Never freeze a trusted root from a candidate PR
-on `pull_request`; fail closed `TRUSTED_REVIEWER_UNAVAILABLE`. Provisioner
-is operator/`main`-only (CTO-015). Do not restore candidate-HEAD trust
-(CTO-012). A PR-tree workflow must not be the persistent-runner trust
-anchor (CTO-021); that move is not live on `main`.
+Saul is outside Cursor: GitHub event → Hostinger → authenticated Codex.
+Never impersonate Saul. Trusted reviewer never uses candidate HEAD
+(CTO-012). Fail closed `TRUSTED_REVIEWER_UNAVAILABLE`; provisioner is
+operator/`main`-only (CTO-015). `pull_request_target` executable tree is
+default-branch / runner-image; candidate is DATA. A-010: human merge of
+PR #62 activates the trusted workflow and retires candidate
+`pull_request` in the same SHA; remaining this-PR reviews may use
+`workflow_dispatch`. Activation is not live on `origin/main` until that
+merge. `CONDITIONAL_PASS_ON_HUMAN_MERGE` is Saul-only (not a waiver, not
+agent merge). Saul reviews defect/security and architectural
+merge-readiness. Anti-bloat: classify REQUIRED_FOR_CURRENT_BLOCKER |
+REQUIRED_FOR_FINAL_MERGE_QUALITY | DEFER_TO_FOLLOWUP. Canonical detail:
+Decision 0008. Do not merge.
 
 pstack `/poteto-mode`, `/loop`, `/babysit` may be used when the Cloud
 session actually loaded the marketplace plugin. They are optional HOW.

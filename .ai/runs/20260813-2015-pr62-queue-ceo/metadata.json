@@ -21,7 +21,9 @@
     ".ai/agents/sai/runtimes/cursor/automation/profile.md",
     ".ai/CONTEXT.md",
     ".ai/requests/20260813-2015-pr62-queue-ceo/",
-    ".ai/runs/20260813-2015-pr62-queue-ceo/"
+    ".ai/runs/20260813-2015-pr62-queue-ceo/",
+    ".ai/shared/memory/decisions/0008-persistent-primary-cursor-orchestrator.md",
+    ".cursor/rules/sai-orchestration.mdc"
   ],
   "overlap_note": "Continues same-branch runs 20260813-1517 and 20260813-1752. Not a semantic conflict; this run owns the queue/grant governance layer. Cora and contractor commits follow with their own task IDs.",
   "worktree": "isolated cloud-agent VM workspace (non-synced)",

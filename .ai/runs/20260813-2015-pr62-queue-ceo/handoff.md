@@ -60,3 +60,32 @@ merge not claimed (`approved_by: not-claimed`).
 READY_FOR_HUMAN_REVIEW remains false. `implements: false`.
 `do_not_merge: true`. Next safe action: contractor provenance-replay
 wiring if Saul still requires it; do not merge.
+
+## A-010 officer (architectural CTO / merge-activation)
+
+Amended Decision 0008 **in place** (no 0009) citing principal P0 comment
+5289020312. Bind also 5287857514 / 5287878905 / 5287885878. Replaced the
+stale CTO-021 "outside this officer record" sentence: A-010 packages
+trusted-workflow activation into PR #62 human merge; not live on
+`origin/main` until that merge. Added a pointer only in
+`.cursor/rules/sai-orchestration.mdc` (not a second copy of 0008).
+
+Two-plane Saul review (defect + architectural). Saul may AMEND/REFRAME
+his own blockers; original finding history preserved; security invariant
+unchanged. `CONDITIONAL_PASS_ON_HUMAN_MERGE` is Saul-only, not a waiver,
+not agent merge. CTO-025 merge-activation is authorized as design;
+this officer record does **not** PASS it. Anti-bloat classify
+REQUIRED_FOR_CURRENT_BLOCKER | REQUIRED_FOR_FINAL_MERGE_QUALITY |
+DEFER_TO_FOLLOWUP. READY_FOR_HUMAN_REVIEW may include Saul APPROVE or
+APPROVE with narrow merge-conditions plus Sai APPROVE of the same exact
+state. Human action is review+merge, not land another workflow then
+restart agents.
+
+Did not write contracts, scripts, workflows, tests, or
+`.ai/authorizations`. Did not PASS CTO-025 or any technical blocker.
+Did not merge. Did not mark ready. Agents never merge PR #62.
+`implements: false`. `do_not_merge: true`. Contract-Revision: v10.
+
+Next safe action: contractor A-010 implementation under existing paths
+(quality profile, CTO-025 merge-activation design, merge package);
+Saul rereview of the new head. Primary continues `REASSESS BLOCKERS`.

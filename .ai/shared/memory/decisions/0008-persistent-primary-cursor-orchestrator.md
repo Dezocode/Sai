@@ -9,7 +9,7 @@
   Intelligence plane). This record does not supersede 0006 or 0007.
 - Source: https://github.com/Dezocode/Sai/pull/62#issuecomment-5287297355
 - Also binds: comments 5287013791, 5285843795, 5282088737,
-  5287857514, 5287878905, 5287885878
+  5287857514, 5287878905, 5287885878, 5289020312
 
 ## Decision
 
@@ -266,9 +266,12 @@ operator/`main`-only. Do not restore candidate-HEAD trust (CTO-012).
 CTO-021 (Saul run 31758118443, comment 5288037039): a PR-tree
 `saul-review.yml` must not be the persistent-runner trust anchor.
 Default-branch or another immutable trusted source is required (candidate
-checked out strictly as data). This is recorded policy. It is **not**
-already live on `Dezocode/Sai:main` (`main` has no `saul-review.yml`).
-Contractor implementation of that move is outside this officer record.
+is DATA, never the executable trust tree). A-010 packages trusted
+`pull_request_target` activation into PR #62 human merge (same SHA
+retires the candidate-controlled Hostinger `pull_request` path). That
+activation is **not** live on `origin/main` until Dezocode merges this
+PR. Do not claim it is already on main. This officer record does not
+PASS CTO-021 or CTO-025.
 
 ## Amendment 2026-08-14 (Cora-per-todo / Ralph / no-idle-Saul)
 
@@ -349,3 +352,86 @@ misapply an old exact-head review.
 Two-primary implementation cap. `/resume-sai` is recovery, not the
 normal cycle. Prefer physical persistence + `sai-wait` when the frontier
 is genuinely empty. Never merge or mark the PR ready.
+
+## Amendment 2026-08-14 (architectural CTO / merge-activation / anti-bloat)
+
+Sources (append-only; 0006/0007 and prior 0008 text stay in force):
+
+- https://github.com/Dezocode/Sai/pull/62#issuecomment-5289020312
+- Also still binds 5287857514, 5287878905, 5287885878
+
+Principal P0 overnight-convergence (Cora A-010 → v10). Officer record
+only. No Decision 0009. Does not PASS CTO-025 or any technical blocker.
+Does not merge. Does not mark ready. Agents never merge PR #62.
+
+### Two-plane Saul CTO review
+
+Saul review has two planes. Both are required for technical APPROVE of
+the exact head:
+
+- **(A) Defect / security / authorization / CI / trust / tests.** Qualifying
+  Hostinger Codex review as already required in this record. Only Saul
+  may technically PASS.
+- **(B) Architectural merge-readiness.** Trust topology, simplicity,
+  transitional retirement, bounded PR, attack surface, rollback,
+  operational ownership, and whether future agents can operate without
+  duplicating machinery.
+
+Saul may **AMEND/REFRAME** his own blockers when later evidence shows a
+bootstrap paradox, unnecessary restrictiveness, redundant PRs, or
+increased risk. Preserve original finding history. Do not weaken the
+security invariant: candidate is DATA; never candidate-HEAD trust; never
+checkout PR head into a trusted CWD then execute.
+
+### CONDITIONAL_PASS_ON_HUMAN_MERGE (Saul-only)
+
+Not a waiver. Not agent merge. Not Cora/contractor/Sai clearance.
+Eligible only when all hold:
+
+- artifact complete and reviewed
+- only missing property is "now on protected main"
+- human merge of this PR establishes that property
+- candidate cannot exploit the transition
+- secrets and privileged runners protected
+- least privilege; fail closed
+- rollback understood
+- no hidden independent defect
+
+Record condition, exact SHA, activation event, post-merge state, risk,
+rollback, and verification. Agents must not treat this classification as
+merge permission.
+
+### CTO-025 merge-activation (do not PASS)
+
+Prefer packaging the reviewed trusted `pull_request_target` workflow into
+**this PR** so human merge activates it and retires the candidate-controlled
+Hostinger `pull_request` path in the **same SHA**. Do not require an
+intermediate human bootstrap PR when that merge-activation is safe.
+
+If unsafe, Saul must give a concrete threat trace (attacker input, trust
+crossing, privilege, execution path, damage) rather than a generic
+"security sensitive" hold. This officer record does not PASS CTO-025.
+
+Remaining this-PR reviews may use `workflow_dispatch`. Human merge of
+PR #62 is the trusted-workflow activation event. Activation is **not**
+live on `origin/main` until that merge.
+
+### Anti-bloat
+
+Classify work `REQUIRED_FOR_CURRENT_BLOCKER` |
+`REQUIRED_FOR_FINAL_MERGE_QUALITY` | `DEFER_TO_FOLLOWUP`. Warning/triage
+thresholds, not hard blocks without escape. Review-cost is first-class.
+Do not invent perfectionism blockers.
+
+- **P0** = trust / authority / security / correctness / fundamental behavior
+- **P1** = significant reliability / maintainability that should not enter main
+
+### READY_FOR_HUMAN_REVIEW (clarified)
+
+May include Saul `APPROVE` **or** Saul `APPROVE` with narrow documented
+merge-conditions (Saul-classified, including
+`CONDITIONAL_PASS_ON_HUMAN_MERGE` when eligible) plus Sai `APPROVE` of
+the same exact state, CI green, and merge package complete. Human action
+is review+merge, not land another workflow then restart agents.
+
+Do not merge. Do not mark ready. Agents never merge PR #62.
