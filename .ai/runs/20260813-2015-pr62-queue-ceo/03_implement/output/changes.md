@@ -12,3 +12,12 @@ Why: later queue Task-IDs must be listed on HEAD grants so contractor
 HEAD-union aliasing can authorize them. History is not rewritten.
 The alias commit itself uses the original grant `task_id` so it matches
 the grant at parent SHA.
+
+## SHA-bound officer pins (CTO-028)
+
+| File | Change |
+|---|---|
+| `.ai/authorizations/sha-bound-authorization.yaml` | New officer pin record: 8 historical 20260814-* SHAs; issuer/source/provenance; dezocode not claimed. |
+| `.ai/runs/20260813-2015-pr62-queue-ceo/handoff.md` | Append CTO-028 pin note. |
+
+No scripts, workflows, contract amendments, or blocker PASS.

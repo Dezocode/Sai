@@ -29,3 +29,15 @@ This alias commit uses Task-ID `20260813-2015-pr62-queue-ceo` so it
 authorizes against the pre-alias grant. Does not implement
 scripts/workflows. Does not PASS technical blockers. `implements: false`.
 `do_not_merge: true`.
+
+## SHA-bound officer pins (CTO-028)
+
+Created `.ai/authorizations/sha-bound-authorization.yaml` under the
+contractor-denied authorizations tree. Issuer `ceo` /
+`grant-pr62-queue-ceo`. Source comment 5288500483. `approved_by` is
+`not-claimed` (officer tracked grant provenance, not human merge;
+dezocode is not claimed). Eight git-verified 20260814-* SHAs pinned;
+5ad0b94 / 7b03b97 / 5684304 / f4443fa / e4ebf57 not pinned (original
+task ids). Cora has not pushed v8; revision remains v7. Does not
+implement scripts/workflows. Does not PASS. `implements: false`.
+`do_not_merge: true`.
