@@ -1,0 +1,9 @@
+{
+  "physical_bcId": "bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc",
+  "logical_primary_id": "pr62-primary",
+  "time_before": "2026-08-14T00:15:41Z",
+  "method": "scripts/sai-wait --seconds 900 --chunk 30",
+  "head_before": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb",
+  "child_state_before": "no native Cursor implementation children; Saul/CI external on d0c6a8c",
+  "model_generated_during_wait": false
+}

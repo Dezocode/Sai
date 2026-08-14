@@ -35,12 +35,6 @@ worktrees and compatibility gates, and reports exceptions. Record the exact
 mechanism and first successful run here before changing the registry from
 `delegated:` to a live automation claim.
 
-GitHub Actions now invokes this profile via `scripts/invoke-saul-review`
-on the dedicated self-hosted Saul runner, using the runner's already-
-authenticated local Codex CLI. Repository API keys are optional fallback
-only. Until a successful Codex run records `codex_invoked: true`, do not
-claim the unattended CTO loop is live.
-
 ## Verified capabilities
 
 The authoritative evidence is

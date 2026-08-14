@@ -1,0 +1,19 @@
+{
+  "physical_bcId": "bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc",
+  "logical_primary_id": "pr62-primary",
+  "time_before": "2026-08-14T00:15:41Z",
+  "time_after": "2026-08-14T00:18:20Z",
+  "method": "scripts/sai-wait --seconds 900 --chunk 30",
+  "head_before": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb",
+  "head_after": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb",
+  "same_bcId": true,
+  "children_survived": true,
+  "model_generated_during_wait": false,
+  "harness_terminated": false,
+  "woke_early": true,
+  "waited_seconds": 159.009,
+  "requested_seconds": 900,
+  "wake_reason": "cheap remote digest change (Saul run 31756720206 completed)",
+  "child_state_before": "no native Cursor implementation children; Saul/CI external on d0c6a8c",
+  "child_state_after": "Saul 31756720206 REQUEST_CHANGES; CI icm-enforcement SUCCESS"
+}

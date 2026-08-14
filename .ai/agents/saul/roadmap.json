@@ -1,8 +1,7 @@
 {
   "owner": "Saul",
   "role": "CTO",
-  "updated": "2026-08-13",
-  "updated_by": "Sai (ceo) re-affirmation of Decision 0005 on PR #62",
+  "updated": "2026-07-15",
   "slack_channel_id": "C0BHBGBNMT7",
   "status_values": ["proposed", "approved", "active", "blocked", "verified", "retired"],
   "promotion_gates": [
@@ -17,7 +16,6 @@
     {"id": "prototypes", "label": "Prototype environments", "status": "proposed", "next": "Define prototype intake and compatibility manifest"},
     {"id": "agents", "label": "Agent runtime integrity", "status": "active", "next": "Audit runtime-specific capability evidence"},
     {"id": "ci", "label": "Development CI", "status": "active", "next": "Add stack checks only when the stack exists"},
-    {"id": "code-health", "label": "Code-health inventory", "status": "active", "next": "Keep code-health.yaml complete; promote deferred app checks when the stack lands"},
-    {"id": "observability", "label": "Semantic tracking", "status": "proposed", "next": "Define module/interface inventory and AST/import clone detection after the stack decision"}
+    {"id": "observability", "label": "Semantic tracking", "status": "proposed", "next": "Define module/interface inventory schema"}
   ]
 }

@@ -26,8 +26,7 @@ flowchart LR
 | Prototype environments | proposed | Define prototype intake and compatibility manifests |
 | Agent runtime integrity | active | Audit runtime-specific capability evidence |
 | Development CI | active | Add stack checks when the stack exists |
-| Code-health inventory | active | Keep `.ai/_config/code-health.yaml` complete; promote deferred app checks when the stack lands |
-| Semantic tracking | proposed | Define a module/interface inventory and AST/import clone detection after the stack decision |
+| Semantic tracking | proposed | Define a module/interface inventory schema |
 
 ## Operating rules
 
@@ -35,17 +34,9 @@ flowchart LR
    owner, and claimed files are recorded.
 2. A prototype declares its public interfaces and compatibility assumptions
    before core integration work.
-3. CI grows with the chosen stack; audit, semantic hierarchy, handoff, and
-   codebase-health registry checks remain mandatory baselines.
+3. CI grows with the chosen stack; audit, semantic hierarchy, and handoff checks
+   remain mandatory baselines.
 4. `#agentupdates` is the audit feed; `#dev` is the development coordination and
    roadmap feed.
 5. Architecture, migrations, releases, and shared-resource deletion stop at the
    applicable human review gate.
-
-## Provenance
-
-Code-health inventory `active` and Semantic tracking `proposed` were
-re-affirmed 2026-08-13 by registered agent Sai (`ceo`) per Decision 0005
-on PR #62. Lane statuses were not changed in that re-affirmation. The
-prior PR #62 landing of these statuses used unregistered `cursor-cloud`
-trailers.

@@ -1,21 +1,12 @@
 # Handoff — 20260813-2015-pr62-queue-ceo (Sai)
 
-## What happened
-Max-effort continuation. Reconciled live PR #62 head `4f9ec01` (pre-this-commit) with Saul run 31753627528: BLOCKED TRUSTED_REVIEWER_UNAVAILABLE, codex_invoked=false. Did not restore candidate-HEAD trust. Amended Decision 0008: any authorized actor may append evidence-backed blockers; discovering/implementing does not grant clearance; technical PASS requires qualifying Saul; Saul may append new CTO findings; Sai may append/clear governance; Primary owns remediation; human is initial+final; 15-minute same-bcId wait is preferred; /resume-sai is recovery.
+Qualifying Saul review landed on `d0c6a8c` (run 31756720206, comment
+5287885648): REQUEST_CHANGES, codex_invoked true, synthetic false,
+trust_mode runner-image. Full exact-head patch reviewed. That is a
+successful reviewer-loop outcome, not APPROVE.
 
-Cursor discovered B-RESUME-001 (stale Saul pickup). Contractor implemented resume + blocker ledger + wait + HOME trust fallback. Cursor cannot PASS B-RESUME-001. B-TRUST-001 remains P0 until runner freeze.
+Ingested CTO-015 P0, CTO-016 P0, CTO-017 P1, CTO-018 P1. Did not
+self-PASS. sai-wait early-woke at 159s on the same bcId when Saul
+completed. Empty-dest freeze removed from the PR workflow per CTO-015.
 
-## Next
-1. Push this wave.
-2. Dispatch trusted-reviewer-provision.yml --ref cursor/codebase-health-90ba -f from_sha=<new> -f confirm_trust=true.
-3. Live 900s sai-wait on same bcId.
-4. Trigger Saul; ingest every finding; do not self-PASS.
-5. Sai governance after Saul technical plane.
-6. READY_FOR_HUMAN_REVIEW only after both APPROVE same SHA. Do not merge.
-
-## Evidence
-- `.ai/shared/memory/decisions/0008-persistent-primary-logical-pickup.md` amended
-- RI MEMORY_ARCHITECTURE.md projection
-- sai-orchestration.mdc 900s wait
-- REQ-20260813-blocker-authority
-- coordinator-state: Saul 31753627528
+READY_FOR_HUMAN_REVIEW is false. Do not merge.
