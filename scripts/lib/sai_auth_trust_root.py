@@ -42,7 +42,7 @@ def _rev_parse(root, rev):
     return p.stdout.strip()
 
 
-def provision(root, dest, from_sha, *, confirm_trust=False, actor="unknown"):
+def provision(root, dest, from_sha, *, confirm_trust=False, actor="unknown", force=False):
     if not from_sha or from_sha in ("HEAD", "head", "@"):
         return {"status": "REJECT", "reason": "SYMBOLIC_HEAD_REFUSED"}
     resolved = _rev_parse(root, from_sha)
@@ -60,6 +60,18 @@ def provision(root, dest, from_sha, *, confirm_trust=False, actor="unknown"):
         }
     dest_path = Path(dest)
     dest_path.mkdir(parents=True, exist_ok=True)
+    manifest_path = dest_path / "MANIFEST.json"
+    if manifest_path.is_file() and not force:
+        try:
+            existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            existing = {}
+        return {
+            "status": "ALREADY_PROVISIONED",
+            "from_sha": existing.get("from_sha"),
+            "dest": str(dest_path),
+            "hint": "empty-dest freeze already happened; will not overwrite from candidate",
+        }
     with tempfile.TemporaryDirectory() as tmp:
         cmd = ["git", "-C", str(root), "archive", resolved]
         for rel in list(ARCHIVE_PATHS) + list(OPTIONAL_ARCHIVE):
@@ -102,12 +114,41 @@ def provision(root, dest, from_sha, *, confirm_trust=False, actor="unknown"):
     return manifest
 
 
+def writable_dest():
+    env = os.environ.get("SAI_TRUSTED_REVIEWER_ROOT")
+    if env:
+        Path(env).mkdir(parents=True, exist_ok=True)
+        return env
+    opt = Path(DEFAULT_DEST)
+    try:
+        opt.mkdir(parents=True, exist_ok=True)
+        return str(opt)
+    except OSError:
+        home = Path.home() / "sai" / "trusted-reviewer"
+        home.mkdir(parents=True, exist_ok=True)
+        return str(home)
+
+
+def freeze_once(root, from_sha, *, dest=None, actor="empty-dest-bootstrap"):
+    """First-writer freeze. Never overwrite. Symbolic HEAD is SKIP, not trust."""
+    if not from_sha or from_sha in ("HEAD", "head", "@"):
+        return {"status": "SKIP", "reason": "SYMBOLIC_OR_EMPTY"}
+    if len(from_sha) < 40 or any(c not in "0123456789abcdefABCDEF" for c in from_sha):
+        return {"status": "SKIP", "reason": "INVALID_SHA"}
+    dest = dest or writable_dest()
+    if (Path(dest) / "scripts" / "invoke-saul-review").is_file():
+        return {"status": "ALREADY_PROVISIONED", "dest": dest, "from_sha": from_sha}
+    return provision(root, dest, from_sha, confirm_trust=True, actor=actor)
+
+
 def cmd(argv=None):
     p = argparse.ArgumentParser(prog="provision-trusted-reviewer-root")
     p.add_argument("--self-test", action="store_true")
     p.add_argument("--from-sha", default=None)
     p.add_argument("--dest", default=os.environ.get("SAI_TRUSTED_REVIEWER_ROOT") or DEFAULT_DEST)
     p.add_argument("--confirm-trust", action="store_true")
+    p.add_argument("--force", action="store_true")
+    p.add_argument("--freeze-once", action="store_true")
     p.add_argument("--actor", default=os.environ.get("GITHUB_ACTOR") or "unknown")
     args = p.parse_args(argv)
     if args.self_test:
@@ -115,13 +156,20 @@ def cmd(argv=None):
         n = run_trust_root_fixtures()
         print(f"provision-trusted-reviewer-root self-test: {len(n)} fixtures executed")
         return 0
+    if args.freeze_once:
+        result = freeze_once(a.toplevel(), args.from_sha, actor=args.actor)
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("status") in (
+            "PROVISIONED", "ALREADY_PROVISIONED", "SKIP"
+        ) else 1
     if not args.from_sha:
         print(json.dumps({"status": "REJECT", "reason": "FROM_SHA_REQUIRED"}))
         return 2
     result = provision(a.toplevel(), args.dest, args.from_sha,
-                       confirm_trust=args.confirm_trust, actor=args.actor)
+                       confirm_trust=args.confirm_trust, actor=args.actor,
+                       force=args.force)
     print(json.dumps(result, indent=2))
-    return 0 if result.get("status") == "PROVISIONED" else 1
+    return 0 if result.get("status") in ("PROVISIONED", "ALREADY_PROVISIONED") else 1
 
 
 if __name__ == "__main__":

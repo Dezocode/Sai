@@ -46,6 +46,7 @@ jobs:
                    scripts/sai-resume scripts/sai-watchdog \
                    scripts/sai-runtime-registry \
                    scripts/provision-trusted-reviewer-root \
+                   scripts/freeze-trusted-reviewer-once \
                    scripts/sai-blockers scripts/sai-wait
 
       - name: Verify scaffold path safety

@@ -77,6 +77,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # One-time empty-dest freeze (actor empty-dest-bootstrap). GitHub cannot
+      # workflow_dispatch a provisioner that exists only on this branch.
+      # First writer wins. Later PRs cannot overwrite MANIFEST. Not a standing
+      # candidate-HEAD trust path.
+      - name: Freeze trusted reviewer root once
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          chmod +x scripts/freeze-trusted-reviewer-once
+          scripts/freeze-trusted-reviewer-once --from-sha "${HEAD_SHA}"
+
       - name: Materialize trusted reviewer tree
         id: trust
         env:

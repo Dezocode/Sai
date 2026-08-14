@@ -38,6 +38,13 @@ def run_saul_trust_fixtures():
         raise RuntimeError("workflow must be able to set TRUST_MODE=unavailable")
     print("SELFTEST PASS  saul-unavailable-blocks")
 
+    executed.add("saul-empty-dest-freeze-once")
+    if "empty-dest-bootstrap" not in text:
+        raise RuntimeError("missing empty-dest first-writer freeze")
+    if "git archive HEAD" in text:
+        raise RuntimeError("freeze-once must not archive symbolic HEAD")
+    print("SELFTEST PASS  saul-empty-dest-freeze-once")
+
     executed.add("saul-trusted-sources-only")
     if "SAI_TRUSTED_REVIEWER_ROOT" not in text:
         raise RuntimeError("runner-image trusted root missing")

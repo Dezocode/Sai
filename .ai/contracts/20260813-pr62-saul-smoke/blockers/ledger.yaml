@@ -18,7 +18,7 @@ blockers:
     category: technical
     severity: P0
     severity_assigned_by: saul-infrastructure
-    description: TRUSTED_REVIEWER_UNAVAILABLE — no independently trusted Saul reviewer source on Hostinger; Codex skipped.
+    description: TRUSTED_REVIEWER_UNAVAILABLE — no independently trusted Saul reviewer source on Hostinger; Codex skipped. Machine path: empty-dest first-writer freeze on the self-hosted Saul job (not standing candidate-HEAD trust).
     evidence:
       - "GitHub Actions run 31753627528"
       - "disposition BLOCKED; codex_invoked false; trust_mode unavailable"

@@ -60,6 +60,16 @@ def run_trust_root_fixtures():
         if man["from_sha"] != head:
             raise RuntimeError(man)
         print("SELFTEST PASS  confirm-trust-provisions")
+
+        executed.add("already-provisioned-refuses-overwrite")
+        invoke = dest / "scripts" / "invoke-saul-review"
+        pinned = invoke.read_text()
+        r = provision(root, dest, head, confirm_trust=True, actor="attacker")
+        if r["status"] != "ALREADY_PROVISIONED":
+            raise RuntimeError(r)
+        if invoke.read_text() != pinned:
+            raise RuntimeError("overwrite of frozen root")
+        print("SELFTEST PASS  already-provisioned-refuses-overwrite")
         executed.add("archive-paths-documented")
         if "scripts/invoke-saul-review" not in ARCHIVE_PATHS:
             raise RuntimeError(ARCHIVE_PATHS)
@@ -74,6 +84,13 @@ def run_trust_root_fixtures():
         if "pwned" not in (root / "scripts" / "invoke-saul-review").read_text():
             raise RuntimeError("candidate not mutated")
         print("SELFTEST PASS  candidate-mutation-does-not-change-root")
+
+        executed.add("freeze-once-skips-symbolic")
+        from sai_auth_trust_root import freeze_once
+        r = freeze_once(root, "HEAD")
+        if r["status"] != "SKIP":
+            raise RuntimeError(r)
+        print("SELFTEST PASS  freeze-once-skips-symbolic")
     finally:
         tmp.cleanup()
     return executed
