@@ -96,6 +96,27 @@ def git_path_exists(rev_path: str) -> bool:
     return p.returncode == 0
 
 
+def should_skip_transitional(trusted_exists: bool) -> bool:
+    """Hermetic A-011 skip-guard: skip Codex iff trusted file exists on main.
+
+    Does not mutate origin/main. Maps git cat-file existence to skip=true.
+    """
+    return bool(trusted_exists)
+
+
+def step_if(doc: dict, step_id: str) -> str:
+    jobs = doc.get("jobs") if isinstance(doc, dict) else None
+    if not isinstance(jobs, dict):
+        return ""
+    for job in jobs.values():
+        if not isinstance(job, dict):
+            continue
+        for step in job.get("steps") or []:
+            if isinstance(step, dict) and step.get("id") == step_id:
+                return str(step.get("if") or "")
+    return ""
+
+
 def assert_trusted_workflow(text: str) -> list[str]:
     fails = []
     if "pull_request_target" not in text:

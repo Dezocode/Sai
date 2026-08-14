@@ -24,7 +24,8 @@
     ".ai/_config/pr-ballooning.yaml",
     "tests/authorization/",
     ".ai/runs/20260813-2017-pr62-queue-ctr-code/",
-    ".ai/runs/20260814-0435-pr62-queue-ctr-code/"
+    ".ai/runs/20260814-0435-pr62-queue-ctr-code/",
+    ".ai/runs/20260814-0450-pr62-queue-ctr-code/"
   ],
   "do_not_merge": true,
   "self_pass": false,

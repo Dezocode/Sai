@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """CTO-021/025 regression: candidate saul-review.yml cannot change trusted commands.
 
-A-010: candidate must NOT declare pull_request; MUST keep workflow_dispatch.
+A-011: candidate MUST declare pull_request AND workflow_dispatch, MUST contain
+skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN plus trusted-file cat-file.
 Trusted file MUST declare pull_request_target. origin/main must not be faked.
 """
 from __future__ import annotations
 
 from sai_auth_workflow_trust import (
     CANDIDATE_WF, EVIL_RUN, TRUSTED_WF, assert_trusted_workflow,
-    git_path_exists, load_workflow, run_commands, workflow_on,
+    git_path_exists, load_workflow, run_commands, should_skip_transitional,
+    step_if, workflow_on,
 )
 
 
@@ -40,13 +42,23 @@ def run_workflow_trust_fixtures():
     print("SELFTEST PASS  candidate-evil-run-ignored")
 
     executed.add("candidate-pr-trigger-retired")
-    cand_on = workflow_on(load_workflow(candidate_text))
+    cand_doc = load_workflow(candidate_text)
+    cand_on = workflow_on(cand_doc)
     if not isinstance(cand_on, dict):
         raise RuntimeError("candidate on: must be a mapping")
-    if "pull_request" in cand_on:
-        raise RuntimeError("candidate saul-review.yml must not declare pull_request")
+    if "pull_request" not in cand_on:
+        raise RuntimeError("candidate saul-review.yml must declare pull_request")
     if "workflow_dispatch" not in cand_on:
         raise RuntimeError("candidate saul-review.yml must declare workflow_dispatch")
+    if "TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN" not in candidate_text:
+        raise RuntimeError("candidate must contain skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN")
+    if "saul-cto-review.default-branch.yml" not in candidate_text:
+        raise RuntimeError("candidate skip-guard must cat-file saul-cto-review.default-branch.yml")
+    if "git cat-file -e" not in candidate_text:
+        raise RuntimeError("candidate skip-guard must git cat-file -e the trusted workflow")
+    invoke_if = step_if(cand_doc, "saul")
+    if "steps.retire.outputs.skip" not in invoke_if:
+        raise RuntimeError("invoke step if: must mention steps.retire.outputs.skip")
     trust_on = workflow_on(load_workflow(trusted_text))
     if not isinstance(trust_on, dict) or "pull_request_target" not in trust_on:
         raise RuntimeError("trusted file must declare pull_request_target")
@@ -59,13 +71,20 @@ def run_workflow_trust_fixtures():
         raise RuntimeError("trusted run blob must not execute candidate scripts")
     print("SELFTEST PASS  candidate-pr-trigger-retired")
 
+    executed.add("hermetic-skip-guard")
+    if not should_skip_transitional(True):
+        raise RuntimeError("trusted_exists True must skip transitional Codex")
+    if should_skip_transitional(False):
+        raise RuntimeError("trusted_exists False must not skip (this PR still needs Codex)")
+    print("SELFTEST PASS  hermetic-skip-guard")
+
     executed.add("cto021-not-faked-on-main")
     on_main = git_path_exists("origin/main:.github/workflows/saul-cto-review.default-branch.yml")
     on_main_old = git_path_exists("origin/main:.github/workflows/saul-review.yml")
     print(f"SELFTEST INFO  cto021_activation_on_main={str(on_main).lower()}")
     print(f"SELFTEST INFO  origin_main_has_saul_review_yml={str(on_main_old).lower()}")
     if on_main:
-        print("SELFTEST INFO  file exists on origin/main; activation is still a human gate")
+        raise RuntimeError("do not fake saul-cto-review.default-branch.yml onto origin/main")
     print("SELFTEST PASS  cto021-not-faked-on-main")
     return executed
 

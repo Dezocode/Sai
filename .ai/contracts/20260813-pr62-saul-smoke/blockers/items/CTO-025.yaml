@@ -34,3 +34,4 @@
 - "A-010 supersedes the v9 Hostinger-trigger hold as the only allowed remediation. This SHA retires pull_request and keeps workflow_dispatch."
 - "IMPLEMENTED_AWAITING_SAUL. Not PASSED. Saul may classify CONDITIONAL_PASS_ON_HUMAN_MERGE. Cora/contractor must not emit that as clearance."
 - "cto025_activation_on_main remains false until human merge."
+- "A-011 amends the retirement mechanism: keep narrow pull_request for this-PR Saul continuity; skip Codex after trusted file exists on origin/main (TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN). Trigger kept, invocation skipped post-merge. Status stays IMPLEMENTED_AWAITING_SAUL. Do not PASS."

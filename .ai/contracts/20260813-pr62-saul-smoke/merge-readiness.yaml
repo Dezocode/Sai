@@ -42,17 +42,18 @@ conditional_activation:
   semantics: "Saul-only CONDITIONAL_PASS_ON_HUMAN_MERGE if predicates hold. Not contractor clearance."
   activation_event: "human merge of PR #62"
   artifact: ".github/workflows/saul-cto-review.default-branch.yml"
-  same_sha_retirement: ".github/workflows/saul-review.yml on: pull_request removed"
+  same_sha_retirement: "A-011 restores narrow pull_request plus workflow_dispatch; skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN skips Codex once trusted file exists on origin/main"
 quality_profile: .ai/contracts/20260813-pr62-saul-smoke/quality-profile.yaml
 security_trust_summary: .ai/contracts/20260813-pr62-saul-smoke/evidence/cto-025-threat-trace.yaml
 nonblocking_follow_ups:
   - "Pin actions/checkout to a SHA (DEFERRED_NONBLOCKING)"
   - "Inspect branch protection and runner-group restriction (UNKNOWN/VERIFY_REQUIRED)"
   - "Collaborator workflow_dispatch of candidate YAML remains residual"
+  - "Future PR deleting the TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN skip-guard (DEFERRED_NONBLOCKING)"
 rollback:
   - "Revert the merge on main"
   - "Restore previous main workflow set"
 post_merge_check:
   - "git cat-file -e origin/main:.github/workflows/saul-cto-review.default-branch.yml"
-  - "confirm origin/main saul-review.yml has no pull_request trigger"
+  - "confirm skip-guard TRANSITIONAL_RETIRED_TRUSTED_ON_MAIN on origin/main saul-review.yml"
 architectural_review: .ai/contracts/20260813-pr62-saul-smoke/saul/architectural-review.md
