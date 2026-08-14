@@ -180,7 +180,9 @@ def run_saul_trust_fixtures():
         env["SAI_SAUL_PACKAGE_DIR"] = str(prod_pkg)
         env["SAI_SKIP_CODEX"] = "1"
         env["SAI_SELFTEST_INNER"] = "1"
-        env["PYTHONPATH"] = str(root / "scripts" / "lib")
+        lib = str(root / "scripts" / "lib")
+        prior = env.get("PYTHONPATH", "")
+        env["PYTHONPATH"] = lib if not prior else lib + ":" + prior
         proc = subprocess.run(
             [str(root / "scripts" / "invoke-saul-review"), "--self-test"],
             cwd=str(root), env=env, capture_output=True, text=True, timeout=60,
