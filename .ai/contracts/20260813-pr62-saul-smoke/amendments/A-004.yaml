@@ -1,0 +1,21 @@
+amendment_id: A-004
+contract_id: 20260813-pr62-saul-smoke
+from_revision: 3
+to_revision: 4
+finding_ids:
+- CTO-016
+authority_expanding: false
+human_approval_required: false
+human_approval_ids:
+- grant-pr62-queue-ceo
+- human-pr62-keep-0007-and-path-expansion
+summary: CTO-016 -> A-004 -> v4. Contractor denied_paths unchanged. Officer-authored decisions remain under grant-pr62-queue-ceo. Candidate .ai/agents/saul restored to origin/main so the PR does not redefine the trusted Saul persona.
+trace:
+- CTO-016 -> A-004 -> v4
+changes:
+- finding_id: CTO-016
+  field: allowed_paths
+  action: narrow
+  note: Do not expand contractor into .ai/agents/saul/** or .ai/shared/memory/decisions/**. Record existing officer grant for decision records. Restore candidate Saul persona files to origin/main.
+created_by: ctr-admin
+created_at: "2026-08-14T00:22:00Z"

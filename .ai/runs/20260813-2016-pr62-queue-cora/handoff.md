@@ -1,8 +1,11 @@
-# Handoff — Cora v3 for PR #62
+# Handoff — Cora A-004 / v4 for PR #62
 
-Consumed Saul run 31736391403 (`02362e11c38595d1`). Human grant kept
-Decision 0007 and expanded contractor paths. A-003 -> v3. v2 lease stale.
-Active lease `lease-c3a003pr62q1` for `ctr-code-pr62smoke`.
+Ingested Saul run 31756720206 (comment 5287885648), disposition
+REQUEST_CHANGES, codex_invoked true, synthetic false.
 
-Cora did not implement CTO-009/010/011. Contractor owns those.
+CTO-016: contractor denied_paths unchanged. Officer decisions stay under
+grant-pr62-queue-ceo. Restored `.ai/agents/saul` to origin/main so the
+candidate PR does not redefine the trusted Saul persona.
+
+Did not technically PASS any blocker. Did not implement CTO-015/017/018.
 Do not merge.
