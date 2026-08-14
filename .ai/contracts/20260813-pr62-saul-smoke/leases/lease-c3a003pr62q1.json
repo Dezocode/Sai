@@ -4,6 +4,10 @@
   "contract_revision": "v6",
   "agent_id": "ctr-code-pr62smoke",
   "task_id": "20260813-2017-pr62-queue-ctr-code",
+  "task_ids": [
+    "20260813-2017-pr62-queue-ctr-code",
+    "20260814-0052-pr62-queue-ctr-code"
+  ],
   "repository": "Dezocode/Sai",
   "branch": "cursor/codebase-health-90ba",
   "worktree": "workspace",
