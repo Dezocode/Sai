@@ -217,6 +217,9 @@ def run_identity_fixtures():
     boot = REPO / "scripts" / "saul-hostinger-bootstrap-review"
     env = {k: v for k, v in os.environ.items()
            if k not in ("SAI_SAUL_BOOTSTRAP", "SAI_SAUL_ATTEST_KEY", "SAI_TRUSTED_TREE")}
+    lib = str(REPO / "scripts" / "lib")
+    prior = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = lib if not prior else lib + os.pathsep + prior
     proc = subprocess.run(
         [str(boot), "--self-test"], cwd=str(REPO), env=env, capture_output=True, text=True,
     )

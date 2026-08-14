@@ -56,3 +56,14 @@ Did not PASS. Did not push. `sai_auth_review.py` remains 500 lines.
 
 Next safe action: Hostinger Saul signs this exact head against v12.
 Do not claim READY_FOR_HUMAN_REVIEW.
+
+## Wave CI import path (20260814-saul-identity-ci)
+
+`saul-hostinger-bootstrap-review` used `REPO/lib` on `sys.path` and
+imported `sai_auth` before `--self-test`. CI `sai-blockers --self-test`
+failed with `ModuleNotFoundError`. Fixed to `scripts/lib` and early
+`--self-test` exit 2 `NOT_HOSTINGER_SAUL`. Identity-test subprocess
+sets `PYTHONPATH` to `scripts/lib`. Did not PASS. Did not push.
+
+Next safe action: Hostinger Saul signs this exact head against v12.
+Do not claim READY_FOR_HUMAN_REVIEW.

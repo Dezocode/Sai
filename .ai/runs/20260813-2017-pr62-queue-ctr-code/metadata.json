@@ -25,6 +25,7 @@
   "wave": "20260814-saul-identity-001",
   "work_item": "SAUL-IDENTITY-001",
   "plan_reference_identity": ".ai/runs/20260813-2017-pr62-queue-ctr-code/02_plan/output/identity-plan.md",
+  "plan_reference_ci_import": ".ai/runs/20260813-2017-pr62-queue-ctr-code/02_plan/output/ci-import-plan.md",
   "contract_revision": "v12",
   "authorization_id": "lease-c3a003pr62q1",
   "do_not_merge": true,
@@ -34,5 +35,6 @@
   "cto029": "introducer-provenance",
   "cto025_activation_on_main": false,
   "tpr001": "provisioner-deleted",
-  "tpr002": "codex-workspace-write-token-strip"
+  "tpr002": "codex-workspace-write-token-strip",
+  "ci_import_fix": "bootstrap-scripts-lib-path"
 }

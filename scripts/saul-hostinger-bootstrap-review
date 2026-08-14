@@ -13,7 +13,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+if "--self-test" in sys.argv:
+    print("NOT_HOSTINGER_SAUL", file=sys.stderr)
+    raise SystemExit(2)
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 import sai_auth as a  # noqa: E402
 from sai_auth_saul_identity import key_inside_worktree  # noqa: E402
 
