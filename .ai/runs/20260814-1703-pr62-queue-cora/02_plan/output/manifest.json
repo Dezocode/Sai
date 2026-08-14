@@ -1,0 +1,16 @@
+{
+  "task_id": "20260814-1703-pr62-queue-cora",
+  "stage": "02_plan",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-14T17:03:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260814-1703-pr62-queue-cora/01_intake/output/intake.md",
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v12.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json"
+  ],
+  "outputs": [
+    ".ai/runs/20260814-1703-pr62-queue-cora/02_plan/output/plan.md"
+  ],
+  "notes": "reuse=true v13=false. Cora appends REQ-SAUL-IDENTITY-001 only. Contractor implements and writes blocker item. Do not PASS."
+}

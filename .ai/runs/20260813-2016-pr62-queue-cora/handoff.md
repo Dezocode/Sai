@@ -118,4 +118,31 @@ subprocess and Invoke Codex env, in-place sai_auth_review.py
 Do not restore saul-review.yml. Do not PASS. Do not merge.
 Do not push. Do not mark ready.
 
+## SAUL-IDENTITY-001 reuse v12 (grant Task-ID standing run)
+
+Evaluated P0 SAUL-IDENTITY-001 on exact head 11c39ae.
+Principal VOIDED Cursor-named-subagent Saul APPROVE
+(codex_invoked=false); that false projection is historical
+evidence, not deleted. reuse=true. v13=false. Did not
+issue A-013. allowed_paths already cover identity work
+(scripts/**, tests/**, contract tree, schemas). denied_paths
+unchanged (.ai/authorizations/** remains officer-only).
+lease-c3a003pr62q1 reused (v12). ctr-code-pr62smoke reused.
+Appended REQ-SAUL-IDENTITY-001 without PASS. Did not write
+blockers/items. Wave artifacts:
+`.ai/runs/20260814-1703-pr62-queue-cora/`. implements false.
+do_not_merge true. do_not_push true. technical_pass false.
+Contractor next: canonical qualifying_saul_review() +
+Ed25519 attestation (openssl; test keys in fixtures only);
+attempt_clear consumes review artifact not --actor saul;
+resume/human_gate/consume share the validator; negative
+spoof tests; Hostinger-only bootstrap/attest scripts;
+append SAUL-IDENTITY-001 blocker DISCOVERED or
+IMPLEMENTED_AWAITING_SAUL not PASS. Do not restore
+saul-review.yml. Do not write .ai/authorizations/**. Do
+not generate/commit a production private key. Only
+Hostinger Codex with unforgeable attestation may PASS.
+Do not self-PASS. Do not merge. Do not push. Do not mark
+ready.
+
 

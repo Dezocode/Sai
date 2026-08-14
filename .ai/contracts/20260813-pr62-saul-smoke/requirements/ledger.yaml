@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-14T15:36:00Z"
+updated_at: "2026-08-14T17:03:00Z"
 requirements:
   - requirement_id: REQ-5282088737
     source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
@@ -160,3 +160,21 @@ requirements:
     digest: workspace-write-or-readonly-strip-github-token
     status: in-progress
     blocking: true
+  - requirement_id: REQ-SAUL-IDENTITY-001
+    source: "principal VOID of Cursor-named-subagent Saul APPROVE; P0 identity: only Hostinger Codex with unforgeable attestation may PASS"
+    authority: dezocode
+    timestamp: "2026-08-14T17:03:00Z"
+    scope: saul-identity-attestation
+    digest: hostinger-ed25519-attestation-no-cursor-subagent-spoof
+    status: in-progress
+    blocking: true
+    acceptance:
+      - canonical-qualifying-saul-review
+      - ed25519-openssl-test-keys-fixtures-only
+      - attempt-clear-consumes-review-artifact-not-actor-saul
+      - resume-human-gate-consume-same-validator
+      - negative-spoof-tests
+      - hostinger-only-bootstrap-attest-scripts
+      - append-blocker-discovered-or-implemented-awaiting-saul-not-pass
+      - do-not-restore-saul-review-yml
+      - contractor-must-not-write-authorizations-or-production-private-key
