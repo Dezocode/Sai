@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Build a retrievable exact-head Saul review package. Git is durable truth."""
+"""Build a retrievable exact-head Saul review package. Git is durable truth.
+
+Review-surface + merge-package extras live here (not sai_auth_review.py).
+Anti-ballooning warning policy: .ai/_config/pr-ballooning.yaml
+"""
 from __future__ import annotations
 
 import json
@@ -25,6 +29,12 @@ DOC_PATHS = [
     ".ai/shared/schemas/contract-review.schema.json",
 ]
 INLINE_LIMIT = 400000
+MERGE_PACKAGE_EXTRAS = (
+    ("quality-profile.yaml", "quality-profile.yaml"),
+    ("merge-readiness.yaml", "merge-readiness.yaml"),
+    ("saul/architectural-review.md", "architectural-review.md"),
+    ("evidence/cto-025-threat-trace.yaml", "cto-025-threat-trace.yaml"),
+)
 
 
 def _trees(root):
@@ -141,6 +151,36 @@ def _scope(revdoc):
     }
 
 
+def _ext_breakdown(files):
+    buckets = {"source": 0, "test": 0, "governance": 0, "archive": 0, "other": 0}
+    for f in files:
+        n = str(f).replace("\\", "/")
+        if n.startswith(".ai/runs/") or "/reviews/consumed-" in n or "/archive/" in n:
+            buckets["archive"] += 1
+        elif n.startswith("tests/") or n.endswith("_test.py") or "/test/" in n:
+            buckets["test"] += 1
+        elif n.startswith("scripts/") or n.startswith(".github/"):
+            buckets["source"] += 1
+        elif n.startswith(".ai/"):
+            buckets["governance"] += 1
+        else:
+            buckets["other"] += 1
+    return buckets
+
+
+def _copy_merge_package(cand, dest, cid):
+    copied = []
+    if not cid:
+        return copied
+    base = Path(cand) / ".ai/contracts" / cid
+    for rel, name in MERGE_PACKAGE_EXTRAS:
+        src = base / rel
+        if src.is_file():
+            (dest / name).write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+            copied.append(name)
+    return copied
+
+
 def write_package(root, cid, revision, sha, review_type, dest_dir):
     cand, trust = _trees(root)
     dest = Path(dest_dir)
@@ -159,6 +199,7 @@ def write_package(root, cid, revision, sha, review_type, dest_dir):
         "base_ref": base,
         "changed_file_count": len(files),
         "diff_bytes": len(diff.encode("utf-8")),
+        "extension_breakdown": _ext_breakdown(files),
         "scope": _scope(revdoc),
         "trust_mode": os.environ.get("SAI_TRUST_MODE") or "unset",
         "trusted_tree": str(trust),
@@ -178,6 +219,8 @@ def write_package(root, cid, revision, sha, review_type, dest_dir):
         (dest / "requirement-ledger.yaml").write_text(reqs.read_text(encoding="utf-8"), encoding="utf-8")
     if revdoc:
         (dest / "contract-revision.yaml").write_text(a.dump_yaml(revdoc), encoding="utf-8")
+    meta["package_extras"] = _copy_merge_package(cand, dest, cid)
+    (dest / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
     return dest, meta, files, diff, revdoc, prior
 
 

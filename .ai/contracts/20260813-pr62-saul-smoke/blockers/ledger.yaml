@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke-blockers
 contract_id: 20260813-pr62-saul-smoke
-updated_at: '2026-08-14T01:57:00Z'
+updated_at: '2026-08-14T04:35:00Z'
 policy:
   discovery: any-authorized-participant
   technical_clearance: saul
@@ -41,7 +41,7 @@ blockers:
 - blocker_id: CTO-024
   status: IMPLEMENTED_AWAITING_SAUL
 - blocker_id: CTO-025
-  status: BLOCKED_EXTERNAL
+  status: IMPLEMENTED_AWAITING_SAUL
 - blocker_id: CTO-026
   status: TRIAGED
 - blocker_id: CTO-027
@@ -49,4 +49,10 @@ blockers:
 - blocker_id: CTO-028
   status: IMPLEMENTED_AWAITING_SAUL
 - blocker_id: CTO-029
+  status: IMPLEMENTED_AWAITING_SAUL
+- blocker_id: B-META-P0-001
+  status: IMPLEMENTED_AWAITING_SAUL
+- blocker_id: B-QUALITY-001
+  status: IMPLEMENTED_AWAITING_SAUL
+- blocker_id: B-MERGE-PKG-001
   status: IMPLEMENTED_AWAITING_SAUL

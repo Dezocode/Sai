@@ -7,12 +7,13 @@ from pathlib import Path
 
 import sai_auth as a
 from sai_auth_blockers import (
-    LEDGER_REL, REQUIRED_HISTORY, append_blocker, attempt_clear,
-    item_path, load_ledger, save_ledger, set_status,
+    LEDGER_REL, PASS_STATUSES, REQUIRED_HISTORY, STATUSES, append_blocker,
+    attempt_clear, item_path, load_ledger, save_ledger, set_status,
 )
 
 LIVE_REQUIRED = REQUIRED_HISTORY + (
     "CTO-021", "B-BLOAT-001", "CTO-024", "CTO-025", "CTO-026", "CTO-027",
+    "B-META-P0-001", "B-QUALITY-001", "B-MERGE-PKG-001",
 )
 NON_SAUL_ACTORS = ("cursor", "contractor", "ctr-admin", "ctr-code-pr62smoke", "ceo")
 
@@ -167,9 +168,17 @@ def run_blocker_fixtures():
         if st in ("PASSED", "PASSED_BY_SAUL", "PASSED_BY_SAI") and b.get("blocker_id") in (
             "CTO-015", "CTO-016", "CTO-017", "CTO-018", "CTO-019", "CTO-020",
             "CTO-021", "CTO-024", "CTO-025", "CTO-026", "CTO-027", "B-BLOAT-001",
+            "B-META-P0-001", "B-QUALITY-001", "B-MERGE-PKG-001",
         ):
             raise RuntimeError(f"contractor must not PASS {b.get('blocker_id')}")
     print("SELFTEST PASS  live-no-self-pass")
+
+    executed.add("conditional-pass-not-pass-status")
+    if "CONDITIONAL_PASS_ON_HUMAN_MERGE" not in STATUSES:
+        raise RuntimeError("STATUSES must list CONDITIONAL_PASS_ON_HUMAN_MERGE")
+    if "CONDITIONAL_PASS_ON_HUMAN_MERGE" in PASS_STATUSES:
+        raise RuntimeError("CONDITIONAL_PASS_ON_HUMAN_MERGE must not be a PASS_STATUS")
+    print("SELFTEST PASS  conditional-pass-not-pass-status")
     return executed
 
 

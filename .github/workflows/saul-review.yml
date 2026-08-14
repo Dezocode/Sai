@@ -1,15 +1,18 @@
 name: saul-cto-review
 
-# TRANSITIONAL pull_request trigger: Hostinger Saul still runs from this
-# PR-tree workflow until saul-cto-review.default-branch.yml exists on main.
-# CTO-021 remains OPEN until that default-branch activation.
-# pull_request_target on this PR branch is not used by GitHub.
+# DISPATCH-ONLY transitional workflow for remaining reviews of THIS PR.
+# A-010 supersedes the v9 Hostinger pull_request hold: this SHA retires
+# on: pull_request. After human merge of PR #62, trusted
+# pull_request_target on protected main
+# (saul-cto-review.default-branch.yml) is the automatic path.
+# This file must not auto-run candidate YAML on Hostinger.
+# Keep workflow_dispatch so Primary can:
+#   gh workflow run saul-review.yml --ref cursor/codebase-health-90ba
+# Presence of the trusted file on this branch is not live trust.
 # Do not reintroduce candidate empty-dest freeze (CTO-015/012).
 # GitHub event bus → dedicated self-hosted Saul runner → local Codex CLI.
 # Missing local `codex` or a failed `codex exec` => BLOCKED, never APPROVE.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       contract_id:
@@ -46,7 +49,9 @@ jobs:
     # hostname=c775b2b0df55, /.dockerenv present, docker CLI absent,
     # codex-cli 0.147.0 at /usr/bin/codex, ~/.codex present.
     # Jobs API did not return extra custom labels; do not guess saul-codex.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # pull_request retired. workflow_dispatch is collaborator-gated.
+    # Same-repo guard kept if a pull_request context is ever attached.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted]
     timeout-minutes: 45
     steps:

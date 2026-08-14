@@ -1,0 +1,33 @@
+"blocker_id": "B-MERGE-PKG-001"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5289020312"
+"source_actor": "dezocode"
+"source_runtime": "github-web"
+"created_at": "2026-08-14T04:35:00Z"
+"first_seen_head": "121430d356a2eb940ee57c837a61347f39756f47"
+"current_head": "121430d356a2eb940ee57c837a61347f39756f47"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "Merge-readiness package for the human principal: PR 62, exact head/base placeholders filled live at review time, mergeability, CI, Saul/Sai disposition, P0..Pn, conditional activation, quality/security summaries, rollback, post-merge check. human_action is review PR; merge if satisfied. agent_merge false. mark_ready_automatically false."
+"evidence":
+- "comment 5289020312"
+- "A-010 / v10"
+- ".ai/contracts/20260813-pr62-saul-smoke/merge-readiness.yaml"
+- "scripts/lib/sai_auth_package.py copies extras into the Saul package"
+"affected_paths":
+- ".ai/contracts/20260813-pr62-saul-smoke/merge-readiness.yaml"
+- "scripts/lib/sai_auth_package.py"
+"dependencies":
+- "B-QUALITY-001"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "merge-readiness-package"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v10"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-commit"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "Contractor appended without PASS. Do not merge. Do not mark ready."

@@ -1,11 +1,15 @@
 name: saul-cto-review-trusted
 
-# INTENDED default-branch workflow for CTO-021.
-# GitHub only loads pull_request_target from the default branch.
-# origin/main currently has no Saul workflow; this file does not activate
-# until it exists on main. Presence on this PR branch is not production trust.
-# Candidate SHA is DATA. Executable tree is runner-image or default-branch
-# checkout only. Do not freeze from candidate (CTO-015/012).
+# Activates on human merge of PR #62 onto protected main. Presence on
+# this PR branch is not live trust: GitHub loads pull_request_target
+# from the default branch only. origin/main currently has no Saul
+# workflow. Candidate SHA is DATA at path: candidate-data
+# (persist-credentials: false). Executable tree is runner-image or
+# default-branch checkout only. NEVER execute candidate scripts, hooks,
+# or deps. Do not checkout PR head into the trusted CWD then execute
+# (GitHub pwn-request). Split-path design is required. Fail closed
+# TRUSTED_REVIEWER_UNAVAILABLE. Same-repo only. Do not add
+# allow-unsafe-pr-checkout. Do not freeze from candidate (CTO-015/012).
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -54,6 +58,8 @@ jobs:
             echo "codex_bin=missing"
           fi
 
+      # Trusted executable tree lives here. Never overwrite this path
+      # with the PR head.
       - name: Checkout default branch as trusted fallback
         uses: actions/checkout@v4
         with:
@@ -61,6 +67,8 @@ jobs:
           persist-credentials: false
           path: trusted-default-branch
 
+      # DATA only. persist-credentials false. Separate path. Do not
+      # execute anything from this tree in trusted run: steps.
       - name: Fetch candidate SHA as DATA
         uses: actions/checkout@v4
         with:

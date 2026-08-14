@@ -1,0 +1,105 @@
+profile: pr62-saul-smoke-quality
+contract_id: 20260813-pr62-saul-smoke
+classification: REQUIRED_FOR_FINAL_MERGE_QUALITY
+status: IMPLEMENTED_AWAITING_SAUL
+clearance_authority: saul
+do_not_pass: true
+do_not_claim_slsa_level: true
+note: "Outcome-based. Independent defects stay in the Saul ledger. Uninspectable repo settings are UNKNOWN/VERIFY_REQUIRED. Unrelated-to-PR#62 is DEFERRED_NONBLOCKING. No perfectionism BLOCKER rows."
+controls:
+  - id: nist-ssdf-threat-model
+    source: NIST SSDF (PO.1 / threat modeling)
+    applicability: Saul review + CI trust boundary for this PR
+    evidence: evidence/cto-025-threat-trace.yaml
+    state: PASS
+    reason: "pwn-request, main-gap, post-merge, residual dispatch documented"
+  - id: nist-ssdf-least-privilege
+    source: NIST SSDF (PS.1 / least privilege)
+    applicability: GitHub Actions jobs in this PR
+    evidence: ".github/workflows/saul-cto-review.default-branch.yml permissions contents:read; persist-credentials: false; same-repo if"
+    state: PASS
+    reason: "Trusted job is same-repo, read contents, candidate checkout uncredentialed"
+  - id: nist-ssdf-secrets
+    source: NIST SSDF (PS.2 / secrets)
+    applicability: Saul runner env
+    evidence: "OPENAI/CODEX keys unset if empty; candidate scripts never executed"
+    state: PASS
+    reason: "Secrets not passed into candidate-data execution (there is none)"
+  - id: nist-ssdf-review-separation
+    source: NIST SSDF (PW.7 / review)
+    applicability: Cora vs contractor vs Saul vs Sai vs human
+    evidence: Decisions 0006/0008; blockers policy technical_clearance saul
+    state: PASS
+    reason: "Discovery is not clearance; contractor cannot PASS"
+  - id: nist-ssdf-vuln-handling
+    source: NIST SSDF (RV)
+    applicability: Product vulnerability response
+    evidence: none in this PR
+    state: DEFERRED_NONBLOCKING
+    reason: "No application/product code yet; unrelated to PR #62 merge-activation"
+  - id: openssf-branch-protection
+    source: OpenSSF Scorecard Branch-Protection
+    applicability: Dezocode/Sai default branch
+    evidence: "Not queried in this contractor lease"
+    state: UNKNOWN/VERIFY_REQUIRED
+    reason: "Repo settings uninspectable here; do not fabricate PASS"
+  - id: openssf-pinned-actions
+    source: OpenSSF Scorecard Pinned-Dependencies
+    applicability: actions/checkout and upload-artifact
+    evidence: "actions/checkout@v4 kept; SHA pins not added (do not balloon)"
+    state: DEFERRED_NONBLOCKING
+    reason: "Pinning action SHAs is follow-up; A-010 said do not balloon pinning"
+  - id: openssf-token-permissions
+    source: OpenSSF OSPS / Scorecard Token-Permissions
+    applicability: Saul workflows
+    evidence: "explicit permissions blocks; no contents: write"
+    state: PASS
+    reason: "Workflows declare least-privilege permissions"
+  - id: slsa-provenance-principles
+    source: SLSA-style provenance (principles only)
+    applicability: review artifacts and git SHA binding
+    evidence: "exact-head package; git is durable truth; no SLSA builder"
+    state: PASS
+    reason: "SHA-bound review package. Do not claim an SLSA level."
+  - id: gha-pull-request-target
+    source: GitHub Actions securely-using-pull_request_target
+    applicability: saul-cto-review.default-branch.yml
+    evidence: "candidate-data path; persist-credentials false; trusted run forbids candidate scripts"
+    state: PASS
+    reason: "Split-path DATA checkout; not checkout-head-then-execute"
+  - id: gha-self-hosted-runner-group
+    source: GitHub self-hosted runner groups
+    applicability: Hostinger runner
+    evidence: "run 31728732258 runner_group=Default; restriction unknown"
+    state: UNKNOWN/VERIFY_REQUIRED
+    reason: "Runner-group restriction uninspected; residual DEFERRED_NONBLOCKING"
+  - id: icm-folder-contracts
+    source: SAI ICM / arXiv:2603.16021
+    applicability: .ai/ stages, runs, contracts
+    evidence: "contract tree + run handoff; verify-semantic-hierarchy in CI"
+    state: PASS
+    reason: "This wave stays inside ICM contracts/runs/_config"
+  - id: decision-0006
+    source: Decision 0006 authorization loop
+    applicability: write auth, Saul independence
+    evidence: "lease-c3a003pr62q1 v10; denied_paths honored"
+    state: PASS
+    reason: "Contractor implements in lease; does not PASS; does not merge"
+  - id: decision-0007
+    source: Decision 0007 two-primary / stacked RI
+    applicability: primary-programs.yaml
+    evidence: ".ai/_config/primary-programs.yaml max_active 2; pr64-ri subordinate"
+    state: PASS
+    reason: "PR #62 remains the single primary_implementation program"
+  - id: decision-0008
+    source: Decision 0008 persistent primary / merge-activation
+    applicability: CTO-025 packaging into this PR
+    evidence: "Sai amended 0008 at 121430d; this wave implements merge-activation"
+    state: PASS
+    reason: "Activation event is human merge of PR #62; not claimed live on main"
+  - id: anti-ballooning
+    source: principal 5289020312 / A-010
+    applicability: this PR review surface
+    evidence: ".ai/_config/pr-ballooning.yaml warning/triage"
+    state: PASS
+    reason: "Warning policy only; no new failing CI check"

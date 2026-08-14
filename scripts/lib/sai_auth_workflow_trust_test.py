@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""CTO-021 regression: candidate saul-review.yml cannot change trusted commands."""
+"""CTO-021/025 regression: candidate saul-review.yml cannot change trusted commands.
+
+A-010: candidate must NOT declare pull_request; MUST keep workflow_dispatch.
+Trusted file MUST declare pull_request_target. origin/main must not be faked.
+"""
 from __future__ import annotations
 
 from sai_auth_workflow_trust import (
     CANDIDATE_WF, EVIL_RUN, TRUSTED_WF, assert_trusted_workflow,
-    git_path_exists, load_workflow, run_commands,
+    git_path_exists, load_workflow, run_commands, workflow_on,
 )
 
 
@@ -35,14 +39,25 @@ def run_workflow_trust_fixtures():
         raise RuntimeError("trusted executed commands include candidate evil run")
     print("SELFTEST PASS  candidate-evil-run-ignored")
 
-    executed.add("transitional-pr-trigger-kept")
-    if "pull_request:" not in candidate_text:
-        raise RuntimeError("transitional saul-review.yml must keep pull_request")
+    executed.add("candidate-pr-trigger-retired")
+    cand_on = workflow_on(load_workflow(candidate_text))
+    if not isinstance(cand_on, dict):
+        raise RuntimeError("candidate on: must be a mapping")
+    if "pull_request" in cand_on:
+        raise RuntimeError("candidate saul-review.yml must not declare pull_request")
+    if "workflow_dispatch" not in cand_on:
+        raise RuntimeError("candidate saul-review.yml must declare workflow_dispatch")
+    trust_on = workflow_on(load_workflow(trusted_text))
+    if not isinstance(trust_on, dict) or "pull_request_target" not in trust_on:
+        raise RuntimeError("trusted file must declare pull_request_target")
     if "freeze-trusted-reviewer-once" in candidate_text:
         raise RuntimeError("CTO-015: do not reintroduce candidate freeze")
-    if "CTO-021" not in candidate_text:
-        raise RuntimeError("transitional workflow must note CTO-021 remains open")
-    print("SELFTEST PASS  transitional-pr-trigger-kept")
+    if "allow-unsafe-pr-checkout: true" in trusted_text:
+        raise RuntimeError("must not add allow-unsafe-pr-checkout: true")
+    blob = "\n".join(run_commands(load_workflow(trusted_text)))
+    if "candidate-data/scripts/" in blob or "$SAI_CANDIDATE_TREE/scripts/" in blob:
+        raise RuntimeError("trusted run blob must not execute candidate scripts")
+    print("SELFTEST PASS  candidate-pr-trigger-retired")
 
     executed.add("cto021-not-faked-on-main")
     on_main = git_path_exists("origin/main:.github/workflows/saul-cto-review.default-branch.yml")

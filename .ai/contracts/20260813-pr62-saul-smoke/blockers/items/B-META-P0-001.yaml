@@ -1,0 +1,34 @@
+"blocker_id": "B-META-P0-001"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5289020312"
+"source_actor": "dezocode"
+"source_runtime": "github-web"
+"created_at": "2026-08-14T04:35:00Z"
+"first_seen_head": "121430d356a2eb940ee57c837a61347f39756f47"
+"current_head": "121430d356a2eb940ee57c837a61347f39756f47"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "Principal meta-P0 cannot pass from documentation alone. Saul clears it last after quality profile evaluated; independent P0/P1 Saul-cleared or legitimately merge-conditional; architectural review; trust boundaries; CI green; transitional path merge-time retirement; no ballooning; merge package complete; then Sai on the same state. READY_FOR_HUMAN_REVIEW is the desired terminal state. Do not merge. Do not mark ready."
+"evidence":
+- "comment 5289020312"
+- "A-010 / v10"
+- ".ai/contracts/20260813-pr62-saul-smoke/saul/architectural-review.md"
+- ".ai/contracts/20260813-pr62-saul-smoke/merge-readiness.yaml"
+"affected_paths":
+- ".ai/contracts/20260813-pr62-saul-smoke/"
+"dependencies":
+- "CTO-025"
+- "B-QUALITY-001"
+- "B-MERGE-PKG-001"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "meta-p0-overnight-convergence-package"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v10"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-commit"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "Contractor appended without PASS. Documentation alone is not clearance."

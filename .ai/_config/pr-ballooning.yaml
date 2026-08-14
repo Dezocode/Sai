@@ -1,0 +1,41 @@
+# Warning/triage anti-ballooning policy. NOT a hard-fail CI check.
+# Referenced from scripts/lib/sai_auth_package.py.
+version: 1
+mode: warning-triage
+classification: REQUIRED_FOR_FINAL_MERGE_QUALITY
+hard_fail: false
+primary:
+  bounded_objective: true
+  max_independent_primary_programs: 2
+  source: .ai/_config/primary-programs.yaml
+  subordinate_stays_subordinate: true
+  unrelated_scope: follow-up
+classify_every_change:
+  - REQUIRED_FOR_CURRENT_BLOCKER
+  - REQUIRED_FOR_FINAL_MERGE_QUALITY
+  - DEFER_TO_FOLLOWUP
+generated_and_history:
+  shard_ledgers: true
+  archive_consumed_reviews: true
+  do_not_grow_hot_path_without_bound: true
+warning_thresholds:
+  changed_files: 80
+  diff_bytes: 400000
+  metadata_growth_files: 20
+  yaml_lines: 300
+  py_lines: 500
+  md_lines: 600
+saul:
+  may_flag_excessive_scope: true
+  finding_class: architectural
+  not_a_new_ci_fail: true
+escape_hatch:
+  legitimate_required_work: true
+  reason_required: true
+  do_not_block_security_remediation: true
+do_not:
+  - dashboards
+  - unrelated_refactors
+  - duplicate_docs
+  - raise_global_code_health_limits
+  - new_failing_ci_check

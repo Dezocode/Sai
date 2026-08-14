@@ -1,0 +1,58 @@
+pr: 62
+classification: REQUIRED_FOR_FINAL_MERGE_QUALITY
+status: IMPLEMENTED_AWAITING_SAUL
+clearance_authority: saul
+do_not_pass: true
+agent_merge: false
+mark_ready_automatically: false
+human_action: "review PR; merge if satisfied"
+exact_head: "FILLED_LIVE_AT_REVIEW_TIME"
+exact_base: "FILLED_LIVE_AT_REVIEW_TIME"
+note: "exact_head/exact_base are placeholders; Saul/Sai fill from the reviewed SHA."
+mergeability: UNKNOWN/VERIFY_REQUIRED
+ci: UNKNOWN/VERIFY_REQUIRED
+saul_disposition: pending
+sai_disposition: pending
+p0_pn_summary:
+  implemented_awaiting_saul:
+    - CTO-015
+    - CTO-016
+    - CTO-017
+    - CTO-018
+    - CTO-019
+    - CTO-020
+    - CTO-021
+    - CTO-024
+    - CTO-025
+    - CTO-028
+    - CTO-029
+    - B-RESUME-001
+    - B-ORCH-001
+    - B-BLOAT-001
+    - B-META-P0-001
+    - B-QUALITY-001
+    - B-MERGE-PKG-001
+  uncleared:
+    - CTO-026
+    - CTO-027
+    - B-CORA-TODO-001
+    - B-RALPH-001
+    - B-NO-IDLE-SAUL-001
+conditional_activation:
+  semantics: "Saul-only CONDITIONAL_PASS_ON_HUMAN_MERGE if predicates hold. Not contractor clearance."
+  activation_event: "human merge of PR #62"
+  artifact: ".github/workflows/saul-cto-review.default-branch.yml"
+  same_sha_retirement: ".github/workflows/saul-review.yml on: pull_request removed"
+quality_profile: .ai/contracts/20260813-pr62-saul-smoke/quality-profile.yaml
+security_trust_summary: .ai/contracts/20260813-pr62-saul-smoke/evidence/cto-025-threat-trace.yaml
+nonblocking_follow_ups:
+  - "Pin actions/checkout to a SHA (DEFERRED_NONBLOCKING)"
+  - "Inspect branch protection and runner-group restriction (UNKNOWN/VERIFY_REQUIRED)"
+  - "Collaborator workflow_dispatch of candidate YAML remains residual"
+rollback:
+  - "Revert the merge on main"
+  - "Restore previous main workflow set"
+post_merge_check:
+  - "git cat-file -e origin/main:.github/workflows/saul-cto-review.default-branch.yml"
+  - "confirm origin/main saul-review.yml has no pull_request trigger"
+architectural_review: .ai/contracts/20260813-pr62-saul-smoke/saul/architectural-review.md

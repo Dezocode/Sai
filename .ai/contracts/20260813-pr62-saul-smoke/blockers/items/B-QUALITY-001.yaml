@@ -1,0 +1,30 @@
+"blocker_id": "B-QUALITY-001"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5289020312"
+"source_actor": "dezocode"
+"source_runtime": "github-web"
+"created_at": "2026-08-14T04:35:00Z"
+"first_seen_head": "121430d356a2eb940ee57c837a61347f39756f47"
+"current_head": "121430d356a2eb940ee57c837a61347f39756f47"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "REQUIRED_FOR_FINAL_MERGE_QUALITY: compact quality profile under the contract tree covering relevant NIST SSDF, OpenSSF OSPS/Scorecard-style, SLSA-style principles (no SLSA level claim), GitHub Actions pull_request_target guidance, ICM, and Decisions 0006/0007/0008. Uninspectable repo settings are UNKNOWN/VERIFY_REQUIRED. Unrelated-to-PR#62 is DEFERRED_NONBLOCKING."
+"evidence":
+- "comment 5289020312"
+- "A-010 / v10"
+- ".ai/contracts/20260813-pr62-saul-smoke/quality-profile.yaml"
+"affected_paths":
+- ".ai/contracts/20260813-pr62-saul-smoke/quality-profile.yaml"
+"dependencies": []
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "quality-profile-compact"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v10"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-commit"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "Contractor appended without PASS. Do not claim an SLSA level."
