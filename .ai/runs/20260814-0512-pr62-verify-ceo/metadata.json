@@ -1,0 +1,64 @@
+{
+  "task_id": "20260814-0512-pr62-verify-ceo",
+  "agent": "ceo",
+  "agent_id": "ceo",
+  "agent_name": "Sai",
+  "role": "CEO",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/codebase-health-90ba",
+  "base_sha": "4503f55250efde4166e4877473d4a9268b37c166",
+  "purpose": "Classify PR #62 synchronize event, independently verify governance state at exact head, and dispatch the first real non-synthetic Saul/Codex review's findings to the correct owner.",
+  "status": "governance-verify-and-dispatch-complete",
+  "pr": "https://github.com/Dezocode/Sai/pull/62",
+  "contract_id": "20260813-pr62-saul-smoke",
+  "contract_revision": "v11",
+  "project_slug": "pr62-saul-smoke",
+  "contractor_type": "officer-governance",
+  "isolation_mode": "prototype",
+  "authorization_id": "grant-pr62-queue-ceo",
+  "work_item": "verify-and-dispatch-a011-saul-review",
+  "parent_logical_runtime": "pr62-primary",
+  "implements": false,
+  "do_not_merge": true,
+  "event_classification": "GOVERNANCE_STATE_CHANGED -> SAUL_CTO_REVIEW_REQUIRED (satisfied by real review) -> CONTRACTOR_ACTION_REQUIRED",
+  "material_change": {
+    "prior_processed_head": "6ad1dc6bf6b0727b1bd4581695667ed6cfd7c2dc",
+    "prior_processed_contract_revision": "v10",
+    "new_head": "4503f55250efde4166e4877473d4a9268b37c166",
+    "new_contract_revision": "v11",
+    "new_commits": ["20bcfb4", "4503f55"],
+    "reason": "A-011/v11 restored on:pull_request on saul-review.yml (Cloud gh cannot workflow_dispatch, HTTP 403) with a post-merge skip-guard; this synchronize event's own trigger produced the FIRST real Saul/Codex review on this exact head."
+  },
+  "saul_review": {
+    "github_run_id": "31771910025",
+    "reviewer": "saul",
+    "runtime": "codex",
+    "codex_invoked": true,
+    "synthetic": false,
+    "disposition": "REQUEST_CHANGES",
+    "saul_review_key": "90688f9c7a497a46",
+    "findings": ["CTO-030", "CTO-031"]
+  },
+  "sai_review": {
+    "path": ".ai/contracts/20260813-pr62-saul-smoke/reviews/sai-implementation-4d66ba1708882a1e.yaml",
+    "disposition": "REQUEST_CHANGES"
+  },
+  "dispatch": {
+    "path": ".ai/contracts/20260813-pr62-saul-smoke/queue/78e506a2781a048a.yaml",
+    "work_item_id": "78e506a2781a048a",
+    "owner": "contractor",
+    "routing_case": "A",
+    "expected_next_state": "CONTRACTOR_REMEDIATE",
+    "note": "No Cora amendment required: CTO-030/CTO-031 do not touch allowed_paths and are already covered by v11 allowed_paths (.github/workflows/**, scripts/**, tests/**)."
+  },
+  "claimed_files": [
+    ".ai/authorizations/grants/grant-pr62-queue-ceo.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/reviews/sai-implementation-4d66ba1708882a1e.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/queue/78e506a2781a048a.yaml",
+    ".ai/runs/20260814-0512-pr62-verify-ceo/"
+  ],
+  "overlap_note": "Same-branch officer child of pr62-primary. Governance dispatch only; did not touch scripts/, .github/workflows, or .ai/contracts/**/revisions|amendments (no new contract revision issued, none required).",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "trigger": "GitHub pull_request synchronize on PR #62 (head advanced 6ad1dc6 -> 4503f55)"
+}

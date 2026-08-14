@@ -6,6 +6,7 @@ task_id: 20260813-2015-pr62-queue-ceo
 task_ids:
   - 20260813-2015-pr62-queue-ceo
   - 20260814-0052-pr62-queue-ceo
+  - 20260814-0512-pr62-verify-ceo
 paths:
   - ".ai/**"
   - "AGENTS.md"

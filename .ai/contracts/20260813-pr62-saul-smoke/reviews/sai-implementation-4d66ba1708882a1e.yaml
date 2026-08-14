@@ -1,0 +1,27 @@
+reviewer: sai
+runtime: cursor-cloud-vm
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: 11
+implementation_head: 4503f55250efde4166e4877473d4a9268b37c166
+review_type: implementation
+disposition: REQUEST_CHANGES
+synthetic: false
+note: 'Independent Sai governance concurrence with real Codex Saul review (github_run_id
+  31771910025, codex_invoked=true, synthetic=false, saul_review_key 90688f9c7a497a46)
+  at contract_revision 11 / exact head 4503f55. CTO-030 (P0) is a genuine role-separation/persistent-runner-trust-boundary
+  concern squarely inside Sai governance scope: the skip-guard added by A-011 lives
+  inside the same candidate-controlled saul-review.yml it is meant to constrain, so
+  a future collaborator PR could delete/bypass it before the trusted-tree check runs
+  on the persistent self-hosted runner. Sai concurs this is not DEFERRED_NONBLOCKING.
+  CTO-031 (P1) exact-head CI is pending, not yet green. cora_admin_complete=true on
+  v11 is administration complete, not technical or governance PASS. No PASSED_BY_SAUL/PASSED_BY_SAI
+  entries exist on this ledger; do_not_pass remains true. Sai does not APPROVE while
+  a real, non-synthetic Saul REQUEST_CHANGES stands on this exact head. Routing: findings
+  classify as owner=contractor case=A (saul_review_workflow/human_gate fields, not
+  allowed_paths) under existing v11 allowed_paths (.github/workflows/**, scripts/**,
+  tests/**) — no new Cora amendment required to authorize the fix itself; claimed
+  via sai-dispatch-transition. Did not merge. Did not mark ready. Agents never merge
+  PR #62.'
+idempotency_key: 4d66ba1708882a1e
+recorded_by: ceo
+recorded_at: '2026-08-14T05:15:01Z'
