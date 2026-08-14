@@ -1,22 +1,20 @@
-# Handoff — ctr-code-pr62smoke (CTO-024 SHA-bound)
+# Handoff — ctr-code-pr62smoke (CTO-028 officer pins only)
 
-Lease `lease-c3a003pr62q1`, contract v6, Task-ID
+Lease `lease-c3a003pr62q1`, contract v8 (Cora A-008), Task-ID
 `20260813-2017-pr62-queue-ctr-code`.
 
-Saul run 31760665414 / comment 5288363871 rejected HEAD/working-tree
-retrospective authorization. Replay now uses commit-time grants/leases plus
-SHA-bound rows from committed HEAD only.
+Saul run 31761796169 / comment 5288500483 rejected contractor-authored
+`sha_bound_authorization` in `.ai/_config/authorization.yaml`. Replay now
+loads pins only from
+`git show HEAD:.ai/authorizations/sha-bound-authorization.yaml` and
+requires `issuer` in officers (`ceo` or `ctr-admin`) plus `issuer_grant`
+on a tracked grant. `_config` pins and dirty working-tree officer files
+do not authorize. `.ai/authorizations/**` is contractor-denied.
 
-Pinned wave SHAs (full 40 hex): f2ab0b55, ff0a18f6, 97527f38 (contractor
-0052); 854e578c, b9f13f09, eab6b0c0 (ceo 0052);
-ec183590 (cora 0052); bb519c29 (cora 0041). Did not pin 5ad0b94 / 7b03b97
-/ 5684304.
+Did not write the officer pin YAML (Sai recorded it at `2a57842`).
+Did not disable `saul-review.yml` `pull_request`. Did not PASS.
+CTO-028 is `IMPLEMENTED_AWAITING_SAUL`. CTO-025 stays
+`BLOCKED_EXTERNAL`. CTO-021 stays `IMPLEMENTED_AWAITING_SAUL` (not
+PASSED).
 
-CTO-025 remains BLOCKED_EXTERNAL (main merge required). Candidate
-`saul-review.yml` pull_request self-hosted job is still enabled.
-CTO-026 TRIAGED meta. CTO-027 assigned ctr-admin.
-
-Cora has an untracked A-007/v7 run; this commit keeps v6 trailers.
-
-`self_pass: false`. `do_not_merge: true`. Next: Cora v7 if pushed, then
-fresh Saul review. Do not merge.
+`self_pass: false`. `do_not_merge: true`. Next: fresh Saul review.

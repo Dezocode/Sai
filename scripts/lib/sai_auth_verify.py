@@ -11,6 +11,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sai_auth as a  # noqa: E402
 import sai_auth_flow as flow  # noqa: E402
+from sai_auth_grant import (  # noqa: E402
+    matching_grant, officer_grant_required, lease_task_id_bound,
+)
+# CTO-028: SHA-bound pins load only via sai_auth_grant.sha_bound_rows
+# (git show HEAD:.ai/authorizations/sha-bound-authorization.yaml).
 
 
 def _trailers_from_session(session):
@@ -60,7 +65,6 @@ def verify_paths(cfg, trailers, paths, *, root, sha=None, session=None, branch=N
         for p in paths:
             if not a.path_allowed(p, allowed, denied):
                 fails.append(f"officer {agent_id} path out of class: {p}")
-        from sai_auth_grant import matching_grant, officer_grant_required
         if officer_grant_required(cfg, root, sha):
             g = matching_grant(
                 root, agent_id, task_id, paths, sha=sha,
@@ -111,7 +115,6 @@ def verify_paths(cfg, trailers, paths, *, root, sha=None, session=None, branch=N
         fails.append(f"lease {lease.get('lease_id')} status={lease.get('status')}")
     if a.revision_label(lease.get("contract_revision")) != a.revision_label(current or rev_l):
         fails.append("lease bound to stale contract revision")
-    from sai_auth_grant import lease_task_id_bound
     if not lease_task_id_bound(root, cid, lease, task_id, agent_id, sha=sha):
         fails.append("lease task_id mismatch")
     allowed = lease.get("allowed_paths") or rev.get("allowed_paths") or []

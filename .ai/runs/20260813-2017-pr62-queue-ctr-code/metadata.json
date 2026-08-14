@@ -25,8 +25,11 @@
     "scripts/lib/sai_auth_grant.py",
     "scripts/lib/sai_auth_verify.py",
     "scripts/lib/sai_auth_rebind_test.py",
+    "scripts/lib/sai_auth_test.py",
     ".ai/_config/authorization.yaml"
   ],
   "do_not_merge": true,
-  "self_pass": false
+  "self_pass": false,
+  "cto028": "officer-pins-only",
+  "cto025_activation_on_main": false
 }

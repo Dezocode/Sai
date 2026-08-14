@@ -1,0 +1,35 @@
+"blocker_id": "CTO-028"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5288500483"
+"source_actor": "saul"
+"source_runtime": "hostinger-saul-codex"
+"created_at": "2026-08-14T01:57:00Z"
+"first_seen_head": "f4443fa0b00ec950768ba7aff14020732e338e9d"
+"current_head": "f4443fa0b00ec950768ba7aff14020732e338e9d"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "saul"
+"description": "Remove contractor-authored sha_bound_authorization rows as an authorization source. Verifier currently loads from HEAD .ai/_config which this contractor can write. Store pins in contractor-denied independently approved records. Replay must validate provenance. Negative fixture: contractor-authored HEAD pin cannot authorize a historical commit."
+"evidence":
+- "GitHub Actions run 31761796169"
+- "comment 5288500483"
+- "head f4443fa0b00ec950768ba7aff14020732e338e9d"
+"affected_paths":
+- "scripts/lib/sai_auth_grant.py"
+- "scripts/lib/sai_auth_verify.py"
+- "scripts/lib/sai_auth_rebind_test.py"
+- ".ai/_config/authorization.yaml"
+"dependencies":
+- "CTO-024"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "officer-pins-only-not-config"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v8"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-push"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "IMPLEMENTED_AWAITING_SAUL after officer-file loader. Not PASSED."
+- "Sai owns .ai/authorizations/sha-bound-authorization.yaml. Contractor does not write that YAML."

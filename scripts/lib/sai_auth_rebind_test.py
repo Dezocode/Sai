@@ -16,7 +16,9 @@ CTR_OLD = "20260813-9999-auth-test-ctr-code-auth1"
 CTR_NEW = "20260813-8888-rebind-wave-ctr-code-auth1"
 GRANT_REL = ".ai/authorizations/grants/grant-ceo-rebind.yaml"
 GRANT_ID = "grant-ceo-rebind"
+ADMIN_GRANT = "grant-test-ctr-admin"
 POLICY = ".ai/_config/authorization.yaml"
+PIN_REL = ".ai/authorizations/sha-bound-authorization.yaml"
 REASON = "wave used new Task-ID before grant/lease aliases existed; no history rewrite"
 
 
@@ -88,6 +90,7 @@ def _expect(name, cond, detail=None):
 
 
 def _add_pin(cfg, sha, agent_id, task_id, auth_id):
+    """Contractor-writable _config pin. Must not authorize (CTO-028)."""
     audit = cfg.setdefault("audit", {})
     rows = list(audit.get("sha_bound_authorization") or [])
     rows.append({
@@ -101,10 +104,43 @@ def _add_pin(cfg, sha, agent_id, task_id, auth_id):
     return cfg
 
 
-def _commit_pin(d, sha, agent_id, task_id, auth_id):
+def _pin_yaml(sha, agent_id, task_id, auth_id, issuer="ceo", issuer_grant=GRANT_ID):
+    return a.dump_yaml({
+        "issuer": issuer,
+        "issuer_grant": issuer_grant,
+        "pins": [{
+            "sha": sha,
+            "agent_id": agent_id,
+            "task_id": task_id,
+            "authorization_id": auth_id,
+            "reason": REASON,
+        }],
+    })
+
+
+def _pin_tr(issuer="ceo"):
+    if issuer == "ceo":
+        return _ceo_tr(CEO_OLD)
+    return {
+        "Task-ID": "20260813-1517-auth-loop-cursor-cloud",
+        "Agent": "ctr-admin",
+        "Authorization-ID": ADMIN_GRANT,
+        "Runtime": "cursor-cloud-vm",
+    }
+
+
+def _commit_pin(d, sha, agent_id, task_id, auth_id, issuer="ceo", issuer_grant=None):
+    issuer_grant = issuer_grant or (GRANT_ID if issuer == "ceo" else ADMIN_GRANT)
+    return _commit(
+        d, {PIN_REL: _pin_yaml(sha, agent_id, task_id, auth_id, issuer, issuer_grant)},
+        "officer sha-bound pin", _pin_tr(issuer),
+    )
+
+
+def _commit_config_pin(d, sha, agent_id, task_id, auth_id):
     cfg = a.load_yaml(a.git_show(d, "HEAD", POLICY) or "")
     _add_pin(cfg, sha, agent_id, task_id, auth_id)
-    return _commit(d, {POLICY: a.dump_yaml(cfg)}, "sha-bound pin", _boot_tr())
+    return _commit(d, {POLICY: a.dump_yaml(cfg)}, "contractor _config pin", _boot_tr())
 
 
 def run_rebind_fixtures():
@@ -137,16 +173,32 @@ def run_rebind_fixtures():
         _expect("later-head-grant-without-sha-bound-bad", bool(bad), bad)
         executed.add("later-head-grant-without-sha-bound-bad")
 
+        d = _init(tmp / "cfg-pin")
+        _write_grant(d)
+        _commit(d, {GRANT_REL: (d / GRANT_REL).read_text(), ".ai/runs/old.md": "a\n"},
+                "grant old", _ceo_tr(CEO_OLD))
+        sha = _commit(d, {".ai/runs/new.md": "b\n"}, "wave", _ceo_tr(CEO_NEW))
+        _commit_config_pin(d, sha, "ceo", CEO_NEW, GRANT_ID)
+        bad = _fails(d, sha)
+        _expect("contractor-config-pin-does-not-authorize", bool(bad), bad)
+        executed.add("contractor-config-pin-does-not-authorize")
+
         d = _init(tmp / "sha-bound-good")
         _write_grant(d)
         _commit(d, {GRANT_REL: (d / GRANT_REL).read_text(), ".ai/runs/old.md": "a\n"},
                 "grant old", _ceo_tr(CEO_OLD))
         sha = _commit(d, {".ai/runs/new.md": "b\n"}, "wave", _ceo_tr(CEO_NEW))
         _expect("sha-bound-needed-before-pin", bool(_fails(d, sha)))
+        (d / PIN_REL).parent.mkdir(parents=True, exist_ok=True)
+        (d / PIN_REL).write_text(
+            _pin_yaml(sha, "ceo", CEO_NEW, GRANT_ID), encoding="utf-8")
+        dirty = _fails(d, sha)
+        _expect("dirty-working-tree-officer-pin-does-not-authorize", bool(dirty), dirty)
+        executed.add("dirty-working-tree-officer-pin-does-not-authorize")
         _commit_pin(d, sha, "ceo", CEO_NEW, GRANT_ID)
         post = _fails(d, sha)
-        _expect("sha-bound-matching-sha-good", post == [], post)
-        executed.add("sha-bound-matching-sha-good")
+        _expect("officer-authorizations-pin-with-issuer-grant-good", post == [], post)
+        executed.add("officer-authorizations-pin-with-issuer-grant-good")
 
         d = _init(tmp / "sha-bound-other")
         _write_grant(d)
@@ -214,7 +266,7 @@ def run_rebind_fixtures():
         })
         bad = _fails(d, sha)
         _expect("later-head-lease-without-sha-bound-bad", any("task_id" in x for x in bad), bad)
-        _commit_pin(d, sha, "ctr-code-auth1", CTR_NEW, lid)
+        _commit_pin(d, sha, "ctr-code-auth1", CTR_NEW, lid, issuer="ctr-admin")
         post = _fails(d, sha)
         _expect("sha-bound-lease-matching-sha-good", post == [], post)
         executed.add("sha-bound-lease-matching-sha-good")
@@ -226,7 +278,7 @@ def run_rebind_fixtures():
             d, {".ai/runs/out.md": "nope\n"}, "out of lease paths",
             _ctr_tr(cid, lid, CTR_NEW),
         )
-        _commit_pin(d, sha, "ctr-code-auth1", CTR_NEW, lid)
+        _commit_pin(d, sha, "ctr-code-auth1", CTR_NEW, lid, issuer="ctr-admin")
         bad = _fails(d, sha)
         _expect(
             "sha-bound-lease-path-fail-closed",

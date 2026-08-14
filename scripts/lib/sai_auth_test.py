@@ -27,7 +27,7 @@ path_classes:
   contract-admin: [".ai/contracts/**", ".ai/requests/**", ".ai/agents/**", ".ai/runs/**"]
   governance: [".ai/**"]
   cto: [".ai/agents/saul/**"]
-protected_denied_for_contractors: [".ai/agents/saul/**", ".ai/shared/memory/decisions/**"]
+protected_denied_for_contractors: [".ai/agents/saul/**", ".ai/shared/memory/decisions/**", ".ai/authorizations/**"]
 contractor:
   require_contract: true
   default_denied_paths: [".ai/agents/saul/**"]

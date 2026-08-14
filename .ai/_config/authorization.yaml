@@ -24,49 +24,9 @@ audit:
     - sha: "d14402e625aad54a5dff5d0f00785291d83c414a"
       original_task_id: "20260813-runtime-intelligence-plane"
       reason: "human Decision 0007 docs commit; grammar exception only"
-  # Loaded from `git show HEAD:.ai/_config/authorization.yaml` only.
-  # Uncommitted working-tree edits must not rebind historical SHAs.
-  sha_bound_authorization:
-    - sha: "f2ab0b55cf77ed36a615f3475bfb9db24245f0c7"
-      agent_id: "ctr-code-pr62smoke"
-      task_id: "20260814-0052-pr62-queue-ctr-code"
-      authorization_id: "lease-c3a003pr62q1"
-      reason: "wave used new Task-ID before grant/lease aliases existed; no history rewrite"
-    - sha: "ff0a18f646ee66c60033748a0a79f1d35bb44415"
-      agent_id: "ctr-code-pr62smoke"
-      task_id: "20260814-0052-pr62-queue-ctr-code"
-      authorization_id: "lease-c3a003pr62q1"
-      reason: "wave used new Task-ID before grant/lease aliases existed; no history rewrite"
-    - sha: "97527f3843c66430927985a7da630b2872f10853"
-      agent_id: "ctr-code-pr62smoke"
-      task_id: "20260814-0052-pr62-queue-ctr-code"
-      authorization_id: "lease-c3a003pr62q1"
-      reason: "wave used new Task-ID before grant/lease aliases existed; no history rewrite"
-    - sha: "854e578ca1479e2918eb70a1d01daa43b615aa4f"
-      agent_id: "ceo"
-      task_id: "20260814-0052-pr62-queue-ceo"
-      authorization_id: "grant-pr62-queue-ceo"
-      reason: "wave used new Task-ID before grant/lease aliases existed; no history rewrite"
-    - sha: "b9f13f091453a3a1e3cb7dd05f022fefa89fbf0f"
-      agent_id: "ceo"
-      task_id: "20260814-0052-pr62-queue-ceo"
-      authorization_id: "grant-pr62-queue-ceo"
-      reason: "wave used new Task-ID before grant/lease aliases existed; no history rewrite"
-    - sha: "eab6b0c080fa9fbda617b03bdec88bd4017b72dc"
-      agent_id: "ceo"
-      task_id: "20260814-0052-pr62-queue-ceo"
-      authorization_id: "grant-pr62-queue-ceo"
-      reason: "wave used new Task-ID before grant/lease aliases existed; no history rewrite"
-    - sha: "ec18359015a28e08ff34ac7a295650ccdd091c4c"
-      agent_id: "ctr-admin"
-      task_id: "20260814-0052-pr62-queue-cora"
-      authorization_id: "grant-pr62-queue-cora"
-      reason: "wave used new Task-ID before grant/lease aliases existed; no history rewrite"
-    - sha: "bb519c2978e8e285e4f452159813452cebc7a2cb"
-      agent_id: "ctr-admin"
-      task_id: "20260814-0041-pr62-queue-cora"
-      authorization_id: "grant-pr62-queue-cora"
-      reason: "wave used new Task-ID before grant/lease aliases existed; no history rewrite"
+  # CTO-028: SHA-bound pins are not loaded from this contractor-writable file.
+  # Source is git show HEAD:.ai/authorizations/sha-bound-authorization.yaml
+  # (officer issuer + issuer_grant). Ignore sha_bound_authorization if present.
 
 activation:
   mode: lazy-first-write
@@ -182,6 +142,7 @@ protected_denied_for_contractors:
   - ".ai/shared/memory/decisions/**"
   - ".ai/agents/registry.json"
   - ".ai/agents/registry.schema.json"
+  - ".ai/authorizations/**"
 
 contractor:
   require_contract: true

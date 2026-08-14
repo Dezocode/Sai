@@ -7,6 +7,8 @@ from pathlib import Path
 import sai_auth as a
 
 GRANTS_REL = ".ai/authorizations/grants"
+SHA_BOUND_REL = ".ai/authorizations/sha-bound-authorization.yaml"
+PIN_ISSUERS = ("ceo", "ctr-admin")
 
 
 def bootstrap_until_ok(cfg, task_id, root=None, sha=None) -> bool:
@@ -73,14 +75,44 @@ def bound_task_ids(*docs):
     return out
 
 
-def sha_bound_rows(root):
-    """SHA-bound remediations from committed HEAD, never the working tree."""
-    text = a.git_show(root, "HEAD", a.POLICY)
+def _issuer_ok(cfg, issuer):
+    return issuer in PIN_ISSUERS and issuer in (cfg.get("officers") or {})
+
+
+def _issuer_grant_ok(root, grant_id, issuer):
+    if not grant_id or not issuer:
+        return False
+    for g in list_grants(root, sha="HEAD"):
+        if g.get("id") == grant_id and g.get("principal") == issuer:
+            return True
+    return False
+
+
+def sha_bound_rows(root, cfg=None):
+    """Officer SHA-bound pins from git show HEAD, never working tree or _config."""
+    text = a.git_show(root, "HEAD", SHA_BOUND_REL)
     if not text:
         return []
-    cfg = a.load_yaml(text)
-    rows = (cfg.get("audit") or {}).get("sha_bound_authorization") or []
-    return [r for r in rows if isinstance(r, dict)]
+    doc = a.load_yaml(text)
+    if not isinstance(doc, dict):
+        return []
+    cfg = cfg or a.load_config(root)
+    file_issuer = doc.get("issuer")
+    file_grant = doc.get("issuer_grant")
+    rows = doc.get("pins") or []
+    out = []
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        issuer = r.get("issuer") or file_issuer
+        grant_id = r.get("issuer_grant") or file_grant
+        if not _issuer_ok(cfg, issuer) or not _issuer_grant_ok(root, grant_id, issuer):
+            continue
+        row = dict(r)
+        row["issuer"] = issuer
+        row["issuer_grant"] = grant_id
+        out.append(row)
+    return out
 
 
 def sha_bound_task_ids(root, sha, agent_id, authorization_id):
