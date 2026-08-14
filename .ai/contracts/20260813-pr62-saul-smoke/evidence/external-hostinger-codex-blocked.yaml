@@ -1,0 +1,8 @@
+source: external-hostinger-codex
+disposition: BLOCKED
+signed: false
+reason: TRUSTED_BOOTSTRAP_NOT_ESTABLISHED
+implementation_head: 0df9a515f409b998822276d73de1ba7173fec1a5
+qualifying_saul_review: false
+findings: P0-B head bind, P0-C fallback, P0-A trusted tree absent
+note: "Not a qualifying Saul artifact. Do not set reviewer: saul with runtime:codex + codex_invoked true."

@@ -1,0 +1,16 @@
+{
+  "task_id": "20260813-2017-pr62-queue-ctr-code",
+  "stage": "04_verify",
+  "agent": "ctr-code-pr62smoke",
+  "completed_at": "2026-08-14T20:30:00Z",
+  "status": "complete",
+  "inputs": [
+    "scripts/lib/sai_auth_bootstrap.py",
+    "scripts/lib/sai_auth_bootstrap_test.py",
+    "scripts/saul-hostinger-bootstrap-review"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-2017-pr62-queue-ctr-code/04_verify/output/bootstrap-verification.md"
+  ],
+  "notes": "18 bootstrap fixtures; identity 22; blockers 53; operator --self-test exit 2. Not PASS."
+}

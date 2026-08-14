@@ -1,6 +1,7 @@
 pr: 62
 classification: REQUIRED_FOR_FINAL_MERGE_QUALITY
 status: IMPLEMENTED_AWAITING_SAUL
+logical: WAITING_EXTERNAL_REAL_SAUL
 clearance_authority: saul
 do_not_pass: true
 agent_merge: false
@@ -8,7 +9,7 @@ mark_ready_automatically: false
 human_action: "review PR; merge if satisfied"
 exact_head: "FILLED_LIVE_AT_REVIEW_TIME"
 exact_base: "FILLED_LIVE_AT_REVIEW_TIME"
-note: "WAITING_EXTERNAL; voided Cursor Saul APPROVE on 11c39ae; do not claim READY_FOR_HUMAN_REVIEW. exact_head/exact_base are placeholders. Last Hostinger Saul 31771910025 on 4503f55 is not identity clearance of a Cursor-named Saul."
+note: "WAITING_EXTERNAL_REAL_SAUL; do not claim READY_FOR_HUMAN_REVIEW. P1-D generic self-hosted runner label is DEFERRED_NONBLOCKING (no P1-D blocker). P0-A /opt/sai/trusted-reviewer absent; Cursor must not provision. Last Hostinger Saul 31771910025 on 4503f55 is not identity clearance of a Cursor-named Saul. External Codex of 0df9a51 is BLOCKED, not qualifying."
 mergeability: UNKNOWN/VERIFY_REQUIRED
 ci: UNKNOWN/VERIFY_REQUIRED
 saul_disposition: pending
@@ -36,6 +37,10 @@ p0_pn_summary:
     - B-QUALITY-001
     - B-MERGE-PKG-001
     - SAUL-IDENTITY-001
+    - SAUL-BOOTSTRAP-HEAD-001
+    - SAUL-BOOTSTRAP-FALLBACK-001
+  blocked_external:
+    - SAUL-BOOTSTRAP-TREE-001
   uncleared:
     - CTO-026
     - CTO-027
@@ -57,6 +62,7 @@ nonblocking_follow_ups:
   - "Residual: new collaborator workflow file with self-hosted (runner-group UNKNOWN/VERIFY_REQUIRED)"
   - "Residual: Codex model credential still present; Landlock may be weak inside Hostinger container — document, not absolute isolation"
   - "Optional post-merge: pin runner-group restriction if gh inspection (currently 403) later succeeds"
+  - "P1-D generic self-hosted runner label DEFERRED_NONBLOCKING; do not add blocker or actor allowlist"
 rollback:
   - "Revert the merge on main"
   - "Restore previous main workflow set"

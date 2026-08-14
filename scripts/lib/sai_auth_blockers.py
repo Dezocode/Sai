@@ -286,8 +286,10 @@ def cmd(argv=None):
     if args.self_test:
         from sai_auth_blockers_test import run_blocker_fixtures
         from sai_auth_saul_identity_test import run_identity_fixtures
+        from sai_auth_bootstrap_test import run_bootstrap_fixtures
         n = run_blocker_fixtures()
         n |= run_identity_fixtures()
+        n |= run_bootstrap_fixtures()
         print(f"sai-blockers self-test: {len(n)} fixtures executed")
         return 0
     if args.clear:

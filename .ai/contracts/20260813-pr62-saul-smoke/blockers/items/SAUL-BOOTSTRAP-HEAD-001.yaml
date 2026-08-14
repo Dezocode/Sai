@@ -1,0 +1,33 @@
+"blocker_id": "SAUL-BOOTSTRAP-HEAD-001"
+"source": "external Hostinger Codex review of 0df9a51; P0-B; REQ-SAUL-BOOTSTRAP-HEAD-001"
+"source_actor": "dezocode"
+"source_runtime": "cursor-cloud-vm"
+"created_at": "2026-08-14T20:20:00Z"
+"first_seen_head": "0df9a515f409b998822276d73de1ba7173fec1a5"
+"current_head": "d4e86cbcd9f342a0bae9836483461ec2134b4c17"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "Bootstrap must prove git -C SAI_CANDIDATE_TREE HEAD equals immutable --head. SAI_CANDIDATE_TREE must be required (no default to repo root). Mismatch fails closed CANDIDATE_HEAD_MISMATCH with both SHAs. Do not PASS."
+"evidence":
+- "REQ-SAUL-BOOTSTRAP-HEAD-001"
+- "v12 reuse; no A-013"
+- "scripts/lib/sai_auth_bootstrap.py"
+"affected_paths":
+- "scripts/saul-hostinger-bootstrap-review"
+- "scripts/lib/sai_auth_bootstrap.py"
+"dependencies":
+- "SAUL-IDENTITY-001"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "saul-bootstrap-head-bind"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v12"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-commit"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "IMPLEMENTED_AWAITING_SAUL. Not PASSED. Exact-head Saul still required."
+- "Do not claim READY_FOR_HUMAN_REVIEW."

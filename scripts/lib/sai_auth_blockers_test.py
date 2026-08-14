@@ -15,6 +15,8 @@ LIVE_REQUIRED = REQUIRED_HISTORY + (
     "CTO-021", "B-BLOAT-001", "CTO-024", "CTO-025", "CTO-026", "CTO-027",
     "B-META-P0-001", "B-QUALITY-001", "B-MERGE-PKG-001",
     "CTO-030", "CTO-031", "SAUL-IDENTITY-001",
+    "SAUL-BOOTSTRAP-HEAD-001", "SAUL-BOOTSTRAP-FALLBACK-001",
+    "SAUL-BOOTSTRAP-TREE-001",
 )
 NON_SAUL_ACTORS = ("cursor", "contractor", "ctr-admin", "ctr-code-pr62smoke", "ceo")
 
@@ -172,6 +174,8 @@ def run_blocker_fixtures():
             "CTO-031", "B-BLOAT-001",
             "B-META-P0-001", "B-QUALITY-001", "B-MERGE-PKG-001",
             "SAUL-IDENTITY-001",
+            "SAUL-BOOTSTRAP-HEAD-001", "SAUL-BOOTSTRAP-FALLBACK-001",
+            "SAUL-BOOTSTRAP-TREE-001",
         ):
             raise RuntimeError(f"contractor must not PASS {b.get('blocker_id')}")
     print("SELFTEST PASS  live-no-self-pass")

@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke-blockers
 contract_id: 20260813-pr62-saul-smoke
-updated_at: '2026-08-14T15:50:00Z'
+updated_at: '2026-08-14T20:20:00Z'
 policy:
   discovery: any-authorized-participant
   technical_clearance: saul
@@ -66,3 +66,9 @@ blockers:
   status: IMPLEMENTED_AWAITING_SAUL
 - blocker_id: SAUL-IDENTITY-001
   status: IMPLEMENTED_AWAITING_SAUL
+- blocker_id: SAUL-BOOTSTRAP-HEAD-001
+  status: IMPLEMENTED_AWAITING_SAUL
+- blocker_id: SAUL-BOOTSTRAP-FALLBACK-001
+  status: IMPLEMENTED_AWAITING_SAUL
+- blocker_id: SAUL-BOOTSTRAP-TREE-001
+  status: BLOCKED_EXTERNAL

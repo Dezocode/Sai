@@ -19,12 +19,26 @@ if "--self-test" in sys.argv:
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 import sai_auth as a  # noqa: E402
+from sai_auth_bootstrap import (  # noqa: E402
+    BootstrapError,
+    TRUSTED_REVIEWER_UNAVAILABLE,
+    assert_candidate_head,
+    require_immutable_sha,
+    require_trusted_executables,
+)
 from sai_auth_saul_identity import key_inside_worktree  # noqa: E402
+
+DEFAULT_TRUSTED = Path("/opt/sai/trusted-reviewer")
 
 
 def _fail_not_hostinger():
     print("NOT_HOSTINGER_SAUL", file=sys.stderr)
     return 2
+
+
+def _fail_bootstrap(exc: BootstrapError) -> int:
+    print(exc.machine, file=sys.stderr)
+    return 1
 
 
 def main(argv=None):
@@ -56,28 +70,52 @@ def main(argv=None):
         print(pub, end="")
     if not key_path.is_file():
         return _fail_not_hostinger()
-    trusted = os.environ.get("SAI_TRUSTED_TREE") or ""
-    if not trusted and Path("/opt/sai/trusted-reviewer").is_dir():
-        trusted = "/opt/sai/trusted-reviewer"
-    if not trusted or not Path(trusted).is_dir():
-        return _fail_not_hostinger()
-    invoke = Path(trusted) / "scripts" / "invoke-saul-review"
-    attest = Path(trusted) / "scripts" / "saul-attest"
-    if not invoke.is_file():
-        invoke = root / "scripts" / "invoke-saul-review"
-    if not attest.is_file():
-        attest = root / "scripts" / "saul-attest"
+
+    cand_env = os.environ.get("SAI_CANDIDATE_TREE") or ""
+    if not cand_env:
+        print("CANDIDATE_NOT_GIT", file=sys.stderr)
+        return 1
+    candidate = Path(cand_env)
+    try:
+        head = require_immutable_sha(args.head)
+        assert_candidate_head(candidate, head)
+    except BootstrapError as e:
+        return _fail_bootstrap(e)
+
+    trusted_env = os.environ.get("SAI_TRUSTED_TREE") or ""
+    if trusted_env:
+        trusted = Path(trusted_env)
+    elif DEFAULT_TRUSTED.is_dir():
+        trusted = DEFAULT_TRUSTED
+    else:
+        print(TRUSTED_REVIEWER_UNAVAILABLE, file=sys.stderr)
+        return 1
+    if not trusted.is_dir():
+        print(TRUSTED_REVIEWER_UNAVAILABLE, file=sys.stderr)
+        return 1
+    try:
+        invoke, attest = require_trusted_executables(trusted)
+    except BootstrapError as e:
+        return _fail_bootstrap(e)
+
+    try:
+        assert_candidate_head(candidate, head)
+    except BootstrapError as e:
+        return _fail_bootstrap(e)
+
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ)
-    env["SAI_CANDIDATE_TREE"] = env.get("SAI_CANDIDATE_TREE") or str(root)
-    env["SAI_TRUSTED_TREE"] = trusted
-    cmd = [str(invoke), "--contract-id", args.contract_id, "--out", str(out)]
-    if args.head:
-        cmd.extend(["--head", args.head])
-    subprocess.run(cmd, check=False, env=env)
+    env["SAI_CANDIDATE_TREE"] = str(candidate.resolve())
+    env["SAI_TRUSTED_TREE"] = str(Path(trusted).resolve())
+    subprocess.run(
+        [str(invoke), "--contract-id", args.contract_id, "--out", str(out),
+         "--head", head],
+        check=False, env=env,
+    )
     return subprocess.call(
-        [str(attest), "sign", "--in", str(out), "--out", str(out), "--key", str(key_path)],
+        [str(attest), "sign", "--in", str(out), "--out", str(out),
+         "--key", str(key_path)],
         env=env,
     )
 

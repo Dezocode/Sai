@@ -1,0 +1,70 @@
+# INFORMATION only. Does not confer trust. Does not claim
+# /opt/sai/trusted-reviewer is populated. Operator promotes AFTER
+# independent review of the introducing commit SHA.
+schema: trusted-reviewer-promotion-manifest
+confers_trust: false
+trusted_reviewer_populated: false
+source_pr_sha: INTRODUCING_COMMIT
+source_pr_sha_note: "Fill with git rev-parse of the commit that introduced these blobs. Hashes are of file bytes as committed alongside this manifest."
+contract_id: 20260813-pr62-saul-smoke
+files:
+  - source_path: scripts/saul-hostinger-bootstrap-review
+    git_hash_object: c3b8510de9914fb924c76d749fdf8805b69d4258
+    sha256: ca196244936b87147c0243c477df28c5aced59cc78f62734c23fb34a640bd782
+    dest_relative_path: scripts/saul-hostinger-bootstrap-review
+    executable: true
+  - source_path: scripts/invoke-saul-review
+    git_hash_object: 89f811ff90c18f56728eb2e96bb75ede17d9ce02
+    sha256: 4cb78cb656877d3a78cfaf87343f13d2b406ca203a9a62df7bde2dc1ae2ea6d8
+    dest_relative_path: scripts/invoke-saul-review
+    executable: true
+  - source_path: scripts/saul-attest
+    git_hash_object: 9d927381ce1b678edc137e1de8ade9af9390c0e5
+    sha256: 6805efa713fa1cc6989dc4c3cda7c415938157b0d9a75bb6736a9a25a5b758f9
+    dest_relative_path: scripts/saul-attest
+    executable: true
+  - source_path: scripts/lib/sai_auth.py
+    git_hash_object: 04af9b915a75ce1dcb1aecf8ad236a4585d07421
+    sha256: c6cfadff3361d3a298cc43a5eeb26a59a656dd594832cbba413e96c88f66facc
+    dest_relative_path: scripts/lib/sai_auth.py
+    executable: false
+  - source_path: scripts/lib/sai_auth_review.py
+    git_hash_object: 1daeb6dde1d9461d904430b0d769d11166ddfa14
+    sha256: 93a7655b3e491cb2b0fba67fc8398c4d2847610d868f80e736d83b6578600d3c
+    dest_relative_path: scripts/lib/sai_auth_review.py
+    executable: false
+  - source_path: scripts/lib/sai_auth_package.py
+    git_hash_object: ca431e80eea6298c0378dffe4f2c6b8c80adbe4a
+    sha256: 1560792e2f5b695da5801723eac48ba5b2ec9eeccf51d09631471824801beafe
+    dest_relative_path: scripts/lib/sai_auth_package.py
+    executable: false
+  - source_path: scripts/lib/sai_auth_saul_identity.py
+    git_hash_object: 24bbe569f5af4b5a2cc0cccddaf643bdfd1a0e52
+    sha256: f8fdc4db1e0e3039ca26ef20194090f78d9c02eab241ed8e6b9e4c4b9bedbe8a
+    dest_relative_path: scripts/lib/sai_auth_saul_identity.py
+    executable: false
+  - source_path: scripts/lib/sai_auth_verify.py
+    git_hash_object: b25bebb1ecf2c343b74677d3289e7d7659d1885b
+    sha256: 4a87e0986950eb5d096451be443662ed49f7cd4ba1a4c273edb88f0adc232023
+    dest_relative_path: scripts/lib/sai_auth_verify.py
+    executable: false
+  - source_path: scripts/lib/sai_auth_flow.py
+    git_hash_object: df73e4a9b70eb5383840717efb76415a0456bd51
+    sha256: 52981d1fcb90c43dbc29e3d8b5d21c9d5996338a3ea26c51cc8cd62c24e42541
+    dest_relative_path: scripts/lib/sai_auth_flow.py
+    executable: false
+  - source_path: scripts/lib/sai_auth_key.py
+    git_hash_object: b56c073ab1b4de04cc0dadf0e3c8b13f41a23e71
+    sha256: 0e1ed7877727ade2f78b9bd8b92711a93f842319a8cd5c2de924e3dcf28c4eba
+    dest_relative_path: scripts/lib/sai_auth_key.py
+    executable: false
+  - source_path: scripts/lib/sai_auth_grant.py
+    git_hash_object: ef7e63dfcd53d6c1805ef619a78c79030843c5a3
+    sha256: d698ccea2e10bc22131551f9267e31b285d025b890ef6acbeed6dcf0b039c496
+    dest_relative_path: scripts/lib/sai_auth_grant.py
+    executable: false
+  - source_path: scripts/lib/sai_auth_bootstrap.py
+    git_hash_object: e1d411e17cce472af20323fc9d4990051f59c8be
+    sha256: 458a0067d5a83f916602b2303e98a849682687f8d6e5431930d810dc0d31f4a1
+    dest_relative_path: scripts/lib/sai_auth_bootstrap.py
+    executable: false

@@ -1,0 +1,34 @@
+"blocker_id": "SAUL-BOOTSTRAP-TREE-001"
+"source": "external Hostinger Codex review of 0df9a51; P0-A; REQ-SAUL-BOOTSTRAP-EXT-001"
+"source_actor": "dezocode"
+"source_runtime": "cursor-cloud-vm"
+"created_at": "2026-08-14T20:20:00Z"
+"first_seen_head": "0df9a515f409b998822276d73de1ba7173fec1a5"
+"current_head": "d4e86cbcd9f342a0bae9836483461ec2134b4c17"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "/opt/sai/trusted-reviewer is absent. Cursor must not provision it, must not write production keys, must not SSH Hostinger. WAITING_EXTERNAL_OPERATOR. Do not PASS."
+"evidence":
+- "REQ-SAUL-BOOTSTRAP-EXT-001"
+- "evidence/external-hostinger-codex-blocked.yaml"
+- "evidence/trusted-reviewer-manifest.yaml"
+"affected_paths":
+- "scripts/saul-hostinger-bootstrap-review"
+"dependencies":
+- "SAUL-BOOTSTRAP-HEAD-001"
+- "SAUL-BOOTSTRAP-FALLBACK-001"
+"assigned_owner": "dezocode"
+"work_item": "saul-bootstrap-trusted-tree-absent"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v12"
+"status": "BLOCKED_EXTERNAL"
+"implementation_state": "waiting-external-operator"
+"verification_state": "unverified"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "BLOCKED_EXTERNAL. WAITING_EXTERNAL_OPERATOR. Not PASSED."
+- "INFORMATION-only manifest does not confer trust or populate /opt/sai/trusted-reviewer."
+- "P1-D generic self-hosted runner label is DEFERRED_NONBLOCKING; no P1-D blocker."

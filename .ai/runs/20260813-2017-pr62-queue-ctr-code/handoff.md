@@ -1,3 +1,31 @@
+# Handoff — ctr-code-pr62smoke (SAUL-BOOTSTRAP P0)
+
+Lease `lease-c3a003pr62q1`, contract v12 (Cora reused; no A-013).
+Task-ID `20260813-2017-pr62-queue-ctr-code`. Parent pr62-primary.
+Cora HEAD confirmed `d4e86cbcd9f342a0bae9836483461ec2134b4c17`.
+
+Implemented fail-closed candidate HEAD bind and deleted executable
+fallback. New `scripts/lib/sai_auth_bootstrap.py`. Operator requires
+`SAI_CANDIDATE_TREE` and immutable `--head`. Mismatch prints
+`CANDIDATE_HEAD_MISMATCH expected=<sha> actual=<sha>` and exits 1.
+Trusted invoke/attest only; missing tree is `TRUSTED_REVIEWER_UNAVAILABLE`
+exit 1 (not `NOT_HOSTINGER_SAUL`=2). `--self-test` still exit 2.
+
+HEAD-001 and FALLBACK-001: IMPLEMENTED_AWAITING_SAUL (not PASSED).
+TREE-001: BLOCKED_EXTERNAL / WAITING_EXTERNAL_OPERATOR. External Codex
+evidence is BLOCKED, not a qualifying Saul review. Manifest is
+INFORMATION only; `/opt/sai/trusted-reviewer` not populated.
+
+P1-D DEFERRED_NONBLOCKING (no blocker). Did not PASS, push, merge,
+impersonate Saul, restore `saul-review.yml`, write production keys, or
+SSH Hostinger.
+
+Next: independent review of listed blobs; human copies to trusted tree;
+Hostinger operator runs bootstrap FROM the trusted tree with
+`--head <NEW_SHA>`. Qualifying Saul still required.
+
+`self_pass: false`. `do_not_merge: true`. `do_not_push: true`.
+
 # Handoff — ctr-code-pr62smoke (TPR-001 / TPR-002)
 
 Lease `lease-c3a003pr62q1`, contract v12 (Cora reused; no A-013).
