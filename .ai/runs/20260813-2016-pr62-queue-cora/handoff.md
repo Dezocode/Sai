@@ -97,4 +97,25 @@ uncleared. Last this-PR Hostinger continuity is Saul
 pull_request_target. CONDITIONAL_PASS_ON_HUMAN_MERGE is
 Saul-only. Do not merge. Do not push. Do not mark ready.
 
+## TPR-001 / TPR-002 reuse v12 (grant Task-ID standing run)
+
+Evaluated independent third-party findings on exact head
+01fe606. reuse=true. v13=false. Did not issue A-013.
+allowed_paths already cover both remediations
+(.github/workflows/**, scripts/**, tests/**, contract
+tree). denied_paths unchanged. lease-c3a003pr62q1 reused
+(v12). ctr-code-pr62smoke reused. Appended REQ-TPR-001 /
+REQ-TPR-002 without PASS. Did not write blockers/items.
+Wave artifacts: `.ai/runs/20260814-1536-pr62-queue-cora/`.
+implements false. do_not_merge true. do_not_push true.
+technical_pass false. Contractor next: write TPR-001 /
+TPR-002 blocker items without PASS, then delete
+trusted-reviewer-provision.yml, stop sai_auth_wait poll,
+default Codex sandbox workspace-write or read-only, strip
+GITHUB_TOKEN/GH_TOKEN/SSH_AUTH_SOCK/DOCKER_HOST from Codex
+subprocess and Invoke Codex env, in-place sai_auth_review.py
+(no net lines), retarget danger-full-access assertion.
+Do not restore saul-review.yml. Do not PASS. Do not merge.
+Do not push. Do not mark ready.
+
 

@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-14T05:14:00Z"
+updated_at: "2026-08-14T15:36:00Z"
 requirements:
   - requirement_id: REQ-5282088737
     source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
@@ -144,3 +144,19 @@ requirements:
       - candidate-remains-data
       - do-not-pass-cto-030-or-cto-031
       - required-for-current-blocker-not-path-expansion
+  - requirement_id: REQ-TPR-001
+    source: "independent third-party review of 01fe606; clearance Saul; not PASS"
+    authority: dezocode
+    timestamp: "2026-08-14T15:36:00Z"
+    scope: circular-trust-provision-workflow
+    digest: delete-trusted-reviewer-provision-yml
+    status: in-progress
+    blocking: true
+  - requirement_id: REQ-TPR-002
+    source: "independent third-party review of 01fe606; clearance Saul; not PASS"
+    authority: dezocode
+    timestamp: "2026-08-14T15:36:00Z"
+    scope: codex-sandbox-token-strip
+    digest: workspace-write-or-readonly-strip-github-token
+    status: in-progress
+    blocking: true
