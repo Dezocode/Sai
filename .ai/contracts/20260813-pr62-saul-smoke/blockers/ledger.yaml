@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke-blockers
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-13T23:56:00Z"
+updated_at: "2026-08-14T00:22:00Z"
 policy:
   discovery: any-authorized-participant
   technical_clearance: saul
@@ -14,14 +14,15 @@ blockers:
     source_runtime: hostinger-saul-codex
     created_at: "2026-08-13T23:23:27Z"
     first_seen_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
-    current_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+    current_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
     category: technical
     severity: P0
     severity_assigned_by: saul-infrastructure
-    description: TRUSTED_REVIEWER_UNAVAILABLE — no independently trusted Saul reviewer source on Hostinger; Codex skipped. Machine path: empty-dest first-writer freeze on the self-hosted Saul job (not standing candidate-HEAD trust).
+    description: "TRUSTED_REVIEWER_UNAVAILABLE on 4f9ec01. Empty-dest freeze on d0c6a8c invoked Codex but Saul filed CTO-015 against that freeze."
     evidence:
       - "GitHub Actions run 31753627528"
       - "disposition BLOCKED; codex_invoked false; trust_mode unavailable"
+      - "superseded on d0c6a8c by CTO-015 after qualifying Saul review 31756720206"
     affected_paths:
       - .github/workflows/saul-review.yml
       - scripts/provision-trusted-reviewer-root
@@ -30,23 +31,24 @@ blockers:
     work_item: freeze-runner-image-trusted-root-not-candidate-HEAD
     contract: 20260813-pr62-saul-smoke
     revision: v3
-    implementation_state: implementing
-    verification_state: unverified
+    implementation_state: superseded
+    verification_state: qualifying-saul-request-changes
     clearance_authority: saul
-    clearance_review_id: null
+    clearance_review_id: "31756720206"
     clearance_head: null
-    status: IMPLEMENTING
+    status: SUPERSEDED_BY_EXACT_STATE
+    superseded_by: CTO-015
   - blocker_id: B-RESUME-001
     source: cursor-primary
     source_actor: ceo
     source_runtime: bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc
     created_at: "2026-08-13T23:55:00Z"
     first_seen_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
-    current_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+    current_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
     category: technical
     severity: PROVISIONAL-P0
     severity_assigned_by: cursor-provisional
-    description: scripts/sai-resume returned a Saul snapshot whose head did not match live HEAD (2ac83a1 vs 4f9ec01).
+    description: "scripts/sai-resume returned a Saul snapshot whose head did not match live HEAD."
     evidence:
       - "scripts/sai-resume latest_saul.head=2ac83a1 while git HEAD=4f9ec01"
       - "GitHub Saul comment 5287514717 is the live-head result"
@@ -69,13 +71,15 @@ blockers:
     source_runtime: bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc
     created_at: "2026-08-13T23:56:00Z"
     first_seen_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
-    current_head: "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+    current_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
     category: technical
     severity: PROVISIONAL-P1
     severity_assigned_by: cursor-provisional
-    description: Physical primary wait (~15 min non-model) was specified but not yet live-proven on this bcId.
+    description: "Physical primary wait (~15 min non-model) live-proven via sai-wait early wake on Saul digest change."
     evidence:
-      - "Decision 0008 recorded pickup; 15-minute resident wait not measured"
+      - "waited_seconds 159; requested 900; woke_early true; model_invoked false; same_process true"
+      - "physical_bcId bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc unchanged"
+      - "Saul run 31756720206 completed during wait"
     affected_paths:
       - scripts/lib/sai_auth_wait.py
     dependencies: []
@@ -83,9 +87,119 @@ blockers:
     work_item: live-15-minute-same-bcid-wait
     contract: 20260813-pr62-saul-smoke
     revision: v3
-    implementation_state: implementing
-    verification_state: unverified
+    implementation_state: implemented-locally
+    verification_state: live-early-wake-recorded
     clearance_authority: saul
     clearance_review_id: null
     clearance_head: null
-    status: IMPLEMENTING
+    status: IMPLEMENTED_AWAITING_SAUL
+  - blocker_id: CTO-015
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885648"
+    source_actor: saul
+    source_runtime: hostinger-saul-codex
+    created_at: "2026-08-14T00:18:37Z"
+    first_seen_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+    current_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+    category: technical
+    severity: P0
+    severity_assigned_by: saul
+    description: "Pull-request workflow executed candidate freeze-trusted-reviewer-once with confirm_trust=True, letting the first candidate initialize the persistent trusted root."
+    evidence:
+      - "GitHub Actions run 31756720206"
+      - "comment 5287885648"
+      - "codex_invoked true; synthetic false; trust_mode runner-image; disposition REQUEST_CHANGES"
+    affected_paths:
+      - .github/workflows/saul-review.yml
+      - scripts/freeze-trusted-reviewer-once
+    dependencies: []
+    assigned_owner: ctr-code-pr62smoke
+    work_item: remove-candidate-empty-dest-freeze-from-pr-workflow
+    contract: 20260813-pr62-saul-smoke
+    revision: v4
+    status: IMPLEMENTED_AWAITING_SAUL
+    implementation_state: implemented-locally
+    verification_state: self-test-pending-push
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null
+  - blocker_id: CTO-016
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885648"
+    source_actor: saul
+    source_runtime: hostinger-saul-codex
+    created_at: "2026-08-14T00:18:37Z"
+    first_seen_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+    current_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+    category: technical
+    severity: P0
+    severity_assigned_by: saul
+    description: "Exact-head diff contains .ai/agents/saul/** and .ai/shared/memory/decisions/** which v3 denies for the contractor. Officer grant covers decisions; candidate Saul persona should not redefine the trusted reviewer."
+    evidence:
+      - "GitHub Actions run 31756720206"
+      - "226 unique changed paths vs origin/main"
+    affected_paths:
+      - .ai/agents/saul
+      - .ai/shared/memory/decisions
+    dependencies: []
+    assigned_owner: ctr-admin
+    work_item: v4-officer-scope-without-expanding-contractor-denied-paths
+    contract: 20260813-pr62-saul-smoke
+    revision: v4
+    status: IMPLEMENTED_AWAITING_SAUL
+    implementation_state: implemented-locally
+    verification_state: self-test-pending-push
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null
+  - blocker_id: CTO-017
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885648"
+    source_actor: saul
+    source_runtime: hostinger-saul-codex
+    created_at: "2026-08-14T00:18:37Z"
+    first_seen_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+    current_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+    category: technical
+    severity: P1
+    severity_assigned_by: saul
+    description: "invoke-saul-review --self-test consumed ambient SAI_TRUSTED_TREE and production package state on the Hostinger runner."
+    evidence:
+      - "GitHub Actions run 31756720206 required-check fail"
+    affected_paths:
+      - scripts/lib/sai_auth_test.py
+      - scripts/lib/sai_auth_saul_test.py
+    dependencies: []
+    assigned_owner: ctr-code-pr62smoke
+    work_item: hermetic-saul-self-test
+    contract: 20260813-pr62-saul-smoke
+    revision: v4
+    status: IMPLEMENTED_AWAITING_SAUL
+    implementation_state: implemented-locally
+    verification_state: self-test-pending-push
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null
+  - blocker_id: CTO-018
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885648"
+    source_actor: saul
+    source_runtime: hostinger-saul-codex
+    created_at: "2026-08-14T00:18:37Z"
+    first_seen_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+    current_head: "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+    category: technical
+    severity: P1
+    severity_assigned_by: saul
+    description: "blockers/ledger.yaml was invalid YAML because an unquoted description contained a colon."
+    evidence:
+      - "GitHub Actions run 31756720206"
+    affected_paths:
+      - .ai/contracts/20260813-pr62-saul-smoke/blockers/ledger.yaml
+    dependencies: []
+    assigned_owner: ctr-code-pr62smoke
+    work_item: quote-ledger-scalars-and-parse-in-self-test
+    contract: 20260813-pr62-saul-smoke
+    revision: v4
+    status: IMPLEMENTED_AWAITING_SAUL
+    implementation_state: implemented-locally
+    verification_state: self-test-pending-push
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null

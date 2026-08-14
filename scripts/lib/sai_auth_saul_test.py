@@ -13,6 +13,17 @@ from sai_auth_key import remember_review, lookup_completed, saul_review_key
 WORKFLOW = Path(__file__).resolve().parents[2] / ".github/workflows/saul-review.yml"
 
 
+def isolate_saul_selftest_env(tmp):
+    """Keep invoke-saul-review --self-test hermetic under production env vars."""
+    os.environ.pop("OPENAI_API_KEY", None)
+    os.environ.pop("CODEX_API_KEY", None)
+    os.environ["SAI_SKIP_CODEX"] = "1"
+    os.environ["SAI_SAUL_KEY_CACHE"] = str(Path(tmp) / "saul-keys")
+    os.environ["SAI_SAUL_PACKAGE_DIR"] = str(Path(tmp) / "pkg")
+    for k in ("SAI_TRUSTED_TREE", "SAI_CANDIDATE_TREE", "SAI_TRUST_MODE"):
+        os.environ.pop(k, None)
+
+
 def _workflow_text() -> str:
     return WORKFLOW.read_text(encoding="utf-8")
 
@@ -39,10 +50,10 @@ def run_saul_trust_fixtures():
     print("SELFTEST PASS  saul-unavailable-blocks")
 
     executed.add("saul-empty-dest-freeze-once")
-    if "empty-dest-bootstrap" not in text:
-        raise RuntimeError("missing empty-dest first-writer freeze")
-    if "git archive HEAD" in text:
-        raise RuntimeError("freeze-once must not archive symbolic HEAD")
+    if "freeze-trusted-reviewer-once" in text or "empty-dest-bootstrap" in text:
+        raise RuntimeError("CTO-015: pull_request workflow must not freeze from candidate SHA")
+    if "--confirm-trust" in text:
+        raise RuntimeError("CTO-015: saul-review.yml must not pass confirm_trust")
     print("SELFTEST PASS  saul-empty-dest-freeze-once")
 
     executed.add("saul-trusted-sources-only")
@@ -135,6 +146,22 @@ def run_saul_trust_fixtures():
         if s in text:
             raise RuntimeError("workflow source contains unexpected metacharacter payload")
     print("SELFTEST PASS  saul-metacharacters-are-data")
+
+    executed.add("saul-selftest-hermetic-with-prod-env")
+    with tempfile.TemporaryDirectory() as tmp:
+        isolate_saul_selftest_env(tmp)
+        os.environ["SAI_TRUSTED_TREE"] = str(Path(tmp) / "trusted")
+        os.environ["SAI_CANDIDATE_TREE"] = str(Path(tmp) / "candidate")
+        os.environ["SAI_SAUL_PACKAGE_DIR"] = str(Path(tmp) / "pkg")
+        from sai_auth_test import _contract, _init
+        from sai_auth_review import invoke
+        d = Path(tmp) / "hermetic"
+        _init(d)
+        cid = _contract(d)
+        _rc, doc = invoke(d, cid, "v1", "deadbeef", "contract", force=True)
+        if not doc or doc.get("reason") != "CODEX_UNAVAILABLE":
+            raise RuntimeError(doc)
+        print("SELFTEST PASS  saul-selftest-hermetic-with-prod-env")
     return executed
 
 

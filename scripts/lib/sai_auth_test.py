@@ -349,9 +349,8 @@ def run_saul_fixtures():
         d = Path(tmp) / "saul"
         _init(d)
         cid = _contract(d)
-        os.environ.pop("OPENAI_API_KEY", None)
-        os.environ.pop("CODEX_API_KEY", None)
-        os.environ["SAI_SAUL_KEY_CACHE"] = str(Path(tmp) / "saul-keys")
+        from sai_auth_saul_test import isolate_saul_selftest_env
+        isolate_saul_selftest_env(tmp)
         from sai_auth_review import invoke
         rc, doc = invoke(d, cid, "v1", "deadbeef", "contract")
         executed.add("saul-unavailable-blocked")

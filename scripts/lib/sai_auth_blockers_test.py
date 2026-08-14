@@ -84,6 +84,13 @@ def run_blocker_fixtures():
         if b2["status"].startswith("PASSED"):
             raise RuntimeError("IMPLEMENTED must not be PASSED")
         print("SELFTEST PASS  implemented-is-not-passed")
+
+        executed.add("repo-blocker-ledger-parses")
+        live = Path(__file__).resolve().parents[2] / ".ai/contracts/20260813-pr62-saul-smoke/blockers/ledger.yaml"
+        parsed = a.read_yaml(live)
+        if not parsed or not parsed.get("blockers"):
+            raise RuntimeError("live blocker ledger missing")
+        print("SELFTEST PASS  repo-blocker-ledger-parses")
     return executed
 
 
