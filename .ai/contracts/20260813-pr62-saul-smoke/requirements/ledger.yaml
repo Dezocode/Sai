@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-14T00:47:14Z"
+updated_at: "2026-08-14T04:20:00Z"
 requirements:
   - requirement_id: REQ-5282088737
     source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
@@ -94,3 +94,20 @@ requirements:
       - "NEVER idle-wait on Saul when any other machine-actionable work exists"
       - "wait is last resort after REASSESS BLOCKERS confirms the frontier is externally blocked"
       - "SAUL_PENDING is an external-review state, not an orchestration stop state"
+  - requirement_id: REQ-5289020312
+    source: "https://github.com/Dezocode/Sai/pull/62#issuecomment-5289020312"
+    authority: dezocode
+    timestamp: "2026-08-14T03:21:41Z"
+    scope: overnight-convergence-quality-architecture-anti-bloat-merge-package
+    digest: meta-p0-enterprise-quality-cto025-merge-activation-no-intermediate-bootstrap-pr
+    status: in-progress
+    blocking: true
+    acceptance:
+      - principal-meta-p0-cannot-pass-from-documentation-alone
+      - saul-clears-last-after-quality-profile-and-independent-p0-p1
+      - cto-025-merge-activation-candidate-not-self-pass
+      - architectural-saul-review-packaged
+      - anti-bloat-warning-policy
+      - merge-readiness-package
+      - do-not-merge-do-not-mark-ready
+      - conditional-pass-on-human-merge-is-saul-only

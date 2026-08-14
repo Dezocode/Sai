@@ -1,0 +1,18 @@
+{
+  "task_id": "20260814-0415-pr62-queue-cora",
+  "stage": "02_plan",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-14T04:19:18Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260814-0415-pr62-queue-cora/01_intake/output/intake.md",
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v9.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/amendments/A-009.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json"
+  ],
+  "outputs": [
+    ".ai/runs/20260814-0415-pr62-queue-cora/02_plan/output/plan.md"
+  ],
+  "notes": "Did not load or edit blockers/ledger.yaml. Cora appends REQ-5289020312 to requirements/ledger.yaml. Contractor appends B-META-P0-001 / B-QUALITY-001 / B-MERGE-PKG-001. Officer owns Decision 0008 and .cursor. Principal comment 5289020312; qualifying Saul 31764010391 on c51c9cf."
+}

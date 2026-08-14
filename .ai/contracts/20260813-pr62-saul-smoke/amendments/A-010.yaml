@@ -1,0 +1,65 @@
+amendment_id: A-010
+contract_id: 20260813-pr62-saul-smoke
+from_revision: 9
+to_revision: 10
+finding_ids:
+- REQ-5289020312
+- B-META-P0-001
+- B-QUALITY-001
+- B-MERGE-PKG-001
+- CTO-025
+- CTO-026
+- CTO-027
+authority_expanding: false
+human_approval_required: false
+human_approval_ids:
+- grant-pr62-queue-ceo
+- human-pr62-keep-0007-and-path-expansion
+summary: "Principal P0 comment 5289020312 (Dezocode, 2026-08-14T03:21:41Z) -> A-010 -> v10. NOT a Saul consume. Bind overnight convergence: package trusted-workflow activation into THIS PR human merge (no intermediate bootstrap PR); enterprise quality profile; architectural Saul review; anti-bloat; merge package; CONDITIONAL_PASS_ON_HUMAN_MERGE is Saul-only. CTO-025 REASSESS merge-activation candidate; do not PASS. Keep CTO-026 uncleared. CTO-027 icm-enforcement SUCCESS on c51c9cf is not technical PASS. allowed_paths unchanged. denied_paths unchanged. Cora does not write blockers items, scripts, workflows, decisions, .cursor, or authorizations."
+trace:
+- REQ-5289020312 -> A-010 -> v10
+- B-META-P0-001 -> A-010 -> v10
+- B-QUALITY-001 -> A-010 -> v10
+- B-MERGE-PKG-001 -> A-010 -> v10
+- CTO-025 -> A-010 -> v10
+- CTO-026 -> A-010 -> v10
+- CTO-027 -> A-010 -> v10
+changes:
+- finding_id: REQ-5289020312
+  field: requirements
+  action: add
+  note: "Principal meta-P0 B-META-P0-001 cannot pass from documentation alone. Saul clears it last after: quality profile evaluated; independent P0/P1 Saul-cleared or legitimately merge-conditional; architectural review; trust boundaries; CI green; transitional path merge-time retirement; no ballooning; merge package complete; then Sai on the same state. Contractor appends B-META-P0-001 without PASS. READY_FOR_HUMAN_REVIEW is the desired terminal state; do not merge; do not mark ready."
+- finding_id: CTO-025
+  field: saul_review_workflow
+  action: narrow
+  note: "REASSESS. Obsolete 'HUMAN MUST LAND THIS FIRST as a separate PR' is no longer the only allowed remediation. Cora authorizes the contractor to keep/harden .github/workflows/saul-cto-review.default-branch.yml as the trusted pull_request_target artifact: workflow+executable tree from default branch / runner-image; candidate SHA is DATA in path: candidate-data; persist-credentials: false; NEVER execute candidate scripts/hooks/deps ($SAI_CANDIDATE_TREE/scripts forbidden); same-repo only; fail closed TRUSTED_REVIEWER_UNAVAILABLE. Follow https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target — do not create a pwn-request (checkout PR head into CWD then execute). In the SAME merge SHA, retire the transitional Hostinger on: pull_request trigger from .github/workflows/saul-review.yml; keep workflow_dispatch so remaining reviews of THIS PR can still be dispatched (gh workflow run saul-review.yml --ref cursor/codebase-health-90ba). Replace fixture transitional-pr-trigger-kept in scripts/lib/sai_auth_workflow_trust_test.py: after this wave, candidate saul-review.yml must NOT declare pull_request and MUST keep workflow_dispatch; trusted file must still declare pull_request_target; keep candidate-evil-run isolation; keep 'not faked on main' (origin/main still has no trusted file until human merge). Write compact threat-trace + merge-activation evidence under the contract tree. Condition: human merge of PR #62 is the activation event. Do NOT mark CTO-025 PASSED. Status may become IMPLEMENTED_AWAITING_SAUL with notes that Saul may classify CONDITIONAL_PASS_ON_HUMAN_MERGE. Cora/contractor must not self-PASS and must not emit CONDITIONAL_PASS_ON_HUMAN_MERGE as clearance. If the design is unsafe, contractor must produce a concrete threat trace (attacker input, trust crossing, privilege, execution path, damage) rather than 'security sensitive'. authority_expanding false. Do not restore candidate-HEAD trust."
+- finding_id: REQ-5289020312
+  field: saul_review_package
+  action: add
+  note: "Architectural Saul plane: contractor may add compact candidate-packaged files under the contract tree (e.g. saul/architectural-review.md, quality-profile.yaml, merge-readiness.yaml) and copy them in scripts/lib/sai_auth_package.py only (239 lines, room). Do NOT grow scripts/lib/sai_auth_review.py (already 500, at limit). Do NOT rewrite .ai/agents/saul/** (CTO-016 / denied_paths)."
+- finding_id: B-QUALITY-001
+  field: verification_requirements
+  action: add
+  note: "REQUIRED_FOR_FINAL_MERGE_QUALITY: compact YAML under contract tree; each control: CONTROL, SOURCE, APPLICABILITY, CURRENT EVIDENCE, STATE (PASS|NOT_APPLICABLE|DEFERRED_NONBLOCKING|BLOCKER), REASON, OWNER if blocker. Sources: NIST SSDF, OpenSSF OSPS/Scorecard-style, SLSA-style principles (do not claim an SLSA level), GitHub Actions security, SAI ICM, Decisions 0006/0007/0008. Do not blindly implement every control. Repo settings that cannot be inspected: UNKNOWN/VERIFY_REQUIRED, not fabricated PASS. Unrelated-to-this-PR settings: DEFERRED_NONBLOCKING. Contractor appends B-QUALITY-001 without PASS."
+- finding_id: REQ-5289020312
+  field: anti_bloat
+  action: add
+  note: "Anti-bloat: lightweight repo-native warning/triage policy in .ai/_config (contractor allowed_paths include .ai/_config/**). Warning thresholds, not hard fail that blocks legitimate work. Classify every change REQUIRED_FOR_CURRENT_BLOCKER | REQUIRED_FOR_FINAL_MERGE_QUALITY | DEFER_TO_FOLLOWUP. Do not balloon PR #62. Compact review-surface metric. Do not raise global YAML limits."
+- finding_id: B-MERGE-PKG-001
+  field: human_gate
+  action: add
+  note: "Merge-readiness package (compact, contract tree): PR number, exact head/base placeholders, mergeability, CI, Saul/Sai disposition, P0..Pn, conditional activation, rollback, post-merge check, human action = review and merge. Do not merge. Do not mark ready. Contractor appends B-MERGE-PKG-001 without PASS."
+- finding_id: REQ-5289020312
+  field: officer_scope
+  action: add
+  note: "Officer (Sai, not Cora) amends Decision 0008 in place (no 0009) plus a small .cursor/rules/sai-orchestration.mdc pointer for architectural Saul, CONDITIONAL_PASS_ON_HUMAN_MERGE, anti-bloat, CTO-025 merge-activation. Cora does not write those trees. Contractors remain denied .ai/shared/memory/decisions/**."
+- finding_id: CTO-026
+  field: verification_requirements
+  action: add
+  note: "Keep uncleared. Do not rework CTO-015..021, 024, 028, 029 IMPLEMENTED_AWAITING_SAUL. Implementation/self-tests/docs do not constitute technical clearance. Exact-head Saul clearance still required. Do not mark them PASSED. Do not treat CONDITIONAL_PASS_ON_HUMAN_MERGE as Cora/contractor clearance."
+- finding_id: CTO-027
+  field: human_gate
+  action: add
+  note: "icm-enforcement SUCCESS on exact head c51c9cf221a8f4682e2c9e2287bd06d550c6c44e (after Saul snapshot run 31764010391) is not technical PASS. After issuing A-010/v10, set cora_admin_complete true. That is administration complete for this wave, NOT technical PASS."
+created_by: ctr-admin
+created_at: "2026-08-14T04:20:00Z"

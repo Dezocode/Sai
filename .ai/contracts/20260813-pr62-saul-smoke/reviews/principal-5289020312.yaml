@@ -1,0 +1,45 @@
+reviewer: dezocode
+review_type: principal-comment
+not_a_saul_consume: true
+consume_script_invoked: false
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: 9
+implementation_head: c51c9cf221a8f4682e2c9e2287bd06d550c6c44e
+comment_id: '5289020312'
+source: https://github.com/Dezocode/Sai/pull/62#issuecomment-5289020312
+authority: dezocode
+created_at: "2026-08-14T03:21:41Z"
+ingested_at: "2026-08-14T04:20:00Z"
+ingested_by: ctr-admin
+amendment_id: A-010
+result_revision: v10
+authority_expanding: false
+latest_qualifying_saul_run: '31764010391'
+latest_qualifying_saul_disposition: REQUEST_CHANGES
+reason: Append-only principal P0 overnight-convergence instruction. Not a Saul
+  consume-saul-contract-review input. Bind quality profile, architectural Saul
+  review, anti-bloat, merge package, and CTO-025 merge-activation into v10.
+  Cora does not PASS any technical blocker. CONDITIONAL_PASS_ON_HUMAN_MERGE is
+  Saul-only.
+findings_bound:
+- id: REQ-5289020312
+  severity: P0
+  note: meta-P0 cannot pass from documentation alone
+- id: B-META-P0-001
+  severity: P0
+  note: contractor appends without PASS
+- id: CTO-025
+  severity: P0
+  note: REASSESS merge-activation candidate; do not PASS
+- id: B-QUALITY-001
+  severity: P0
+  note: compact quality profile; do not claim SLSA level
+- id: B-MERGE-PKG-001
+  severity: P0
+  note: merge-readiness package; do not merge
+- id: CTO-026
+  severity: P0
+  note: keep uncleared
+- id: CTO-027
+  severity: P1
+  note: icm-enforcement SUCCESS on c51c9cf is not technical PASS

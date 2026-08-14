@@ -33,3 +33,20 @@ complete, not technical PASS. Wave artifacts:
 do_not_merge true. denied_paths unchanged. Officer pin provenance
 already at e84e5d7; contractor enforces verifier provenance.
 
+## A-010 / v10 (grant Task-ID standing run)
+
+Issued A-010 → v10 from principal P0 comment 5289020312
+(Dezocode, 2026-08-14T03:21:41Z). Not a Saul consume. Latest
+qualifying Saul on c51c9cf: run 31764010391 REQUEST_CHANGES.
+cora_admin_complete true is administration complete, not
+technical PASS. technical_pass false. Did not PASS CTO-025.
+Wave artifacts: `.ai/runs/20260814-0415-pr62-queue-cora/`.
+implements false. do_not_merge true. denied_paths unchanged.
+lease-c3a003pr62q1 reused. Contractor next: merge-activation
+design, quality profile, architectural package, anti-bloat,
+merge package; append B-META-P0-001 / B-QUALITY-001 /
+B-MERGE-PKG-001 without PASS. Officer next: Decision 0008 in
+place + orchestration pointer. CONDITIONAL_PASS_ON_HUMAN_MERGE
+is Saul-only. Do not merge. Do not mark ready.
+
+
