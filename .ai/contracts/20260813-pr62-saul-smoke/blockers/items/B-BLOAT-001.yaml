@@ -1,0 +1,29 @@
+"blocker_id": "B-BLOAT-001"
+"source": "ci"
+"source_actor": "ci"
+"source_runtime": "github-actions"
+"created_at": "2026-08-14T01:02:00Z"
+"first_seen_head": "ec18359015a28e08ff34ac7a295650ccdd091c4c"
+"current_head": "854e578ca1479e2918eb70a1d01daa43b615aa4f"
+"category": "technical"
+"severity": "PROVISIONAL"
+"severity_assigned_by": "cursor-provisional"
+"description": "blockers/ledger.yaml exceeded the yaml 300-line bloat limit (354 lines on bb519c2/ec18359). Sharded to policy+index plus items/<id>.yaml. Global yaml limit not raised."
+"evidence":
+- "scripts/verify-code-health bloat"
+- "CI FAIL on bb519c2978e8e285e4f452159813452cebc7a2cb"
+"affected_paths":
+- ".ai/contracts/20260813-pr62-saul-smoke/blockers/ledger.yaml"
+- ".ai/contracts/20260813-pr62-saul-smoke/blockers/items"
+- "scripts/lib/sai_auth_blockers.py"
+"dependencies": []
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "shard-blocker-ledger-under-yaml-300"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v6"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-push"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null

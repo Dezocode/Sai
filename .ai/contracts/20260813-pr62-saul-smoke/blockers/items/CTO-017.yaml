@@ -1,0 +1,27 @@
+"blocker_id": "CTO-017"
+"source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885648"
+"source_actor": "saul"
+"source_runtime": "hostinger-saul-codex"
+"created_at": "2026-08-14T00:18:37Z"
+"first_seen_head": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+"current_head": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+"category": "technical"
+"severity": "P1"
+"severity_assigned_by": "saul"
+"description": "invoke-saul-review --self-test consumed ambient SAI_TRUSTED_TREE and production package state on the Hostinger runner."
+"evidence":
+- "GitHub Actions run 31756720206 required-check fail"
+"affected_paths":
+- "scripts/lib/sai_auth_test.py"
+- "scripts/lib/sai_auth_saul_test.py"
+"dependencies": []
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "hermetic-saul-self-test"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v4"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-push"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null

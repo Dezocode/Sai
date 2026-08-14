@@ -1,0 +1,31 @@
+"blocker_id": "CTO-021"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5288037039"
+"source_actor": "saul"
+"source_runtime": "hostinger-saul-codex"
+"created_at": "2026-08-14T00:42:14Z"
+"first_seen_head": "0df32c7446b95bda1f83137f8384a03135a959f6"
+"current_head": "854e578ca1479e2918eb70a1d01daa43b615aa4f"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "saul"
+"description": "The self-hosted Saul job is still defined by .github/workflows/saul-review.yml from the pull-request tree. A candidate can alter that workflow and execute arbitrary run steps on the persistent authenticated runner before any trusted-tree checks."
+"evidence":
+- "GitHub Actions run 31758118443"
+- "comment 5288037039"
+- "origin/main currently has no saul-review.yml"
+- "pull_request_target on this PR branch is not used by GitHub until the file exists on the default branch"
+"affected_paths":
+- ".github/workflows/saul-review.yml"
+- ".github/workflows/saul-cto-review.default-branch.yml"
+- "scripts/verify-saul-workflow-trust"
+"dependencies": []
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "default-branch-trusted-workflow-not-candidate-yaml"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v6"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-push"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null

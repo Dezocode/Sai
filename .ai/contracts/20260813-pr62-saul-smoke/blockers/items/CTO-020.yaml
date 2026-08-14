@@ -1,0 +1,28 @@
+"blocker_id": "CTO-020"
+"source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288012757"
+"source_actor": "saul"
+"source_runtime": "hostinger-saul-codex"
+"created_at": "2026-08-14T00:38:25Z"
+"first_seen_head": "1eeb2ec4e0d48c3c977c5cc61aa8a7ee7a61f0ec"
+"current_head": "1eeb2ec4e0d48c3c977c5cc61aa8a7ee7a61f0ec"
+"category": "technical"
+"severity": "P1"
+"severity_assigned_by": "saul"
+"description": "Nested wrapper self-test overwrote PYTHONPATH and dropped the runner PyYAML path."
+"evidence":
+- "GitHub Actions run 31757923538"
+- "comment 5288012757"
+"affected_paths":
+- "scripts/lib/sai_auth_saul_test.py"
+"dependencies":
+- "CTO-019"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "preserve-pythonpath-in-nested-self-test"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v4"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-push"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null

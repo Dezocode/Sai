@@ -1,0 +1,26 @@
+"blocker_id": "CTO-018"
+"source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885648"
+"source_actor": "saul"
+"source_runtime": "hostinger-saul-codex"
+"created_at": "2026-08-14T00:18:37Z"
+"first_seen_head": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+"current_head": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+"category": "technical"
+"severity": "P1"
+"severity_assigned_by": "saul"
+"description": "blockers/ledger.yaml was invalid YAML because an unquoted description contained a colon."
+"evidence":
+- "GitHub Actions run 31756720206"
+"affected_paths":
+- ".ai/contracts/20260813-pr62-saul-smoke/blockers/ledger.yaml"
+"dependencies": []
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "quote-ledger-scalars-and-parse-in-self-test"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v4"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-push"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null

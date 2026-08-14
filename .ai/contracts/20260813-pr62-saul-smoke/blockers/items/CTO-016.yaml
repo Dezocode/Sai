@@ -1,0 +1,28 @@
+"blocker_id": "CTO-016"
+"source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885648"
+"source_actor": "saul"
+"source_runtime": "hostinger-saul-codex"
+"created_at": "2026-08-14T00:18:37Z"
+"first_seen_head": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+"current_head": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "saul"
+"description": "Exact-head diff contains .ai/agents/saul/** and .ai/shared/memory/decisions/** which v3 denies for the contractor. Officer grant covers decisions; candidate Saul persona should not redefine the trusted reviewer."
+"evidence":
+- "GitHub Actions run 31756720206"
+- "226 unique changed paths vs origin/main"
+"affected_paths":
+- ".ai/agents/saul"
+- ".ai/shared/memory/decisions"
+"dependencies": []
+"assigned_owner": "ctr-admin"
+"work_item": "v4-officer-scope-without-expanding-contractor-denied-paths"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v4"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-pending-push"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null

@@ -35,6 +35,20 @@ def run_wait_fixtures():
         print("SELFTEST PASS  wait-early-wake")
         executed.add("wait-no-model")
         print("SELFTEST PASS  wait-no-model")
+        executed.add("wait-last-resort-other-work")
+        result = wait_loop(
+            root, 900, chunk=0.1, include_remote=False,
+            work_exists_digest="local-work-exists",
+        )
+        if result.get("reason") != "other_work":
+            raise RuntimeError(result)
+        if not result.get("woke_early") or result.get("waited_seconds", 1) != 0:
+            raise RuntimeError(result)
+        if result.get("wait_is_last_resort") is not True:
+            raise RuntimeError(result)
+        if result.get("model_invoked") is not False:
+            raise RuntimeError(result)
+        print("SELFTEST PASS  wait-last-resort-other-work")
     return executed
 
 

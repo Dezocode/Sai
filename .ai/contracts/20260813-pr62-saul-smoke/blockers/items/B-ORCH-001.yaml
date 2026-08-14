@@ -1,0 +1,28 @@
+"blocker_id": "B-ORCH-001"
+"source": "cursor-primary"
+"source_actor": "ceo"
+"source_runtime": "bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc"
+"created_at": "2026-08-13T23:56:00Z"
+"first_seen_head": "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+"current_head": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+"category": "technical"
+"severity": "PROVISIONAL-P1"
+"severity_assigned_by": "cursor-provisional"
+"description": "Physical primary wait (~15 min non-model) live-proven via sai-wait early wake on Saul digest change."
+"evidence":
+- "waited_seconds 159; requested 900; woke_early true; model_invoked false; same_process true"
+- "physical_bcId bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc unchanged"
+- "Saul run 31756720206 completed during wait"
+"affected_paths":
+- "scripts/lib/sai_auth_wait.py"
+"dependencies": []
+"assigned_owner": "ceo"
+"work_item": "live-15-minute-same-bcid-wait"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v3"
+"implementation_state": "implemented-locally"
+"verification_state": "live-early-wake-recorded"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"status": "IMPLEMENTED_AWAITING_SAUL"

@@ -1,0 +1,27 @@
+"blocker_id": "B-RESUME-001"
+"source": "cursor-primary"
+"source_actor": "ceo"
+"source_runtime": "bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc"
+"created_at": "2026-08-13T23:55:00Z"
+"first_seen_head": "4f9ec01517c436a1414f6c7f43047c900c3e9e04"
+"current_head": "d0c6a8c034ca02b6958b261399b772fb5a3b30fb"
+"category": "technical"
+"severity": "PROVISIONAL-P0"
+"severity_assigned_by": "cursor-provisional"
+"description": "scripts/sai-resume returned a Saul snapshot whose head did not match live HEAD."
+"evidence":
+- "scripts/sai-resume latest_saul.head=2ac83a1 while git HEAD=4f9ec01"
+- "GitHub Saul comment 5287514717 is the live-head result"
+"affected_paths":
+- "scripts/lib/sai_auth_resume.py"
+"dependencies": []
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "refuse-mismatched-state-saul-snapshot"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v3"
+"implementation_state": "implemented-locally"
+"verification_state": "self-test-passed"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"status": "IMPLEMENTED_AWAITING_SAUL"

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Durable blocker ledger. Discovery != clearance. Never delete history."""
+"""Durable blocker ledger. Discovery != clearance. Never delete history.
+
+Sharded layout: ledger.yaml is policy + short index (blocker_id, status).
+Full records live in blockers/items/<blocker_id>.yaml with quoted descriptions.
+"""
 from __future__ import annotations
 
 import argparse
@@ -8,6 +12,11 @@ import sys
 from pathlib import Path
 
 import sai_auth as a
+
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 STATUSES = (
     "DISCOVERED", "TRIAGED", "CLAIMED", "IMPLEMENTING", "IMPLEMENTED",
@@ -18,18 +27,119 @@ STATUSES = (
 TECHNICAL_CLEARANCE = "saul"
 GOVERNANCE_CLEARANCE = "ceo"
 LEDGER_REL = ".ai/contracts/20260813-pr62-saul-smoke/blockers/ledger.yaml"
+ITEMS_DIRNAME = "items"
+PASS_STATUSES = ("PASSED_BY_SAUL", "PASSED_BY_SAI", "PASSED")
+REQUIRED_HISTORY = (
+    "B-TRUST-001", "B-RESUME-001", "B-ORCH-001",
+    "CTO-015", "CTO-016", "CTO-017", "CTO-018", "CTO-019", "CTO-020",
+    "B-CORA-TODO-001", "B-RALPH-001", "B-NO-IDLE-SAUL-001",
+)
+
+
+class _QuotedDumper(yaml.SafeDumper if yaml is not None else object):
+    pass
+
+
+if yaml is not None:
+    def _quoted_str(dumper, data):
+        style = '"' if isinstance(data, str) else None
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style=style)
+
+    _QuotedDumper.add_representer(str, _quoted_str)
+
+
+def items_dir_for(ledger_path: Path) -> Path:
+    return ledger_path.parent / ITEMS_DIRNAME
+
+
+def item_path(ledger_path: Path, blocker_id: str) -> Path:
+    return items_dir_for(ledger_path) / f"{blocker_id}.yaml"
+
+
+def write_item(path: Path, row: dict) -> None:
+    if yaml is None:
+        raise RuntimeError("PyYAML is required")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        yaml.dump(
+            row, Dumper=_QuotedDumper, sort_keys=False, allow_unicode=True, width=1000,
+        ),
+        encoding="utf-8",
+    )
+
+
+def _index_row(row: dict) -> dict:
+    return {"blocker_id": row.get("blocker_id"), "status": row.get("status")}
 
 
 def load_ledger(root, rel=LEDGER_REL):
     path = Path(root) / rel
     data = a.read_yaml(path) or {}
     data.setdefault("blockers", [])
+    data.setdefault("policy", {})
+    items = items_dir_for(path)
+    full, seen = [], set()
+    for row in data["blockers"]:
+        bid = row.get("blocker_id")
+        if not bid:
+            continue
+        ip = item_path(path, bid)
+        if ip.is_file():
+            rec = a.read_yaml(ip) or {}
+            rec["blocker_id"] = bid
+            if row.get("status"):
+                rec["status"] = row["status"]
+            full.append(rec)
+        else:
+            full.append(row)
+        seen.add(bid)
+    if items.is_dir():
+        for p in sorted(items.glob("*.yaml")):
+            rec = a.read_yaml(p) or {}
+            bid = rec.get("blocker_id") or p.stem
+            if bid in seen:
+                continue
+            rec["blocker_id"] = bid
+            full.append(rec)
+            seen.add(bid)
+    data["blockers"] = full
+    data["layout"] = "sharded"
     return data, path
 
 
 def save_ledger(path, data):
+    data = dict(data)
     data["updated_at"] = a.utcnow()
-    a.write_yaml(path, data)
+    items = items_dir_for(path)
+    items.mkdir(parents=True, exist_ok=True)
+    by_id, order, seen = {}, [], set()
+    for row in data.get("blockers") or []:
+        bid = row.get("blocker_id")
+        if not bid:
+            continue
+        by_id[bid] = row
+        write_item(item_path(path, bid), row)
+        if bid not in seen:
+            order.append(bid)
+            seen.add(bid)
+    for p in sorted(items.glob("*.yaml")):
+        rec = a.read_yaml(p) or {}
+        bid = rec.get("blocker_id") or p.stem
+        if bid in seen:
+            continue
+        by_id[bid] = rec
+        order.append(bid)
+        seen.add(bid)
+    index = {
+        "ledger_id": data.get("ledger_id"),
+        "contract_id": data.get("contract_id"),
+        "updated_at": data["updated_at"],
+        "policy": data.get("policy") or {},
+        "layout": "sharded",
+        "items_dir": ITEMS_DIRNAME,
+        "blockers": [_index_row(by_id[b]) for b in order],
+    }
+    a.write_yaml(path, index)
 
 
 def append_blocker(root, blocker: dict, *, rel=LEDGER_REL):
@@ -87,7 +197,7 @@ def attempt_clear(root, blocker_id, actor, *, review_id=None, head=None,
 
 
 def set_status(root, blocker_id, status, *, actor=None, rel=LEDGER_REL):
-    if status in ("PASSED_BY_SAUL", "PASSED_BY_SAI", "PASSED"):
+    if status in PASS_STATUSES:
         return attempt_clear(root, blocker_id, actor or "unknown", rel=rel)
     if status not in STATUSES:
         return {"status": "REJECT", "reason": "UNKNOWN_STATUS"}

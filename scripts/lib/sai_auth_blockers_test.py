@@ -6,7 +6,13 @@ import tempfile
 from pathlib import Path
 
 import sai_auth as a
-from sai_auth_blockers import append_blocker, attempt_clear, set_status
+from sai_auth_blockers import (
+    LEDGER_REL, REQUIRED_HISTORY, append_blocker, attempt_clear,
+    item_path, load_ledger, save_ledger, set_status,
+)
+
+LIVE_REQUIRED = REQUIRED_HISTORY + ("CTO-021", "B-BLOAT-001")
+NON_SAUL_ACTORS = ("cursor", "contractor", "ctr-admin", "ctr-code-pr62smoke", "ceo")
 
 
 def run_blocker_fixtures():
@@ -15,14 +21,14 @@ def run_blocker_fixtures():
         root = Path(tmp)
         rel = "ledger.yaml"
         (root / rel).parent.mkdir(parents=True, exist_ok=True)
-        a.write_yaml(root / rel, {"blockers": []})
+        a.write_yaml(root / rel, {"blockers": [], "policy": {"never_delete_history": True}})
         row = {
             "blocker_id": "B-001",
             "source": "cursor-primary",
             "source_actor": "ceo",
             "category": "technical",
             "severity": "PROVISIONAL-P0",
-            "description": "stale Saul pickup",
+            "description": "stale Saul pickup: head mismatch",
             "clearance_authority": "saul",
             "status": "DISCOVERED",
         }
@@ -31,6 +37,18 @@ def run_blocker_fixtures():
         if action != "appended":
             raise RuntimeError((action, stored))
         print("SELFTEST PASS  cursor-may-append")
+
+        executed.add("sharded-item-written")
+        data, path = load_ledger(root, rel)
+        ip = item_path(path, "B-001")
+        if not ip.is_file():
+            raise RuntimeError("missing item file")
+        item_text = ip.read_text(encoding="utf-8")
+        if "description:" not in item_text or "stale Saul pickup" not in item_text:
+            raise RuntimeError(item_text)
+        if ":" in (a.read_yaml(ip) or {}).get("description", "") and '"' not in item_text.split("description:", 1)[-1].splitlines()[0]:
+            raise RuntimeError("description with colon must be quoted")
+        print("SELFTEST PASS  sharded-item-written")
 
         executed.add("cursor-self-pass-rejected")
         r = attempt_clear(root, "B-001", "ceo", review_id="fake", head="a" * 40, rel=rel)
@@ -51,9 +69,11 @@ def run_blocker_fixtures():
         print("SELFTEST PASS  saul-can-pass-technical")
 
         executed.add("history-not-deleted")
-        data = a.read_yaml(root / rel)
+        data, _ = load_ledger(root, rel)
         if len(data["blockers"]) != 1 or data["blockers"][0]["status"] != "PASSED_BY_SAUL":
-            raise RuntimeError(data)
+            raise RuntimeError(data["blockers"])
+        if not item_path(Path(root) / rel, "B-001").is_file():
+            raise RuntimeError("item deleted after pass")
         print("SELFTEST PASS  history-not-deleted")
 
         gov = {
@@ -79,18 +99,71 @@ def run_blocker_fixtures():
         r = set_status(root, "B-002", "IMPLEMENTED_AWAITING_SAUL", actor="cursor", rel=rel)
         if r["status"] != "IMPLEMENTED_AWAITING_SAUL":
             raise RuntimeError(r)
-        data = a.read_yaml(root / rel)
+        data, _ = load_ledger(root, rel)
         b2 = next(b for b in data["blockers"] if b["blocker_id"] == "B-002")
         if b2["status"].startswith("PASSED"):
             raise RuntimeError("IMPLEMENTED must not be PASSED")
         print("SELFTEST PASS  implemented-is-not-passed")
 
-        executed.add("repo-blocker-ledger-parses")
-        live = Path(__file__).resolve().parents[2] / ".ai/contracts/20260813-pr62-saul-smoke/blockers/ledger.yaml"
-        parsed = a.read_yaml(live)
-        if not parsed or not parsed.get("blockers"):
-            raise RuntimeError("live blocker ledger missing")
-        print("SELFTEST PASS  repo-blocker-ledger-parses")
+        executed.add("never-delete-dropped-item")
+        data, path = load_ledger(root, rel)
+        data["blockers"] = [b for b in data["blockers"] if b.get("blocker_id") != "B-002"]
+        save_ledger(path, data)
+        data2, _ = load_ledger(root, rel)
+        ids = {b.get("blocker_id") for b in data2["blockers"]}
+        if "B-002" not in ids:
+            raise RuntimeError("dropped blocker vanished")
+        print("SELFTEST PASS  never-delete-dropped-item")
+
+    executed.add("repo-blocker-ledger-parses")
+    repo = Path(__file__).resolve().parents[2]
+    live_path = repo / LEDGER_REL
+    parsed = a.read_yaml(live_path)
+    if not parsed or not parsed.get("blockers"):
+        raise RuntimeError("live blocker ledger missing")
+    if parsed.get("layout") != "sharded":
+        raise RuntimeError("live ledger must be sharded index")
+    nlines = len(live_path.read_text(encoding="utf-8").splitlines())
+    if nlines > 300:
+        raise RuntimeError(f"index bloat {nlines} > 300")
+    data, path = load_ledger(repo)
+    ids = {b.get("blocker_id") for b in data["blockers"]}
+    missing = [i for i in LIVE_REQUIRED if i not in ids]
+    if missing:
+        raise RuntimeError(f"missing historical blockers: {missing}")
+    for bid in LIVE_REQUIRED:
+        ip = item_path(path, bid)
+        if not ip.is_file():
+            raise RuntimeError(f"missing item {bid}")
+        rec = a.read_yaml(ip)
+        if not rec:
+            raise RuntimeError(f"unreadable {bid}")
+        desc = rec.get("description") or ""
+        raw = ip.read_text(encoding="utf-8")
+        if ":" in desc:
+            quoted = ('"description"' in raw) or ("description: \"" in raw) or ("description: '" in raw)
+            if not quoted:
+                raise RuntimeError(f"unquoted description {bid}")
+    print("SELFTEST PASS  repo-blocker-ledger-parses")
+
+    executed.add("live-cora-todo-non-saul-cannot-clear")
+    for actor in NON_SAUL_ACTORS:
+        r = attempt_clear(
+            repo, "B-CORA-TODO-001", actor,
+            review_id="fake", head="a" * 40,
+        )
+        if r.get("status") != "REJECT" or r.get("reason") != "TECHNICAL_CLEARANCE_REQUIRES_SAUL":
+            raise RuntimeError((actor, r))
+    print("SELFTEST PASS  live-cora-todo-non-saul-cannot-clear")
+
+    executed.add("live-no-self-pass")
+    for b in data["blockers"]:
+        st = str(b.get("status") or "")
+        if st in ("PASSED", "PASSED_BY_SAUL", "PASSED_BY_SAI") and b.get("blocker_id") in (
+            "CTO-015", "CTO-016", "CTO-017", "CTO-018", "CTO-019", "CTO-020", "CTO-021", "B-BLOAT-001",
+        ):
+            raise RuntimeError(f"contractor must not PASS {b.get('blocker_id')}")
+    print("SELFTEST PASS  live-no-self-pass")
     return executed
 
 
