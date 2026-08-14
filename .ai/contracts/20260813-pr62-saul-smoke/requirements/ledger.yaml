@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-13T23:30:00Z"
+updated_at: "2026-08-14T00:47:14Z"
 requirements:
   - requirement_id: REQ-5282088737
     source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
@@ -56,3 +56,41 @@ requirements:
     digest: discovery-not-clearance-saul-technical-sai-governance-15min-wait
     status: in-progress
     blocking: true
+  - requirement_id: REQ-5287857514
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287857514"
+    authority: dezocode
+    timestamp: "2026-08-14T00:14:10Z"
+    scope: cora-per-todo-native-subagents
+    digest: every-non-reassess-todo-named-cora-then-contractor-primary-reassess-only
+    status: in-progress
+    blocking: true
+    acceptance:
+      - "every non-reassess todo executes through named Cora then contractor native subagents"
+      - "Primary Cursor runtime executes REASSESS BLOCKERS only"
+      - "repo/workspace configuration forces this for fresh Cursor agents"
+      - "do not depend on the user saying use subagents, use Cora, or use contractor"
+  - requirement_id: REQ-5287878905
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287878905"
+    authority: dezocode
+    timestamp: "2026-08-14T00:17:31Z"
+    scope: continuous-ralph-loop
+    digest: blockers-gt-0-continuous-ralph-saul-only-technical-pass
+    status: in-progress
+    blocking: true
+    acceptance:
+      - "BLOCKERS>0 proves continuous Ralph-style primary loop"
+      - "only Saul may pass technical blockers"
+      - "this meta-P0 cannot be Saul-passed while other technical blockers remain unpassed"
+      - "implementation, tests, CI, or turn-end is not technical clearance"
+  - requirement_id: REQ-5287885878
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885878"
+    authority: dezocode
+    timestamp: "2026-08-14T00:18:40Z"
+    scope: no-idle-wait-on-saul
+    digest: never-idle-wait-on-saul-when-other-machine-actionable-work-exists
+    status: in-progress
+    blocking: true
+    acceptance:
+      - "NEVER idle-wait on Saul when any other machine-actionable work exists"
+      - "wait is last resort after REASSESS BLOCKERS confirms the frontier is externally blocked"
+      - "SAUL_PENDING is an external-review state, not an orchestration stop state"

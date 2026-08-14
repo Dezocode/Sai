@@ -1,0 +1,30 @@
+{
+  "task_id": "20260814-0041-pr62-queue-cora",
+  "agent": "ctr-admin",
+  "agent_name": "Cora",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/codebase-health-90ba",
+  "base_sha": "0df32c7446b95bda1f83137f8384a03135a959f6",
+  "purpose": "Ingest principal P0 comments 5287857514/5287878905/5287885878 into A-005/v5 without expanding contractor paths.",
+  "status": "in-progress",
+  "plan_reference": ".ai/runs/20260814-0041-pr62-queue-cora/02_plan/output/plan.md",
+  "pr": "https://github.com/Dezocode/Sai/pull/62",
+  "contract_id": "20260813-pr62-saul-smoke",
+  "project_slug": "pr62-saul-smoke",
+  "contractor_type": "contract-admin",
+  "isolation_mode": "prototype",
+  "authorization_id": "grant-pr62-queue-cora",
+  "work_item": "ingest-principal-p0-5287857514-5287878905-5287885878",
+  "parent_logical_runtime": "pr62-primary",
+  "parent_physical_runtime": "bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc",
+  "claimed_files": [
+    ".ai/contracts/20260813-pr62-saul-smoke/",
+    ".ai/runs/20260814-0041-pr62-queue-cora/",
+    ".ai/requests/20260814-0041-pr62-queue-cora/"
+  ],
+  "overlap_note": "Standing contractor run 20260813-2017-pr62-queue-ctr-code also lists the contract directory. This Cora child is authorized by the PR #62 primary to amend that directory only; no product/control-plane writes. Not a semantic conflict.",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "reuse_contractor": "ctr-code-pr62smoke",
+  "lease_id": "lease-c3a003pr62q1"
+}

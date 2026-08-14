@@ -1,0 +1,13 @@
+task_id: 20260814-0041-pr62-queue-cora
+requested_by: dezocode (U0BHYH0NMCY)
+repository: Dezocode/Sai
+runtime: cursor-cloud-vm
+purpose: "Ingest principal P0 comments 5287857514, 5287878905, 5287885878 into A-005/v5. Contractor paths unchanged."
+required_role: contract-administrator
+state: IMPLEMENTING
+resolved_agent: ctr-admin
+contract_id: 20260813-pr62-saul-smoke
+authorization_id: grant-pr62-queue-cora
+work_item: ingest-principal-p0-5287857514-5287878905-5287885878
+parent_logical_runtime: pr62-primary
+parent_physical_runtime: bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc

@@ -1,0 +1,33 @@
+amendment_id: A-005
+contract_id: 20260813-pr62-saul-smoke
+from_revision: 4
+to_revision: 5
+finding_ids:
+- B-CORA-TODO-001
+- B-RALPH-001
+- B-NO-IDLE-SAUL-001
+authority_expanding: false
+human_approval_required: false
+human_approval_ids:
+- grant-pr62-queue-ceo
+- human-pr62-keep-0007-and-path-expansion
+summary: "Principal comments 5287857514/5287878905/5287885878 -> A-005 -> v5. Bind Cora-per-todo, Ralph BLOCKERS>0, and no-idle-Saul P0s. Contractor allowed_paths and denied_paths unchanged. Officer-authored Decision 0008 and sai-orchestration.mdc remain under grant-pr62-queue-ceo."
+trace:
+- B-CORA-TODO-001 -> A-005 -> v5
+- B-RALPH-001 -> A-005 -> v5
+- B-NO-IDLE-SAUL-001 -> A-005 -> v5
+changes:
+- finding_id: B-CORA-TODO-001
+  field: requirements
+  action: add
+  note: "Bind REQ-5287857514. Do not expand contractor paths. Officer amends Decision 0008 in place and updates .cursor/rules/sai-orchestration.mdc. Contractor adds mechanical tests/scripts under existing allowed_paths only."
+- finding_id: B-RALPH-001
+  field: requirements
+  action: add
+  note: "Bind REQ-5287878905. Contractor allowed_paths unchanged. Technical PASS remains Saul-only. This meta-P0 cannot be Saul-passed while other technical blockers remain unpassed."
+- finding_id: B-NO-IDLE-SAUL-001
+  field: requirements
+  action: add
+  note: "Bind REQ-5287885878. Contractor allowed_paths unchanged. Wait is last resort when any other machine-actionable work exists."
+created_by: ctr-admin
+created_at: "2026-08-14T00:47:14Z"

@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke-blockers
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-14T00:22:00Z"
+updated_at: "2026-08-14T00:47:14Z"
 policy:
   discovery: any-authorized-participant
   technical_clearance: saul
@@ -259,3 +259,96 @@ blockers:
     clearance_authority: saul
     clearance_review_id: null
     clearance_head: null
+  - blocker_id: B-CORA-TODO-001
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287857514"
+    source_actor: dezocode
+    source_runtime: github-pr-comment
+    created_at: "2026-08-14T00:14:10Z"
+    first_seen_head: "0df32c7446b95bda1f83137f8384a03135a959f6"
+    current_head: "0df32c7446b95bda1f83137f8384a03135a959f6"
+    category: technical
+    severity: P0
+    severity_assigned_by: dezocode
+    description: "Every non-reassess todo must execute through named Cora then contractor native subagents. Primary only executes REASSESS BLOCKERS. Repo must force this for fresh Cursor agents."
+    evidence:
+      - "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287857514"
+      - "REQ-5287857514"
+    affected_paths:
+      - .cursor/rules/sai-orchestration.mdc
+      - .ai/shared/memory/decisions/0008-persistent-primary-cursor-orchestrator.md
+      - tests/**
+      - scripts/**
+    dependencies: []
+    assigned_owner: ceo
+    work_item: mechanical-tests-cora-todo
+    officer_work_item: amend-decision-0008-in-place
+    contract: 20260813-pr62-saul-smoke
+    revision: v5
+    implementation_state: open
+    verification_state: unverified
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null
+    status: DISCOVERED
+  - blocker_id: B-RALPH-001
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287878905"
+    source_actor: dezocode
+    source_runtime: github-pr-comment
+    created_at: "2026-08-14T00:17:31Z"
+    first_seen_head: "0df32c7446b95bda1f83137f8384a03135a959f6"
+    current_head: "0df32c7446b95bda1f83137f8384a03135a959f6"
+    category: technical
+    severity: P0
+    severity_assigned_by: dezocode
+    description: "BLOCKERS>0 proves continuous Ralph loop. Only Saul may pass technical blockers. This meta-P0 cannot be Saul-passed while other technical blockers remain unpassed."
+    evidence:
+      - "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287878905"
+      - "REQ-5287878905"
+    affected_paths:
+      - .cursor/rules/sai-orchestration.mdc
+      - .ai/shared/memory/decisions/0008-persistent-primary-cursor-orchestrator.md
+      - tests/**
+      - scripts/**
+    dependencies: []
+    assigned_owner: ceo
+    work_item: mechanical-tests-ralph
+    officer_work_item: update-sai-orchestration.mdc
+    contract: 20260813-pr62-saul-smoke
+    revision: v5
+    implementation_state: open
+    verification_state: unverified
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null
+    status: DISCOVERED
+  - blocker_id: B-NO-IDLE-SAUL-001
+    source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885878"
+    source_actor: dezocode
+    source_runtime: github-pr-comment
+    created_at: "2026-08-14T00:18:40Z"
+    first_seen_head: "0df32c7446b95bda1f83137f8384a03135a959f6"
+    current_head: "0df32c7446b95bda1f83137f8384a03135a959f6"
+    category: technical
+    severity: P0
+    severity_assigned_by: dezocode
+    description: "NEVER idle-wait on Saul when any other machine-actionable work exists. Wait is last resort."
+    evidence:
+      - "https://github.com/Dezocode/Sai/issues/62#issuecomment-5287885878"
+      - "REQ-5287885878"
+    affected_paths:
+      - .cursor/rules/sai-orchestration.mdc
+      - .ai/shared/memory/decisions/0008-persistent-primary-cursor-orchestrator.md
+      - tests/**
+      - scripts/**
+    dependencies: []
+    assigned_owner: ceo
+    work_item: mechanical-tests-no-idle-saul
+    officer_work_item: update-sai-orchestration.mdc
+    contract: 20260813-pr62-saul-smoke
+    revision: v5
+    implementation_state: open
+    verification_state: unverified
+    clearance_authority: saul
+    clearance_review_id: null
+    clearance_head: null
+    status: DISCOVERED
