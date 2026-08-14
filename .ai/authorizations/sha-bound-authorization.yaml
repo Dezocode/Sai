@@ -2,6 +2,8 @@
 # Contractor-denied path: contractors cannot write .ai/authorizations/**.
 # This file is independent officer approval. It is not a human merge.
 # dezocode is NOT claimed. Does not implement scripts/workflows. Does not PASS.
+# CTO-029: pin provenance is bound immutably (source, source_head,
+# introduced_by_sha, issuer, issuer_grant) on the document and each pin.
 "id": "sha-bound-authorization-pr62-queue"
 "kind": "sha-bound-authorization"
 "contractor_denied": true
@@ -9,68 +11,115 @@
 "issuer_grant": "grant-pr62-queue-ceo"
 "issuer_task_id": "20260813-2015-pr62-queue-ceo"
 "source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288500483"
-"source_finding": "CTO-028"
+"source_finding": "CTO-029"
+"source_finding_origin": "CTO-028"
 "source_run": "31761796169"
-"source_head": "f4443fa0b00ec950768ba7aff14020732e338e9d"
+"source_head": "9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2"
+"introduced_by_sha": "2a578424f4879f2bad4e4391deff5f30231db19f"
 "approved_by": "not-claimed"
 "dezocode_claimed": false
 "human_merge_approval": false
 "approval_kind": "officer-tracked-grant-provenance"
 "issued_at": "2026-08-14T01:55:58Z"
 "contract_id": "20260813-pr62-saul-smoke"
-"contract_revision": "v7"
+"contract_revision": "v8"
 "branch": "cursor/codebase-health-90ba"
 "runtime": "cursor-cloud-vm"
 "implements": false
 "do_not_merge": true
-"verified_via": "git log --format='%H' origin/cursor/codebase-health-90ba"
+"verified_via": "git log --follow --format='%H' -- .ai/authorizations/sha-bound-authorization.yaml"
 "note": >
   dezocode is NOT claimed; this is officer tracked grant provenance, not
   human merge. Pins are the eight historical SHAs whose commit trailers
   used 20260814-* Task-IDs. Contractor-authored rows in
   .ai/_config/authorization.yaml are not this record. Replay provenance
-  wiring is contractor work; this file does not implement it.
+  wiring is contractor work; this file does not implement it. CTO-029
+  binds source, source_head, introduced_by_sha, issuer, and issuer_grant
+  immutably. source_head is the Saul head that required this binding
+  (9382d1f). introduced_by_sha is the officer commit that first added
+  this pin file (2a57842; git log --follow). Contract-Revision v8
+  (Cora has not landed v9).
 "pins":
   - "sha": "bb519c2978e8e285e4f452159813452cebc7a2cb"
     "agent_id": "ctr-admin"
     "task_id": "20260814-0041-pr62-queue-cora"
     "authorization_id": "grant-pr62-queue-cora"
     "subject": "Issue A-005/v5 for Cora-per-todo Ralph and no-idle-Saul P0s"
+    "source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288500483"
+    "source_head": "9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2"
+    "introduced_by_sha": "2a578424f4879f2bad4e4391deff5f30231db19f"
+    "issuer": "ceo"
+    "issuer_grant": "grant-pr62-queue-ceo"
   - "sha": "ec18359015a28e08ff34ac7a295650ccdd091c4c"
     "agent_id": "ctr-admin"
     "task_id": "20260814-0052-pr62-queue-cora"
     "authorization_id": "grant-pr62-queue-cora"
     "subject": "Issue A-006/v6 for CTO-021 persistent-runner trust boundary"
+    "source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288500483"
+    "source_head": "9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2"
+    "introduced_by_sha": "2a578424f4879f2bad4e4391deff5f30231db19f"
+    "issuer": "ceo"
+    "issuer_grant": "grant-pr62-queue-ceo"
   - "sha": "eab6b0c080fa9fbda617b03bdec88bd4017b72dc"
     "agent_id": "ceo"
     "task_id": "20260814-0052-pr62-queue-ceo"
     "authorization_id": "grant-pr62-queue-ceo"
     "subject": "Amend Decision 0008 and force Cora-per-todo orchestration"
+    "source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288500483"
+    "source_head": "9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2"
+    "introduced_by_sha": "2a578424f4879f2bad4e4391deff5f30231db19f"
+    "issuer": "ceo"
+    "issuer_grant": "grant-pr62-queue-ceo"
   - "sha": "b9f13f091453a3a1e3cb7dd05f022fefa89fbf0f"
     "agent_id": "ceo"
     "task_id": "20260814-0052-pr62-queue-ceo"
     "authorization_id": "grant-pr62-queue-ceo"
     "subject": "Record post-push officer verification for Decision 0008"
+    "source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288500483"
+    "source_head": "9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2"
+    "introduced_by_sha": "2a578424f4879f2bad4e4391deff5f30231db19f"
+    "issuer": "ceo"
+    "issuer_grant": "grant-pr62-queue-ceo"
   - "sha": "854e578ca1479e2918eb70a1d01daa43b615aa4f"
     "agent_id": "ceo"
     "task_id": "20260814-0052-pr62-queue-ceo"
     "authorization_id": "grant-pr62-queue-ceo"
     "subject": "Queue officer CHANGE/COMMIT/PUSH/VERIFY/HANDOFF events"
+    "source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288500483"
+    "source_head": "9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2"
+    "introduced_by_sha": "2a578424f4879f2bad4e4391deff5f30231db19f"
+    "issuer": "ceo"
+    "issuer_grant": "grant-pr62-queue-ceo"
   - "sha": "97527f3843c66430927985a7da630b2872f10853"
     "agent_id": "ctr-code-pr62smoke"
     "task_id": "20260814-0052-pr62-queue-ctr-code"
     "authorization_id": "lease-c3a003pr62q1"
     "subject": "Shard blocker ledger under yaml 300 and append CTO-021"
+    "source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288500483"
+    "source_head": "9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2"
+    "introduced_by_sha": "2a578424f4879f2bad4e4391deff5f30231db19f"
+    "issuer": "ceo"
+    "issuer_grant": "grant-pr62-queue-ceo"
   - "sha": "ff0a18f646ee66c60033748a0a79f1d35bb44415"
     "agent_id": "ctr-code-pr62smoke"
     "task_id": "20260814-0052-pr62-queue-ctr-code"
     "authorization_id": "lease-c3a003pr62q1"
     "subject": "Add trusted default-branch Saul workflow artifact and regression"
+    "source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288500483"
+    "source_head": "9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2"
+    "introduced_by_sha": "2a578424f4879f2bad4e4391deff5f30231db19f"
+    "issuer": "ceo"
+    "issuer_grant": "grant-pr62-queue-ceo"
   - "sha": "f2ab0b55cf77ed36a615f3475bfb9db24245f0c7"
     "agent_id": "ctr-code-pr62smoke"
     "task_id": "20260814-0052-pr62-queue-ctr-code"
     "authorization_id": "lease-c3a003pr62q1"
     "subject": "Record verification and fix sharded-item description fixture"
+    "source": "https://github.com/Dezocode/Sai/issues/62#issuecomment-5288500483"
+    "source_head": "9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2"
+    "introduced_by_sha": "2a578424f4879f2bad4e4391deff5f30231db19f"
+    "issuer": "ceo"
+    "issuer_grant": "grant-pr62-queue-ceo"
 "not_pinned":
   - "sha_prefix": "5ad0b94"
     "full_sha": "5ad0b94035182bf088715dd36b95db14fc496a98"

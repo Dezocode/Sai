@@ -38,6 +38,25 @@ contractor-denied authorizations tree. Issuer `ceo` /
 `not-claimed` (officer tracked grant provenance, not human merge;
 dezocode is not claimed). Eight git-verified 20260814-* SHAs pinned;
 5ad0b94 / 7b03b97 / 5684304 / f4443fa / e4ebf57 not pinned (original
-task ids). Cora has not pushed v8; revision remains v7. Does not
-implement scripts/workflows. Does not PASS. `implements: false`.
-`do_not_merge: true`.
+task ids). Does not implement scripts/workflows. Does not PASS.
+`implements: false`. `do_not_merge: true`.
+
+## SHA-bound pin provenance (CTO-029)
+
+Bound pin provenance immutably on the document and each of the eight
+pins. Quoted YAML. No scripts. No PASS. No merge. dezocode / human
+merge not claimed (`approved_by: not-claimed`).
+
+- `source`: https://github.com/Dezocode/Sai/issues/62#issuecomment-5288500483
+- `source_head`: `9382d1fdbf3f878983db8b8beb4ce4bfb83f98b2` (Saul head
+  that required this binding)
+- `introduced_by_sha`: `2a578424f4879f2bad4e4391deff5f30231db19f`
+  (officer commit that first added the pin file; verified with
+  `git log --follow --format='%H' -- .ai/authorizations/sha-bound-authorization.yaml`)
+- `issuer`: `ceo`
+- `issuer_grant`: `grant-pr62-queue-ceo`
+- Contract-Revision: v8 (Cora has not landed v9)
+
+READY_FOR_HUMAN_REVIEW remains false. `implements: false`.
+`do_not_merge: true`. Next safe action: contractor provenance-replay
+wiring if Saul still requires it; do not merge.
