@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/saul-shard-evidence.schema.json",
+  "title": "Saul shard evidence",
+  "description": "Candidate/Saul evidence for one SHA-bound shard. Not authoritative for the expected unit set. Only PASS_CURRENT with codex_invoked=true and synthetic=false counts toward convergence. Shard verdicts are PASS, FAIL, or BLOCKED.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "shard_id",
+    "base_sha",
+    "head_sha",
+    "diff_digest",
+    "codex_invoked",
+    "synthetic",
+    "units"
+  ],
+  "properties": {
+    "schema": { "type": "string", "const": "saul-shard-evidence" },
+    "shard_id": { "type": "string", "pattern": "^[0-9a-f]{32,64}$" },
+    "base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "head_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "diff_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "unit_root": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "policy_digest": { "type": "string" },
+    "manifest_digest": { "type": "string" },
+    "codex_invoked": { "type": "boolean" },
+    "synthetic": { "type": "boolean" },
+    "shard_verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "BLOCKED"]
+    },
+    "review_id": { "type": "string" },
+    "timestamp": { "type": "string" },
+    "units": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidence_unit" }
+    }
+  },
+  "$defs": {
+    "evidence_unit": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["unit_id", "content_digest"],
+      "properties": {
+        "unit_id": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "PASS_CURRENT",
+            "FAIL",
+            "STALE_CODE",
+            "STALE_CONTEXT",
+            "STALE_ARCHITECTURE",
+            "UNREVIEWED"
+          ]
+        },
+        "content_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "context_digest": { "type": "string" },
+        "dependency_digest": { "type": "string" },
+        "architecture_digest": { "type": "string" }
+      }
+    }
+  }
+}

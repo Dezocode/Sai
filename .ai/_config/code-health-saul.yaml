@@ -1,0 +1,81 @@
+# Saul quality checks included from code-health.yaml (Decision 0005).
+# REQ-5300146420 / B-SAUL-QUALITY-LOOP-001. Active only with command+fixtures.
+# Controller (not a health-detector): scripts/saul-review-controller
+saul_quality_learning:
+  finding_to_ci: ".ai/shared/quality/saul/FINDING_TO_CI.md"
+  controller: "scripts/saul-review-controller"
+
+checks:
+  - id: saul-sha-shard-quality
+    class: health-detector
+    status: active
+    command: "scripts/verify-saul-shard-quality --self-test"
+    self_test: synthetic
+    fixtures:
+      - shard-manifest-complete-good
+      - shard-missing-unit-bad
+      - shard-duplicate-covering-omission-bad
+      - shard-wrong-content-digest-bad
+      - shard-stale-head-bad
+      - shard-wrong-base-digest-bad
+      - shard-synthetic-bad
+      - shard-codex-not-invoked-bad
+      - shard-binary-omitted-bad
+      - shard-rename-delete-omitted-bad
+      - shard-scratch-removed-good
+    note: "Exact base/head SHA-bound shard coverage. Sister detector."
+
+  - id: saul-architecture-quality
+    class: health-detector
+    status: active
+    command: "scripts/verify-saul-architecture-quality --self-test"
+    self_test: synthetic
+    fixtures:
+      - arch-local-impact-good
+      - arch-system-missing-bad
+      - arch-shards-missing-bad
+      - arch-domain-stale-bad
+      - arch-fail-creates-blocker-good
+      - arch-system-required-now-good
+    note: "LOCAL_ARCH + IMPACT_ARCH each trigger; SYSTEM_ARCH before convergence."
+
+  - id: saul-authenticity-proof
+    class: health-detector
+    status: active
+    command: "scripts/verify-saul-authenticity --self-test"
+    self_test: synthetic
+    fixtures:
+      - exact-state-v2-fixture-good
+      - cursor-fake-saul-bad
+      - fake-github-check-bad
+      - candidate-key-substitution-bad
+      - wrong-public-key-bad
+      - tampered-shard-digest-bad
+      - tampered-architecture-digest-bad
+      - historical-v1-not-merge-viable-bad
+      - unsigned-bad
+      - synthetic-review-bad
+      - codex-not-invoked-bad
+      - wrong-head-bad
+      - wrong-base-bad
+      - stale-review-bad
+    note: "Ed25519 exact-state v2. Check name is not clearance."
+
+  - id: saul-finding-regression-guard
+    class: health-detector
+    status: active
+    command: "scripts/verify-saul-finding-regression-guards --self-test"
+    self_test: synthetic
+    fixtures:
+      - finding-deterministic-linked-good
+      - finding-heuristic-linked-good
+      - finding-semantic-rationale-good
+      - finding-missing-guard-bad
+      - finding-semantic-silent-bad
+      - finding-unlinked-check-bad
+      - finding-unknown-check-id-bad
+      - finding-recurring-creates-guard-good
+      - finding-recurring-unlinked-bad
+      - finding-defect-present-bad
+      - finding-clean-good
+    note: "FINDING_TO_CI: blocking finding -> DETERMINISTIC|HEURISTIC|SEMANTIC."

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# verify-saul-finding-regression-guards — FINDING_TO_CI quality_guard fixtures.
+# referenced: scripts/lib/sai_auth_finding_guards.py scripts/lib/sai_auth_finding_guards_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_finding_guards.py" "$@"

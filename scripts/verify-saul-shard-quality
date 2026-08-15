@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# verify-saul-shard-quality — coverage validator for SHA-bound Saul shards.
+# --self-test runs scripts/lib/sai_auth_review_coverage_test.py (not production tree).
+# referenced: scripts/lib/sai_auth_review_coverage.py scripts/lib/sai_auth_review_coverage_test.py scripts/saul-review-shards
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+export PYTHONPATH="$ROOT/scripts/lib${PYTHONPATH:+:$PYTHONPATH}"
+if [ "${1:-}" = "--self-test" ]; then
+  exec python3 "$ROOT/scripts/lib/sai_auth_review_coverage_test.py"
+fi
+exec python3 "$ROOT/scripts/lib/sai_auth_review_coverage.py" verify "$@"

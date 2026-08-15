@@ -31,9 +31,9 @@
 "work_item": "continuous-saul-sha-shard-quality-loop"
 "contract": "20260813-pr62-saul-smoke"
 "revision": "v12-principal-scope-delta-requires-cora-evaluation"
-"status": "DISCOVERED"
-"implementation_state": "open"
-"verification_state": "unverified"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "finding-ci-detectors-bloat-implemented-locally"
+"verification_state": "slice-self-test-local"
 "clearance_authority": "saul"
 "clearance_review_id": null
 "clearance_head": null
@@ -43,3 +43,4 @@
 - "Every contractor completion triggers the Saul inner loop; Ralph remains the outer loop until READY_FOR_HUMAN_REVIEW."
 - "Every blocking Saul issue must generate a learned regression guard in the Decision-0005 quality registry unless real Saul explicitly classifies the invariant as genuinely semantic/non-automatable."
 - "Do not PASS from documentation or scaffold presence. Real Hostinger Saul must verify executable behavior on the exact current state."
+- "finding-ci-detectors-bloat (ctr-code-pr62smoke): include split, finding-regression-guards + saul-review-controller, four --self-test run: lines. Executables present locally. IMPLEMENTED_AWAITING_SAUL. Not PASSED."

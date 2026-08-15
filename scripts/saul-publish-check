@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# saul-publish-check — GitHub Check `Saul / Product Quality` evidence surface (NOT proof).
+# referenced: scripts/lib/sai_auth_saul_check.py scripts/lib/sai_auth_saul_attestation_v2.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+export PYTHONPATH="$ROOT/scripts/lib${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 "$ROOT/scripts/lib/sai_auth_saul_check.py" "$@"

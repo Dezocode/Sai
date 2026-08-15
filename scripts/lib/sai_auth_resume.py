@@ -91,6 +91,7 @@ def exit_satisfied(state: dict, head: str, saul, sai_disp) -> bool:
     if not saul:
         return False
     rev = state.get("contract_revision")
+    # Same canonical v2 verifier as shard/arch/convergence (merge_viable_saul).
     viable, _ = merge_viable_saul(saul, head, rev)
     if not viable:
         return False
@@ -127,7 +128,9 @@ def reconstruct(root) -> dict:
     programs, _ = load_programs(root)
     workers = state.get("workers") or state.get("active_workers") or []
     liveness = state.get("liveness")
-    viable, _ = merge_viable_saul(saul or {}, live_head, state.get("contract_revision"))
+    viable, _ = merge_viable_saul(
+        saul or {}, live_head, state.get("contract_revision"), root=root,
+    )
     invalid_ready = liveness == "READY_FOR_HUMAN_REVIEW" and not viable
     if invalid_ready:
         liveness = "WAITING_EXTERNAL"

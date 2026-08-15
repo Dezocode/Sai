@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/saul-attestation-v2.schema.json",
+  "title": "Saul Ed25519 attestation v2 canonical payload",
+  "description": "Exact-state signed fields. Candidate HEAD is never the trust anchor. Fixture keys are test-only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "alg", "key_id", "repository", "pr", "program_id",
+    "contract_id", "contract_revision", "base_sha", "implementation_head",
+    "diff_digest", "review_type", "review_scope", "shard_id",
+    "shard_input_digest", "coverage_manifest_digest",
+    "reviewed_unit_digest_root", "architecture_domain",
+    "architecture_proof_digest", "findings_digest", "disposition",
+    "codex_invoked", "synthetic", "review_id", "ts"
+  ],
+  "properties": {
+    "version": { "type": "integer", "const": 2 },
+    "alg": { "type": "string", "const": "ed25519" },
+    "key_id": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "repository": { "type": "string", "minLength": 1 },
+    "pr": { "type": ["string", "integer", "null"] },
+    "program_id": { "type": ["string", "null"] },
+    "contract_id": { "type": "string", "minLength": 1 },
+    "contract_revision": { "type": "integer" },
+    "base_sha": { "type": "string", "minLength": 40 },
+    "implementation_head": { "type": "string", "minLength": 40 },
+    "diff_digest": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "review_type": { "type": "string" },
+    "review_scope": { "type": "string" },
+    "shard_id": { "type": ["string", "null"] },
+    "shard_input_digest": { "type": ["string", "null"] },
+    "coverage_manifest_digest": { "type": ["string", "null"] },
+    "reviewed_unit_digest_root": { "type": ["string", "null"] },
+    "architecture_domain": { "type": ["string", "null"] },
+    "architecture_proof_digest": { "type": ["string", "null"] },
+    "findings_digest": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "disposition": {
+      "type": "string",
+      "enum": ["APPROVE", "REQUEST_CHANGES", "BLOCKED"]
+    },
+    "codex_invoked": { "type": "boolean", "const": true },
+    "synthetic": { "type": "boolean", "const": false },
+    "review_id": { "type": "string", "minLength": 1 },
+    "ts": { "type": "string", "minLength": 1 }
+  }
+}

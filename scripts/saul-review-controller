@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# saul-review-controller — wake Sai only on cryptographic technical convergence.
+# referenced: scripts/lib/sai_auth_saul_controller.py scripts/lib/sai_auth_saul_controller_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+exec python3 "$ROOT/scripts/lib/sai_auth_saul_controller.py" "$@"

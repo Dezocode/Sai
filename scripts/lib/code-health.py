@@ -41,6 +41,17 @@ KNOWN_FIXTURES = {
 }
 
 
+def _yaml_fixtures(rel: str) -> set:
+    p = Path(__file__).resolve().parents[2] / rel
+    if not p.is_file() or yaml is None:
+        return set()
+    data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+    return {f for c in data.get("checks") or [] for f in (c.get("fixtures") or [])}
+
+
+KNOWN_FIXTURES |= _yaml_fixtures(".ai/_config/code-health-saul.yaml")
+
+
 class Result:
     def __init__(self, quiet=False):
         self.fails = []
@@ -67,6 +78,15 @@ def load_config(root: str) -> dict:
         cfg = yaml.safe_load(fh)
     if not isinstance(cfg, dict) or "checks" not in cfg:
         raise SystemExit("code-health: invalid registry (missing checks)")
+    for rel in cfg.get("include") or []:
+        ip = path.parent / rel
+        if not ip.is_file():
+            raise SystemExit(f"code-health: missing include {rel}")
+        inc = yaml.safe_load(ip.read_text(encoding="utf-8")) or {}
+        cfg.setdefault("checks", []).extend(inc.get("checks") or [])
+        extra = inc.get("saul_quality_learning")
+        if isinstance(extra, dict):
+            cfg.setdefault("saul_quality_learning", {}).update(extra)
     return cfg
 
 
@@ -391,8 +411,29 @@ def self_test() -> int:
         spec.loader.exec_module(mod)
         executed.update(mod.run_synthetic_fixtures())
 
+    root = ""
     try:
         root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
+    except subprocess.CalledProcessError:
+        pass
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(Path(__file__).resolve().parent) + os.pathsep + env.get("PYTHONPATH", "")
+    if root:
+        for name in (
+            "verify-saul-shard-quality", "verify-saul-architecture-quality",
+            "verify-saul-authenticity", "verify-saul-finding-regression-guards",
+        ):
+            sp = Path(root) / "scripts" / name
+            if not sp.is_file():
+                continue
+            proc = subprocess.run(
+                [str(sp), "--self-test"], cwd=root, capture_output=True, text=True, env=env,
+            )
+            for line in (proc.stdout + "\n" + proc.stderr).splitlines():
+                if line.startswith("SELFTEST PASS"):
+                    tok = line.split("SELFTEST PASS", 1)[-1].strip().split()
+                    if tok:
+                        executed.add(tok[0])
         live = load_config(root)
         for check in live.get("checks") or []:
             if check.get("self_test") != "synthetic":
@@ -400,8 +441,6 @@ def self_test() -> int:
             for fix in check.get("fixtures") or []:
                 if fix not in executed:
                     errors.append(f"declared fixture {fix!r} on {check.get('id')} was not executed")
-    except subprocess.CalledProcessError:
-        pass
 
     if errors:
         print(f"code-health self-test: {len(errors)} failure(s)", file=sys.stderr)

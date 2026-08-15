@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/saul-architecture-evidence.schema.json",
+  "title": "Saul architecture review evidence",
+  "description": "Exact-head LOCAL_ARCH / IMPACT_ARCH / SYSTEM_ARCH evidence. Identity fields are caller-supplied; this schema does not encode a current PR, contract, branch, or SHA.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_id",
+    "repository",
+    "base_sha",
+    "head_sha",
+    "local_arch",
+    "impact_arch",
+    "system_arch",
+    "domains",
+    "shard_coverage",
+    "convergence",
+    "blockers",
+    "system_arch_required_now"
+  ],
+  "properties": {
+    "schema_id": {
+      "type": "string",
+      "const": "saul-architecture-evidence"
+    },
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "repository": { "type": "string", "minLength": 1 },
+    "base_sha": { "type": "string", "minLength": 7 },
+    "head_sha": { "type": "string", "minLength": 7 },
+    "quality_policy_digest": { "type": "string" },
+    "context_digest": { "type": "string" },
+    "review_kinds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["LOCAL_ARCH", "IMPACT_ARCH", "SYSTEM_ARCH"]
+      }
+    },
+    "local_arch": { "$ref": "#/$defs/kind_result" },
+    "impact_arch": { "$ref": "#/$defs/kind_result" },
+    "system_arch": {
+      "type": "object",
+      "required": ["verdict", "performed", "required_now"],
+      "additionalProperties": true,
+      "properties": {
+        "verdict": { "$ref": "#/$defs/verdict" },
+        "performed": { "type": "boolean" },
+        "required_now": { "type": "boolean" }
+      }
+    },
+    "system_arch_required_now": { "type": "boolean" },
+    "domains": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/domain_record" }
+    },
+    "shard_coverage": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "expected": { "type": "array", "items": { "type": "string" } },
+        "passed": { "type": "array", "items": { "type": "string" } },
+        "missing": { "type": "array", "items": { "type": "string" } },
+        "failed": { "type": "array", "items": { "type": "string" } },
+        "expected_count": { "type": "integer", "minimum": 0 },
+        "passed_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "convergence": {
+      "type": "object",
+      "required": ["converged", "reason"],
+      "additionalProperties": true,
+      "properties": {
+        "converged": { "type": "boolean" },
+        "reason": { "type": "string" }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/arch_blocker" }
+    },
+    "ledger_write": { "type": "boolean" }
+  },
+  "$defs": {
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS_CURRENT", "FAIL", "STALE", "NOT_APPLICABLE"]
+    },
+    "domain_id": {
+      "type": "string",
+      "enum": [
+        "authorization",
+        "identity",
+        "trust_boundaries",
+        "operational_context",
+        "state_ownership",
+        "multi_primary_isolation",
+        "ralph_control_flow",
+        "cora_routing",
+        "contractor_isolation",
+        "blocker_lifecycle",
+        "saul_review",
+        "sai_governance",
+        "event_routing",
+        "recovery_resume",
+        "ci_quality",
+        "workflow_security",
+        "persistence",
+        "interfaces_schemas",
+        "observability",
+        "resource_bounds",
+        "dependency_direction",
+        "failure_recovery",
+        "portability",
+        "simplicity",
+        "reviewability",
+        "requirement_coherence"
+      ]
+    },
+    "kind_result": {
+      "type": "object",
+      "required": ["verdict"],
+      "additionalProperties": true,
+      "properties": {
+        "verdict": { "$ref": "#/$defs/verdict" },
+        "components": { "type": "array" },
+        "neighborhood": { "type": "array" },
+        "invalidated_domains": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/domain_id" }
+        }
+      }
+    },
+    "domain_record": {
+      "type": "object",
+      "required": ["verdict"],
+      "additionalProperties": true,
+      "properties": {
+        "verdict": { "$ref": "#/$defs/verdict" },
+        "local": { "type": "boolean" },
+        "impact": { "type": "boolean" },
+        "untouched_files": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "arch_blocker": {
+      "type": "object",
+      "required": [
+        "blocker_id",
+        "category",
+        "clearance_authority",
+        "status",
+        "domain"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "blocker_id": {
+          "type": "string",
+          "pattern": "^ARCH-[A-Z0-9-]+-[0-9]{3}$"
+        },
+        "category": { "type": "string", "const": "technical" },
+        "clearance_authority": { "type": "string", "const": "saul" },
+        "status": { "type": "string" },
+        "domain": { "$ref": "#/$defs/domain_id" },
+        "ledger_write": { "type": "boolean", "const": false },
+        "self_pass_forbidden": { "type": "boolean", "const": true }
+      }
+    }
+  }
+}

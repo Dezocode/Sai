@@ -182,7 +182,11 @@ def run_identity_fixtures():
             else:
                 os.environ["SAI_SAUL_ATTEST_PUB"] = old
 
-        mv, mreason = merge_viable_saul(good, HEAD_A, REV, pub_pem=str(pub))
+        from sai_auth_saul_attestation_v2 import make_signed_review_v2
+        v2good = make_signed_review_v2(
+            str(priv), str(pub), implementation_head=HEAD_A, contract_revision=REV,
+        )
+        mv, mreason = merge_viable_saul(v2good, HEAD_A, REV, pub_pem=str(pub))
         executed.add("merge-viable-signed-approve")
         if not mv or mreason != QUALIFY_OK:
             raise RuntimeError((mv, mreason))

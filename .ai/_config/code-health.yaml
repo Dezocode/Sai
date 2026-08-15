@@ -3,6 +3,8 @@
 version: 1
 decision: "0005"
 owner: "Saul (CTO)"
+include:
+  - code-health-saul.yaml
 
 ci:
   workflow: ".github/workflows/agent-audit.yml"
@@ -273,31 +275,6 @@ checks:
     status: active
     command: "scripts/sai-dispatch-transition --self-test"
     self_test: live-pass
-
-  # Blocking architecture requirement REQ-5300146420. These are deliberately
-  # deferred until real executable detectors/controller + synthetic fixtures
-  # exist; documentation must not turn them active or claim PASS.
-  - id: saul-sha-shard-quality
-    class: health-detector
-    status: deferred
-    command: "scripts/verify-saul-shard-quality --self-test"
-    self_test: none
-    activate_when: "REQ-5300146420 implements exact-SHA shard manifest/coverage validation, real-Codex evidence checks, positive+negative fixtures, and unconditional CI wiring."
-    note: "Shard is exact base/head SHA-bound review chunk, not an arbitrary file bucket."
-
-  - id: saul-architecture-quality
-    class: health-detector
-    status: deferred
-    command: "scripts/verify-saul-architecture-quality --self-test"
-    self_test: none
-    activate_when: "REQ-5300146420 implements LOCAL_ARCH + IMPACT_ARCH invalidation fixtures and current-head SYSTEM_ARCH convergence validation."
-
-  - id: saul-finding-regression-guard
-    class: health-detector
-    status: deferred
-    command: "scripts/verify-saul-finding-regression-guards --self-test"
-    self_test: none
-    activate_when: "REQ-5300146420 implements per-blocking-finding deterministic/heuristic guard linkage, fixture proof, semantic-Saul exception handling, and unconditional CI wiring."
 
   - id: app-unit-tests
     class: runtime

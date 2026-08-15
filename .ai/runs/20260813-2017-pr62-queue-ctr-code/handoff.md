@@ -95,3 +95,24 @@ sets `PYTHONPATH` to `scripts/lib`. Did not PASS. Did not push.
 
 Next safe action: Hostinger Saul signs this exact head against v12.
 Do not claim READY_FOR_HUMAN_REVIEW.
+
+## Wave finding-ci-detectors-bloat (20260815)
+
+Split `.ai/_config/code-health.yaml` via `include: code-health-saul.yaml`
+(both ≤300). `load_config` merges include checks. Implemented
+`verify-saul-finding-regression-guards` and `saul-review-controller`.
+Wired four `verify-saul-* --self-test` run: lines in icm-enforcement.
+B-SAUL-QUALITY-LOOP-001 is IMPLEMENTED_AWAITING_SAUL (executables present
+locally; sister shard/arch/authenticity also present). Not PASSED. Did
+not push. Did not merge. Do not claim READY_FOR_HUMAN_REVIEW.
+
+Integrated four v12 slices on this SHA: sha-shard-coverage,
+architecture-review, authenticity-primary-context, and
+finding-ci-detectors-bloat. Local `verify-saul-* --self-test`,
+identity, resume, blockers, and `verify-code-health` (self-test +
+live, including bloat ≤300) passed. `merge_viable_saul` requires
+attestation v2. Cursor is not Saul. Did not PASS. Did not merge.
+
+Next: Hostinger Saul reviews this exact head. Do not claim
+READY_FOR_HUMAN_REVIEW.
+

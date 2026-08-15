@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/saul-review-manifest.schema.json",
+  "title": "Saul trusted review-unit manifest",
+  "description": "Complete changed-unit manifest derived by trusted code from Git at exact base_sha/head_sha. Candidate-produced manifests are not authoritative. A shard is a bounded SHA-derived review chunk, not a file bucket.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "derived_by",
+    "repository",
+    "base_sha",
+    "head_sha",
+    "diff_digest",
+    "unit_root",
+    "policy_digest",
+    "units",
+    "shards"
+  ],
+  "properties": {
+    "schema": { "type": "string", "const": "saul-review-manifest" },
+    "derived_by": { "type": "string", "const": "trusted-git" },
+    "repository": { "type": "string", "minLength": 1 },
+    "base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "head_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "diff_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "unit_root": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "policy_digest": { "type": "string", "minLength": 16 },
+    "units": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/unit" }
+    },
+    "shards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/shard" }
+    }
+  },
+  "$defs": {
+    "range": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["start", "count"],
+      "properties": {
+        "start": { "type": "integer", "minimum": 0 },
+        "count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "unit": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "unit_id",
+        "path",
+        "change_type",
+        "content_digest",
+        "context_digest",
+        "dependency_digest",
+        "architecture_domains",
+        "architecture_digest"
+      ],
+      "properties": {
+        "unit_id": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "path": { "type": "string", "minLength": 1 },
+        "old_path": { "type": ["string", "null"] },
+        "change_type": {
+          "type": "string",
+          "enum": ["add", "delete", "rename", "mode", "hunk", "binary"]
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["text", "workflow", "schema", "config", "binary"]
+        },
+        "old_range": { "$ref": "#/$defs/range" },
+        "new_range": { "$ref": "#/$defs/range" },
+        "content_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "context_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "dependency_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "architecture_domains": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "architecture_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "shard": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["shard_id", "unit_ids"],
+      "properties": {
+        "shard_id": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "unit_ids": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

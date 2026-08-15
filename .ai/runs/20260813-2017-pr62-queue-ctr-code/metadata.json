@@ -22,8 +22,8 @@
     "tests/authorization/",
     ".ai/runs/20260813-2017-pr62-queue-ctr-code/"
   ],
-  "wave": "20260814-saul-bootstrap-p0",
-  "work_item": "SAUL-BOOTSTRAP-HEAD-001",
+  "wave": "20260815-saul-quality-loop",
+  "work_item": "B-SAUL-QUALITY-LOOP-001",
   "plan_reference_bootstrap": ".ai/runs/20260813-2017-pr62-queue-ctr-code/02_plan/output/plan.md",
   "cora_head_confirmed": "d4e86cbcd9f342a0bae9836483461ec2134b4c17",
   "do_not_provision_trusted_reviewer": true,

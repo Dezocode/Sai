@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# verify-saul-architecture-quality — LOCAL_ARCH / IMPACT_ARCH / SYSTEM_ARCH.
+# referenced: scripts/lib/sai_auth_review_architecture.py scripts/lib/sai_auth_review_architecture_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+if [[ "${1:-}" == "--self-test" ]]; then
+  exec python3 "$ROOT/scripts/lib/sai_auth_review_architecture_test.py"
+fi
+exec python3 "$ROOT/scripts/lib/sai_auth_review_architecture.py" "$@"

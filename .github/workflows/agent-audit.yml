@@ -49,7 +49,12 @@ jobs:
                    scripts/freeze-trusted-reviewer-once \
                    scripts/sai-blockers scripts/sai-wait \
                    scripts/verify-saul-workflow-trust \
-                   scripts/saul-attest scripts/saul-hostinger-bootstrap-review
+                   scripts/saul-attest scripts/saul-hostinger-bootstrap-review \
+                   scripts/verify-saul-shard-quality \
+                   scripts/verify-saul-architecture-quality \
+                   scripts/verify-saul-authenticity \
+                   scripts/verify-saul-finding-regression-guards \
+                   scripts/saul-review-controller
 
       - name: Verify scaffold path safety
         run: scripts/verify-scaffold-safety
@@ -88,6 +93,10 @@ jobs:
           python3 scripts/lib/sai_auth_bootstrap_test.py
           scripts/sai-wait --self-test
           scripts/verify-saul-workflow-trust --self-test
+          scripts/verify-saul-shard-quality --self-test
+          scripts/verify-saul-architecture-quality --self-test
+          scripts/verify-saul-authenticity --self-test
+          scripts/verify-saul-finding-regression-guards --self-test
 
       - name: Record dual-approval human gate
         continue-on-error: true

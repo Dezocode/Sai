@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# saul-review-shards — derive trusted SHA-bound review-unit manifest from Git.
+# referenced: scripts/lib/sai_auth_review_coverage.py scripts/lib/sai_auth_review_coverage_test.py scripts/verify-saul-shard-quality
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+export PYTHONPATH="$ROOT/scripts/lib${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 "$ROOT/scripts/lib/sai_auth_review_coverage.py" shards "$@"

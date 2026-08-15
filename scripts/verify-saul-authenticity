@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# verify-saul-authenticity — canonical v2 Ed25519 verifier + authenticity fixtures.
+# referenced: scripts/lib/sai_auth_saul_attestation_v2.py scripts/lib/sai_auth_saul_attestation_v2_test.py scripts/lib/sai_auth_saul_check.py scripts/lib/sai_auth_primary_context.py scripts/lib/sai_auth_primary_context_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+export PYTHONPATH="$ROOT/scripts/lib${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 "$ROOT/scripts/lib/sai_auth_saul_attestation_v2.py" "$@"

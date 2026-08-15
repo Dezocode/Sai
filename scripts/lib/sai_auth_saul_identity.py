@@ -195,8 +195,22 @@ def qualifying_saul_review(review, exact_head, exact_contract_revision, *,
 
 
 def merge_viable_saul(review, exact_head, exact_rev, **kw) -> tuple[bool, str]:
-    ok, reason = qualifying_saul_review(
-        review, exact_head, exact_rev, pub_pem=kw.get("pub_pem"),
+    """Merge-viable requires attestation.version=2 + canonical v2 verify.
+
+    v1 may still historically qualify via qualifying_saul_review; never merge_viable.
+    """
+    from sai_auth_saul_attestation_v2 import (
+        HISTORICAL_V1_NOT_MERGE_VIABLE, att_version, verify_attestation_v2,
+    )
+    ver = att_version(review)
+    if ver != 2:
+        return False, HISTORICAL_V1_NOT_MERGE_VIABLE if ver == 1 else INVALID_SAUL_IDENTITY
+    ok, reason = verify_attestation_v2(
+        review, exact_head=exact_head, exact_rev=exact_rev,
+        pub_pem=kw.get("pub_pem"), root=kw.get("root"),
+        candidate_root=kw.get("candidate_root"),
+        exact_base=kw.get("exact_base"), expected=kw.get("expected"),
+        now=kw.get("now"),
     )
     if not ok:
         return False, reason
