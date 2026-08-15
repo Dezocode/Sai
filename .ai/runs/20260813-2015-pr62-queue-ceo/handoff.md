@@ -89,3 +89,12 @@ Did not merge. Did not mark ready. Agents never merge PR #62.
 Next safe action: contractor A-010 implementation under existing paths
 (quality profile, CTO-025 merge-activation design, merge package);
 Saul rereview of the new head. Primary continues `REASSESS BLOCKERS`.
+
+## Decision 0009 persist (2026-08-15)
+
+Officer wave `.ai/runs/20260815-1928-pr62-queue-ceo/` persisted ONE
+immutable Decision 0009 (Trusted Saul Comptroller + nested SHA-bound
+product-quality loop, including the domain-aware quality-reference
+hierarchy). Supersedes only this record's 2026-08-14 sentence
+"No Decision 0009". Did not PASS any blocker. Did not implement
+scripts. Do not merge. Do not mark ready. Cursor is never Saul.

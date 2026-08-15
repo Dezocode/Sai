@@ -54,4 +54,25 @@ exists. Line-shingle Jaccard is not semantic clone detection.
   two-primary implementation cap (Runtime Intelligence stacked PRs exempt
   per decision 0007). Empty worker lists are not exit. Candidate HEAD is
   never the trusted reviewer.
+- Trusted Saul Comptroller + nested SHA-bound product-quality loop
+  (decision 0009; appends 0005/0006/0008 + REQs 5300146420/5300187244;
+  supersedes only 0008's "No Decision 0009" clause). Two loops must not
+  collapse: OUTER Ralph (`REASSESS_BLOCKERS` until
+  `READY_FOR_HUMAN_REVIEW`) and INNER real Hostinger Saul (SHA-bound
+  shards + `LOCAL_ARCH`/`IMPACT_ARCH`; `SYSTEM_ARCH` before technical
+  convergence). Physical Cursor end is not program completion. Sai wakes
+  only on cryptographic real-Saul technical convergence; Sai FAIL returns
+  to Ralph. Checks: aggregate `Saul / Product Quality` plus generated
+  `Saul / Blocker / <ID>` from the canonical ledger — not one workflow
+  per blocker. GitHub App is transport identity; Ed25519 exact-state
+  attestation is technical proof. Domain-aware **references** (not
+  imported frameworks) feed one 0005 quality system: `rust-lang/rust`
+  (control-plane), `tailscale/tailscale` (Go), `element-hq/element-x-ios`
+  (Swift/SwiftUI), TCA principles only, `pointfreeco/isowords`,
+  swift-format/testing, OpenSSF OSPS+Scorecard. Mapping:
+  domain → properties → 0005 invariant → detector/CI → Saul judgment →
+  blocker Check. Anti-ballooning: one backbone, one blocker universe, one
+  readiness predicate, one Check projection. `B-RALPH-BLOCKER-CI-CONVERGENCE-001`
+  clears last. Repo-enforced rejects false complete/terminal/missing
+  projection/missing Saul gate. This memory does not PASS those blockers.
 - Google Drive is a replicated recovery layer per `.ai/_config/sync-policy.md`.

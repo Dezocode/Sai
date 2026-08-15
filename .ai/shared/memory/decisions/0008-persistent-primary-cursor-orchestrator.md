@@ -435,3 +435,7 @@ the same exact state, CI green, and merge package complete. Human action
 is review+merge, not land another workflow then restart agents.
 
 Do not merge. Do not mark ready. Agents never merge PR #62.
+
+## Amendment 2026-08-15 (Decision 0009)
+
+The 2026-08-14 sentence in this record that said "No Decision 0009" is superseded by Decision 0009; this record remains accepted and is not otherwise rewritten.

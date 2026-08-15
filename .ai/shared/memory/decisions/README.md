@@ -10,7 +10,8 @@ NNNN` and leave it in place.
 
 See also: `0006-agent-authorization-loop.md` (accepted; PR #62 comment 5282088737),
 `0007-parallel-runtime-intelligence-plane.md`,
-`0008-persistent-primary-cursor-orchestrator.md` (PR #62 comment 5287297355).
+`0008-persistent-primary-cursor-orchestrator.md` (PR #62 comment 5287297355),
+`0009-trusted-saul-comptroller-product-quality-loop.md` (accepted; PR #62 comments 5303750100, 5303804678, 5303809236; supersedes only 0008's "No Decision 0009" clause).
 
 Template:
 
