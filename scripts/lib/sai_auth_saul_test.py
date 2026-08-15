@@ -2,6 +2,7 @@
 """CTO-012 / shell-safety / saul_review_key fixtures. Candidate PR is DATA."""
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import tempfile
@@ -204,6 +205,35 @@ def run_saul_trust_fixtures():
         if sentinel.read_bytes() != before:
             raise RuntimeError("production package mutated by --self-test")
         print("SELFTEST PASS  saul-wrapper-selftest-does-not-mutate-prod-package")
+    executed.add("saul-check-unsigned-not-pass-bad")
+    from sai_auth_saul_check import (
+        CHECK_NAME, ZERO_AUTHORITY, build_publish_payload, check_run_body,
+        publish_check_run,
+    )
+    blocked = {
+        "disposition": "BLOCKED", "reason": "NO_ARTIFACT",
+        "codex_invoked": False, "synthetic": False, "findings": [],
+    }
+    payload = build_publish_payload(blocked, exact_head="a" * 40)
+    if payload.get("name") != CHECK_NAME or payload.get("conclusion") != "failure":
+        raise RuntimeError(payload)
+    if payload.get("authority") != ZERO_AUTHORITY:
+        raise RuntimeError("unsigned BLOCKED must not be ATTESTATION_V2")
+    fake_pass = build_publish_payload(blocked, exact_head="a" * 40,
+                                      conclusion_override="success")
+    if fake_pass.get("conclusion") != "failure":
+        raise RuntimeError("unsigned must not fake PASS")
+    print("SELFTEST PASS  saul-check-unsigned-not-pass-bad")
+
+    executed.add("saul-check-publish-no-secret-good")
+    body = check_run_body(payload)
+    blob = json.dumps(body)
+    if "BEGIN PRIVATE KEY" in blob or body.get("name") != CHECK_NAME:
+        raise RuntimeError(body)
+    os.environ.pop("GH_TOKEN", None)
+    if publish_check_run(payload, repo="Dezocode/Sai") == 0:
+        raise RuntimeError("publish without GH_TOKEN must fail closed")
+    print("SELFTEST PASS  saul-check-publish-no-secret-good")
     return executed
 
 

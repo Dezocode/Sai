@@ -43,6 +43,7 @@ permissions:
   contents: read
   pull-requests: write
   statuses: write
+  checks: write
 
 jobs:
   invoke-saul:
@@ -188,6 +189,29 @@ jobs:
               || echo "attest failed; verifier fail-closed"
           else
             echo "unsigned; verifier fail-closed (missing key or saul-attest)"
+          fi
+
+      # GitHub Check name (exact): Saul / Product Quality — evidence, not proof.
+      - name: Publish Saul Product Quality Check
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.inputs.sha || github.event.pull_request.head.sha || github.sha }}
+          CHECK_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          ROOT="${SAI_TRUSTED_TREE:-}"
+          PY="$ROOT/scripts/lib/sai_auth_saul_check.py"
+          PUB="$ROOT/scripts/saul-publish-check"
+          if [ ! -f "$PY" ] && [ ! -x "$PUB" ]; then
+            echo "BLOCKED TRUSTED_PUBLISHER_MISSING"
+            exit 1
+          fi
+          IN=/tmp/saul/review.yaml
+          [ -f "$IN" ] || printf '%s\n' 'disposition: BLOCKED' 'reason: NO_ARTIFACT' 'codex_invoked: false' 'synthetic: false' 'findings: []' > "$IN"
+          cd "$ROOT"
+          if [ -x "$PUB" ]; then ./scripts/saul-publish-check --in "$IN" --head "$HEAD_SHA" --publish --repo "$CHECK_REPO"
+          else python3 "$PY" --in "$IN" --head "$HEAD_SHA" --publish --repo "$CHECK_REPO"
           fi
 
       - name: Claim remediation transition

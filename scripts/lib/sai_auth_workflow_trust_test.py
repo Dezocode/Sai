@@ -110,6 +110,49 @@ def run_workflow_trust_fixtures():
     if on_main:
         raise RuntimeError("do not fake saul-cto-review.default-branch.yml onto origin/main")
     print("SELFTEST PASS  cto021-not-faked-on-main")
+
+    executed.add("trusted-check-publish-from-trusted-tree-good")
+    perms = trusted_doc.get("permissions") or {}
+    if perms.get("checks") != "write":
+        raise RuntimeError("trusted workflow must grant checks: write")
+    if "Saul / Product Quality" not in trusted_text:
+        raise RuntimeError("Check name must be exactly Saul / Product Quality")
+    pub = trusted_text.split("- name: Publish Saul Product Quality Check", 1)
+    if len(pub) < 2:
+        raise RuntimeError("missing Publish Saul Product Quality Check step")
+    chunk = pub[1].split("\n      - name:", 1)[0]
+    if "SAI_TRUSTED_TREE" not in chunk:
+        raise RuntimeError("publisher must resolve SAI_TRUSTED_TREE")
+    if "saul-publish-check" not in chunk and "sai_auth_saul_check.py" not in chunk:
+        raise RuntimeError("publisher must run saul-publish-check or python equivalent")
+    if "candidate-data/scripts/" in chunk or "$SAI_CANDIDATE_TREE/scripts/" in chunk:
+        raise RuntimeError("publisher must not execute candidate-data")
+    if "GH_TOKEN:" not in chunk:
+        raise RuntimeError("publisher step must keep GH_TOKEN")
+    if "TRUSTED_PUBLISHER_MISSING" not in chunk:
+        raise RuntimeError("missing trusted publisher must fail closed")
+    if "--publish" not in chunk:
+        raise RuntimeError("publisher must pass --publish")
+    print("SELFTEST PASS  trusted-check-publish-from-trusted-tree-good")
+
+    executed.add("unsigned-check-not-pass-bad")
+    from sai_auth_saul_check import (
+        CHECK_NAME, ZERO_AUTHORITY, build_publish_payload,
+    )
+    blocked = {
+        "disposition": "BLOCKED", "reason": "NO_ARTIFACT",
+        "codex_invoked": False, "synthetic": False, "findings": [],
+    }
+    payload = build_publish_payload(blocked, exact_head="a" * 40)
+    if payload.get("name") != CHECK_NAME or payload.get("conclusion") != "failure":
+        raise RuntimeError(payload)
+    if payload.get("authority") != ZERO_AUTHORITY:
+        raise RuntimeError("unsigned BLOCKED must not be ATTESTATION_V2")
+    fake = build_publish_payload(blocked, exact_head="a" * 40,
+                                 conclusion_override="success")
+    if fake.get("conclusion") != "failure":
+        raise RuntimeError("unsigned must not fake PASS")
+    print("SELFTEST PASS  unsigned-check-not-pass-bad")
     return executed
 
 

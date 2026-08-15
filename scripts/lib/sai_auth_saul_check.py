@@ -10,6 +10,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -114,10 +116,14 @@ def build_publish_payload(review, *, exact_head, exact_rev=None, pub_pem=None,
         pub_pem=pub_pem, root=root,
     )
     ev = evidence_surface(review or {}, verified=ok, reason=reason)
+    # Never fake PASS: unsigned/BLOCKED/unverified → failure.
     conclusion = conclusion_override or ("success" if ok else "failure")
+    if not ok:
+        conclusion = "failure"
     return {
         "name": CHECK_NAME,
         "head_sha": exact_head,
+        "status": "completed",
         "conclusion": conclusion,
         "output": {
             "title": CHECK_NAME,
@@ -132,6 +138,45 @@ def build_publish_payload(review, *, exact_head, exact_rev=None, pub_pem=None,
     }
 
 
+def check_run_body(payload: dict) -> dict:
+    """GitHub Checks API body. Name exact. No PEM/keys."""
+    blob = json.dumps(payload, default=str)
+    if any(m in blob for m in ("BEGIN PRIVATE KEY", "BEGIN OPENSSH PRIVATE KEY")):
+        raise ValueError("refusing to publish private key material")
+    return {
+        "name": CHECK_NAME,
+        "head_sha": payload.get("head_sha"),
+        "status": "completed",
+        "conclusion": payload.get("conclusion") or "failure",
+        "output": payload.get("output") or {
+            "title": CHECK_NAME,
+            "summary": json.dumps({"check_name_is_proof": False, "verified": False}),
+        },
+    }
+
+
+def publish_check_run(payload: dict, *, repo: str) -> int:
+    """POST/update Check via gh. Requires GH_TOKEN. Fail closed if missing."""
+    if not os.environ.get("GH_TOKEN"):
+        print("BLOCKED GH_TOKEN_MISSING", file=sys.stderr)
+        return 1
+    if not repo:
+        print("BLOCKED REPO_MISSING", file=sys.stderr)
+        return 1
+    body = json.dumps(check_run_body(payload))
+    proc = subprocess.run(
+        ["gh", "api", f"repos/{repo}/check-runs", "-X", "POST", "--input", "-"],
+        input=body, capture_output=True, text=True,
+    )
+    if proc.stdout:
+        print(proc.stdout, end="" if proc.stdout.endswith("\n") else "\n")
+    if proc.returncode != 0:
+        err = (proc.stderr or "").strip()
+        print(f"BLOCKED CHECK_PUBLISH_FAILED {err[:200]}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def cmd(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     p = argparse.ArgumentParser(prog="saul-publish-check")
@@ -139,13 +184,19 @@ def cmd(argv=None):
     p.add_argument("--head", required=True)
     p.add_argument("--rev", default=None)
     p.add_argument("--pub", default=None)
-    p.add_argument("--dry-run", action="store_true", default=True)
+    p.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY") or "")
+    p.add_argument("--publish", action="store_true")
+    p.add_argument("--dry-run", action="store_true", default=False)
     args = p.parse_args(argv)
     review = a.read_yaml(Path(args.inp)) or {}
     payload = build_publish_payload(
         review, exact_head=args.head, exact_rev=args.rev, pub_pem=args.pub,
     )
     print(json.dumps(payload, indent=2, default=str))
+    if args.publish and not args.dry_run:
+        rc = publish_check_run(payload, repo=args.repo)
+        if rc != 0:
+            return rc
     return 0 if payload.get("authority") == ATTESTATION_V2 else 1
 
 
