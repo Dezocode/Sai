@@ -19,6 +19,27 @@ runtime_evaluation:
   # live-pass means "this tree currently passes"; it is not a negative evaluation.
   require_negative_fixtures_for_classes: [health-detector]
 
+# Principal requirement PR #62 comment 5300146420. This extends Decision 0005;
+# it does not create a second quality registry. The executable implementation is
+# still blocking and the deferred rows below must become active before the
+# requirement can be considered implemented.
+saul_quality_learning:
+  requirement: "REQ-5300146420"
+  blocker: "B-SAUL-QUALITY-LOOP-001"
+  policy: ".ai/shared/quality/"
+  check_name: "Saul / Product Quality"
+  shard_definition: "bounded chunk derived from the exact base/head SHA review state"
+  trigger: "every integrated contractor completion"
+  architecture_each_trigger: [LOCAL_ARCH, IMPACT_ARCH]
+  convergence_architecture: SYSTEM_ARCH
+  blocking_finding_requires_regression_guard: true
+  regression_guard_modes: [deterministic, heuristic, semantic]
+  ci_required_guard_modes: [deterministic, heuristic]
+  require_positive_negative_fixtures: true
+  semantic_exception_requires_real_saul: true
+  progress_must_not_wake_sai: true
+  hostinger_scratch_must_be_bounded: true
+
 scan:
   exclude_prefixes:
     - ".ai/runs/"
@@ -252,6 +273,31 @@ checks:
     status: active
     command: "scripts/sai-dispatch-transition --self-test"
     self_test: live-pass
+
+  # Blocking architecture requirement REQ-5300146420. These are deliberately
+  # deferred until real executable detectors/controller + synthetic fixtures
+  # exist; documentation must not turn them active or claim PASS.
+  - id: saul-sha-shard-quality
+    class: health-detector
+    status: deferred
+    command: "scripts/verify-saul-shard-quality --self-test"
+    self_test: none
+    activate_when: "REQ-5300146420 implements exact-SHA shard manifest/coverage validation, real-Codex evidence checks, positive+negative fixtures, and unconditional CI wiring."
+    note: "Shard is exact base/head SHA-bound review chunk, not an arbitrary file bucket."
+
+  - id: saul-architecture-quality
+    class: health-detector
+    status: deferred
+    command: "scripts/verify-saul-architecture-quality --self-test"
+    self_test: none
+    activate_when: "REQ-5300146420 implements LOCAL_ARCH + IMPACT_ARCH invalidation fixtures and current-head SYSTEM_ARCH convergence validation."
+
+  - id: saul-finding-regression-guard
+    class: health-detector
+    status: deferred
+    command: "scripts/verify-saul-finding-regression-guards --self-test"
+    self_test: none
+    activate_when: "REQ-5300146420 implements per-blocking-finding deterministic/heuristic guard linkage, fixture proof, semantic-Saul exception handling, and unconditional CI wiring."
 
   - id: app-unit-tests
     class: runtime
