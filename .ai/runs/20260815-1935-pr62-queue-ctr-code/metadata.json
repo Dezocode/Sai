@@ -1,0 +1,52 @@
+{
+  "task_id": "20260815-1935-pr62-queue-ctr-code",
+  "standing_task_id": "20260813-2017-pr62-queue-ctr-code",
+  "agent": "ctr-code-pr62smoke",
+  "agent_id": "ctr-code-pr62smoke",
+  "agent_name": "ctr-code-pr62smoke",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/codebase-health-90ba",
+  "base_sha": "c13bef88ad0bd6ee65380fa62171214dee9bc725",
+  "purpose": "Implement Decision 0009 executables for four P0s. Do not PASS. Do not merge. Do not push. Cursor is never Saul.",
+  "status": "in-progress",
+  "plan_reference": ".ai/runs/20260815-1935-pr62-queue-ctr-code/02_plan/output/plan.md",
+  "pr": "https://github.com/Dezocode/Sai/pull/62",
+  "contract_id": "20260813-pr62-saul-smoke",
+  "project_slug": "pr62-saul-smoke",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "authorization_id": "lease-c3a003pr62q1",
+  "lease": "lease-c3a003pr62q1",
+  "contract_revision": "v12",
+  "parent_logical_runtime": "pr62-primary",
+  "parent_physical_runtime": "bc-c7ecf2eb-bb68-557e-a2bf-fe78b61046cc",
+  "claimed_files": [
+    ".ai/runs/20260815-1935-pr62-queue-ctr-code/",
+    ".ai/runs/20260813-2017-pr62-queue-ctr-code/handoff.md",
+    ".ai/runs/20260813-2015-pr62-queue-ceo/coordinator-state.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/",
+    "tests/",
+    "scripts/",
+    ".github/workflows/",
+    ".ai/_config/",
+    ".ai/shared/schemas/"
+  ],
+  "denied_paths": [
+    ".ai/agents/saul/**",
+    ".ai/shared/memory/decisions/**",
+    ".ai/authorizations/**"
+  ],
+  "work_items": [
+    "comptroller-readiness",
+    "frontier-quality-arch",
+    "anti-balloon",
+    "ralph-ci-convergence"
+  ],
+  "do_not_pass": true,
+  "do_not_merge": true,
+  "do_not_push": true,
+  "do_not_mark_ready": true,
+  "self_pass": false,
+  "technical_pass": false
+}
