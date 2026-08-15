@@ -36,3 +36,4 @@
 - "Preserve ID B-RALPH-BLOCKER-CI-CONVERGENCE-001."
 - "Meta; Saul PASSes last. Cora ingested DISCOVERED; did not PASS. reuse v12; no A-013."
 - "Contractor IMPLEMENTING 20260815-1935. Never PASSED by this actor."
+- "Cora 20260815-2025: live reconstruct reassess_blockers=false; Ralph liveness-invariant reuse v12. Status IMPLEMENTING until contractor live-proof. Never PASSED. Meta still last."

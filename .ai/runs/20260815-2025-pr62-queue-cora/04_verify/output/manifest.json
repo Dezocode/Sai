@@ -1,0 +1,20 @@
+{
+  "task_id": "20260815-2025-pr62-queue-cora",
+  "stage": "04_verify",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-15T20:27:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/contracts/20260813-pr62-saul-smoke/reviews/cora-ralph-liveness-v12-reuse.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/blockers/items/B-RALPH-001.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/blockers/items/B-NO-IDLE-SAUL-001.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/blockers/items/B-RALPH-BLOCKER-CI-CONVERGENCE-001.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json",
+    ".ai/runs/20260815-2025-pr62-queue-cora/handoff.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260815-2025-pr62-queue-cora/04_verify/output/verify.md"
+  ],
+  "notes": "reuse=true v13=false A-013=false. No new blockers. No PASS. No push. Statuses unchanged."
+}

@@ -272,3 +272,32 @@ frontier-quality-arch now domain-aware
 Did not commit. Did not push. Do not merge. Do not mark
 ready. Cursor is not Saul.
 
+## Ralph liveness-invariant reuse v12 (grant Task-ID standing run)
+
+Evaluated live reconstruct on exact head f34bc63.
+sai-resume: pr62-primary, READY=false, continue=true,
+liveness=WAITING_EXTERNAL, reassess_blockers=false
+after physical replacement. reuse=true. v13=false.
+Did not issue A-013. No new Decision. No new blocker
+ID. No second Ralph engine. allowed_paths already
+cover sai-resume / watchdog / gated-ci / antiballoon.
+denied_paths unchanged. lease-c3a003pr62q1 reused
+(v12). ctr-code-pr62smoke reused. One-line notes on
+B-RALPH-001 / B-NO-IDLE-SAUL-001 /
+B-RALPH-BLOCKER-CI-CONVERGENCE-001; status unchanged.
+Wave artifacts: `.ai/runs/20260815-2025-pr62-queue-cora/`.
+Admin review: `reviews/cora-ralph-liveness-v12-reuse.yaml`.
+implements false. do_not_merge true. do_not_push true.
+technical_pass false. Contractor next: reassess_blockers
+true whenever exit_predicate_satisfied is false;
+physical replacement always OBSERVE then
+REASSESS_BLOCKERS; frontier classes A/B/C/D (no DONE);
+watchdog COMPLETE next REASSESS_BLOCKERS after
+integrate; live sai-resume --enforce (or gated-ci live)
+fail-closed; fixtures on existing saul-ralph-resume;
+live smoke on this tree. After live proof MAY set the
+three blockers IMPLEMENTED_AWAITING_SAUL. Never PASSED.
+Meta still last for Saul. Do not grow code-health.py.
+Do not PASS. Do not merge. Do not push. Do not mark
+ready. Cursor is not Saul.
+

@@ -1,0 +1,22 @@
+{
+  "task_id": "20260815-2025-pr62-queue-cora",
+  "stage": "01_intake",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-15T20:25:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/CONTEXT.md",
+    ".ai/agents/cora/AGENT.md",
+    ".ai/agents/_roles/contract-administrator/CHARTER.md",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v12.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/reviews/cora-decision-0009-v12-reuse.yaml",
+    ".ai/runs/20260813-2015-pr62-queue-ceo/coordinator-state.json",
+    "scripts/lib/sai_auth_resume.py"
+  ],
+  "outputs": [
+    ".ai/runs/20260815-2025-pr62-queue-cora/01_intake/output/intake.md"
+  ],
+  "notes": "Live reconstruct: WAITING_EXTERNAL + physical replacement => reassess_blockers=false. reuse v12. No new blockers. Do not PASS."
+}

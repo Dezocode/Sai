@@ -29,3 +29,5 @@
 "clearance_review_id": null
 "clearance_head": null
 "status": "DISCOVERED"
+"notes":
+- "Cora 20260815-2025: live HEAD f34bc63 reconstructs reassess_blockers=false under WAITING_EXTERNAL+physical replacement; contractor live-proof required. Status unchanged. Never PASSED by Cora."

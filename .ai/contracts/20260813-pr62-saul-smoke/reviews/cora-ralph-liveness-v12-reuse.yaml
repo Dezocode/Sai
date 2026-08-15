@@ -1,0 +1,116 @@
+reviewer: ctr-admin
+review_type: cora-contract-evaluation
+not_a_saul_consume: true
+consume_script_invoked: false
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: v12
+implementation_head: f34bc63635e088fbcd85a400bc2920263b748ab5
+work_item: ralph-liveness-invariant
+blocker_ids:
+  - B-RALPH-001
+  - B-NO-IDLE-SAUL-001
+  - B-RALPH-BLOCKER-CI-CONVERGENCE-001
+live_gap:
+  command: scripts/sai-resume
+  primary_logical_id: pr62-primary
+  READY_FOR_HUMAN_REVIEW: false
+  continue: true
+  liveness: WAITING_EXTERNAL
+  reassess_blockers: false
+  playbook: orchestrate-waiting-external
+  physical_runtime_continuity: false
+  exit_predicate_satisfied: false
+  worker_wave: COMPLETE
+  defect: >
+    physical_runtime_continuity false remaps playbook only when
+    stored liveness is ACTIVE/REPLACEMENT_REQUIRED, so
+    WAITING_EXTERNAL skip-reassess after a runtime ends.
+  ci_green_is_not_completion: true
+authority: dezocode
+created_at: "2026-08-15T20:25:00Z"
+ingested_by: ctr-admin
+wave: 20260815-2025-pr62-queue-cora
+grant: grant-pr62-queue-cora
+reuse: true
+v13: false
+a013: false
+authority_expanding: false
+path_expansion: false
+human_required: false
+contractor: ctr-code-pr62smoke
+lease: lease-c3a003pr62q1
+allowed_paths:
+  - .ai/runs/**
+  - .ai/contracts/20260813-pr62-saul-smoke/**
+  - tests/**
+  - scripts/**
+  - .github/workflows/**
+  - .ai/_config/**
+  - .ai/shared/schemas/**
+denied_paths:
+  - .ai/agents/saul/**
+  - .ai/shared/memory/decisions/**
+  - .ai/authorizations/**
+do_not_pass: true
+do_not_merge: true
+do_not_push: true
+do_not_mark_ready: true
+cora_admin_complete: true
+technical_pass: false
+implements: false
+new_blockers_created: false
+new_decision_created: false
+second_ralph_engine: false
+reason: >
+  v12 allowed_paths already cover sai-resume, watchdog,
+  saul-gated-ci, and antiballoon. Live reconstruct on
+  f34bc63 proves WAITING_EXTERNAL + physical replacement
+  leaves reassess_blockers false while continue is true
+  and exit_predicate_satisfied is false. Decision 0009
+  already persisted. No A-013/v13. Cora does not PASS.
+  YAML files must stay ≤300. Do not grow code-health.py
+  (486/500). Ordinary CI green is not completion.
+work_items:
+  - id: ralph-liveness-invariant
+    owner: ctr-code-pr62smoke
+    blockers:
+      - B-RALPH-001
+      - B-NO-IDLE-SAUL-001
+      - B-RALPH-BLOCKER-CI-CONVERGENCE-001
+    paths: [scripts/**, tests/**, .ai/_config/**, .github/workflows/**]
+    reuse_engines:
+      - scripts/sai-resume
+      - scripts/sai-watchdog
+      - scripts/verify-saul-gated-ci
+      - antiballoon
+    deliverables:
+      - reassess_blockers true whenever exit_predicate_satisfied is false
+      - physical replacement always OBSERVE then REASSESS_BLOCKERS
+      - distinguish actionable_frontier_empty from program_complete
+      - no fifth state DONE
+      - frontier class A dispatch
+      - frontier class B ACTIVE_EXTERNAL_WAIT
+      - frontier class C HUMAN_BLOCKED
+      - frontier class D READY_FOR_HUMAN_REVIEW
+      - watchdog COMPLETE next transition REASSESS_BLOCKERS after integrate
+      - live sai-resume --enforce or fold into verify-saul-gated-ci live
+      - fail if READY=false and false-terminal claim
+      - fail if READY=false and reassess_blockers false
+      - fail if READY=false and continue false
+      - fail if READY=false and missing ledger or Check projection
+      - positive and negative fixtures on existing saul-ralph-resume check
+      - live reconstruct pr62-primary on this tree
+      - compact evidence under contract tree or this wave run
+    constraints:
+      - do not grow scripts/lib/code-health.py
+      - put new fixtures on saul-ralph-resume in code-health-saul.yaml
+      - unit tests alone insufficient
+      - no second Ralph engine, daemon, blocker DB, readiness engine, or workflow
+      - after live proof MAY set the three blockers IMPLEMENTED_AWAITING_SAUL
+      - never PASSED
+      - B-RALPH-BLOCKER-CI-CONVERGENCE-001 still clears last for Saul
+notes:
+  - Decision 0009 already persisted; do not write a new Decision.
+  - Existing blocker IDs preserved; Cora status unchanged until live-proof.
+  - Meta-blocker B-RALPH-BLOCKER-CI-CONVERGENCE-001 remains last for Saul.
+  - Cursor is not Saul. Cora does not PASS.
