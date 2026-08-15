@@ -14,7 +14,8 @@ Blocking shard or architecture findings enter the canonical blocker ledger immed
 
 - `saul/SHARDS.md` — canonical meaning and proof contract for SHA-bound review shards.
 - `saul/ARCHITECTURE.md` — incremental + system architecture review requirements.
+- `saul/AUTHENTICATION.md` — Hostinger-only Ed25519 signing, public-key-verifiable anti-spoof clearance, and authenticity CI requirements.
 - `saul/FINDING_TO_CI.md` — per-finding regression-guard promotion into Decision-0005 CI.
 - `heuristics/README.md` — bounded heuristic CI rules when an invariant is not cheaply decidable.
 
-Documentation is not completion. PR #62 remains blocked until the executable reviewer/controller, coverage validator, architecture invalidation, GitHub Check publication, finding-to-CI path, fixtures, and readiness integration are implemented and passed by real Saul.
+Documentation is not completion. PR #62 remains blocked until the executable reviewer/controller, coverage validator, architecture invalidation, cryptographic Saul authenticity verification, GitHub Check publication, finding-to-CI path, fixtures, and readiness integration are implemented and passed by real Saul.
