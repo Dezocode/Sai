@@ -396,7 +396,7 @@ def cmd_verify_agent(argv=None):
         from sai_auth_cue_test import run_cue_fixtures
         from sai_auth_event_test import run_event_fixtures
         from sai_auth_rebind_test import run_rebind_fixtures
-        from sai_auth_human_commit_test import run_human_commit_fixtures
+        from sai_auth_human_commit_test import run_human_commit_fixtures  # scripts/lib/sai_auth_human_commit_test.py
         n = run_synthetic_fixtures()
         n |= run_cue_fixtures()
         n |= run_event_fixtures()
