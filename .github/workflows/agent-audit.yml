@@ -88,6 +88,7 @@ jobs:
           scripts/consume-saul-contract-review --self-test
           scripts/sai-dispatch-transition --self-test
           scripts/sai-resume --self-test
+          scripts/sai-resume --enforce
           scripts/sai-watchdog --self-test
           scripts/sai-runtime-registry --self-test
           scripts/provision-trusted-reviewer-root --self-test

@@ -26,8 +26,8 @@
 "work_item": "ralph-ci-convergence"
 "contract": "20260813-pr62-saul-smoke"
 "revision": "v12"
-"status": "IMPLEMENTING"
-"implementation_state": "implementing"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented_awaiting_saul"
 "verification_state": "unverified"
 "clearance_authority": "saul"
 "clearance_review_id": null
@@ -37,3 +37,4 @@
 - "Meta; Saul PASSes last. Cora ingested DISCOVERED; did not PASS. reuse v12; no A-013."
 - "Contractor IMPLEMENTING 20260815-1935. Never PASSED by this actor."
 - "Cora 20260815-2025: live reconstruct reassess_blockers=false; Ralph liveness-invariant reuse v12. Status IMPLEMENTING until contractor live-proof. Never PASSED. Meta still last."
+- "Contractor 20260815-2026 live --enforce exit 0; IMPLEMENTED_AWAITING_SAUL. Never PASSED. Meta still last for Saul."

@@ -23,11 +23,12 @@
 "officer_work_item": "update-sai-orchestration.mdc"
 "contract": "20260813-pr62-saul-smoke"
 "revision": "v5"
-"implementation_state": "open"
+"implementation_state": "implemented_awaiting_saul"
 "verification_state": "unverified"
 "clearance_authority": "saul"
 "clearance_review_id": null
 "clearance_head": null
-"status": "DISCOVERED"
+"status": "IMPLEMENTED_AWAITING_SAUL"
 "notes":
 - "Cora 20260815-2025: live HEAD f34bc63 reconstructs reassess_blockers=false under WAITING_EXTERNAL+physical replacement; contractor live-proof required. Status unchanged. Never PASSED by Cora."
+- "Contractor 20260815-2026 live HEAD 1185783 reconstructs reassess_blockers=true; --enforce exit 0. IMPLEMENTED_AWAITING_SAUL. Never PASSED."

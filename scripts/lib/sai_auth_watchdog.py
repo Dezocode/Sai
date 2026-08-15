@@ -78,7 +78,7 @@ def heartbeat(root, workers, *, now=None, stale_after=STALE_AFTER_SECONDS_DEFAUL
             "source": "watchdog",
             "agent_id": worker.get("agent_id"),
             "recommended_next_transition": (
-                "INTEGRATE_WORKER" if action == "SUBAGENT_COMPLETE" else "DIAGNOSE_STALE_WORKER"
+                "REASSESS_BLOCKERS" if action == "SUBAGENT_COMPLETE" else "DIAGNOSE_STALE_WORKER"
             ),
         }
         kind, event = ingest(root, payload, store_rel=store_rel)

@@ -251,8 +251,80 @@ def run_ralph_liveness_fixtures():
         compact = reconstruct(rootd)
         if compact.get("liveness") == "READY_FOR_HUMAN_REVIEW" or not compact.get("continue"):
             raise RuntimeError(compact)
+        if not compact.get("reassess_blockers"):
+            raise RuntimeError("D must reassess under WAITING_EXTERNAL + continuity")
         executed.add("ralph-liveness-d-external-frontier-good")
         print("SELFTEST PASS  ralph-liveness-d-external-frontier-good")
+
+        rooth, _ = _ralph_root(tmp, "h", _base_state(
+            liveness="WAITING_EXTERNAL",
+            pending_events=["WAITING_EXTERNAL:saul"],
+            physical_runtime_continuity=False,
+            workers=[{"agent_id": "ctr-code-pr62smoke", "state": "COMPLETE"}],
+        ))
+        _ledger(rooth)
+        compact = reconstruct(rooth)
+        if compact.get("primary_logical_id") != "pr62-primary":
+            raise RuntimeError(compact)
+        if not compact.get("reassess_blockers") or not compact.get("continue"):
+            raise RuntimeError(compact)
+        if compact.get("playbook") != "poteto-continue-frontier":
+            raise RuntimeError(compact.get("playbook"))
+        if compact.get("next_transition") != "REASSESS_BLOCKERS":
+            raise RuntimeError(compact)
+        if compact.get("exit_predicate_satisfied") or compact.get("program_complete"):
+            raise RuntimeError(compact)
+        executed.add("ralph-liveness-h-physical-wait-reassess-good")
+        print("SELFTEST PASS  ralph-liveness-h-physical-wait-reassess-good")
+
+        rooti, _ = _ralph_root(tmp, "i", _base_state(
+            active_workers=[], workers=[], current_frontier="",
+        ))
+        _ledger(rooti)
+        compact = reconstruct(rooti)
+        if compact.get("exit_predicate_satisfied") or compact.get("program_complete"):
+            raise RuntimeError("empty todo + blockers must not complete")
+        executed.add("ralph-liveness-i-empty-todo-blockers-good")
+        print("SELFTEST PASS  ralph-liveness-i-empty-todo-blockers-good")
+
+        rootj, _ = _ralph_root(tmp, "j", _base_state(
+            liveness="WAITING_EXTERNAL",
+            saul={"disposition": "pending"},
+            physical_runtime_continuity=True,
+            workers=[], active_workers=[],
+            pending_events=["WAITING_EXTERNAL:saul"],
+        ))
+        compact = reconstruct(rootj)
+        if compact.get("liveness") not in ("WAITING_EXTERNAL", "ACTIVE_EXTERNAL_WAIT"):
+            raise RuntimeError(compact)
+        if compact.get("frontier_class") != "B":
+            raise RuntimeError(compact)
+        if not compact.get("continue") or not compact.get("reassess_blockers"):
+            raise RuntimeError(compact)
+        executed.add("ralph-liveness-j-saul-pending-external-good")
+        print("SELFTEST PASS  ralph-liveness-j-saul-pending-external-good")
+
+        rootk, _ = _ralph_root(tmp, "k", _base_state(
+            saul={"disposition": "REQUEST_CHANGES", "head": "aa"},
+            current_frontier="blocker",
+        ))
+        _ledger(rootk)
+        compact = reconstruct(rootk)
+        if not compact.get("continue") or compact.get("liveness") in (
+            "READY_FOR_HUMAN_REVIEW", "DONE", "COMPLETE", "TERMINAL",
+        ):
+            raise RuntimeError(compact)
+        executed.add("ralph-liveness-k-saul-fail-continue-good")
+        print("SELFTEST PASS  ralph-liveness-k-saul-fail-continue-good")
+
+        rootl, _ = _ralph_root(tmp, "l", _base_state(sai_disposition="REQUEST_CHANGES"))
+        compact = reconstruct(rootl)
+        if not compact.get("continue") or compact.get("exit_predicate_satisfied"):
+            raise RuntimeError(compact)
+        if compact.get("liveness") in ("READY_FOR_HUMAN_REVIEW", "DONE", "COMPLETE"):
+            raise RuntimeError(compact)
+        executed.add("ralph-liveness-l-sai-fail-nonterminal-good")
+        print("SELFTEST PASS  ralph-liveness-l-sai-fail-nonterminal-good")
 
         from sai_auth_saul_attestation_v2 import make_signed_review_v2
         import subprocess as sp
@@ -351,6 +423,23 @@ def run_ralph_liveness_fixtures():
             raise RuntimeError("ci-green is not a Saul blocker gate")
         executed.add("ralph-reject-missing-check-gate-bad")
         print("SELFTEST PASS  ralph-reject-missing-check-gate-bad")
+
+        from sai_auth_resume import enforce
+        skip = dict(compact)
+        skip.update({
+            "exit_predicate_satisfied": False,
+            "reassess_blockers": False,
+            "continue": True,
+            "liveness": "WAITING_EXTERNAL",
+            "status": "RECONSTRUCTED",
+        })
+        hits = enforce(rootd, skip, _base_state(
+            liveness="WAITING_EXTERNAL", physical_runtime_continuity=True,
+        ))
+        if "ready_false_and_skip_reassess" not in hits:
+            raise RuntimeError(hits)
+        executed.add("ralph-enforce-skip-reassess-bad")
+        print("SELFTEST PASS  ralph-enforce-skip-reassess-bad")
     return executed
 
 

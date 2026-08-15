@@ -1,0 +1,28 @@
+command: scripts/sai-resume
+enforce: scripts/sai-resume --enforce
+head: 1185783ae3e98006aafab72a5d8828db0673d04a
+timestamp: "2026-08-15T20:47:52Z"
+tree: Dezocode/Sai
+branch: cursor/codebase-health-90ba
+primary_logical_id: pr62-primary
+same_logical_id_after_physical_replacement: true
+READY_FOR_HUMAN_REVIEW: false
+exit_predicate_satisfied: false
+logical_program_terminal: false
+program_complete: false
+continue: true
+liveness: WAITING_EXTERNAL
+liveness_not_false_terminal: true
+reassess_blockers: true
+next_transition: REASSESS_BLOCKERS
+playbook: poteto-continue-frontier
+physical_runtime_continuity: false
+frontier_class: A
+frontier_label: dispatch
+worker_states: [COMPLETE, COMPLETE]
+enforce_exit: 0
+enforced_rejects: null
+ci_green_is_not_completion: true
+notes:
+  - "Live reconstruct after physical replacement now reassesses."
+  - "Ordinary CI green is not completion. Cursor is never Saul."

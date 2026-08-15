@@ -144,4 +144,19 @@ B-RALPH-BLOCKER-CI-CONVERGENCE-001 is IMPLEMENTING. CTO-026 uncleared.
 Did not push. Did not merge. Did not mint keys. Cursor is never Saul.
 Do not claim READY_FOR_HUMAN_REVIEW.
 
+## Wave ralph-liveness-invariant (20260815-2026)
+
+Physical replacement + stored WAITING_EXTERNAL now sets
+`reassess_blockers` true and playbook `poteto-continue-frontier`.
+`sai-resume --enforce` is an unconditional icm-enforcement run.
+Live proof on HEAD 1185783: continue true, reassess_blockers true,
+same pr62-primary, workers COMPLETE, program not complete.
+B-RALPH-001 / B-NO-IDLE-SAUL-001 /
+B-RALPH-BLOCKER-CI-CONVERGENCE-001 are IMPLEMENTED_AWAITING_SAUL
+(never PASSED). Meta still last for Saul. CTO-026 uncleared.
+Did not push. Did not merge. Cursor is never Saul.
+
+Next: parent pushes; Hostinger Saul reviews this exact head.
+Do not claim READY_FOR_HUMAN_REVIEW.
+
 

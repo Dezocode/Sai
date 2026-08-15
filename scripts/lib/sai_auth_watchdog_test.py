@@ -56,7 +56,11 @@ def run_watchdog_fixtures():
             raise RuntimeError(events[2])
         if any(e.get("cora_wake") for e in events):
             raise RuntimeError("Cora must not wake on watchdog worker events")
+        if events[1].get("recommended_next_transition") != "REASSESS_BLOCKERS":
+            raise RuntimeError(events[1])
         print("SELFTEST PASS  watchdog-heartbeat-no-model")
+        executed.add("watchdog-complete-reassess-good")
+        print("SELFTEST PASS  watchdog-complete-reassess-good")
 
     p1 = {"logical_id": "pr62-primary", "pr": 62, "kind": "primary_implementation", "status": "active"}
     p2 = {"logical_id": "pr63-init", "pr": 63, "kind": "primary_implementation", "status": "active"}

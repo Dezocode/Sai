@@ -136,9 +136,15 @@ checks:
       - ralph-liveness-e-saul-pass-sai-pending-good
       - ralph-liveness-f-sai-pass-blocker-remains-good
       - ralph-liveness-g-predicates-ready-good
+      - ralph-liveness-h-physical-wait-reassess-good
+      - ralph-liveness-i-empty-todo-blockers-good
+      - ralph-liveness-j-saul-pending-external-good
+      - ralph-liveness-k-saul-fail-continue-good
+      - ralph-liveness-l-sai-fail-nonterminal-good
       - ralph-reject-false-terminal-bad
       - ralph-reject-blocker-terminal-bad
       - ralph-reject-missing-ledger-bad
       - ralph-reject-missing-check-gate-bad
-    note: "Persistent Primary A-G. Empty todo is not exit. Do not PASS."
+      - ralph-enforce-skip-reassess-bad
+    note: "Persistent Primary A-L. Empty todo is not exit. Physical WAITING_EXTERNAL reassesses. Do not PASS."
 
