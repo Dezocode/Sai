@@ -149,6 +149,39 @@ At most two active primary implementation programs
 (`.ai/_config/primary-programs.yaml`); Runtime Intelligence stacked PRs
 do not consume a slot.
 
+## CEO self-trigger loop guard (Decision 0010)
+
+A PR-triggered automation (e.g. `synchronize`) fires again on **any** push to
+the watched branch, including a push the CEO/primary itself just made. A
+commit that only updates governance bookkeeping (`coordinator-state.json`,
+`events.jsonl`, `handoff.md` under `.ai/runs/**`) with **no** change to
+`implementation_head` (the last contractor SHA), contract revision, Saul
+disposition, or required-CI conclusion is **not material** — see
+Decision 0009's material-event wake policy. Committing that bookkeeping
+update to the watched PR branch nonetheless re-fires the automation, which
+can commit another "still nonterminal" bookkeeping update, which fires the
+automation again: a self-triggered loop that burns tokens with zero
+governance progress. This is an orchestration defect, not a blocker.
+
+Before authoring or pushing a governance-bookkeeping-only commit to a
+watched PR branch:
+
+1. Diff the intended commit against the state already recorded by the same
+   agent identity's previous commit. If no field in the material-state key
+   (implementation head, contract revision, Saul disposition/digest,
+   required-CI conclusion, owner/claim state) actually changes, do **not**
+   commit it as a standalone push to the watched branch.
+2. If a wake was caused by exactly such a self-authored bookkeeping commit
+   (author is the CEO/primary agent identity, only run-artifact paths
+   changed, no material field moved), classify the triggering event
+   `NOOP / DUPLICATE` immediately and stop — do not re-run full verification,
+   do not re-dispatch, and above all do not author a follow-up bookkeeping
+   commit that would re-arm the same trigger.
+3. When a bookkeeping update is genuinely needed (e.g. to correctly persist
+   `WAITING_EXTERNAL` after a real external check), prefer batching it with
+   the next commit that carries an actual material change, or persisting it
+   without pushing to the watched branch, over pushing it standalone.
+
 ## Saul pending is not idle
 
 A pending/running Saul review is **not** permission to wait if any other
