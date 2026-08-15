@@ -97,6 +97,32 @@ uncleared. Last this-PR Hostinger continuity is Saul
 pull_request_target. CONDITIONAL_PASS_ON_HUMAN_MERGE is
 Saul-only. Do not merge. Do not push. Do not mark ready.
 
+## Saul quality loop P0 reuse v12 (grant Task-ID standing run)
+
+Evaluated B-SAUL-QUALITY-LOOP-001 / REQ-5300146420 and
+AUTHENTICATION.md / REQ-5300187244 on exact head
+516893c. reuse=true. v13=false. Did not issue A-013.
+allowed_paths already cover executable machinery
+(scripts/**, tests/**, .github/workflows/**,
+.ai/_config/**, .ai/shared/schemas/**). Quality docs
+under .ai/shared/quality/** are officer read-only spec;
+contractors must not rewrite them. Pubkey pin is
+officer/Hostinger (`.ai/authorizations/**` denied).
+denied_paths unchanged. lease-c3a003pr62q1 reused (v12).
+ctr-code-pr62smoke reused. Appended REQ-5300187244;
+REQ-5300146420 already present. Did not write
+blockers/items. Wave artifacts:
+`.ai/runs/20260815-0302-pr62-queue-cora/`. Admin review:
+`reviews/cora-saul-quality-loop-v12-reuse.yaml`.
+implements false. do_not_merge true. do_not_push true.
+technical_pass false. code-health.yaml 321>300 fails
+icm-enforcement; contractor may split/include under
+_config only. Contractor next: four disjoint slices
+(sha-shard, architecture, authenticity-primary-context,
+finding-ci-detectors-bloat) without PASS. Do not rewrite
+quality docs. Do not write authorizations. Do not PASS.
+Do not merge. Do not push. Do not mark ready.
+
 ## TPR-001 / TPR-002 reuse v12 (grant Task-ID standing run)
 
 Evaluated independent third-party findings on exact head
@@ -173,4 +199,29 @@ not provision Hostinger. Do not create a P1-D blocker.
 Do not restore saul-review.yml. Do not PASS. Do not
 merge. Do not push. Do not mark ready.
 
+## Saul quality loop P0 reuse v12 (grant Task-ID standing run)
+
+Evaluated B-SAUL-QUALITY-LOOP-001 / REQ-5300146420 and
+AUTHENTICATION.md / REQ-5300187244 on exact head
+516893c. reuse=true. v13=false. Did not issue A-013.
+allowed_paths already cover executable machinery
+(scripts/**, tests/**, .github/workflows/**,
+.ai/_config/**, .ai/shared/schemas/**). Quality docs
+under .ai/shared/quality/** are officer read-only spec;
+contractors must not rewrite them. Pubkey pin is
+officer/Hostinger (`.ai/authorizations/**` denied).
+denied_paths unchanged. lease-c3a003pr62q1 reused (v12).
+ctr-code-pr62smoke reused. Appended REQ-5300187244;
+REQ-5300146420 already present. Did not write
+blockers/items. Wave artifacts:
+`.ai/runs/20260815-0302-pr62-queue-cora/`. Admin review:
+`reviews/cora-saul-quality-loop-v12-reuse.yaml`.
+implements false. do_not_merge true. do_not_push true.
+technical_pass false. code-health.yaml 321>300 fails
+icm-enforcement; contractor may split/include under
+_config only. Contractor next: four disjoint slices
+(sha-shard, architecture, authenticity-primary-context,
+finding-ci-detectors-bloat) without PASS. Do not rewrite
+quality docs. Do not write authorizations. Do not PASS.
+Do not merge. Do not push. Do not mark ready.
 

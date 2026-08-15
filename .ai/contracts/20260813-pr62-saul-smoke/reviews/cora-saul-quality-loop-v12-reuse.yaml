@@ -1,0 +1,92 @@
+reviewer: ctr-admin
+review_type: cora-contract-evaluation
+not_a_saul_consume: true
+consume_script_invoked: false
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: v12
+implementation_head: 516893c68d8d8a77fe43e5e05fe804b3e511a25b
+principal_p0: B-SAUL-QUALITY-LOOP-001
+requirement_ids:
+  - REQ-5300146420
+  - REQ-5300187244
+source:
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5300146420
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5300187244
+authority: dezocode
+created_at: "2026-08-15T03:02:00Z"
+ingested_by: ctr-admin
+wave: 20260815-0302-pr62-queue-cora
+reuse: true
+v13: false
+a013: false
+authority_expanding: false
+path_expansion: false
+human_required: false
+contractor: ctr-code-pr62smoke
+lease: lease-c3a003pr62q1
+allowed_paths:
+  - .ai/runs/**
+  - .ai/contracts/20260813-pr62-saul-smoke/**
+  - tests/**
+  - scripts/**
+  - .github/workflows/**
+  - .ai/_config/**
+  - .ai/shared/schemas/**
+denied_paths:
+  - .ai/agents/saul/**
+  - .ai/shared/memory/decisions/**
+  - .ai/authorizations/**
+do_not_pass: true
+do_not_merge: true
+do_not_push: true
+do_not_mark_ready: true
+cora_admin_complete: true
+technical_pass: false
+implements: false
+reason: >
+  v12 allowed_paths already cover executable Saul SHA-shard
+  quality loop without A-013/v13. Quality docs under
+  .ai/shared/quality/** are officer read-only spec; pubkey
+  pin is officer/Hostinger not contractor. Contractor
+  implements four disjoint slices; Cora does not PASS.
+work_items:
+  - id: sha-shard-coverage
+    owner: ctr-code-pr62smoke
+    paths: [scripts/**, tests/**, .ai/shared/schemas/**]
+    deliverables:
+      - sai_auth_review_coverage
+      - verify-saul-shard-quality
+  - id: architecture-review
+    owner: ctr-code-pr62smoke
+    paths: [scripts/**, tests/**]
+    deliverables:
+      - sai_auth_review_architecture
+      - verify-saul-architecture-quality
+    scope: [LOCAL_ARCH, IMPACT_ARCH, SYSTEM_ARCH]
+  - id: authenticity-primary-context
+    owner: ctr-code-pr62smoke
+    paths: [scripts/**, tests/**, .github/workflows/**]
+    deliverables:
+      - verify-saul-authenticity
+      - sai_auth_saul_check
+      - saul-publish-check
+      - sai_auth_primary_context
+    constraints:
+      - fail_closed NO_PRIMARY_CONTEXT AMBIGUOUS_PRIMARY_CONTEXT
+      - no hardcoded PR contract branch SHA in reusable production code
+      - pubkey pin officer Hostinger only not contractor authorizations
+  - id: finding-ci-detectors-bloat
+    owner: ctr-code-pr62smoke
+    paths: [scripts/**, tests/**, .github/workflows/**, .ai/_config/**]
+    deliverables:
+      - verify-saul-finding-regression-guards
+      - saul-review-controller
+      - saul-authenticity-proof
+      - saul-sha-shard-quality
+      - saul-architecture-quality
+      - saul-finding-regression-guard
+      - compact code-health.yaml split include under _config only
+notes:
+  - Quality docs .ai/shared/quality/** must not be rewritten by contractor.
+  - code-health.yaml 321 lines fails icm-enforcement; split allowed not limit raise.
+  - B-SAUL-QUALITY-LOOP-001 blocker item exists; contractor appends progress not PASS.

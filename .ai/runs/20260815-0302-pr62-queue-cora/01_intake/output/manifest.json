@@ -1,0 +1,21 @@
+{
+  "task_id": "20260815-0302-pr62-queue-cora",
+  "stage": "01_intake",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-15T03:02:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/CONTEXT.md",
+    ".ai/agents/_roles/contract-administrator/CHARTER.md",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v12.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/requirements/ledger.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/blockers/items/B-SAUL-QUALITY-LOOP-001.yaml",
+    ".ai/shared/quality/saul/AUTHENTICATION.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260815-0302-pr62-queue-cora/01_intake/output/intake.md"
+  ],
+  "notes": "Reuse evaluation only. Not a Saul consume. Not A-013/v13. Do not PASS. code-health.yaml 321>300."
+}

@@ -1,0 +1,18 @@
+{
+  "task_id": "20260815-0302-pr62-queue-cora",
+  "stage": "04_verify",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-15T03:02:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/contracts/20260813-pr62-saul-smoke/requirements/ledger.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/reviews/cora-saul-quality-loop-v12-reuse.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v12.yaml"
+  ],
+  "outputs": [
+    ".ai/runs/20260815-0302-pr62-queue-cora/04_verify/output/verify.md"
+  ],
+  "notes": "reuse=true v13=false. ledger 259 lines. No PASS. No push. No merge."
+}
