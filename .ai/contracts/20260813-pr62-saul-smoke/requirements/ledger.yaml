@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-14T20:08:00Z"
+updated_at: "2026-08-15T02:47:00Z"
 requirements:
   - requirement_id: REQ-5282088737
     source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
@@ -218,3 +218,27 @@ requirements:
       - p1-d-generic-self-hosted-deferred-nonblocking
       - do-not-create-p1-d-blocker
       - do-not-pass
+  - requirement_id: REQ-5300146420
+    source: "https://github.com/Dezocode/Sai/pull/62#issuecomment-5300146420"
+    authority: dezocode
+    timestamp: "2026-08-15T02:46:00Z"
+    scope: continuous-saul-sha-shard-product-quality-architecture
+    digest: ralph-outer-saul-inner-sha-shards-architecture-github-checks-finding-to-ci
+    status: in-progress
+    blocking: true
+    acceptance:
+      - "Decision-0005 code-health registry becomes the single product-quality regression backbone; no parallel quality framework"
+      - "every accepted contractor completion establishes a new exact HEAD and triggers Saul inner review without a contractor-wave barrier"
+      - "shard means a bounded chunk derived from the exact base/head SHA review state, never an arbitrary file bucket"
+      - "trusted code deterministically derives expected shard/review-unit coverage from Git and invalidates stale content/context/dependency/architecture proof"
+      - "every required shard is adjudicated by real Hostinger Codex; synthetic or codex-not-invoked evidence cannot count"
+      - "blocking shard FAIL immediately appends a canonical technical blocker while other still-valid shards continue review"
+      - "LOCAL_ARCH and IMPACT_ARCH run for every integrated contractor completion"
+      - "current-head SYSTEM_ARCH synthesis is mandatory before real-Saul technical convergence"
+      - "Saul publishes current shard, architecture, blocker and convergence state to one GitHub Check named Saul / Product Quality"
+      - "shard/check progress stays out of the Sai governance wake path; Sai runs only after current-head Saul technical convergence"
+      - "Hostinger scratch is bounded; durable detailed review evidence is offloaded to GitHub and completed local shard scratch is deleted"
+      - "every blocking Saul finding receives a deterministic or bounded heuristic CI regression guard with positive and negative fixtures and an active code-health registry entry before merge readiness"
+      - "genuinely non-automatable findings require explicit real-Saul semantic-invariant classification and rationale; no silent exception"
+      - "Ralph outer loop continues through Saul and Sai until READY_FOR_HUMAN_REVIEW; only then does the Primary stop for human review/merge"
+      - "documentation/scaffolding alone cannot satisfy this requirement; executable behavior and exact-state real-Saul PASS are required"
