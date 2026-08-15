@@ -98,3 +98,19 @@ product-quality loop, including the domain-aware quality-reference
 hierarchy). Supersedes only this record's 2026-08-14 sentence
 "No Decision 0009". Did not PASS any blocker. Did not implement
 scripts. Do not merge. Do not mark ready. Cursor is never Saul.
+
+## Ralph liveness invariant (2026-08-15)
+
+Integrated contractor `c5a05b1` (Cora v12 reuse `a9d5afc`/`1185783`).
+`logical_program_terminal` is only `READY_FOR_HUMAN_REVIEW`. Worker
+COMPLETE, empty frontier, CI green, and physical replacement are not
+exit. `sai-resume --enforce` fails closed on skip-reassess / false
+terminal. Live reconstruct: `pr62-primary` stays nonterminal;
+`reassess_blockers=true`; `next_transition=REASSESS_BLOCKERS`.
+
+`B-RALPH-001`, `B-NO-IDLE-SAUL-001`, and
+`B-RALPH-BLOCKER-CI-CONVERGENCE-001` remain `IMPLEMENTED_AWAITING_SAUL`.
+Meta-blocker still clears last. Do not self-PASS. Do not merge.
+Sai stays pending until authentic Hostinger Saul on the exact head.
+Next: wait Hostinger Saul; `/resume-sai` reconstructs the same
+logical Primary.
