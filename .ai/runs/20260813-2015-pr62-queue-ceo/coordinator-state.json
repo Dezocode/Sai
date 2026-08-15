@@ -20,7 +20,7 @@
     "synthetic": false,
     "trust_mode": "runner-image"
   },
-  "ci": "icm-enforcement-pending-this-wave",
+  "ci": "icm-enforcement-pending-push",
   "heartbeat_seconds": 1500,
   "stale_after_seconds": 1800,
   "workers": [
@@ -47,11 +47,11 @@
       "contract_revision": "v12",
       "authorization_id": "lease-c3a003pr62q1",
       "work_item": "decision-0009-executables",
-      "state": "RUNNING",
+      "state": "COMPLETE",
       "implements": true
     }
   ],
-  "active_workers": ["ctr-code-pr62smoke"],
+  "active_workers": [],
   "pending_events": [
     "WAITING_EXTERNAL:hostinger-saul",
     "B-SAUL-COMPTROLLER-READINESS-001",
@@ -60,12 +60,12 @@
     "B-RALPH-BLOCKER-CI-CONVERGENCE-001",
     "CTO-026"
   ],
-  "current_frontier": "Decision 0009 executables; do not self-PASS; Hostinger Saul required",
-  "expected_next_state": "ACTIVE",
+  "current_frontier": "WAITING_EXTERNAL_REAL_SAUL nested review of exact HEAD; B-RALPH-BLOCKER-CI-CONVERGENCE-001 clears last; do not self-PASS",
+  "expected_next_state": "WAITING_EXTERNAL",
   "exit_predicate": "READY_FOR_HUMAN_REVIEW requires authentic Hostinger Saul PASS of required blockers + Sai APPROVE + CI green",
   "exit_predicate_satisfied": false,
-  "last_material_transition": "decision-0009-contractor-executables",
-  "liveness": "ACTIVE",
+  "last_material_transition": "decision-0009-executables-integrated",
+  "liveness": "WAITING_EXTERNAL",
   "wake_condition": "material Saul/CI or /resume-sai logical pickup; physical replacement stays nonterminal",
   "physical_runtime_continuity": false,
   "logical_runtime_continuity": true,
