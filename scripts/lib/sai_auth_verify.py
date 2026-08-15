@@ -136,6 +136,8 @@ def verify_commit(root, cfg, sha, *, branch=None):
     if cutoff and not trailers.get("Agent"):
         if sha == cutoff or a.git(root, "merge-base", "--is-ancestor", sha, cutoff).returncode == 0:
             return []
+    if a.human_principal_identity_skip(root, cfg, sha, trailers):
+        return []
     # Pre-contract commits (Agent present, Contract-ID absent) may be
     # preserved by SHA-pinned cutoff. This is not a blanket auth skip.
     cc = (cfg.get("enforcement") or {}).get("skip_commits_missing_contract_at_or_before")
@@ -394,10 +396,12 @@ def cmd_verify_agent(argv=None):
         from sai_auth_cue_test import run_cue_fixtures
         from sai_auth_event_test import run_event_fixtures
         from sai_auth_rebind_test import run_rebind_fixtures
+        from sai_auth_human_commit_test import run_human_commit_fixtures
         n = run_synthetic_fixtures()
         n |= run_cue_fixtures()
         n |= run_event_fixtures()
         n |= run_rebind_fixtures()
+        n |= run_human_commit_fixtures()
         print(f"verify-agent-authorization self-test: {n} fixtures executed")
         return 0
     root = a.toplevel()

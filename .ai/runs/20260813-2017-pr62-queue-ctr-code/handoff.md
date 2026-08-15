@@ -116,3 +116,18 @@ attestation v2. Cursor is not Saul. Did not PASS. Did not merge.
 Next: Hostinger Saul reviews this exact head. Do not claim
 READY_FOR_HUMAN_REVIEW.
 
+## Wave human-principal-agent-trailer-allowlist (20260815)
+
+PR `pull_request` icm-enforcement failed on `47f7439` because seven
+human Dezocode spec commits after identity cutoff `d113fa0` have no
+`Agent:` trailer. Added fail-closed `audit.preserve_human_principal_commits`
+(listed SHA + `%ae` in principal_emails + no Agent trailer). Did not
+move the cutoff to `516893c`. Did not rewrite those commits.
+
+Live `origin/main..HEAD` PASS including the seven SHAs. Four new
+SELFTEST fixtures PASS. `--self-test` exit 0. Did not push. Did not
+merge. Did not PASS blockers. Did not wake Cora.
+
+Next: commit locally (no push). Human/parent may push. Qualifying Saul
+still required. Do not claim READY_FOR_HUMAN_REVIEW.
+

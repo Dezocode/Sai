@@ -24,6 +24,21 @@ audit:
     - sha: "d14402e625aad54a5dff5d0f00785291d83c414a"
       original_task_id: "20260813-runtime-intelligence-plane"
       reason: "human Decision 0007 docs commit; grammar exception only"
+  # Explicit SHA allowlist. Skip Agent-trailer ONLY when SHA listed,
+  # git %ae in principal_emails, and no Agent trailer. Wrong SHA,
+  # wrong author, or Agent present → still fail. Not an ancestor cutoff.
+  preserve_human_principal_commits:
+    principal_emails:
+      - "158269149+Dezocode@users.noreply.github.com"
+    reason: "human Dezocode spec commits; Agent trailer not required"
+    commits:
+      - sha: "516893c68d8d8a77fe43e5e05fe804b3e511a25b"
+      - sha: "25e48fcdb4aa62a4f3d4c34329f4427df8fae3a1"
+      - sha: "1fcd983ba3339c323d0ca411b8d364b2ea61ec28"
+      - sha: "8ba1641d2ef8d7f3b96cde2aff4f1002ef66b781"
+      - sha: "474c4fc15eb235f390df77f325fd64cc9c793657"
+      - sha: "f66c299e33dd5307ab49fd962f9936c060f78936"
+      - sha: "ff1005f6afa37d22179e448f61ed0c98a63f6b2b"
   # CTO-028/029: SHA-bound pins are not loaded from this contractor-writable file.
   # Source is git show HEAD:.ai/authorizations/sha-bound-authorization.yaml
   # proven at introduced_by_sha (officer commit-time grant, not HEAD grant).

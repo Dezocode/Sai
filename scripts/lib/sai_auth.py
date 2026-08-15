@@ -69,6 +69,31 @@ def malformed_task_id_preserved(root, sha, task_id):
     return False
 
 
+def commit_author_email(root, sha):
+    return (git(root, "log", "-1", "--format=%ae", sha).stdout or "").strip()
+
+
+def human_principal_identity_skip(root, cfg, sha, trailers):
+    """Skip Agent-trailer requirement for listed human-principal commits.
+
+    All must hold: SHA listed, git %ae in principal_emails, no Agent
+    trailer. Wrong SHA, wrong author, or Agent present → do not skip.
+    """
+    if (trailers or {}).get("Agent"):
+        return False
+    block = ((cfg.get("audit") or {}).get("preserve_human_principal_commits") or {})
+    emails = {str(e).strip() for e in (block.get("principal_emails") or []) if str(e).strip()}
+    shas = set()
+    for row in block.get("commits") or []:
+        s = (row.get("sha") if isinstance(row, dict) else row) or ""
+        s = str(s).strip()
+        if s:
+            shas.add(s)
+    if not emails or sha not in shas:
+        return False
+    return commit_author_email(root, sha) in emails
+
+
 def dump_yaml(obj):
     if yaml is None:
         raise RuntimeError("PyYAML is required")
