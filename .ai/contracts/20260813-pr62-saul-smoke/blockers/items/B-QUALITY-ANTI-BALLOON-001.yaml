@@ -1,0 +1,42 @@
+"blocker_id": "B-QUALITY-ANTI-BALLOON-001"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5303755356"
+"amended_by":
+- "https://github.com/Dezocode/Sai/pull/62#issuecomment-5303804678"
+- "https://github.com/Dezocode/Sai/pull/62#issuecomment-5303809236"
+"source_actor": "dezocode"
+"source_runtime": "github-web"
+"created_at": "2026-08-15T18:59:52Z"
+"amended_at": "2026-08-15T19:13:34Z"
+"first_seen_head": "abae75d42e675d781be8b4041ea62fc8773defdc"
+"current_head": "abae75d42e675d781be8b4041ea62fc8773defdc"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "Anti-balloon counterpart to B-FRONTIER-QUALITY-ARCH-001. Uses domain-specific quality references, not rust-as-universal. Decision-0005 detector plus fixtures must fail on duplicate guards, orphan schemas, per-blocker workflow sprawl, duplicate sources of truth, and registered-but-unexecuted guards. N blockers must not create N workflows. Tests green is not convergence. Do not raise global YAML limits. Do not create rust/go/swift/openssf quality subsystems."
+"evidence":
+- "principal comment 5303755356"
+- "principal amendment 5303804678"
+- "principal amendment 5303809236"
+- "REQ-5303755356"
+"affected_paths":
+- ".ai/_config/**"
+- "scripts/**"
+- "tests/**"
+- ".github/workflows/**"
+"dependencies":
+- "B-FRONTIER-QUALITY-ARCH-001"
+- "B-BLOAT-001"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "anti-balloon"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v12"
+"status": "DISCOVERED"
+"implementation_state": "open"
+"verification_state": "unverified"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "Preserve ID B-QUALITY-ANTI-BALLOON-001."
+- "Anti-balloon uses domain-specific refs (rust/tailscale/element-x/TCA-principles/isowords/swift-format/testing/OpenSSF), not rust-as-universal."
+- "Cora amended DISCOVERED 20260815-1928; did not PASS. reuse v12; no A-013."

@@ -1,0 +1,128 @@
+reviewer: ctr-admin
+review_type: cora-contract-evaluation
+not_a_saul_consume: true
+consume_script_invoked: false
+contract_id: 20260813-pr62-saul-smoke
+contract_revision: v12
+implementation_head: abae75d42e675d781be8b4041ea62fc8773defdc
+requirement_ids:
+  - REQ-5303750100
+  - REQ-5303751556
+  - REQ-5303753512
+  - REQ-5303755356
+  - REQ-5303757105
+blocker_ids:
+  - B-SAUL-COMPTROLLER-READINESS-001
+  - B-FRONTIER-QUALITY-ARCH-001
+  - B-QUALITY-ANTI-BALLOON-001
+  - B-RALPH-BLOCKER-CI-CONVERGENCE-001
+source:
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5303750100
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5303751556
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5303753512
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5303755356
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5303757105
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5303804678
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5303809236
+authority: dezocode
+created_at: "2026-08-15T19:07:00Z"
+amended_at: "2026-08-15T19:28:00Z"
+ingested_by: ctr-admin
+wave: 20260815-1903-pr62-queue-cora
+amending_wave: 20260815-1928-pr62-queue-cora
+reuse: true
+v13: false
+a013: false
+authority_expanding: false
+path_expansion: false
+human_required: false
+contractor: ctr-code-pr62smoke
+lease: lease-c3a003pr62q1
+officer_writer:
+  agent: ceo
+  grant: grant-pr62-queue-ceo
+  commit_task_id: 20260813-2015-pr62-queue-ceo
+  paths:
+    - .ai/shared/memory/decisions/0009-trusted-saul-comptroller-product-quality-loop.md
+    - .ai/shared/memory/architecture.md
+allowed_paths:
+  - .ai/runs/**
+  - .ai/contracts/20260813-pr62-saul-smoke/**
+  - tests/**
+  - scripts/**
+  - .github/workflows/**
+  - .ai/_config/**
+  - .ai/shared/schemas/**
+denied_paths:
+  - .ai/agents/saul/**
+  - .ai/shared/memory/decisions/**
+  - .ai/authorizations/**
+do_not_pass: true
+do_not_merge: true
+do_not_push: true
+do_not_mark_ready: true
+cora_admin_complete: true
+technical_pass: false
+implements: false
+does_not_supersede:
+  - "0005"
+  - "0006"
+  - "0007"
+  - "0008"
+reason: >
+  Principal 5303750100 is human authority for Decision 0009,
+  amended in place by 5303804678/5303809236 (domain-specific
+  quality refs; rust is not universal). Officer grant-pr62-queue-ceo
+  already covers .ai/**; not a new human-expansion gate and not
+  A-013. Contractor executable work already in v12 allowed_paths.
+  Contractors must not write decisions/** or authorizations/**.
+  Cora does not PASS. YAML files must stay ≤300 lines. No new
+  quality-reference blocker. No A-013/v13.
+work_items:
+  - id: comptroller-readiness
+    owner: ctr-code-pr62smoke
+    blocker: B-SAUL-COMPTROLLER-READINESS-001
+    paths: [scripts/**, tests/**, .ai/shared/schemas/**, .github/workflows/**]
+    deliverables:
+      - review-state schema
+      - generated Saul / Product Quality Check
+      - generated Saul / Blocker / <ID> Checks from ledger
+      - saul-gated-ci verifier consumes not mints evidence
+    constraints:
+      - not one workflow per blocker
+      - no secrets or hardcoded keys
+  - id: frontier-quality-arch
+    owner: ctr-code-pr62smoke
+    blocker: B-FRONTIER-QUALITY-ARCH-001
+    paths: [.ai/contracts/20260813-pr62-saul-smoke/**, .ai/_config/**, .github/workflows/**, tests/**]
+    deliverables:
+      - domain-aware mapping YAML under contract tree (quality-reference-mapping.yaml)
+      - rust/tailscale/element-x/TCA-principles/isowords/swift-format/testing/OpenSSF → Decision-0005
+      - statuses IMPLEMENTED | NOT_APPLICABLE | BLOCKER | DEFERRED_NONBLOCKING
+      - pin privileged checkout SHA if still floating
+    constraints:
+      - rust is not universal
+      - do not copy frameworks
+      - one Decision-0005 quality system; no rust/go/swift/openssf subsystems
+  - id: anti-balloon
+    owner: ctr-code-pr62smoke
+    blocker: B-QUALITY-ANTI-BALLOON-001
+    paths: [scripts/**, tests/**, .ai/_config/**]
+    deliverables:
+      - Decision-0005 anti-balloon detector using domain-specific refs not rust-as-universal
+      - fixtures for duplicate guards, orphan schemas, per-blocker workflow sprawl
+  - id: ralph-ci-convergence
+    owner: ctr-code-pr62smoke
+    blocker: B-RALPH-BLOCKER-CI-CONVERGENCE-001
+    paths: [.github/workflows/**, scripts/**, tests/**, .ai/_config/**]
+    deliverables:
+      - readiness/saul-gated-ci CI wiring
+      - fail-closed if required blocker Check missing
+      - runner-trust config interface without inventing Hostinger labels
+    constraints:
+      - meta; Saul PASSes last
+notes:
+  - Decision 0009 does not supersede 0005/0006/0007/0008.
+  - Four blockers DISCOVERED; clearance_authority saul. No new blockers.
+  - B-SAUL-QUALITY-LOOP-001 remains separate and is not superseded.
+  - 20260815-1928 amends incomplete 1903 rust-universal ingest in place.

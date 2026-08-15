@@ -1,0 +1,38 @@
+"blocker_id": "B-SAUL-COMPTROLLER-READINESS-001"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5303751556"
+"source_actor": "dezocode"
+"source_runtime": "github-web"
+"created_at": "2026-08-15T18:58:54Z"
+"first_seen_head": "abae75d42e675d781be8b4041ea62fc8773defdc"
+"current_head": "abae75d42e675d781be8b4041ea62fc8773defdc"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "Repo-side exact-state review model, generated Saul / Product Quality and Saul / Blocker / <ID> Checks from the ledger (not one workflow per blocker), and a saul-gated-ci verifier that consumes (does not mint) Ed25519 v2 evidence. No secrets or hardcoded keys. External Hostinger Comptroller MCP/App proof remains required. Documentation is not PASS."
+"evidence":
+- "principal comment 5303751556"
+- "REQ-5303751556"
+- "REQ-5303750100"
+"affected_paths":
+- ".ai/shared/schemas/**"
+- "scripts/**"
+- "tests/**"
+- ".github/workflows/**"
+- ".ai/contracts/20260813-pr62-saul-smoke/**"
+"dependencies":
+- "B-SAUL-QUALITY-LOOP-001"
+- "SAUL-IDENTITY-001"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "comptroller-readiness"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v12"
+"status": "DISCOVERED"
+"implementation_state": "open"
+"verification_state": "unverified"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "Preserve ID B-SAUL-COMPTROLLER-READINESS-001."
+- "Cora ingested DISCOVERED; did not PASS. reuse v12; no A-013."
+- "Contractor must not write decisions/** or authorizations/**."

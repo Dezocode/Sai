@@ -1,0 +1,49 @@
+# Domain-aware quality-reference mapping. References, not imported frameworks.
+# ONE Decision-0005 quality system. Contractor fills invariant/detector.
+# Cora ingest 20260815-1928; not PASS. rust is not universal.
+contract_id: 20260813-pr62-saul-smoke
+blocker_id: B-FRONTIER-QUALITY-ARCH-001
+revision: v12
+head: abae75d42e675d781be8b4041ea62fc8773defdc
+updated_at: "2026-08-15T19:28:00Z"
+authority: dezocode
+do_not_pass: true
+do_not_copy_frameworks: true
+one_system: Decision-0005
+chain: domain → properties → Decision-0005 → detector/CI → Saul → blocker-Check
+allowed_status: [IMPLEMENTED, NOT_APPLICABLE, BLOCKER, DEFERRED_NONBLOCKING]
+sources:
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5303753512
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5303804678
+  - https://github.com/Dezocode/Sai/pull/62#issuecomment-5303809236
+select_by_domain:
+  quality-controller-ci: [rust-lang/rust, openssf]
+  go-core-backend: [tailscale/tailscale, openssf]
+  swift-swiftui: [element-hq/element-x-ios, pointfreeco/swift-composable-architecture, pointfreeco/isowords, swiftlang/swift-format, swiftlang/swift-testing]
+  trust-security-workflow: [openssf, rust-lang/rust, tailscale/tailscale]
+references:
+  - {id: rust-lang/rust, domain: control-plane-quality-as-code, role: exemplar, status: BLOCKER}
+  - {id: tailscale/tailscale, domain: go-core-backend-runtime, role: exemplar, status: BLOCKER}
+  - {id: element-hq/element-x-ios, domain: swift-swiftui-product, role: exemplar, status: BLOCKER}
+  - {id: pointfreeco/swift-composable-architecture, domain: swift-state-effect-principles, role: principles-only, not_mandatory_dependency: true, status: BLOCKER}
+  - {id: pointfreeco/isowords, domain: modular-swiftui, role: exemplar, status: BLOCKER}
+  - {id: swiftlang/swift-format, domain: swift-native-tooling, role: exemplar, status: BLOCKER}
+  - {id: swiftlang/swift-testing, domain: swift-native-tooling, role: exemplar, status: BLOCKER}
+  - {id: openssf-osps-scorecard, domain: security-supply-chain, role: normative-baseline, status: BLOCKER}
+properties:
+  - {id: repo-owned-executable-policy, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+  - {id: structured-ci-generation, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+  - {id: pr-to-terminal-quality-preservation, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+  - {id: layer-appropriate-testing, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+  - {id: explicit-state-dependency-ownership, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+  - {id: repository-hygiene, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+  - {id: supply-chain-workflow-integrity, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+  - {id: quality-self-tests, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+  - {id: architecture-review-integration, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+  - {id: anti-ballooning, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+notes:
+  - rust-lang/rust is control-plane only; not a universal product template
+  - TCA is principles only; not a mandatory Sai dependency
+  - no rust/go/swift/openssf quality subsystems
+  - contractor fills Decision-0005 invariant + detector; Saul classifies NOT_APPLICABLE / DEFERRED_NONBLOCKING
+  - pin privileged checkout SHA if still floating

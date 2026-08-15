@@ -225,3 +225,50 @@ finding-ci-detectors-bloat) without PASS. Do not rewrite
 quality docs. Do not write authorizations. Do not PASS.
 Do not merge. Do not push. Do not mark ready.
 
+## Decision 0009 principal blockers reuse v12 (grant Task-ID standing run)
+
+Evaluated Dezocode comments 5303750100 / 5303751556 /
+5303753512 / 5303755356 / 5303757105 on exact head
+abae75d. reuse=true. v13=false. Did not issue A-013.
+Decision 0009 and architecture.md are officer writes
+(grant-pr62-queue-ceo, agent ceo, Task-ID
+20260813-2015-pr62-queue-ceo). Cora did not write them.
+Comment 5303750100 is human authority; tracked officer
+grant already covers .ai/**. Not a new human-expansion
+gate. Not A-013 for officer paths. Contractor executable
+work already in v12 allowed_paths. denied_paths unchanged
+(decisions/** and authorizations/** remain contractor-
+denied). lease-c3a003pr62q1 reused (v12).
+ctr-code-pr62smoke reused. Appended compact REQ-5303750100
+/ 1556 / 3512 / 5356 / 7105. Appended four DISCOVERED
+blockers with clearance_authority saul; did not PASS.
+Wave artifacts: `.ai/runs/20260815-1903-pr62-queue-cora/`.
+Admin review: `reviews/cora-decision-0009-v12-reuse.yaml`.
+implements false. do_not_merge true. do_not_push true.
+technical_pass false. Decision 0009 does not supersede
+0005/0006/0007/0008. Officer next: persist Decision 0009
++ architecture.md. Contractor next: four disjoint slices
+(comptroller-readiness, frontier-quality-arch,
+anti-balloon, ralph-ci-convergence) without PASS. Do not
+write decisions or authorizations. Do not PASS. Do not
+merge. Do not push. Do not mark ready.
+
+## Quality-ref amendment reuse v12 (grant Task-ID standing run)
+
+20260815-1928 Cora wave amended the incomplete 1903
+rust-universal ingest in place. Principal comments
+5303804678 / 5303809236 (and in-place updates to
+5303750100 / 3512 / 5356) make rust-lang/rust
+control-plane-only, not a universal product template.
+Domain-aware mapping YAML is under the contract tree.
+No new blockers. No A-013/v13. No new Decision 0009.
+Officer next: persist ONE Decision 0009 (Sai/ceo)
+including the quality-reference amendment. Contractor
+next: the same four disjoint slices, with
+frontier-quality-arch now domain-aware
+(rust/tailscale/element-x/TCA-principles/isowords/swift-format/testing/OpenSSF
+→ Decision-0005). Wave:
+`.ai/runs/20260815-1928-pr62-queue-cora/`. Did not PASS.
+Did not commit. Did not push. Do not merge. Do not mark
+ready. Cursor is not Saul.
+

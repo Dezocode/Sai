@@ -1,6 +1,6 @@
 ledger_id: 20260813-pr62-saul-smoke
 contract_id: 20260813-pr62-saul-smoke
-updated_at: "2026-08-15T03:02:00Z"
+updated_at: "2026-08-15T19:28:00Z"
 requirements:
   - requirement_id: REQ-5282088737
     source: "https://github.com/Dezocode/Sai/issues/62#issuecomment-5282088737"
@@ -257,3 +257,43 @@ requirements:
       - "Saul Product Quality Check exposes non-secret proof only"
       - "pubkey pin officer Hostinger not contractor authorizations rewrite"
       - "reuse-v12-no-a013"
+  - requirement_id: REQ-5303750100
+    source: "https://github.com/Dezocode/Sai/pull/62#issuecomment-5303750100 https://github.com/Dezocode/Sai/pull/62#issuecomment-5303804678 https://github.com/Dezocode/Sai/pull/62#issuecomment-5303809236"
+    authority: dezocode
+    timestamp: "2026-08-15T18:58:31Z"
+    scope: decision-0009
+    digest: officer-0009-domain-quality-refs-not-rust-universal-not-supersede-0005-0008
+    status: in-progress
+    blocking: true
+  - requirement_id: REQ-5303751556
+    source: "https://github.com/Dezocode/Sai/pull/62#issuecomment-5303751556"
+    authority: dezocode
+    timestamp: "2026-08-15T18:58:54Z"
+    scope: B-SAUL-COMPTROLLER-READINESS-001
+    digest: generated-saul-blocker-checks-consume-not-mint-no-secrets
+    status: in-progress
+    blocking: true
+  - requirement_id: REQ-5303753512
+    source: "https://github.com/Dezocode/Sai/pull/62#issuecomment-5303753512 https://github.com/Dezocode/Sai/pull/62#issuecomment-5303804678 https://github.com/Dezocode/Sai/pull/62#issuecomment-5303809236"
+    authority: dezocode
+    timestamp: "2026-08-15T18:59:24Z"
+    scope: B-FRONTIER-QUALITY-ARCH-001
+    digest: domain-aware-quality-ref-mapping-rust-not-universal
+    status: in-progress
+    blocking: true
+  - requirement_id: REQ-5303755356
+    source: "https://github.com/Dezocode/Sai/pull/62#issuecomment-5303755356 https://github.com/Dezocode/Sai/pull/62#issuecomment-5303804678 https://github.com/Dezocode/Sai/pull/62#issuecomment-5303809236"
+    authority: dezocode
+    timestamp: "2026-08-15T18:59:52Z"
+    scope: B-QUALITY-ANTI-BALLOON-001
+    digest: decision-0005-anti-balloon-domain-refs-no-per-blocker-workflows
+    status: in-progress
+    blocking: true
+  - requirement_id: REQ-5303757105
+    source: "https://github.com/Dezocode/Sai/pull/62#issuecomment-5303757105"
+    authority: dezocode
+    timestamp: "2026-08-15T19:00:18Z"
+    scope: B-RALPH-BLOCKER-CI-CONVERGENCE-001
+    digest: meta-ralph-ci-convergence-saul-passes-last-fail-closed-missing-check
+    status: in-progress
+    blocking: true

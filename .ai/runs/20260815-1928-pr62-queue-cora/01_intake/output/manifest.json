@@ -1,0 +1,19 @@
+{
+  "task_id": "20260815-1928-pr62-queue-cora",
+  "stage": "01_intake",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-15T19:28:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/CONTEXT.md",
+    ".ai/agents/cora/AGENT.md",
+    ".ai/contracts/20260813-pr62-saul-smoke/requirements/ledger.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/blockers/items/B-FRONTIER-QUALITY-ARCH-001.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/reviews/cora-decision-0009-v12-reuse.yaml",
+    ".ai/runs/20260815-1903-pr62-queue-cora/handoff.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260815-1928-pr62-queue-cora/01_intake/output/intake.md"
+  ],
+  "notes": "Amend 1903 ingest in place. reuse v12. No new blockers. Do not PASS."
+}

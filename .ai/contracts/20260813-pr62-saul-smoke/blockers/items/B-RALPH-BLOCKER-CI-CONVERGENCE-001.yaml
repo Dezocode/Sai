@@ -1,0 +1,37 @@
+"blocker_id": "B-RALPH-BLOCKER-CI-CONVERGENCE-001"
+"source": "https://github.com/Dezocode/Sai/pull/62#issuecomment-5303757105"
+"source_actor": "dezocode"
+"source_runtime": "github-web"
+"created_at": "2026-08-15T19:00:18Z"
+"first_seen_head": "abae75d42e675d781be8b4041ea62fc8773defdc"
+"current_head": "abae75d42e675d781be8b4041ea62fc8773defdc"
+"category": "technical"
+"severity": "P0"
+"severity_assigned_by": "dezocode"
+"description": "Meta-blocker: Ralph continues while any required technical/quality/architecture/readiness blocker is not current Saul PASS. Wire readiness/saul-gated-ci; fail closed if a required Saul / Blocker / <ID> Check is missing; runner-trust config interface without inventing Hostinger labels. Saul PASSes this last. BLOCKERS>0 is continuation, not exit."
+"evidence":
+- "principal comment 5303757105"
+- "REQ-5303757105"
+"affected_paths":
+- ".github/workflows/**"
+- "scripts/**"
+- "tests/**"
+- ".ai/_config/**"
+"dependencies":
+- "B-RALPH-001"
+- "B-SAUL-COMPTROLLER-READINESS-001"
+- "B-FRONTIER-QUALITY-ARCH-001"
+- "B-QUALITY-ANTI-BALLOON-001"
+"assigned_owner": "ctr-code-pr62smoke"
+"work_item": "ralph-ci-convergence"
+"contract": "20260813-pr62-saul-smoke"
+"revision": "v12"
+"status": "DISCOVERED"
+"implementation_state": "open"
+"verification_state": "unverified"
+"clearance_authority": "saul"
+"clearance_review_id": null
+"clearance_head": null
+"notes":
+- "Preserve ID B-RALPH-BLOCKER-CI-CONVERGENCE-001."
+- "Meta; Saul PASSes last. Cora ingested DISCOVERED; did not PASS. reuse v12; no A-013."

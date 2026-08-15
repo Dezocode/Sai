@@ -1,0 +1,22 @@
+{
+  "task_id": "20260815-1903-pr62-queue-cora",
+  "stage": "01_intake",
+  "agent": "ctr-admin",
+  "completed_at": "2026-08-15T19:07:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/CONTEXT.md",
+    ".ai/agents/_roles/contract-administrator/CHARTER.md",
+    ".ai/agents/cora/AGENT.md",
+    ".ai/contracts/20260813-pr62-saul-smoke/contract.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/revisions/v12.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/leases/lease-c3a003pr62q1.json",
+    ".ai/contracts/20260813-pr62-saul-smoke/requirements/ledger.yaml",
+    ".ai/contracts/20260813-pr62-saul-smoke/blockers/ledger.yaml",
+    ".ai/authorizations/grants/grant-pr62-queue-cora.yaml"
+  ],
+  "outputs": [
+    ".ai/runs/20260815-1903-pr62-queue-cora/01_intake/output/intake.md"
+  ],
+  "notes": "Reuse evaluation. Officer writes Decision 0009. Not A-013/v13. Do not PASS."
+}
