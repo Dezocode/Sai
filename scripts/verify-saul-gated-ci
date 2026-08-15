@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# verify-saul-gated-ci — ordinary CI consumer of Saul v2 evidence. Cannot mint PASS.
+# referenced: scripts/lib/sai_auth_saul_gated.py scripts/lib/sai_auth_saul_gated_test.py .ai/shared/schemas/saul-exact-state-review.schema.json
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+export PYTHONPATH="$ROOT/scripts/lib${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 "$ROOT/scripts/lib/sai_auth_saul_gated.py" "$@"

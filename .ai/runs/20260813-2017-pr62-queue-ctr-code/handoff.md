@@ -131,3 +131,17 @@ merge. Did not PASS blockers. Did not wake Cora.
 Next: commit locally (no push). Human/parent may push. Qualifying Saul
 still required. Do not claim READY_FOR_HUMAN_REVIEW.
 
+## Wave Decision 0009 executables (20260815-1935)
+
+Implemented repo-side Decision 0009 executables under lease
+`lease-c3a003pr62q1`. Schema + generated `Saul / Blocker / <ID>` Checks
++ `verify-saul-gated-ci` consumer (cannot mint PASS). Filled
+`quality-reference-mapping.yaml` (rust is not universal). Anti-balloon
+detector. Resume A–G + live v12 reconstruction. Pinned checkout SHA.
+B-SAUL-COMPTROLLER-READINESS-001 / B-FRONTIER-QUALITY-ARCH-001 /
+B-QUALITY-ANTI-BALLOON-001 are IMPLEMENTED_AWAITING_SAUL (not PASSED).
+B-RALPH-BLOCKER-CI-CONVERGENCE-001 is IMPLEMENTING. CTO-026 uncleared.
+Did not push. Did not merge. Did not mint keys. Cursor is never Saul.
+Do not claim READY_FOR_HUMAN_REVIEW.
+
+

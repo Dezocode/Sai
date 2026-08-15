@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# verify-saul-quality-reference — Decision-0005 domain mapping. rust is not universal.
+# referenced: scripts/lib/sai_auth_quality_ref.py scripts/lib/sai_auth_quality_ref_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+export PYTHONPATH="$ROOT/scripts/lib${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 "$ROOT/scripts/lib/sai_auth_quality_ref.py" "$@"

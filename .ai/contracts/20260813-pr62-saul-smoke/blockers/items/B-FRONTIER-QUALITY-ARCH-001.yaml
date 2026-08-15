@@ -48,8 +48,8 @@
 "work_item": "frontier-quality-arch"
 "contract": "20260813-pr62-saul-smoke"
 "revision": "v12"
-"status": "DISCOVERED"
-"implementation_state": "open"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented_awaiting_saul"
 "verification_state": "unverified"
 "clearance_authority": "saul"
 "clearance_review_id": null
@@ -57,3 +57,4 @@
 "notes":
 - "Preserve ID B-FRONTIER-QUALITY-ARCH-001. rust is NOT universal."
 - "Cora amended DISCOVERED 20260815-1928; did not PASS. reuse v12; no A-013."
+- "Contractor filled mapping 20260815-1935; IMPLEMENTED_AWAITING_SAUL; not PASSED."

@@ -30,8 +30,8 @@
 "work_item": "anti-balloon"
 "contract": "20260813-pr62-saul-smoke"
 "revision": "v12"
-"status": "DISCOVERED"
-"implementation_state": "open"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented_awaiting_saul"
 "verification_state": "unverified"
 "clearance_authority": "saul"
 "clearance_review_id": null
@@ -40,3 +40,4 @@
 - "Preserve ID B-QUALITY-ANTI-BALLOON-001."
 - "Anti-balloon uses domain-specific refs (rust/tailscale/element-x/TCA-principles/isowords/swift-format/testing/OpenSSF), not rust-as-universal."
 - "Cora amended DISCOVERED 20260815-1928; did not PASS. reuse v12; no A-013."
+- "Contractor detector 20260815-1935; IMPLEMENTED_AWAITING_SAUL; not PASSED."

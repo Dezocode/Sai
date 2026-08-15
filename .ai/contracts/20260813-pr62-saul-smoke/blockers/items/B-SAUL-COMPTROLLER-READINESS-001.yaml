@@ -26,8 +26,8 @@
 "work_item": "comptroller-readiness"
 "contract": "20260813-pr62-saul-smoke"
 "revision": "v12"
-"status": "DISCOVERED"
-"implementation_state": "open"
+"status": "IMPLEMENTED_AWAITING_SAUL"
+"implementation_state": "implemented_awaiting_saul"
 "verification_state": "unverified"
 "clearance_authority": "saul"
 "clearance_review_id": null
@@ -35,4 +35,5 @@
 "notes":
 - "Preserve ID B-SAUL-COMPTROLLER-READINESS-001."
 - "Cora ingested DISCOVERED; did not PASS. reuse v12; no A-013."
+- "Contractor encoded executables 20260815-1935; IMPLEMENTED_AWAITING_SAUL; not PASSED."
 - "Contractor must not write decisions/** or authorizations/**."

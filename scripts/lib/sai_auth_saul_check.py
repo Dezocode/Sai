@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""GitHub Check `Saul / Product Quality` — live evidence surface, NOT proof.
+"""GitHub Check `Saul / Product Quality` plus generated blocker Checks.
 
 Check name, GitHub actor, similarly named Cursor checks, and YAML reviewer
 strings have zero clearance authority. Only verify_attestation_v2 is proof.
-Publishes no secret material (no private keys, no PEM).
+Publishes no secret material (no private keys, no PEM). One publisher emits
+the aggregate Check and `Saul / Blocker / <ID>` from the canonical ledger.
+IMPLEMENTED_AWAITING_SAUL / DISCOVERED / missing proof / Cursor actor = failure.
 """
 from __future__ import annotations
 
@@ -20,9 +22,17 @@ import sai_auth as a  # noqa: E402
 from sai_auth_saul_attestation_v2 import QUALIFY_OK, verify_attestation_v2  # noqa: E402
 
 CHECK_NAME = "Saul / Product Quality"
+BLOCKER_CHECK_PREFIX = "Saul / Blocker / "
+EXACT_STATE_SCHEMA = "saul-exact-state-review.schema.json"
 ZERO_AUTHORITY = "ZERO_AUTHORITY"
 ATTESTATION_V2 = "ATTESTATION_V2"
 REJECT_ACTORS = ("cursor", "contractor", "sai", "cora", "candidate")
+NON_SUCCESS_STATUS = frozenset({
+    "IMPLEMENTED_AWAITING_SAUL", "DISCOVERED", "IMPLEMENTING", "TRIAGED",
+    "CLAIMED", "OPEN", "BLOCKED_EXTERNAL", "AWAITING_SAUL", "AWAITING_SAI",
+    "IMPLEMENTED", "VERIFYING",
+})
+PASS_STATUS = frozenset({"PASSED_BY_SAUL", "PASSED"})
 
 
 def check_name_is_proof(_name=None) -> bool:
@@ -30,8 +40,34 @@ def check_name_is_proof(_name=None) -> bool:
     return False
 
 
+def blocker_check_name(blocker_id) -> str:
+    return f"{BLOCKER_CHECK_PREFIX}{blocker_id}"
+
+
 def is_canonical_check_name(name) -> bool:
-    return str(name or "") == CHECK_NAME
+    n = str(name or "")
+    return n == CHECK_NAME or n.startswith(BLOCKER_CHECK_PREFIX)
+
+
+def canonical_blockers(root=None) -> list:
+    from sai_auth_blockers import load_ledger
+    root = root or a.toplevel() or os.getcwd()
+    try:
+        data, _ = load_ledger(root)
+    except Exception:
+        return []
+    out = []
+    for row in data.get("blockers") or []:
+        bid = row.get("blocker_id")
+        if not bid:
+            continue
+        st = str(row.get("status") or "")
+        if st.startswith("SUPERSEDED"):
+            continue
+        rec = dict(row)
+        rec["check_name"] = blocker_check_name(bid)
+        out.append(rec)
+    return out
 
 
 def _sig_digest(review: dict) -> str | None:
@@ -42,7 +78,8 @@ def _sig_digest(review: dict) -> str | None:
     return hashlib.sha256(str(sig).encode("ascii", errors="replace")).hexdigest()
 
 
-def evidence_surface(review: dict, *, verified: bool, reason: str | None = None) -> dict:
+def evidence_surface(review: dict, *, verified: bool, reason: str | None = None,
+                     check_name: str | None = None) -> dict:
     """Non-secret proof fields for the Check output. Never includes PEM/keys."""
     att = review.get("attestation") if isinstance(review.get("attestation"), dict) else {}
     att = att or {}
@@ -50,7 +87,7 @@ def evidence_surface(review: dict, *, verified: bool, reason: str | None = None)
     if any(m in blob for m in ("BEGIN PRIVATE KEY", "BEGIN OPENSSH PRIVATE KEY")):
         raise ValueError("refusing to publish private key material")
     return {
-        "check_name": CHECK_NAME,
+        "check_name": check_name or CHECK_NAME,
         "check_name_is_proof": False,
         "verified": bool(verified),
         "reason": reason,
@@ -82,7 +119,7 @@ def evaluate_check(check: dict, review, *, exact_head, exact_rev=None,
     canonical = is_canonical_check_name(name)
     if actor in REJECT_ACTORS or not isinstance(review, dict):
         ev = evidence_surface(review if isinstance(review, dict) else {},
-                              verified=False, reason=ZERO_AUTHORITY)
+                              verified=False, reason=ZERO_AUTHORITY, check_name=name)
         ev.update({
             "canonical_name_match": canonical,
             "authority": ZERO_AUTHORITY,
@@ -94,7 +131,7 @@ def evaluate_check(check: dict, review, *, exact_head, exact_rev=None,
         exact_base=exact_base, pub_pem=pub_pem, root=root,
     )
     authority = ATTESTATION_V2 if ok else ZERO_AUTHORITY
-    ev = evidence_surface(review, verified=ok, reason=reason)
+    ev = evidence_surface(review, verified=ok, reason=reason, check_name=name)
     ev.update({
         "canonical_name_match": canonical,
         "authority": authority,
@@ -109,24 +146,24 @@ def fake_named_check_has_authority(check: dict) -> bool:
     return False
 
 
-def build_publish_payload(review, *, exact_head, exact_rev=None, pub_pem=None,
-                          root=None, conclusion_override=None) -> dict:
+def _payload(name, review, *, exact_head, exact_rev=None, pub_pem=None,
+             root=None, extra_fail=False) -> dict:
     ok, reason = verify_attestation_v2(
         review or {}, exact_head=exact_head, exact_rev=exact_rev,
         pub_pem=pub_pem, root=root,
     )
-    ev = evidence_surface(review or {}, verified=ok, reason=reason)
-    # Never fake PASS: unsigned/BLOCKED/unverified → failure.
-    conclusion = conclusion_override or ("success" if ok else "failure")
-    if not ok:
-        conclusion = "failure"
+    if extra_fail:
+        ok = False
+        reason = reason if reason != QUALIFY_OK else "BLOCKER_NOT_SAUL_PASS"
+    ev = evidence_surface(review or {}, verified=ok, reason=reason, check_name=name)
+    conclusion = "success" if ok else "failure"
     return {
-        "name": CHECK_NAME,
+        "name": name,
         "head_sha": exact_head,
         "status": "completed",
         "conclusion": conclusion,
         "output": {
-            "title": CHECK_NAME,
+            "title": name,
             "summary": json.dumps({
                 "check_name_is_proof": False,
                 "verified": ok,
@@ -138,18 +175,58 @@ def build_publish_payload(review, *, exact_head, exact_rev=None, pub_pem=None,
     }
 
 
+def build_publish_payload(review, *, exact_head, exact_rev=None, pub_pem=None,
+                          root=None, conclusion_override=None) -> dict:
+    payload = _payload(
+        CHECK_NAME, review, exact_head=exact_head, exact_rev=exact_rev,
+        pub_pem=pub_pem, root=root,
+    )
+    if conclusion_override and payload.get("authority") == ATTESTATION_V2:
+        payload["conclusion"] = conclusion_override
+    if payload.get("authority") != ATTESTATION_V2:
+        payload["conclusion"] = "failure"
+    return payload
+
+
+def blocker_extra_fail(blocker: dict, review, actor="") -> bool:
+    if str(actor or "").lower() in REJECT_ACTORS:
+        return True
+    st = str((blocker or {}).get("status") or "")
+    if st in NON_SUCCESS_STATUS or st not in PASS_STATUS:
+        return True
+    if not isinstance(review, dict):
+        return True
+    return False
+
+
+def build_blocker_payloads(review, blockers, *, exact_head, exact_rev=None,
+                           pub_pem=None, root=None, actor="") -> list:
+    out = []
+    for row in blockers or []:
+        bid = row.get("blocker_id")
+        if not bid:
+            continue
+        extra = blocker_extra_fail(row, review, actor=actor)
+        out.append(_payload(
+            blocker_check_name(bid), review, exact_head=exact_head,
+            exact_rev=exact_rev, pub_pem=pub_pem, root=root, extra_fail=extra,
+        ))
+    return out
+
+
 def check_run_body(payload: dict) -> dict:
-    """GitHub Checks API body. Name exact. No PEM/keys."""
+    """GitHub Checks API body. Name from payload. No PEM/keys."""
     blob = json.dumps(payload, default=str)
     if any(m in blob for m in ("BEGIN PRIVATE KEY", "BEGIN OPENSSH PRIVATE KEY")):
         raise ValueError("refusing to publish private key material")
+    name = payload.get("name") or CHECK_NAME
     return {
-        "name": CHECK_NAME,
+        "name": name,
         "head_sha": payload.get("head_sha"),
         "status": "completed",
         "conclusion": payload.get("conclusion") or "failure",
         "output": payload.get("output") or {
-            "title": CHECK_NAME,
+            "title": name,
             "summary": json.dumps({"check_name_is_proof": False, "verified": False}),
         },
     }
@@ -187,16 +264,28 @@ def cmd(argv=None):
     p.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY") or "")
     p.add_argument("--publish", action="store_true")
     p.add_argument("--dry-run", action="store_true", default=False)
+    p.add_argument("--no-blockers", action="store_true")
     args = p.parse_args(argv)
     review = a.read_yaml(Path(args.inp)) or {}
     payload = build_publish_payload(
         review, exact_head=args.head, exact_rev=args.rev, pub_pem=args.pub,
     )
-    print(json.dumps(payload, indent=2, default=str))
+    extras = []
+    if not args.no_blockers:
+        extras = build_blocker_payloads(
+            review, canonical_blockers(), exact_head=args.head,
+            exact_rev=args.rev, pub_pem=args.pub,
+        )
+    print(json.dumps({"aggregate": payload, "blockers": extras}, indent=2, default=str)
+          if extras else json.dumps(payload, indent=2, default=str))
     if args.publish and not args.dry_run:
         rc = publish_check_run(payload, repo=args.repo)
         if rc != 0:
             return rc
+        for item in extras:
+            rc = publish_check_run(item, repo=args.repo)
+            if rc != 0:
+                return rc
     return 0 if payload.get("authority") == ATTESTATION_V2 else 1
 
 

@@ -15,7 +15,7 @@ jobs:
   icm-enforcement:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
 
@@ -54,7 +54,10 @@ jobs:
                    scripts/verify-saul-architecture-quality \
                    scripts/verify-saul-authenticity \
                    scripts/verify-saul-finding-regression-guards \
-                   scripts/saul-review-controller
+                   scripts/saul-review-controller \
+                   scripts/verify-saul-gated-ci \
+                   scripts/verify-saul-quality-reference \
+                   scripts/verify-saul-anti-balloon
 
       - name: Verify scaffold path safety
         run: scripts/verify-scaffold-safety
@@ -97,6 +100,10 @@ jobs:
           scripts/verify-saul-architecture-quality --self-test
           scripts/verify-saul-authenticity --self-test
           scripts/verify-saul-finding-regression-guards --self-test
+          scripts/verify-saul-gated-ci --self-test
+          scripts/verify-saul-quality-reference --self-test
+          scripts/verify-saul-anti-balloon --self-test
+          scripts/verify-saul-gated-ci
 
       - name: Record dual-approval human gate
         continue-on-error: true
@@ -176,7 +183,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
 

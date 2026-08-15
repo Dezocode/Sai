@@ -57,7 +57,7 @@ conditional_activation:
 quality_profile: .ai/contracts/20260813-pr62-saul-smoke/quality-profile.yaml
 security_trust_summary: .ai/contracts/20260813-pr62-saul-smoke/evidence/cto-025-threat-trace.yaml
 nonblocking_follow_ups:
-  - "Pin actions/checkout to a SHA (DEFERRED_NONBLOCKING)"
+  - "Privileged actions/checkout pinned to 11d5960a326750d5838078e36cf38b85af677262"
   - "Inspect branch protection and runner-group restriction (UNKNOWN/VERIFY_REQUIRED)"
   - "Residual: new collaborator workflow file with self-hosted (runner-group UNKNOWN/VERIFY_REQUIRED)"
   - "Residual: Codex model credential still present; Landlock may be weak inside Hostinger container — document, not absolute isolation"

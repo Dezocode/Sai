@@ -419,22 +419,8 @@ def self_test() -> int:
     env = dict(os.environ)
     env["PYTHONPATH"] = str(Path(__file__).resolve().parent) + os.pathsep + env.get("PYTHONPATH", "")
     if root:
-        for name in (
-            "verify-saul-shard-quality", "verify-saul-architecture-quality",
-            "verify-saul-authenticity", "verify-saul-finding-regression-guards",
-        ):
-            sp = Path(root) / "scripts" / name
-            if not sp.is_file():
-                continue
-            proc = subprocess.run(
-                [str(sp), "--self-test"], cwd=root, capture_output=True, text=True, env=env,
-            )
-            for line in (proc.stdout + "\n" + proc.stderr).splitlines():
-                if line.startswith("SELFTEST PASS"):
-                    tok = line.split("SELFTEST PASS", 1)[-1].strip().split()
-                    if tok:
-                        executed.add(tok[0])
         live = load_config(root)
+        ci.collect_selftest_fixtures(root, live, executed, env)
         for check in live.get("checks") or []:
             if check.get("self_test") != "synthetic":
                 continue

@@ -79,3 +79,66 @@ checks:
       - finding-defect-present-bad
       - finding-clean-good
     note: "FINDING_TO_CI: blocking finding -> DETERMINISTIC|HEURISTIC|SEMANTIC."
+
+  - id: saul-gated-ci
+    class: health-detector
+    status: active
+    command: "scripts/verify-saul-gated-ci --self-test"
+    self_test: synthetic
+    fixtures:
+      - gated-absent-proof-nonsuccess-good
+      - gated-false-terminal-bad
+      - gated-missing-ledger-blocker-bad
+      - gated-substitute-evidence-bad
+      - gated-synthetic-review-bad
+      - gated-unsigned-exact-head-bad
+      - gated-missing-check-gate-bad
+    note: "Ordinary CI consumes v2; cannot mint PASS. Absent proof exits 0."
+
+  - id: saul-quality-reference
+    class: health-detector
+    status: active
+    command: "scripts/verify-saul-quality-reference --self-test"
+    self_test: synthetic
+    fixtures:
+      - qref-mapping-complete-good
+      - qref-missing-mapping-bad
+      - qref-rust-universal-bad
+      - qref-parallel-subsystem-bad
+      - qref-go-swift-not-applicable-good
+    note: "Domain mapping. rust is control-plane only. No *-quality subsystems."
+
+  - id: saul-anti-balloon
+    class: health-detector
+    status: active
+    command: "scripts/verify-saul-anti-balloon --self-test"
+    self_test: synthetic
+    fixtures:
+      - antiballoon-clean-good
+      - antiballoon-dup-guard-bad
+      - antiballoon-per-blocker-workflow-bad
+      - antiballoon-unexecuted-guard-bad
+      - antiballoon-threshold-raised-bad
+      - antiballoon-ready-truth-bad
+      - antiballoon-orphan-schema-bad
+    note: "Decision-0005 anti-balloon. Not a second framework."
+
+  - id: saul-ralph-resume
+    class: health-detector
+    status: active
+    command: "scripts/sai-resume --self-test"
+    self_test: synthetic
+    fixtures:
+      - ralph-liveness-a-wave-complete-good
+      - ralph-liveness-b-restart-reassess-good
+      - ralph-liveness-c-saul-pending-continue-good
+      - ralph-liveness-d-external-frontier-good
+      - ralph-liveness-e-saul-pass-sai-pending-good
+      - ralph-liveness-f-sai-pass-blocker-remains-good
+      - ralph-liveness-g-predicates-ready-good
+      - ralph-reject-false-terminal-bad
+      - ralph-reject-blocker-terminal-bad
+      - ralph-reject-missing-ledger-bad
+      - ralph-reject-missing-check-gate-bad
+    note: "Persistent Primary A-G. Empty todo is not exit. Do not PASS."
+

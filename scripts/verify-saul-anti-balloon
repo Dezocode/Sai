@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# verify-saul-anti-balloon — Decision-0005 anti-balloon detector. Not a second framework.
+# referenced: scripts/lib/sai_auth_antiballoon.py scripts/lib/sai_auth_antiballoon_test.py
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+export PYTHONPATH="$ROOT/scripts/lib${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 "$ROOT/scripts/lib/sai_auth_antiballoon.py" "$@"

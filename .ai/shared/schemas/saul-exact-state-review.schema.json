@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/saul-exact-state-review.schema.json",
+  "title": "Saul exact-state review (Decision 0009)",
+  "description": "Compact review identity keyed by repo/PR, contract+revision, SHAs, digests, architecture domain, and blocker set. Check names are not proof.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "repository", "pr", "contract_id", "contract_revision",
+    "base_sha", "head_sha", "diff_digest", "review_id",
+    "manifest_digest", "architecture", "blockers"
+  ],
+  "properties": {
+    "repository": { "type": "string", "minLength": 1 },
+    "pr": { "type": ["integer", "string"] },
+    "contract_id": { "type": "string", "minLength": 1 },
+    "contract_revision": { "type": ["string", "integer"] },
+    "base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "head_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "diff_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "review_id": { "type": "string", "minLength": 1 },
+    "manifest_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "architecture": {
+      "type": "object",
+      "required": ["domain", "local", "impact", "system"],
+      "additionalProperties": true,
+      "properties": {
+        "domain": { "type": "string" },
+        "local": { "type": "string" },
+        "impact": { "type": "string" },
+        "system": { "type": "string" }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["blocker_id", "check_name"],
+        "additionalProperties": true,
+        "properties": {
+          "blocker_id": { "type": "string", "minLength": 1 },
+          "check_name": { "type": "string", "pattern": "^Saul / Blocker / " },
+          "status": { "type": "string" }
+        }
+      }
+    }
+  }
+}

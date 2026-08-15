@@ -67,7 +67,7 @@ jobs:
       # Trusted executable tree lives here. Never overwrite this path
       # with the PR head.
       - name: Checkout default branch as trusted fallback
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ github.event.repository.default_branch || 'main' }}
           persist-credentials: false
@@ -76,7 +76,7 @@ jobs:
       # DATA only. persist-credentials false. Separate path. Do not
       # execute anything from this tree in trusted run: steps.
       - name: Fetch candidate SHA as DATA
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           ref: ${{ github.event.pull_request.head.sha || github.event.inputs.sha || github.sha }}

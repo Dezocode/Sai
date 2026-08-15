@@ -26,8 +26,8 @@
 "work_item": "ralph-ci-convergence"
 "contract": "20260813-pr62-saul-smoke"
 "revision": "v12"
-"status": "DISCOVERED"
-"implementation_state": "open"
+"status": "IMPLEMENTING"
+"implementation_state": "implementing"
 "verification_state": "unverified"
 "clearance_authority": "saul"
 "clearance_review_id": null
@@ -35,3 +35,4 @@
 "notes":
 - "Preserve ID B-RALPH-BLOCKER-CI-CONVERGENCE-001."
 - "Meta; Saul PASSes last. Cora ingested DISCOVERED; did not PASS. reuse v12; no A-013."
+- "Contractor IMPLEMENTING 20260815-1935. Never PASSED by this actor."

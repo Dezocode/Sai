@@ -1,0 +1,11 @@
+# Interface only. Do not invent a Hostinger runner label. P1-D unresolved.
+version: 1
+status: INTERFACE
+p1_d: DEFERRED_NONBLOCKING
+invent_hostinger_label: false
+claim_p1_d_resolved: false
+runs_on_interface:
+  trusted_saul_job: self-hosted
+  note: "Generic GitHub self-hosted. Not a Hostinger-specific label."
+restriction: UNKNOWN/VERIFY_REQUIRED
+source: ".github/workflows/saul-cto-review.default-branch.yml"

@@ -1,8 +1,10 @@
 # Registry / CI-coverage helpers for scripts/lib/code-health.py.
 from __future__ import annotations
 
+import os
 import re
 import shlex
+import subprocess
 from pathlib import Path
 
 try:
@@ -264,3 +266,27 @@ def check_ci_coverage(root: str, cfg: dict, res, git_files, known_fixtures: set)
             res.fail(f"unregistered root verifier: {rel}")
         else:
             res.ok(f"registered {rel}")
+
+
+def collect_selftest_fixtures(root, live, executed, env):
+    """Run declared verify-saul-* / sai-resume --self-test commands; union fixtures."""
+    seen = set()
+    for check in live.get("checks") or []:
+        parts = (check.get("command") or "").split()
+        if "--self-test" not in parts:
+            continue
+        sp = Path(root) / parts[0]
+        if not sp.is_file() or str(sp) in seen or sp.name == "verify-code-health":
+            continue
+        if not (sp.name.startswith("verify-saul-") or sp.name == "sai-resume"):
+            continue
+        seen.add(str(sp))
+        proc = subprocess.run(
+            [str(sp), "--self-test"], cwd=root, capture_output=True, text=True, env=env,
+        )
+        for line in (proc.stdout + "\n" + proc.stderr).splitlines():
+            if line.startswith("SELFTEST PASS"):
+                tok = line.split("SELFTEST PASS", 1)[-1].strip().split()
+                if tok:
+                    executed.add(tok[0])
+

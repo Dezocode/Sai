@@ -45,10 +45,10 @@ controls:
     reason: "Repo settings uninspectable here; do not fabricate PASS"
   - id: openssf-pinned-actions
     source: OpenSSF Scorecard Pinned-Dependencies
-    applicability: actions/checkout and upload-artifact
-    evidence: "actions/checkout@v4 kept; SHA pins not added (do not balloon)"
-    state: DEFERRED_NONBLOCKING
-    reason: "Pinning action SHAs is follow-up; A-010 said do not balloon pinning"
+    applicability: actions/checkout on trusted Saul workflow and agent-audit
+    evidence: "actions/checkout@11d5960a326750d5838078e36cf38b85af677262 (v4 floating tag SHA)"
+    state: PASS
+    reason: "Privileged checkout pinned to full commit SHA; same uses: count"
   - id: openssf-token-permissions
     source: OpenSSF OSPS / Scorecard Token-Permissions
     applicability: Saul workflows

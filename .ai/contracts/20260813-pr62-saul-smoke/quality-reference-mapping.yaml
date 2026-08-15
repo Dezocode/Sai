@@ -1,11 +1,10 @@
 # Domain-aware quality-reference mapping. References, not imported frameworks.
-# ONE Decision-0005 quality system. Contractor fills invariant/detector.
-# Cora ingest 20260815-1928; not PASS. rust is not universal.
+# ONE Decision-0005 quality system. rust is not universal. Do not copy frameworks.
 contract_id: 20260813-pr62-saul-smoke
 blocker_id: B-FRONTIER-QUALITY-ARCH-001
 revision: v12
-head: abae75d42e675d781be8b4041ea62fc8773defdc
-updated_at: "2026-08-15T19:28:00Z"
+ingested_head: c13bef88ad0bd6ee65380fa62171214dee9bc725
+updated_at: "2026-08-15T20:10:00Z"
 authority: dezocode
 do_not_pass: true
 do_not_copy_frameworks: true
@@ -22,28 +21,69 @@ select_by_domain:
   swift-swiftui: [element-hq/element-x-ios, pointfreeco/swift-composable-architecture, pointfreeco/isowords, swiftlang/swift-format, swiftlang/swift-testing]
   trust-security-workflow: [openssf, rust-lang/rust, tailscale/tailscale]
 references:
-  - {id: rust-lang/rust, domain: control-plane-quality-as-code, role: exemplar, status: BLOCKER}
-  - {id: tailscale/tailscale, domain: go-core-backend-runtime, role: exemplar, status: BLOCKER}
-  - {id: element-hq/element-x-ios, domain: swift-swiftui-product, role: exemplar, status: BLOCKER}
-  - {id: pointfreeco/swift-composable-architecture, domain: swift-state-effect-principles, role: principles-only, not_mandatory_dependency: true, status: BLOCKER}
-  - {id: pointfreeco/isowords, domain: modular-swiftui, role: exemplar, status: BLOCKER}
-  - {id: swiftlang/swift-format, domain: swift-native-tooling, role: exemplar, status: BLOCKER}
-  - {id: swiftlang/swift-testing, domain: swift-native-tooling, role: exemplar, status: BLOCKER}
-  - {id: openssf-osps-scorecard, domain: security-supply-chain, role: normative-baseline, status: BLOCKER}
+  - {id: rust-lang/rust, domain: control-plane-quality-as-code, role: exemplar, status: IMPLEMENTED, note: "control-plane only; not a universal product template"}
+  - {id: tailscale/tailscale, domain: go-core-backend-runtime, role: exemplar, status: NOT_APPLICABLE, reason: "No Go product/runtime source in this repo yet"}
+  - {id: element-hq/element-x-ios, domain: swift-swiftui-product, role: exemplar, status: NOT_APPLICABLE, reason: "No Swift/SwiftUI product source in this repo yet"}
+  - {id: pointfreeco/swift-composable-architecture, domain: swift-state-effect-principles, role: principles-only, not_mandatory_dependency: true, status: NOT_APPLICABLE, reason: "TCA principles only; not a Sai dependency"}
+  - {id: pointfreeco/isowords, domain: modular-swiftui, role: exemplar, status: NOT_APPLICABLE, reason: "No SwiftUI product source yet"}
+  - {id: swiftlang/swift-format, domain: swift-native-tooling, role: exemplar, status: NOT_APPLICABLE, reason: "No Swift sources to format"}
+  - {id: swiftlang/swift-testing, domain: swift-native-tooling, role: exemplar, status: NOT_APPLICABLE, reason: "No Swift test targets"}
+  - {id: openssf-osps-scorecard, domain: security-supply-chain, role: normative-baseline, status: IMPLEMENTED}
 properties:
-  - {id: repo-owned-executable-policy, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
-  - {id: structured-ci-generation, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
-  - {id: pr-to-terminal-quality-preservation, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
-  - {id: layer-appropriate-testing, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
-  - {id: explicit-state-dependency-ownership, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
-  - {id: repository-hygiene, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
-  - {id: supply-chain-workflow-integrity, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
-  - {id: quality-self-tests, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
-  - {id: architecture-review-integration, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
-  - {id: anti-ballooning, decision_0005: pending-contractor, detector: pending-contractor, status: BLOCKER}
+  - id: repo-owned-executable-policy
+    decision_0005: code-health-self-test
+    quality_profile: icm-folder-contracts
+    detector: scripts/verify-code-health
+    status: IMPLEMENTED
+  - id: structured-ci-generation
+    decision_0005: code-health-live
+    quality_profile: nist-ssdf-least-privilege
+    detector: scripts/verify-code-health
+    status: IMPLEMENTED
+  - id: pr-to-terminal-quality-preservation
+    decision_0005: saul-finding-regression-guard
+    quality_profile: nist-ssdf-review-separation
+    detector: scripts/verify-saul-finding-regression-guards
+    status: IMPLEMENTED
+  - id: layer-appropriate-testing
+    decision_0005: code-health-self-test
+    quality_profile: icm-folder-contracts
+    detector: scripts/verify-code-health
+    status: NOT_APPLICABLE
+    reason: "Go/Swift product tests N/A; bash/python ICM self-tests already execute"
+  - id: explicit-state-dependency-ownership
+    decision_0005: agent-authorization
+    quality_profile: decision-0006
+    detector: scripts/sai-resume
+    status: IMPLEMENTED
+  - id: repository-hygiene
+    decision_0005: code-health-live
+    quality_profile: anti-ballooning
+    detector: scripts/verify-saul-anti-balloon
+    status: IMPLEMENTED
+  - id: supply-chain-workflow-integrity
+    decision_0005: saul-workflow-trust
+    quality_profile: openssf-pinned-actions
+    detector: scripts/verify-saul-workflow-trust
+    status: IMPLEMENTED
+  - id: quality-self-tests
+    decision_0005: saul-authenticity-proof
+    quality_profile: slsa-provenance-principles
+    detector: scripts/verify-saul-authenticity
+    status: IMPLEMENTED
+  - id: architecture-review-integration
+    decision_0005: saul-architecture-quality
+    quality_profile: decision-0008
+    detector: scripts/verify-saul-architecture-quality
+    status: IMPLEMENTED
+  - id: anti-ballooning
+    decision_0005: saul-anti-balloon
+    quality_profile: anti-ballooning
+    detector: scripts/verify-saul-anti-balloon
+    status: IMPLEMENTED
 notes:
   - rust-lang/rust is control-plane only; not a universal product template
   - TCA is principles only; not a mandatory Sai dependency
   - no rust/go/swift/openssf quality subsystems
-  - contractor fills Decision-0005 invariant + detector; Saul classifies NOT_APPLICABLE / DEFERRED_NONBLOCKING
-  - pin privileged checkout SHA if still floating
+  - DEFERRED_NONBLOCKING rows are contractor-encoded reasons, not Saul approval
+  - pin privileged checkout SHA on trusted Saul workflow and agent-audit
