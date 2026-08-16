@@ -149,7 +149,6 @@ type Evidence struct {
 	ReviewerIdentity   string          `json:"reviewer_identity"`
 	KeyID              string          `json:"key_id"`
 	CheckRunID         int64           `json:"check_run_id"`
-	CodexInvoked       bool            `json:"codex_invoked"`
 	Synthetic          bool            `json:"synthetic"`
 	RuntimeAttestation json.RawMessage `json:"runtime_attestation"`
 	Shards             []Shard         `json:"shards"`
@@ -200,9 +199,7 @@ type World struct {
 
 func gitOut(args ...string) (string, error) {
 	cmd := exec.Command("git", args...)
-	if rootOverride != "" {
-		cmd.Dir = rootOverride
-	}
+	cmd.Dir = rootOverride
 	out, err := cmd.Output()
 	return strings.TrimSpace(string(out)), err
 }
@@ -291,18 +288,6 @@ func (b *Blocker) UnmarshalJSON(p []byte) error {
 	}
 	b.Scope, b.Acceptance, b.Evidence = rawList(m["scope"], true), rawList(m["acceptance"], false), evList(m["evidence"])
 	return nil
-}
-func objArray(r json.RawMessage) bool {
-	var a []json.RawMessage
-	if json.Unmarshal(r, &a) != nil || len(a) == 0 {
-		return false
-	}
-	for _, x := range a {
-		if len(x) == 0 || x[0] != '{' {
-			return false
-		}
-	}
-	return true
 }
 func repoRel(path, root string) (string, error) {
 	if path == "" || root == "" {
@@ -453,10 +438,7 @@ func signBytes(raw []byte) ([]byte, error) {
 	}
 	delete(m, "signature")
 	b, err := json.Marshal(m)
-	if err != nil {
-		return nil, err
-	}
-	return append([]byte(signDom), b...), nil
+	return append([]byte(signDom), b...), err
 }
 func decodeSig(s string) []byte {
 	if b, err := hex.DecodeString(s); err == nil && len(b) == ed25519.SignatureSize {
@@ -546,7 +528,6 @@ func skipCheck(n string) bool {
 func ciRole(c ghCheck) bool {
 	return !skipCheck(c.Name) && (c.App.Slug == "github-actions" || c.App.ID == 15368 || c.App.Slug == "")
 }
-func srcCheck(c ghCheck) string { return fmt.Sprintf("check:%d/%s/%s", c.App.ID, c.App.Slug, c.Name) }
 func checkFail(c ghCheck) bool {
 	return c.Status == "completed" && (c.Conclusion == "failure" || c.Conclusion == "action_required" || c.Conclusion == "timed_out" || c.Conclusion == "cancelled")
 }
@@ -582,7 +563,7 @@ func ingest(w World) []Blocker {
 		if (c.HeadSHA != "" && c.HeadSHA != w.Head) || skipCheck(c.Name) || c.Status != "completed" {
 			continue
 		}
-		id, src := "CHECK-"+h8(fmt.Sprintf("%d/%s/%s", c.App.ID, c.App.Slug, c.Name)), srcCheck(c)
+		id, src := "CHECK-"+h8(fmt.Sprintf("%d/%s/%s", c.App.ID, c.App.Slug, c.Name)), fmt.Sprintf("check:%d/%s/%s", c.App.ID, c.App.Slug, c.Name)
 		kind := map[bool]string{true: "ci", false: "check"}[ciRole(c)]
 		if checkFail(c) {
 			sc := map[bool][]string{true: {"ralph/", ".github/workflows/", "scripts/"}}[ciRole(c)]
@@ -597,12 +578,18 @@ func ingest(w World) []Blocker {
 }
 func verifySaul(raw []byte, e Evidence, s State, pub ed25519.PublicKey, checkID int64) string {
 	var m map[string]json.RawMessage
+	var tests []json.RawMessage
 	idOK := e.ReviewerIdentity != "" && !strings.Contains(strings.ToLower(e.ReviewerIdentity), "candidate")
 	if json.Unmarshal(raw, &m) != nil || e.SchemaVersion != schemaE || e.Repository != s.Repository || e.PR != s.PR || e.PR == 0 ||
 		e.HeadSHA != s.HeadSHA || e.HeadSHA == "" || e.BaseSHA != s.BaseSHA || e.CheckRunID == 0 || (checkID != 0 && e.CheckRunID != checkID) ||
 		e.Synthetic || !idOK || e.KeyID == "" || e.ManifestHash == "" || len(pub) == 0 || len(e.RuntimeAttestation) == 0 || e.RuntimeAttestation[0] != '{' ||
-		!objArray(e.Tests) || e.FinalDisposition == "" || len(e.Shards) == 0 || e.BlockerSetHash != hashRaw(m["blockers"]) {
+		json.Unmarshal(e.Tests, &tests) != nil || len(tests) == 0 || e.FinalDisposition == "" || len(e.Shards) == 0 || e.BlockerSetHash != hashRaw(m["blockers"]) {
 		return "reject"
+	}
+	for _, x := range tests {
+		if len(x) == 0 || x[0] != '{' {
+			return "reject"
+		}
 	}
 	for _, sh := range e.Shards {
 		if sh.ID == "" || sh.Digest == "" || sh.Status == "" {

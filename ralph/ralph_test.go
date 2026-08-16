@@ -177,25 +177,21 @@ func TestKernel(t *testing.T) {
 	if _, err := loadState(p); err != nil {
 		t.Fatal(err)
 	}
-}
-
-func TestRunLifetime(t *testing.T) {
 	dir := t.TempDir()
-	wp, sp := dir+"/w.json", dir+"/s.json"
+	wp, stPath := dir+"/w.json", dir+"/s.json"
 	w := tw("h1", []ghComment{{ID: "9", Login: "own", Assoc: "OWNER", Body: std("B-X", "github-comment:9")}}, []ghCheck{ck("icm-enforcement", "", "", 0)}, nil)
 	w.Checks[0].Status = "in_progress"
 	b, _ := json.Marshal(w)
 	os.WriteFile(wp, b, 0644)
 	t.Setenv("RALPH_WORLD", wp)
-	t.Setenv("RALPH_STATE", sp)
-	t.Setenv("RALPH_LOCAL_ONLY", "1")
+	t.Setenv("RALPH_STATE", stPath)
 	t.Setenv("RALPH_POLL_MS", "40")
 	t.Setenv("RALPH_WAIT_MS", "4000")
 	ch := make(chan int, 1)
 	go func() { ch <- runMain(false) }()
 	dead := time.Now().Add(2 * time.Second)
 	for time.Now().Before(dead) {
-		if st, err := loadState(sp); err == nil && st.NextAction == ActImplement {
+		if st, err := loadState(stPath); err == nil && st.NextAction == ActImplement {
 			select {
 			case rc := <-ch:
 				t.Fatalf("exited %d", rc)
