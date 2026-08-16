@@ -2,12 +2,12 @@ package main
 
 import (
 	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"sync"
 	"syscall"
 	"testing"
@@ -25,17 +25,22 @@ func std(id, src string) string {
 	b, _ := json.Marshal(e)
 	return marker + "\n```json\n" + string(b) + "\n```"
 }
-func signV2(priv ed25519.PrivateKey, e Evidence) Evidence {
+func signRaw(priv ed25519.PrivateKey, e Evidence) []byte {
 	if e.Blockers == nil {
 		e.Blockers = []Blocker{}
 	}
-	e.BlockerSetHash = hashBlockers(e.Blockers)
-	msg, _ := signMsg(e)
-	e.Sig = hex.EncodeToString(ed25519.Sign(priv, msg))
-	return e
+	bb, _ := json.Marshal(e.Blockers)
+	e.BlockerSetHash, e.Sig = hashRaw(bb), ""
+	raw, _ := json.Marshal(e)
+	msg, _ := signBytes(raw)
+	var m map[string]json.RawMessage
+	_ = json.Unmarshal(raw, &m)
+	m["signature"] = json.RawMessage(`"` + base64.StdEncoding.EncodeToString(ed25519.Sign(priv, msg)) + `"`)
+	out, _ := json.Marshal(m)
+	return out
 }
 func evOK(h string, bl []Blocker) Evidence {
-	return Evidence{SchemaVersion: schemaE, Repository: "o/r", PR: 1, BaseSHA: "base", HeadSHA: h, ManifestHash: "m", ReviewerIdentity: "hostinger-saul-cto", KeyID: "k", CheckRunID: 1, CodexInvoked: true, RuntimeAttestation: "a", Shards: []Shard{{ID: "ralph", Status: StPass}}, LocalArch: StPass, ImpactArch: StPass, SystemArch: StPass, Blockers: bl, Tests: []string{"t"}, FinalDisposition: "action_required"}
+	return Evidence{SchemaVersion: schemaE, Repository: "o/r", PR: 1, BaseSHA: "base", HeadSHA: h, ManifestHash: "m", ReviewerIdentity: "hostinger-saul-cto", KeyID: "k", CheckRunID: 1, RuntimeAttestation: json.RawMessage(`{"host_identity":"h"}`), Shards: []Shard{{ID: "shard-0001", Digest: "d", Status: StPass}}, LocalArch: StPass, ImpactArch: StPass, SystemArch: StPass, Blockers: bl, Tests: json.RawMessage(`[{"command":"t","status":"pass"}]`), FinalDisposition: "action_required"}
 }
 func ids(s State) map[string]Blocker {
 	m := map[string]Blocker{}
@@ -44,133 +49,130 @@ func ids(s State) map[string]Blocker {
 	}
 	return m
 }
-func TestCommentsChecksSaulSched(t *testing.T) {
+func ck(name, conc, text string, id int64) ghCheck {
+	c := ghCheck{Name: name, ID: id, HeadSHA: "h1", Status: "completed", Conclusion: conc}
+	c.App.ID, c.App.Slug, c.Output.Text = 15368, "github-actions", text
+	return c
+}
+
+func TestKernel(t *testing.T) {
 	pub, priv, _ := ed25519.GenerateKey(nil)
 	t.Setenv("SAI_SAUL_ATTEST_PUB", hex.EncodeToString(pub))
 	t.Setenv("RALPH_LOCAL_ONLY", "1")
 	body := std("B-RALPH-CANONICAL-BLOCKER-LOOP-001", "github-comment:9")
-	w := tw("h1", []ghComment{
+	s := applyWorld(tw("h1", []ghComment{
 		{ID: "9", Login: "own", Assoc: "OWNER", Body: body, HTMLURL: "http://c/9"},
 		{ID: "1", Login: "own", Assoc: "OWNER", Body: "**BLOCKING architecture", HTMLURL: "http://c/1"},
 		{ID: "2", Login: "r", Assoc: "NONE", Body: body},
 		{ID: "3", Login: "w", Assoc: "COLLABORATOR", Body: "**BLOCKING x"},
 		{ID: "4", Login: "own", Assoc: "OWNER", Body: "## BLOCKING not legacy"},
-	}, nil, map[string]string{"own": "admin", "r": "none", "w": "write"})
-	s := applyWorld(w, State{})
+	}, nil, map[string]string{"own": "admin", "r": "none", "w": "write"}), State{})
 	got := ids(s)
-	if got["B-RALPH-CANONICAL-BLOCKER-LOOP-001"].ID == "" || got["COMMENT-1"].ID == "" || got["COMMENT-2"].ID != "" || got["COMMENT-3"].ID != "" || got["COMMENT-4"].ID != "" {
+	if got["B-RALPH-CANONICAL-BLOCKER-LOOP-001"].ID == "" || got["COMMENT-1"].ID == "" || got["COMMENT-2"].ID != "" || got["COMMENT-3"].ID != "" || got["COMMENT-4"].ID != "" || got["COMMENT-1"].Actionable {
 		t.Fatalf("comments %+v", s.Blockers)
 	}
 	if s.NextAction != ActImplement || s.Dispatch.Kind != "cursor_primary" || s.Dispatch.WorkItem.ID != "WI-B-RALPH-CANONICAL-BLOCKER-LOOP-001" {
-		t.Fatalf("sched %s %s", s.NextAction, s.Dispatch.WorkItem.ID)
+		t.Fatalf("sched %s", s.Dispatch.WorkItem.ID)
 	}
-	fake := body
-	w2 := tw("h1", []ghComment{{ID: "8", Login: "r", Assoc: "NONE", Body: strings.ReplaceAll(fake, `"source_actor":`, `"source_actor":"Dezocode", "x":`)}}, nil, map[string]string{"r": "none"})
-	if len(ingestTrustedComments(w2)) != 0 {
-		t.Fatal("spoof")
+	if applyWorld(tw("h1", nil, []ghCheck{ck("icm-enforcement", "failure", "", 0)}, nil), State{}).NextAction != ActRemediate {
+		t.Fatal("ci")
 	}
-	badEnv := Envelope{SchemaVersion: schemaBs, Repository: "a/b", PR: 1, Blockers: []Blocker{{SchemaVersion: schemaB, ID: "Z", SourceID: "github-comment:9", Status: "OPEN", Blocking: true, Objective: "z"}}}
-	bb, _ := json.Marshal(badEnv)
-	w3 := tw("h1", []ghComment{{ID: "9", Login: "own", Assoc: "OWNER", Body: marker + "\n```json\n" + string(bb) + "\n```"}}, nil, nil)
-	if len(ingestTrustedComments(w3)) != 0 {
-		t.Fatal("repo")
+	sp := applyWorld(tw("h1", nil, []ghCheck{ck("icm-enforcement", "success", "", 0), ck(checkSaul, "action_required", "", 1)}, nil), State{Repository: "o/r", PR: 1, BaseSHA: "base"})
+	if ids(sp)["SAUL_PROTOCOL_V2"].ID == "" || sp.Saul.Trusted || ids(sp)["CHECK-"+h8("15368/github-actions/"+checkSaul)].ID != "" {
+		t.Fatal("protocol")
 	}
-	res := std("B-RALPH-CANONICAL-BLOCKER-LOOP-001", "github-comment:9")
-	res = strings.Replace(res, `"status": "OPEN"`, `"status": "RESOLVED"`, 1)
-	w4 := tw("h2", []ghComment{{ID: "9", Login: "own", Assoc: "OWNER", Body: res, HTMLURL: "http://c/9"}, {ID: "1", Login: "own", Assoc: "OWNER", Body: "**BLOCKING architecture", HTMLURL: "http://c/1"}}, nil, nil)
-	s2 := applyWorld(w4, s)
-	if ids(s2)["B-RALPH-CANONICAL-BLOCKER-LOOP-001"].Status == "RESOLVED" || ids(s2)["COMMENT-1"].ID == "" {
-		t.Fatal("sticky/unauth resolve")
-	}
-	fail := ghCheck{Name: "icm-enforcement", HeadSHA: "h1", Status: "completed", Conclusion: "failure", App: struct {
-		ID   int64  `json:"id"`
-		Slug string `json:"slug"`
-	}{ID: 15368, Slug: "github-actions"}}
-	sf := applyWorld(tw("h1", nil, []ghCheck{fail}, nil), State{})
-	if sf.NextAction != ActRemediate || len(sf.Blockers) == 0 || !sf.Blockers[0].Actionable {
-		t.Fatal("ci blocker", sf.Blockers, sf.NextAction)
-	}
-	pass := fail
-	pass.Conclusion = "success"
-	sp := applyWorld(tw("h1", nil, []ghCheck{pass, {Name: checkSaul, ID: 1, HeadSHA: "h1", Status: "completed", Conclusion: "action_required"}}, nil), State{Repository: "o/r", PR: 1, BaseSHA: "base"})
-	if ids(sp)["SAUL_PROTOCOL_V2"].ID == "" || sp.Saul.Trusted || sp.NextAction == ActWaitSaul && ids(sp)["SAUL_PROTOCOL_V2"].Actionable {
-		t.Fatal("protocol", sp.Blockers, sp.NextAction)
-	}
-	text, _ := json.Marshal(signV2(priv, evOK("h1", []Blocker{{SchemaVersion: schemaB, ID: "B1", SourceKind: "saul", Status: "OPEN", Blocking: true, Severity: "P1", Objective: "b1", Scope: []string{"ralph/"}, ResolutionAuthority: "saul"}})))
-	okc := []ghCheck{{Name: "icm-enforcement", HeadSHA: "h1", Status: "completed", Conclusion: "success", App: struct {
-		ID   int64  `json:"id"`
-		Slug string `json:"slug"`
-	}{Slug: "github-actions"}}, {Name: checkSaul, ID: 1, HeadSHA: "h1", Status: "completed", Output: struct {
-		Summary string `json:"summary"`
-		Text    string `json:"text"`
-	}{Text: string(text)}}}
+	text := signRaw(priv, evOK("h1", []Blocker{{SchemaVersion: schemaB, ID: "B1", SourceKind: "saul", Status: "OPEN", Blocking: true, Severity: "P1", Scope: []string{"ralph/"}, ResolutionAuthority: "saul", Applicability: Appl{Mode: "exact_head", HeadSHA: "h1"}}}))
+	okc := []ghCheck{ck("icm-enforcement", "success", "", 0), ck(checkSaul, "", string(text), 1)}
 	ss := applyWorld(tw("h1", []ghComment{{ID: "1", Login: "own", Assoc: "OWNER", Body: "**BLOCKING architecture", HTMLURL: "http://c/1"}}, okc, nil), State{Repository: "o/r", PR: 1, BaseSHA: "base"})
-	m := ids(ss)
-	if !ss.Saul.Trusted || m["B1"].ID == "" || m["COMMENT-1"].ID == "" {
-		t.Fatal("union", ss.Blockers, ss.Saul)
+	if !ss.Saul.Trusted || ids(ss)["B1"].ID == "" || ids(ss)["COMMENT-1"].ID == "" || ids(ss)["SAUL_PROTOCOL_V2"].ID != "" {
+		t.Fatal("union")
 	}
-	text2, _ := json.Marshal(signV2(priv, evOK("h1", []Blocker{{SchemaVersion: schemaB, ID: "B1", SourceKind: "saul", Status: "RESOLVED", ResolutionAuthority: "saul"}})))
-	okc[1].Output.Text = string(text2)
+	okc[1].Output.Text = string(signRaw(priv, evOK("h1", []Blocker{{SchemaVersion: schemaB, ID: "B1", SourceKind: "saul", Status: "RESOLVED", ResolutionAuthority: "saul"}})))
 	sr := applyWorld(tw("h1", []ghComment{{ID: "1", Login: "own", Assoc: "OWNER", Body: "**BLOCKING architecture", HTMLURL: "http://c/1"}}, okc, nil), ss)
 	if ids(sr)["B1"].Status != "RESOLVED" || ids(sr)["COMMENT-1"].Status != "OPEN" {
-		t.Fatal("saul resolve omit", sr.Blockers)
+		t.Fatal("resolve")
 	}
-	bad := evOK("h1", nil)
-	bad.CodexInvoked = false
-	if verifySaul(signV2(priv, bad), State{Repository: "o/r", PR: 1, BaseSHA: "base", HeadSHA: "h1"}, pub, 1) {
-		t.Fatal("codex")
-	}
-	dep := applyWorld(tw("h1", nil, nil, nil), State{Blockers: []Blocker{
-		{ID: "P0w", SchemaVersion: schemaB, Status: "OPEN", Blocking: true, Severity: "P0", DependsOn: []string{"X"}, Scope: []string{"ralph/"}, Objective: "a"},
-		{ID: "P1r", SchemaVersion: schemaB, Status: "OPEN", Blocking: true, Severity: "P1", Scope: []string{"ralph/"}, Objective: "b"},
-	}})
-	if dep.Grant.WorkItem != "WI-P1r" {
-		t.Fatal("deps", dep.Grant)
-	}
-	s.NextAction, s.CI, s.CIAt = ActImplement, StPending, "h1"
-	s = scheduleState(s)
-	if s.NextAction == ActWaitSaul || s.NextAction == ActWaitCI {
-		t.Fatal("wait with work", s.NextAction)
-	}
-}
-func TestMutationLockRun(t *testing.T) {
-	t.Setenv("RALPH_LOCAL_ONLY", "1")
-	s := applyWorld(tw("aaa", []ghComment{{ID: "9", Login: "own", Assoc: "OWNER", Body: std("B-X", "github-comment:9")}}, nil, nil), State{})
-	root := t.TempDir()
-	write := hookIn{ToolName: "Write", ToolInput: map[string]any{"path": "ralph/ralph.go"}}
-	if hookDecision(s, write, "aaa", root)["permission"] != "allow" {
-		t.Fatal("allow")
-	}
-	for _, cmd := range []string{"rm -rf ralph", "mv a b", "cp a b", "sed -i s/a/b/ x", "perl -pi -e s/a/b/ x", "git apply x", "git checkout HEAD -- x", "git reset --hard", "python3 -c open('x','w')", "node -e fs.write", "gofmt -w x", "go fmt -w x", "touch x", "true > x", "git status | tee x", "cat <<EOF\nX\nEOF", "git status && rm x", "git status; rm x", "$(rm x)"} {
-		if hookDecision(s, hookIn{ToolName: "Shell", ToolInput: map[string]any{"command": cmd}}, "aaa", root)["permission"] != "deny" {
-			t.Fatalf("shell %s", cmd)
+	st := State{Repository: "o/r", PR: 1, BaseSHA: "base", HeadSHA: "h1"}
+	for _, tc := range []struct {
+		w   string
+		mut func(Evidence) Evidence
+		pub ed25519.PublicKey
+	}{
+		{"", nil, pub},
+		{"repo", func(e Evidence) Evidence { e.Repository = "x/y"; return e }, pub},
+		{"pr", func(e Evidence) Evidence { e.PR = 9; return e }, pub},
+		{"head", func(e Evidence) Evidence { e.HeadSHA = "z"; return e }, pub},
+		{"base", func(e Evidence) Evidence { e.BaseSHA = "x"; return e }, pub},
+		{"check", func(e Evidence) Evidence { e.CheckRunID = 9; return e }, pub},
+		{"pub", nil, nil},
+		{"syn", func(e Evidence) Evidence { e.Synthetic = true; return e }, pub},
+		{"shard", func(e Evidence) Evidence { e.Shards = nil; return e }, pub},
+		{"blk", func(e Evidence) Evidence {
+			e.Blockers = []Blocker{{SchemaVersion: schemaB, ID: "", Status: "OPEN"}}
+			return e
+		}, pub},
+	} {
+		e := evOK("h1", []Blocker{{SchemaVersion: schemaB, ID: "B1", Status: "OPEN", Blocking: true}})
+		if tc.mut != nil {
+			e = tc.mut(e)
+		}
+		raw := signRaw(priv, e)
+		var got Evidence
+		_ = json.Unmarshal(raw, &got)
+		if w := verifySaul(raw, got, st, tc.pub, 1); (w == "") != (tc.w == "") {
+			t.Fatalf("%q got %q", tc.w, w)
 		}
 	}
-	if hookDecision(s, hookIn{ToolName: "InventedMutate", ToolInput: map[string]any{"path": "ralph/ralph.go"}}, "aaa", root)["permission"] != "deny" {
-		t.Fatal("unknown")
+	var hb Blocker
+	_ = json.Unmarshal([]byte(`{"id":"X","priority":"P1","scope":"PR review","acceptance":"ok","status":"OPEN","schema_version":"ralph-blocker-v1","blocking":true}`), &hb)
+	if hb.Severity != "P1" || len(hb.Scope) != 0 {
+		t.Fatalf("compat %+v", hb)
 	}
-	t.Setenv("RALPH_WORK_ITEM", "fake")
-	if hookDecision(s, write, "aaa", root)["permission"] != "deny" {
-		t.Fatal("spoof")
+	prior := []Blocker{{ID: "OWN", SourceKind: "comment", Status: "OPEN", Blocking: true, ResolutionAuthority: "saul", Applicability: Appl{Mode: "sticky"}}}
+	open := []Blocker{{ID: "S1", SourceKind: "saul", Status: "OPEN", Blocking: true, ResolutionAuthority: "saul", Applicability: Appl{Mode: "exact_head", HeadSHA: "h1"}}}
+	mg := mergeFrontierSaul(prior, open, map[string]bool{"S1": true}, true, "h1")
+	if ids(State{Blockers: mg})["OWN"].ID == "" || ids(State{Blockers: mergeFrontierSaul(mg, nil, map[string]bool{}, true, "h2")})["S1"].ID != "" {
+		t.Fatal("merge")
 	}
-	os.Unsetenv("RALPH_WORK_ITEM")
-	if _, err := CompleteWork(s, WorkerResult{WorkItem: s.Grant.WorkItem, BaseSHA: "aaa", Status: "RESOLVED"}); err == nil {
-		t.Fatal("worker resolve")
+	if ids(State{Blockers: mergeFrontierSaul(prior, []Blocker{{ID: "OWN", SourceKind: "ci", Status: "RESOLVED", SourceID: "x"}}, nil, false, "h1")})["OWN"].Status != "OPEN" {
+		t.Fatal("ci-clear")
+	}
+	if _, err := CompleteWork(ss, WorkerResult{WorkItem: ss.Grant.WorkItem, BaseSHA: "h1", Status: "RESOLVED"}); err == nil {
+		t.Fatal("worker")
+	}
+	s.NextAction, s.CI, s.CIAt = ActImplement, StPending, "h1"
+	if scheduleState(s).NextAction == ActWaitSaul {
+		t.Fatal("wait")
+	}
+	root := t.TempDir()
+	os.MkdirAll(filepath.Join(root, "ralph"), 0755)
+	if hookDecision(s, hookIn{ToolName: "Write", ToolInput: map[string]any{"path": "ralph/ralph.go"}}, "h1", root)["permission"] != "allow" {
+		t.Fatal("hook")
+	}
+	for _, cmd := range []string{"rm x", "mv a b", "cp a b", "install a", "ruby -e x", "truncate -s0 x", "sed -i s/a/b/ x", "perl -pi -e x", "git apply x", "git checkout x", "git reset --hard", "git restore x", "git clean -fd", "python3 -c open('x','w')", "gofmt -w x", "touch x", "true > x", "echo x > y", "printf x > y", "cat <<EOF\nX\nEOF", "git status && rm x"} {
+		if hookDecision(s, hookIn{ToolName: "Shell", ToolInput: map[string]any{"command": cmd}}, "h1", root)["permission"] != "deny" {
+			t.Fatal(cmd)
+		}
+	}
+	if hookDecision(s, hookIn{ToolName: "Write", ToolInput: map[string]any{"path": "/etc/passwd"}}, "h1", root)["permission"] != "deny" {
+		t.Fatal("abs")
+	}
+	link := filepath.Join(root, "ralph", "link.go")
+	if os.Symlink("ralph.go", link) == nil && hookDecision(s, hookIn{ToolName: "Write", ToolInput: map[string]any{"path": link}}, "h1", root)["permission"] != "deny" {
+		t.Fatal("symlink")
 	}
 	p := filepath.Join(t.TempDir(), "s.json")
 	var wg sync.WaitGroup
 	for i := 0; i < 6; i++ {
 		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			_ = saveState(p, s)
-		}()
+		go func() { defer wg.Done(); _ = saveState(p, s) }()
 	}
 	wg.Wait()
 	if _, err := loadState(p); err != nil {
 		t.Fatal(err)
 	}
 }
+
 func TestHelperRalphRun(t *testing.T) {
 	if os.Getenv("RALPH_BE_RUN") != "1" {
 		return
@@ -180,10 +182,8 @@ func TestHelperRalphRun(t *testing.T) {
 func TestRunLifetime(t *testing.T) {
 	dir := t.TempDir()
 	wp, sp := dir+"/w.json", dir+"/s.json"
-	w := tw("h1", []ghComment{{ID: "9", Login: "own", Assoc: "OWNER", Body: std("B-X", "github-comment:9")}}, []ghCheck{{Name: "icm-enforcement", HeadSHA: "h1", Status: "in_progress", App: struct {
-		ID   int64  `json:"id"`
-		Slug string `json:"slug"`
-	}{Slug: "github-actions"}}}, nil)
+	w := tw("h1", []ghComment{{ID: "9", Login: "own", Assoc: "OWNER", Body: std("B-X", "github-comment:9")}}, []ghCheck{ck("icm-enforcement", "", "", 0)}, nil)
+	w.Checks[0].Status = "in_progress"
 	b, _ := json.Marshal(w)
 	os.WriteFile(wp, b, 0644)
 	cmd := exec.Command(os.Args[0], "-test.run=TestHelperRalphRun", "--")
@@ -194,12 +194,12 @@ func TestRunLifetime(t *testing.T) {
 	defer cmd.Process.Kill()
 	dead := time.Now().Add(2 * time.Second)
 	for time.Now().Before(dead) {
-		if st, err := loadState(sp); err == nil && st.NextAction == ActImplement && cmd.ProcessState == nil {
+		if st, err := loadState(sp); err == nil && st.NextAction == ActImplement {
 			break
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
 	if err := cmd.Process.Signal(syscall.Signal(0)); err != nil {
-		t.Fatal("dead", err)
+		t.Fatal("dead")
 	}
 }

@@ -2,4 +2,4 @@
 description: Ralph Go kernel owns edit steering. Rules do not authorize edits.
 alwaysApply: true
 ---
-Edits: `go run ./ralph hook`. Long-lived: `go run ./ralph run`. Wake: `go run ./ralph reconcile --once`. Worker: `go run ./ralph worker-result`. Env is not Grant.
+Edits: `go run ./ralph hook`. Consume current `Dispatch.work_item` from `go run ./ralph reconcile --once`. Env is not Grant.
