@@ -1,0 +1,9 @@
+{
+  "task_id": "20260816-0335-pr68-go-kernel-cursor-cloud",
+  "agent": "cursor-cloud",
+  "repository": "Dezocode/Sai",
+  "branch": "refactor/go-control-kernel",
+  "status": "in-progress",
+  "pr": "https://github.com/Dezocode/Sai/pull/68",
+  "claimed_files": ["ralph/", "go.mod", ".cursor/hooks.json", ".cursor/rules/ralph.mdc", ".github/workflows/agent-audit.yml"]
+}

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": "go run ./ralph hook",
+        "matcher": "Write|StrReplace|Delete|EditNotebook|Shell",
+        "failClosed": true
+      }
+    ]
+  }
+}
