@@ -12,7 +12,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -257,19 +256,18 @@ func evList(r json.RawMessage) []EvRef {
 	if json.Unmarshal(r, &raw) != nil {
 		return nil
 	}
-	out := make([]EvRef, 0, len(raw))
+	out := []EvRef{}
 	for _, e := range raw {
-		ev := EvRef{}
-		ev.Message, _ = e["message"].(string)
-		ev.EvidenceRef, _ = e["evidence_ref"].(string)
-		if ev.EvidenceRef == "" {
-			ev.EvidenceRef, _ = e["comment_url"].(string)
+		msg, _ := e["message"].(string)
+		if msg == "" {
+			msg, _ = e["test"].(string)
 		}
-		if ev.Message == "" {
-			ev.Message, _ = e["test"].(string)
+		ref, _ := e["evidence_ref"].(string)
+		if ref == "" {
+			ref, _ = e["comment_url"].(string)
 		}
-		if ev.Message != "" || ev.EvidenceRef != "" {
-			out = append(out, ev)
+		if msg != "" || ref != "" {
+			out = append(out, EvRef{Message: msg, EvidenceRef: ref})
 		}
 	}
 	return out
@@ -324,17 +322,8 @@ func repoRel(path, root string) (string, error) {
 	return filepath.ToSlash(rel), nil
 }
 func applicable(b Blocker, head string) bool {
-	if b.Status != "OPEN" || !b.Blocking {
-		return false
-	}
-	if b.Applicability.Mode == "sticky" {
-		return true
-	}
-	h := b.Applicability.HeadSHA
-	if h == "" {
-		h = b.HeadSHA
-	}
-	return h == "" || h == head
+	h := cmp.Or(b.Applicability.HeadSHA, b.HeadSHA)
+	return b.Status == "OPEN" && b.Blocking && (b.Applicability.Mode == "sticky" || h == "" || h == head)
 }
 func depsReady(b Blocker, all []Blocker) bool {
 	st := map[string]string{}
@@ -348,21 +337,8 @@ func depsReady(b Blocker, all []Blocker) bool {
 	}
 	return true
 }
-func awaiting(s State, id string) bool {
-	for _, w := range s.Workers {
-		if w.Status != awaitVal || w.BaseSHA != s.HeadSHA {
-			continue
-		}
-		for _, x := range w.BlockerIDs {
-			if x == id {
-				return true
-			}
-		}
-	}
-	return false
-}
 func isActionable(b Blocker, s State) bool {
-	return applicable(b, s.HeadSHA) && depsReady(b, s.Blockers) && len(b.Scope) > 0 && !awaiting(s, b.ID)
+	return applicable(b, s.HeadSHA) && depsReady(b, s.Blockers) && len(b.Scope) > 0
 }
 func saulConverged(s State) bool {
 	r := s.Saul
@@ -393,20 +369,17 @@ func Ready(s State) bool {
 	return true
 }
 func pick(s State) *Blocker {
-	var c []Blocker
-	for _, b := range s.Blockers {
-		if b.Actionable {
-			c = append(c, b)
+	var best *Blocker
+	for i := range s.Blockers {
+		b := &s.Blockers[i]
+		if !b.Actionable {
+			continue
+		}
+		if best == nil || b.Severity < best.Severity || b.Severity == best.Severity && (b.Priority < best.Priority || b.Priority == best.Priority && (b.CreatedAt < best.CreatedAt || b.CreatedAt == best.CreatedAt && b.ID < best.ID)) {
+			best = b
 		}
 	}
-	sort.Slice(c, func(i, j int) bool {
-		a, b := c[i], c[j]
-		return a.Severity < b.Severity || a.Severity == b.Severity && (a.Priority < b.Priority || a.Priority == b.Priority && (a.CreatedAt < b.CreatedAt || a.CreatedAt == b.CreatedAt && a.ID < b.ID))
-	})
-	if len(c) == 0 {
-		return nil
-	}
-	return &c[0]
+	return best
 }
 func Observe(head string, s State) State {
 	if head == "" {
@@ -416,8 +389,7 @@ func Observe(head string, s State) State {
 		if s.CIAt != head {
 			s.CI = StStale
 		}
-		s.Saul.Trusted = s.Saul.Trusted && s.Saul.SHA == head
-		s.Grant, s.Dispatch = Grant{}, Disp{}
+		s.Saul.Trusted, s.Grant, s.Dispatch = s.Saul.Trusted && s.Saul.SHA == head, Grant{}, Disp{}
 		for i := range s.Workers {
 			if s.Workers[i].BaseSHA != head {
 				s.Workers[i].Status = "STALE"
@@ -490,10 +462,7 @@ func decodeSig(s string) []byte {
 	if b, err := hex.DecodeString(s); err == nil && len(b) == ed25519.SignatureSize {
 		return b
 	}
-	b, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		return nil
-	}
+	b, _ := base64.StdEncoding.DecodeString(s)
 	return b
 }
 func canResolve(old, neu Blocker) bool {
@@ -506,34 +475,26 @@ func mergeFrontierSaul(prior, inc []Blocker, saulIDs map[string]bool, saulOK boo
 		if b.ID == "" {
 			return
 		}
-		if b.SchemaVersion == "" {
-			b.SchemaVersion = schemaB
-		}
+		b.SchemaVersion = cmp.Or(b.SchemaVersion, schemaB)
 		old, ok := m[b.ID]
-		if !ok {
-			if b.Status == "RESOLVED" {
-				return
-			}
+		switch {
+		case !ok && b.Status == "RESOLVED":
+		case !ok:
 			m[b.ID], order = b, append(order, b.ID)
-			return
-		}
-		if b.Status == "RESOLVED" {
+		case b.Status == "RESOLVED":
 			if canResolve(old, b) {
 				old.Status, old.UpdatedAt = "RESOLVED", b.UpdatedAt
 				m[b.ID] = old
 			}
-			return
+		default:
+			b.CreatedAt = cmp.Or(old.CreatedAt, b.CreatedAt)
+			m[b.ID] = b
 		}
-		if old.CreatedAt != "" {
-			b.CreatedAt = old.CreatedAt
+	}
+	for _, xs := range [][]Blocker{prior, inc} {
+		for _, b := range xs {
+			put(b)
 		}
-		m[b.ID] = b
-	}
-	for _, b := range prior {
-		put(b)
-	}
-	for _, b := range inc {
-		put(b)
 	}
 	out := make([]Blocker, 0, len(order))
 	for _, id := range order {
@@ -541,14 +502,9 @@ func mergeFrontierSaul(prior, inc []Blocker, saulIDs map[string]bool, saulOK boo
 		if saulOK && b.SourceKind == "saul" && b.Applicability.Mode != "sticky" && !saulIDs[b.ID] {
 			continue
 		}
-		if b.Status != "RESOLVED" && b.Applicability.Mode != "sticky" {
-			h := b.Applicability.HeadSHA
-			if h == "" {
-				h = b.HeadSHA
-			}
-			if h != "" && h != head {
-				continue
-			}
+		h := cmp.Or(b.Applicability.HeadSHA, b.HeadSHA)
+		if b.Status != "RESOLVED" && b.Applicability.Mode != "sticky" && h != "" && h != head {
+			continue
 		}
 		out = append(out, b)
 	}
@@ -559,8 +515,8 @@ func trusted(login, assoc string, perms map[string]string) bool {
 }
 func parseEnv(body string) (Envelope, bool) {
 	s := body
-	if strings.Contains(body, marker) {
-		rest := body[strings.Index(body, marker):]
+	if i := strings.Index(body, marker); i >= 0 {
+		rest := body[i:]
 		a := strings.Index(rest, "```")
 		if a < 0 {
 			return Envelope{}, false
@@ -573,10 +529,7 @@ func parseEnv(body string) (Envelope, bool) {
 		s = rest[:b]
 	}
 	var e Envelope
-	if json.Unmarshal([]byte(strings.TrimSpace(s)), &e) != nil || e.SchemaVersion != schemaBs {
-		return Envelope{}, false
-	}
-	return e, true
+	return e, json.Unmarshal([]byte(strings.TrimSpace(s)), &e) == nil && e.SchemaVersion == schemaBs
 }
 func blk(id, kind, src, actor, sev, auth, obj string, scope []string, sticky bool, head, repo string, pr int) Blocker {
 	b := Blocker{SchemaVersion: schemaB, ID: id, SourceKind: kind, SourceID: src, SourceActor: actor, Repository: repo, PR: pr, HeadSHA: head, Severity: sev, Blocking: true, Status: "OPEN", Objective: obj, Scope: scope, ResolutionAuthority: auth, CreatedAt: now(), UpdatedAt: now()}
@@ -612,10 +565,7 @@ func ingest(w World) []Blocker {
 				if b.SchemaVersion != schemaB || b.ID == "" || (b.SourceID != "" && b.SourceID != src) {
 					continue
 				}
-				b.SourceKind, b.SourceID, b.SourceActor, b.Repository, b.PR = "comment", src, c.Login, w.Repo, w.PR
-				if b.Applicability.Mode == "" {
-					b.Applicability.Mode = "sticky"
-				}
+				b.SourceKind, b.SourceID, b.SourceActor, b.Repository, b.PR, b.Applicability.Mode = "comment", src, c.Login, w.Repo, w.PR, cmp.Or(b.Applicability.Mode, "sticky")
 				out = append(out, b)
 			}
 			continue
@@ -629,21 +579,13 @@ func ingest(w World) []Blocker {
 		out = append(out, b)
 	}
 	for _, c := range w.Checks {
-		if c.HeadSHA != "" && c.HeadSHA != w.Head {
+		if (c.HeadSHA != "" && c.HeadSHA != w.Head) || skipCheck(c.Name) || c.Status != "completed" {
 			continue
 		}
-		if skipCheck(c.Name) || c.Status != "completed" {
-			continue
-		}
-		id, src, kind := "CHECK-"+h8(fmt.Sprintf("%d/%s/%s", c.App.ID, c.App.Slug, c.Name)), srcCheck(c), "check"
-		if ciRole(c) {
-			kind = "ci"
-		}
+		id, src := "CHECK-"+h8(fmt.Sprintf("%d/%s/%s", c.App.ID, c.App.Slug, c.Name)), srcCheck(c)
+		kind := map[bool]string{true: "ci", false: "check"}[ciRole(c)]
 		if checkFail(c) {
-			sc := []string(nil)
-			if ciRole(c) {
-				sc = []string{"ralph/", ".github/workflows/", "scripts/"}
-			}
+			sc := map[bool][]string{true: {"ralph/", ".github/workflows/", "scripts/"}}[ciRole(c)]
 			b := blk(id, kind, src, c.App.Slug, "P1", "ci", "Make required Check "+c.Name+" pass on exact current HEAD", sc, false, w.Head, w.Repo, w.PR)
 			b.Evidence = []EvRef{{Message: c.Conclusion, EvidenceRef: c.DetailsURL}}
 			out = append(out, b)
@@ -696,12 +638,8 @@ func ingestSaul(w World, s State) (Review, []Blocker, bool) {
 		return Review{SHA: w.Head}, []Blocker{blk("SAUL_PROTOCOL_V2", "runtime", "saul-publisher", c.App.Slug, "P1", "owner", "Saul publisher protocol needs v2", nil, false, w.Head, w.Repo, w.PR)}, false
 	}
 	for i := range e.Blockers {
-		if e.Blockers[i].SourceKind == "" {
-			e.Blockers[i].SourceKind = "saul"
-		}
-		if e.Blockers[i].ResolutionAuthority == "" {
-			e.Blockers[i].ResolutionAuthority = "saul"
-		}
+		e.Blockers[i].SourceKind = cmp.Or(e.Blockers[i].SourceKind, "saul")
+		e.Blockers[i].ResolutionAuthority = cmp.Or(e.Blockers[i].ResolutionAuthority, "saul")
 	}
 	return Review{SHA: e.HeadSHA, Trusted: true, Shards: e.Shards, LocalArch: e.LocalArch, ImpactArch: e.ImpactArch, SystemArch: e.SystemArch}, e.Blockers, true
 }
@@ -729,25 +667,17 @@ func scheduleState(s State) State {
 	}
 	ws, seen := s.Workers[:0], map[string]bool{}
 	for _, x := range s.Workers {
-		if x.Status == "STALE" || x.BaseSHA != s.HeadSHA || seen[x.ID] {
-			continue
+		if x.Status != "STALE" && x.BaseSHA == s.HeadSHA && !seen[x.ID] {
+			seen[x.ID], ws = true, append(ws, x)
 		}
-		seen[x.ID] = true
-		ws = append(ws, x)
 	}
 	s.Workers = ws
-	p := pick(s)
-	if s.NextAction != ActImplement && s.NextAction != ActRemediate {
-		s.Grant, s.Dispatch = Grant{}, Disp{}
+	p, work := pick(s), s.NextAction == ActImplement || s.NextAction == ActRemediate
+	if w := findItem(s, s.Grant.WorkItem); work && s.Grant.HeadSHA == s.HeadSHA && w != nil && w.BaseSHA == s.HeadSHA {
+		s.Dispatch = Disp{Kind: "cursor_primary", Head: s.HeadSHA, WorkItem: *w}
 		return s
 	}
-	if s.Grant.HeadSHA == s.HeadSHA && s.Grant.WorkItem != "" {
-		if w := findItem(s, s.Grant.WorkItem); w != nil && w.BaseSHA == s.HeadSHA && w.Status != awaitVal {
-			s.Dispatch = Disp{Kind: "cursor_primary", Head: s.HeadSHA, WorkItem: *w}
-			return s
-		}
-	}
-	if p == nil {
+	if !work || p == nil {
 		s.Grant, s.Dispatch = Grant{}, Disp{}
 		return s
 	}
@@ -760,15 +690,14 @@ func scheduleState(s State) State {
 	w := WorkItem{ID: "WI-" + p.ID, BlockerIDs: []string{p.ID}, BaseSHA: s.HeadSHA, Objective: p.Objective, Scope: p.Scope, Acceptance: p.Acceptance, DependsOn: p.DependsOn, Priority: p.Priority, Evidence: ev, GrantID: "G-" + h8(s.HeadSHA+"|"+p.ID), Status: "OPEN"}
 	found := false
 	for i := range s.Workers {
-		if s.Workers[i].ID == w.ID && s.Workers[i].BaseSHA == s.HeadSHA && s.Workers[i].Status != "STALE" {
+		if s.Workers[i].ID == w.ID && s.Workers[i].BaseSHA == s.HeadSHA {
 			s.Workers[i], found = w, true
 		}
 	}
 	if !found {
 		s.Workers = append(s.Workers, w)
 	}
-	s.Grant = Grant{WorkItem: w.ID, HeadSHA: s.HeadSHA, Objective: w.Objective, Scope: w.Scope}
-	s.Dispatch = Disp{Kind: "cursor_primary", Head: s.HeadSHA, WorkItem: w}
+	s.Grant, s.Dispatch = Grant{WorkItem: w.ID, HeadSHA: s.HeadSHA, Objective: w.Objective, Scope: w.Scope}, Disp{Kind: "cursor_primary", Head: s.HeadSHA, WorkItem: w}
 	return s
 }
 func CompleteWork(s State, r WorkerResult) (State, error) {
@@ -781,16 +710,13 @@ func CompleteWork(s State, r WorkerResult) (State, error) {
 	case r.BaseSHA != s.HeadSHA || w.BaseSHA != s.HeadSHA:
 		return s, fmt.Errorf("stale work item")
 	}
-	if r.Status == "" {
-		r.Status = awaitVal
-	}
-	w.Status = r.Status
-	head := r.ResultSHA
+	w.Status = cmp.Or(r.Status, awaitVal)
+	head, err := r.ResultSHA, error(nil)
 	if head == "" {
-		var err error
-		if head, err = gitHead(); err != nil {
-			return s, err
-		}
+		head, err = gitHead()
+	}
+	if err != nil {
+		return s, err
 	}
 	return Observe(head, s), nil
 }
@@ -826,8 +752,7 @@ func writeState(path string, s *State) error {
 	if cur.Generation > s.Generation {
 		return fmt.Errorf("stale generation")
 	}
-	s.Generation = cur.Generation + 1
-	s.ReconciledAt, s.SchemaVersion = now(), "ralph-state-v1"
+	s.Generation, s.ReconciledAt, s.SchemaVersion = cur.Generation+1, now(), "ralph-state-v1"
 	b, err := json.Marshal(s)
 	if err != nil {
 		return err
@@ -844,12 +769,7 @@ func saveState(path string, s State) error {
 func shellKind(cmd string) int {
 	c := strings.TrimSpace(cmd)
 	low := strings.ToLower(c)
-	if c == "" || strings.ContainsAny(c, "|;$()`<>") || strings.Contains(c, "&&") || strings.Contains(c, "../") ||
-		strings.Contains(c, "\n") || strings.Contains(c, "<<") || strings.Contains(low, "-x post") ||
-		strings.Contains(low, "-x put") || strings.Contains(low, "-x patch") || strings.Contains(low, "-x delete") ||
-		strings.HasPrefix(low, "git checkout") || strings.HasPrefix(low, "git reset") || strings.HasPrefix(low, "git apply") ||
-		strings.HasPrefix(low, "git restore") || strings.HasPrefix(low, "git clean") ||
-		((strings.HasPrefix(low, "gofmt") || strings.HasPrefix(low, "go fmt")) && strings.Contains(low, "-w")) {
+	if c == "" || strings.ContainsAny(c, "|;$()`<>") || strings.Contains(c, "&&") || strings.Contains(c, "../") || strings.Contains(c, "\n") || strings.Contains(c, "<<") || strings.Contains(low, "-x post") || strings.Contains(low, "-x put") || strings.Contains(low, "-x patch") || strings.Contains(low, "-x delete") {
 		return 0
 	}
 	for _, p := range shellMut {
@@ -899,10 +819,10 @@ func hookDecision(s State, in hookIn, head, root string) map[string]any {
 		}
 	}
 	d := Authorize(Observe(head, s), AuthReq{HeadSHA: head, Path: rel, Tool: in.ToolName})
-	if d.Decision == DecisionAllow {
-		return allow()
+	if d.Decision != DecisionAllow {
+		return deny(d.Reason)
 	}
-	return deny(d.Reason)
+	return allow()
 }
 func repoName() string {
 	if r := os.Getenv("GITHUB_REPOSITORY"); r != "" {
@@ -918,15 +838,13 @@ func repoName() string {
 	return ""
 }
 func ghJSON(method, path string, body, out any) error {
-	args := []string{"api", "-X", method, path}
-	cmd := exec.Command("gh", args...)
+	cmd := exec.Command("gh", "api", "-X", method, path)
 	if body != nil {
 		b, err := json.Marshal(body)
 		if err != nil {
 			return err
 		}
-		cmd.Args = append(cmd.Args, "--input", "-")
-		cmd.Stdin = strings.NewReader(string(b))
+		cmd.Args, cmd.Stdin = append(cmd.Args, "--input", "-"), strings.NewReader(string(b))
 	}
 	o, err := cmd.Output()
 	if err != nil {
@@ -965,13 +883,10 @@ func recoverState(head string, checks []ghCheck) State {
 		}
 	}
 	for i := len(checks) - 1; i >= 0; i-- {
-		raw := checks[i].Output.Text
 		if checks[i].Name != checkRalph {
 			continue
 		}
-		if raw == "" {
-			raw = checks[i].Output.Summary
-		}
+		raw := cmp.Or(checks[i].Output.Text, checks[i].Output.Summary)
 		if j := strings.Index(raw, "{"); j >= 0 {
 			raw = raw[j:]
 		}
@@ -1006,15 +921,12 @@ func fetchWorld() (World, error) {
 	}
 	var prj map[string]any
 	_ = ghJSON("GET", fmt.Sprintf("/repos/%s/pulls/%d", repo, pr), nil, &prj)
-	if h, ok := prj["head"].(map[string]any); ok {
-		if sha, _ := h["sha"].(string); sha != "" {
-			head = sha
-		}
+	shaOf := func(k string) string {
+		m, _ := prj[k].(map[string]any)
+		s, _ := m["sha"].(string)
+		return s
 	}
-	base := ""
-	if b, ok := prj["base"].(map[string]any); ok {
-		base, _ = b["sha"].(string)
-	}
+	head, base := cmp.Or(shaOf("head"), head), shaOf("base")
 	var raw []map[string]any
 	if err := ghJSON("GET", fmt.Sprintf("/repos/%s/issues/%d/comments?per_page=100", repo, pr), nil, &raw); err != nil {
 		return World{}, err
@@ -1063,11 +975,10 @@ func applyWorld(w World, s State) State {
 			continue
 		}
 		saw = true
-		if c.Status != "completed" {
-			if st != StFail {
-				st = StPending
-			}
-		} else if checkFail(c) {
+		switch {
+		case c.Status != "completed" && st != StFail:
+			st = StPending
+		case checkFail(c):
 			st = StFail
 		}
 	}
@@ -1112,7 +1023,7 @@ func loadPub() (ed25519.PublicKey, error) {
 	}
 	if p := os.Getenv("SAI_SAUL_ATTEST_PUB"); p != "" {
 		if b, err := os.ReadFile(p); err == nil {
-			return parse(string(b))
+			p = string(b)
 		}
 		return parse(p)
 	}
@@ -1140,7 +1051,6 @@ func hookMain() int {
 	out := deny("MALFORMED")
 	switch {
 	case in.ToolName == "":
-		out = deny("MALFORMED")
 	case readOnly[in.ToolName] || (in.ToolName == "Shell" && shellKind(cmd) == 1):
 		out = allow()
 	case herr != nil || rerr != nil:
@@ -1185,16 +1095,10 @@ func runMain(once bool) int {
 }
 func workerMain() int {
 	id, base, result, st := "", "", "", awaitVal
+	kv := map[string]*string{"--work-item": &id, "--base": &base, "--result": &result, "--status": &st}
 	for i, a := range os.Args[:max(0, len(os.Args)-1)] {
-		switch a {
-		case "--work-item":
-			id = os.Args[i+1]
-		case "--base":
-			base = os.Args[i+1]
-		case "--result":
-			result = os.Args[i+1]
-		case "--status":
-			st = os.Args[i+1]
+		if p, ok := kv[a]; ok {
+			*p = os.Args[i+1]
 		}
 	}
 	die := func(err error) int { fmt.Fprintln(os.Stderr, err); return 2 }

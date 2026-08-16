@@ -91,34 +91,33 @@ func TestKernel(t *testing.T) {
 		t.Fatal("resolve")
 	}
 	st := State{Repository: "o/r", PR: 1, BaseSHA: "base", HeadSHA: "h1"}
-	for _, tc := range []struct {
-		w   string
-		mut func(Evidence) Evidence
-		pub ed25519.PublicKey
-	}{
-		{"", nil, pub},
-		{"repo", func(e Evidence) Evidence { e.Repository = "x/y"; return e }, pub},
-		{"pr", func(e Evidence) Evidence { e.PR = 9; return e }, pub},
-		{"head", func(e Evidence) Evidence { e.HeadSHA = "z"; return e }, pub},
-		{"base", func(e Evidence) Evidence { e.BaseSHA = "x"; return e }, pub},
-		{"check", func(e Evidence) Evidence { e.CheckRunID = 9; return e }, pub},
-		{"pub", nil, nil},
-		{"syn", func(e Evidence) Evidence { e.Synthetic = true; return e }, pub},
-		{"shard", func(e Evidence) Evidence { e.Shards = nil; return e }, pub},
-		{"blk", func(e Evidence) Evidence {
+	for _, w := range []string{"", "repo", "pr", "head", "base", "check", "pub", "syn", "shard", "blk"} {
+		e, p := evOK("h1", []Blocker{{SchemaVersion: schemaB, ID: "B1", Status: "OPEN", Blocking: true}}), pub
+		switch w {
+		case "repo":
+			e.Repository = "x/y"
+		case "pr":
+			e.PR = 9
+		case "head":
+			e.HeadSHA = "z"
+		case "base":
+			e.BaseSHA = "x"
+		case "check":
+			e.CheckRunID = 9
+		case "pub":
+			p = nil
+		case "syn":
+			e.Synthetic = true
+		case "shard":
+			e.Shards = nil
+		case "blk":
 			e.Blockers = []Blocker{{SchemaVersion: schemaB, ID: "", Status: "OPEN"}}
-			return e
-		}, pub},
-	} {
-		e := evOK("h1", []Blocker{{SchemaVersion: schemaB, ID: "B1", Status: "OPEN", Blocking: true}})
-		if tc.mut != nil {
-			e = tc.mut(e)
 		}
 		raw := signRaw(priv, e)
 		var got Evidence
 		_ = json.Unmarshal(raw, &got)
-		if w := verifySaul(raw, got, st, tc.pub, 1); (w == "") != (tc.w == "") {
-			t.Fatalf("%q got %q", tc.w, w)
+		if why := verifySaul(raw, got, st, p, 1); (why == "") != (w == "") {
+			t.Fatalf("%q got %q", w, why)
 		}
 	}
 	var hb Blocker
@@ -137,6 +136,15 @@ func TestKernel(t *testing.T) {
 	}
 	if _, err := CompleteWork(ss, WorkerResult{WorkItem: ss.Grant.WorkItem, BaseSHA: "h1", Status: "RESOLVED"}); err == nil {
 		t.Fatal("worker")
+	}
+	for _, sha := range []string{"h1", "h2"} {
+		cw, err := CompleteWork(s, WorkerResult{WorkItem: s.Grant.WorkItem, BaseSHA: "h1", ResultSHA: sha, Status: awaitVal})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if nx := scheduleState(cw); nx.NextAction == ActWaitSaul || nx.Dispatch.Kind == "" {
+			t.Fatal(sha)
+		}
 	}
 	s.NextAction, s.CI, s.CIAt = ActImplement, StPending, "h1"
 	if scheduleState(s).NextAction == ActWaitSaul {
