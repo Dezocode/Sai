@@ -146,9 +146,9 @@ jobs:
                       matches.append((path, gateway, ingest))
               return matches
 
-          if gateway_contracts(base):
+          if gateway_contracts(base_docs):
               valid = False
-              for _, gateway, ingest in gateway_contracts(cand):
+              for _, gateway, ingest in gateway_contracts(cand_docs):
                   remote = gateway.get("remote_access") or {}
                   forbidden = remote.get("forbidden_without_documentation") or []
                   if (
@@ -205,6 +205,7 @@ jobs:
           PY
 
       - name: Summarize trust mode
+        if: always()
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "pull_request_target" ]; then
