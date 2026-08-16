@@ -714,7 +714,7 @@ func integrateWorld(s State) (State, error) {
 			var e Evidence
 			pub, perr := loadPub()
 			switch {
-			case strings.TrimSpace(c.Output.Text) == "":
+			case c.Status == "completed" && strings.TrimSpace(c.Output.Text) == "":
 				s = untrusted(s, Finding{ID: "SAUL_EVIDENCE_TEXT", Source: "ralph", Objective: "Hostinger must publish signed Evidence JSON in Check output.text; sandbox=" + saulSandbox, Blocking: true, Scope: defaultScope()})
 			case json.Unmarshal([]byte(c.Output.Text), &e) != nil || perr != nil:
 				s = untrusted(s)
