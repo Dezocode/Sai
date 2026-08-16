@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Trusted anti-regression policy.
+"""Trusted anti-regression policy for repository-controlled behavior.
 
 The policy is executed from the trusted base revision and evaluates the exact
 candidate revision. Candidate source may be exercised only as an unprivileged,
 credential-free system under test. Verdicts come from this trusted file.
+
+This policy is exhaustive for the repository-controlled capability floor named
+below. External service availability (for example Slack or Cursor MCP uptime) is
+outside GitHub CI and must be verified by the runtime that owns that service.
 """
 
 from __future__ import annotations
@@ -116,8 +120,6 @@ class Policy:
             except (OSError, UnicodeDecodeError):
                 continue
             for line in text.splitlines():
-                # The policy necessarily contains regex literals for the secret formats.
-                # Ignore only those executable matcher declarations, not arbitrary comments/data.
                 if "re.compile(" in line:
                     continue
                 if any(pattern.search(line) for pattern in PRIVATE_PATTERNS):
@@ -333,7 +335,7 @@ def clone_for_mutation(candidate: pathlib.Path, parent: pathlib.Path) -> pathlib
 def expect_failure(label: str, fn) -> Result:
     try:
         detected = fn()
-    except Exception as exc:  # self-test failure is itself a policy failure
+    except Exception as exc:
         return Result(label, False, f"self-test error: {exc}")
     return Result(label, bool(detected), "regression was not detected" if not detected else "")
 
