@@ -492,9 +492,6 @@ func mergeFrontierSaul(prior, inc []Blocker, saulIDs map[string]bool, saulOK boo
 	}
 	return out
 }
-func trusted(login, assoc string, perms map[string]string) bool {
-	return assoc == "OWNER" || perms[login] == "admin" || perms[login] == "maintain"
-}
 func parseEnv(body string) (Envelope, bool) {
 	s := body
 	if i := strings.Index(body, marker); i >= 0 {
@@ -534,7 +531,7 @@ func checkFail(c ghCheck) bool {
 func ingest(w World) []Blocker {
 	var out []Blocker
 	for _, c := range w.Comments {
-		if !trusted(c.Login, c.Assoc, w.Perms) {
+		if c.Assoc != "OWNER" && w.Perms[c.Login] != "admin" && w.Perms[c.Login] != "maintain" {
 			continue
 		}
 		src := "github-comment:" + c.ID
@@ -1094,10 +1091,7 @@ func workerMain() int {
 		return die(err)
 	}
 	s := recoverState(head, nil)
-	if base == "" {
-		base = s.HeadSHA
-	}
-	if s, err = CompleteWork(s, WorkerResult{WorkItem: id, BaseSHA: base, ResultSHA: result, Status: st}); err != nil {
+	if s, err = CompleteWork(s, WorkerResult{WorkItem: id, BaseSHA: cmp.Or(base, s.HeadSHA), ResultSHA: result, Status: st}); err != nil {
 		return die(err)
 	}
 	if err = saveState(statePath(), s); err != nil {
@@ -1117,10 +1111,8 @@ func main() {
 	switch cmd {
 	case "hook":
 		os.Exit(hookMain())
-	case "run":
-		os.Exit(runMain(false))
-	case "reconcile":
-		os.Exit(runMain(true))
+	case "run", "reconcile":
+		os.Exit(runMain(cmd == "reconcile"))
 	case "worker-result":
 		os.Exit(workerMain())
 	default:
