@@ -13,12 +13,12 @@ jobs:
     name: PR line budget
     runs-on: ubuntu-latest
     steps:
-      - name: Enforce 1,200 changed-line maximum
+      - name: Enforce 1,200 added-line maximum
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          MAX_CHANGED_LINES: "1200"
+          MAX_ADDITIONS: "1200"
         shell: bash
         run: |
           set -euo pipefail
@@ -33,21 +33,18 @@ jobs:
             python3 -c 'import json,sys; p=json.load(sys.stdin); print(p["additions"], p["deletions"])' <<<"${pr_json}"
           )
 
-          changed_lines=$((additions + deletions))
-
           {
             echo "## PR line budget"
             echo
-            echo "- Additions: ${additions}"
-            echo "- Deletions: ${deletions}"
-            echo "- Total changed lines: **${changed_lines}**"
-            echo "- Hard maximum: **${MAX_CHANGED_LINES}**"
+            echo "- Added lines counted toward budget: **${additions}**"
+            echo "- Deleted lines (free): ${deletions}"
+            echo "- Hard maximum additions: **${MAX_ADDITIONS}**"
           } >> "${GITHUB_STEP_SUMMARY}"
 
-          echo "PR #${PR_NUMBER}: ${additions} additions + ${deletions} deletions = ${changed_lines} changed lines (max ${MAX_CHANGED_LINES})"
+          echo "PR #${PR_NUMBER}: ${additions} additions (max ${MAX_ADDITIONS}); ${deletions} deletions are free"
 
-          if (( changed_lines > MAX_CHANGED_LINES )); then
-            echo "::error title=PR too large::${changed_lines} changed lines exceeds the hard maximum of ${MAX_CHANGED_LINES}. Reduce, simplify, or split the PR."
+          if (( additions > MAX_ADDITIONS )); then
+            echo "::error title=PR adds too much code::${additions} added lines exceeds the hard maximum of ${MAX_ADDITIONS}. Delete, simplify, reuse, or split the PR. Deletions do not consume the budget."
             exit 1
           fi
 
