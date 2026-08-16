@@ -5,9 +5,18 @@ The policy is executed from the trusted base revision and evaluates the exact
 candidate revision. Candidate source may be exercised only as an unprivileged,
 credential-free system under test. Verdicts come from this trusted file.
 
-This policy is exhaustive for the repository-controlled capability floor named
-below. External service availability (for example Slack or Cursor MCP uptime) is
-outside GitHub CI and must be verified by the runtime that owns that service.
+Protected repository-controlled outcomes:
+- all JSON remains parseable;
+- no new obvious credential material appears;
+- OpenClaw remains loopback-only by default;
+- connection state cannot claim connected without valid evidence;
+- the line-budget and anti-regression constitutions remain enforceable;
+- scaffold/path controls and contract review remain fail-closed;
+- contract shell authorization remains least-privilege;
+- registered agents remain operationally configured.
+
+External service availability (for example Slack or Cursor MCP uptime) is outside
+GitHub CI and must be verified by the runtime that owns that service.
 """
 
 from __future__ import annotations
