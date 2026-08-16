@@ -44,4 +44,4 @@ jobs:
         run: |
           echo "### Anti-regression" >> "$GITHUB_STEP_SUMMARY"
           echo "Policy executed from the exact trusted base SHA against the exact PR head." >> "$GITHUB_STEP_SUMMARY"
-          echo "Candidate behavior runs without persisted Git credentials, write permissions, or repository secrets." >> "$GITHUB_STEP_SUMMARY"
+          echo "Candidate behavior is exercised as an untrusted system under test with no persisted Git credentials, no write permissions, and no repository secrets passed to it." >> "$GITHUB_STEP_SUMMARY"
