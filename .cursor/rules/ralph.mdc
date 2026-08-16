@@ -2,15 +2,4 @@
 description: Ralph Go kernel owns edit steering. Rules do not authorize edits.
 alwaysApply: true
 ---
-
-# Ralph edit protocol
-
-Implementation edits are authorized by executable Go, not by this rule.
-
-Cursor `preToolUse` runs `go run ./ralph hook` (fail-closed) before Write,
-StrReplace, Delete, and EditNotebook.
-
-- ALLOW only for the current authorized WorkItem, exact HEAD, and scope.
-- DENY/REDIRECT when CI, Saul, or Sai is required, SHA is stale, or path is out of scope.
-- Worker output cannot set READY_FOR_HUMAN_REVIEW.
-- Resume with `go run ./ralph tick`. Do not replay handoff essays as state.
+Edits: `go run ./ralph hook`. Resume: `go run ./ralph run`. Env is not authority.

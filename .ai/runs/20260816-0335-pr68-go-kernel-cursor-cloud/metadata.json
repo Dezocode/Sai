@@ -5,5 +5,5 @@
   "branch": "refactor/go-control-kernel",
   "status": "in-progress",
   "pr": "https://github.com/Dezocode/Sai/pull/68",
-  "claimed_files": ["ralph/", "go.mod", ".cursor/hooks.json", ".cursor/rules/ralph.mdc", ".github/workflows/agent-audit.yml"]
+  "claimed_files": ["ralph/", "go.mod", ".cursor/", ".github/workflows/"]
 }

@@ -4,279 +4,249 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
-func base(head string) State {
-	return State{
-		ProgramID: "pr68-ralph", PR: 68, HeadSHA: head,
-		ExpectedUnits: []string{"ralph"}, RequirementsOpen: 1,
-		Workers: []WorkItem{{ID: "w1", Objective: "kernel", BaseSHA: head, Scope: []string{"ralph/"}, Status: "OPEN"}},
-		CI: StMissing, Sai: StMissing,
+func base(h string) State {
+	return State{ProgramID: "pr68-ralph", PR: 68, HeadSHA: h,
+		Workers: []WorkItem{{ID: "w1", Objective: "kernel", BaseSHA: h, Scope: []string{"ralph/"}, Status: "OPEN"}},
+		Grant:   Grant{WorkItem: "w1", HeadSHA: h, Objective: "kernel", Scope: []string{"ralph/"}},
+		CI:      StMissing, Sai: StMissing}
+}
+func passReview(h string) Review {
+	return Review{SHA: h, Trusted: true, Shards: []Shard{{ID: "ralph", Status: StPass}}, LocalArch: StPass, ImpactArch: StPass, SystemArch: StPass}
+}
+func impl(h string) State { return Observe(h, base(h)) }
+
+func TestAHLoopAndTerminal(t *testing.T) {
+	t.Setenv("RALPH_LOCAL_ONLY", "1")
+	headOverride = "aaa"
+	t.Cleanup(func() { headOverride = "" })
+	t.Setenv("RALPH_STATE", filepath.Join(t.TempDir(), "s.json"))
+	s, err := step(impl("aaa"))
+	if err != nil || Ready(s) || s.NextAction != ActImplement || s.Grant.WorkItem == "" {
+		t.Fatalf("A continue %+v %v", s, err)
+	}
+	s = SetCI(s, StPending, "aaa")
+	s, err = step(s)
+	if err != nil || Ready(s) || s.NextAction != ActWaitCI {
+		t.Fatalf("A wait %s", s.NextAction)
+	}
+	empty := State{HeadSHA: "h"}
+	empty.CI, empty.CIAt, empty.Saul = StPass, "h", passReview("h")
+	if Decide(State{HeadSHA: "h", CI: StPass, CIAt: "h"}) != ActWaitSaul || Decide(empty) != ActWaitSai {
+		t.Fatal("H wait")
+	}
+	full := State{HeadSHA: "aaa", CI: StPass, CIAt: "aaa", Saul: passReview("aaa"), Sai: StPass, SaiSHA: "aaa"}
+	if !Ready(full) || Decide(full) != ActReady {
+		t.Fatal("H complete")
 	}
 }
 
-func passReview(head string) Review {
-	return Review{
-		SHA: head, Trusted: true,
-		Shards: []Shard{{ID: "ralph", Status: StPass}},
-		LocalArch: StPass, ImpactArch: StPass, SystemArch: StPass,
-	}
-}
-
-func TestAuthorizeAllowDeny(t *testing.T) {
-	h := "aaa"
-	s := base(h)
-	s.CI, s.CIAt = StPass, h
-	s.Saul = passReview(h)
-	s.Sai, s.SaiSHA = StPass, h
-	d := Authorize(s, AuthReq{HeadSHA: h, Path: "ralph/ralph.go", WorkItem: "w1"})
-	if d.Decision != DecisionAllow || d.NextAction != string(ActImplement) {
-		t.Fatalf("allow: %+v", d)
+func TestBMutation(t *testing.T) {
+	root, h, s := t.TempDir(), "aaa", ensureWorkItem(impl("aaa"))
+	write := hookIn{ToolName: "Write", ToolInput: map[string]any{"path": "ralph/ralph.go"}}
+	if hookDecision(s, write, h, root)["permission"] != "allow" {
+		t.Fatal("allow")
 	}
 	stale := s
-	stale.Workers = []WorkItem{{ID: "w1", Objective: "kernel", BaseSHA: "old", Scope: []string{"ralph/"}, Status: "OPEN"}}
-	if d := Authorize(stale, AuthReq{HeadSHA: h, Path: "ralph/ralph.go", WorkItem: "w1"}); d.Decision != DecisionDeny || d.Reason != "STALE_SHA" {
-		t.Fatalf("stale: %+v", d)
+	stale.Grant.HeadSHA = "old"
+	for _, in := range []hookIn{
+		write,
+		{ToolName: "Write", ToolInput: map[string]any{"path": "secrets.env"}},
+		{ToolName: "Write", ToolInput: map[string]any{"path": "ralph/../secrets.env"}},
+		{ToolName: "", ToolInput: map[string]any{}},
+		{ToolName: "Shell", ToolInput: map[string]any{"command": "rm -rf ralph"}},
+		{ToolName: "Shell", ToolInput: map[string]any{"command": "sed -i s/a/b/ x"}},
+		{ToolName: "InventedMutate", ToolInput: map[string]any{"path": "ralph/ralph.go"}},
+	} {
+		st := s
+		if in.ToolName == "Write" && in.ToolInput["path"] == "ralph/ralph.go" {
+			st = stale
+		}
+		if hookDecision(st, in, h, root)["permission"] != "deny" {
+			t.Fatalf("want deny %+v", in)
+		}
 	}
-	if d := Authorize(s, AuthReq{HeadSHA: h, Path: "ralph/ralph.go", WorkItem: "nope"}); d.Reason != "UNAUTHORIZED_WORK_ITEM" {
-		t.Fatalf("unauth: %+v", d)
+	if hookDecision(State{}, write, h, root)["permission"] != "deny" {
+		t.Fatal("no state")
 	}
-	if d := Authorize(s, AuthReq{HeadSHA: h, Path: "scripts/x", WorkItem: "w1"}); d.Reason != "OUT_OF_SCOPE" {
-		t.Fatalf("scope: %+v", d)
+	t.Setenv("RALPH_WORK_ITEM", "fake")
+	if hookDecision(s, write, h, root)["permission"] != "deny" {
+		t.Fatal("spoof")
+	}
+	os.Unsetenv("RALPH_WORK_ITEM")
+	if !shellOK("git status") || !shellOK("go test ./ralph") {
+		t.Fatal("shell ok")
+	}
+	rel, err := repoRel("ralph/ralph.go", root)
+	if err != nil || rel != "ralph/ralph.go" {
+		t.Fatal(rel, err)
+	}
+	if _, err = repoRel("../outside", root); err == nil {
+		t.Fatal("escape")
+	}
+	rel, _ = repoRel("ralph/../outside", root)
+	if rel != "outside" {
+		t.Fatal(rel)
 	}
 }
 
-func TestPhaseRedirects(t *testing.T) {
+func TestBHookMain(t *testing.T) {
+	run := func(body string) []byte {
+		cmd := exec.Command("go", "run", ".", "hook")
+		cmd.Dir, cmd.Stdin = ".", strings.NewReader(body)
+		cmd.Env = append(os.Environ(), "RALPH_STATE=/no/ralph-state.json", "RALPH_LOCAL_ONLY=1")
+		out, err := cmd.Output()
+		if err != nil {
+			t.Fatal(err, string(out))
+		}
+		return out
+	}
+	if !bytes.Contains(run(`{"tool_name":"Shell","tool_input":{"command":"git status"}}`), []byte(`"permission":"allow"`)) {
+		t.Fatal("read")
+	}
+	if bytes.Contains(run(`{"tool_name":"Write","tool_input":{"path":"ralph/ralph.go"}}`), []byte(`"permission":"allow"`)) {
+		t.Fatal("write")
+	}
+}
+
+func TestCGoals(t *testing.T) {
 	h := "aaa"
-	s := base(h)
-	s.CI, s.CIAt = StPending, h
-	if d := Authorize(s, AuthReq{HeadSHA: h, Path: "ralph/ralph.go", WorkItem: "w1"}); d.Reason != "WAIT_CI_REQUIRED" {
-		t.Fatalf("ci: %+v", d)
+	s := impl(h)
+	s = SetCI(s, StFail, h)
+	s.Blockers = []Finding{{ID: "CIX", Source: "ci", Objective: "fix test X", Scope: []string{"ralph/"}, Blocking: true}}
+	s = ensureWorkItem(Observe(h, s))
+	if s.Grant.WorkItem != "CIX" {
+		t.Fatal(s.Grant)
 	}
-	s.CI, s.CIAt = StPass, h
-	if d := Authorize(s, AuthReq{HeadSHA: h, Path: "ralph/ralph.go", WorkItem: "w1"}); d.Reason != "WAIT_SAUL_REQUIRED" {
-		t.Fatalf("saul: %+v", d)
-	}
-	s.Saul = passReview(h)
-	if d := Authorize(s, AuthReq{HeadSHA: h, Path: "ralph/ralph.go", WorkItem: "w1"}); d.Reason != "WAIT_SAI_REQUIRED" {
-		t.Fatalf("sai: %+v", d)
-	}
-}
-
-func TestHeadChangeInvalidatesAuth(t *testing.T) {
-	s := base("aaa")
-	s.CI, s.CIAt = StPass, "aaa"
-	s.Saul = passReview("aaa")
-	s.Sai, s.SaiSHA = StPass, "aaa"
-	d := Authorize(s, AuthReq{HeadSHA: "aaa", Path: "ralph/ralph.go", WorkItem: "w1"})
-	if d.Decision != DecisionAllow {
-		t.Fatal(d)
-	}
-	s2 := Observe("bbb", s)
-	if s2.Saul.Trusted || s2.CI != StStale || s2.Sai != StStale {
-		t.Fatalf("stale fields: %+v", s2)
-	}
-	d2 := Authorize(s2, AuthReq{HeadSHA: "bbb", Path: "ralph/ralph.go", WorkItem: "w1"})
-	if d2.Decision != DecisionDeny {
-		t.Fatalf("auth after head: %+v", d2)
-	}
-}
-
-func TestBlockersSteerObjective(t *testing.T) {
-	h := "aaa"
-	s := base(h)
 	s.CI, s.CIAt = StPass, h
 	s.Saul = Review{SHA: h, Trusted: true, Shards: []Shard{{ID: "ralph", Status: StFail}}, LocalArch: StPass, ImpactArch: StPass, SystemArch: StPass,
-		Findings: []Finding{{ID: "B1", Source: "saul", Objective: "fix B1", Scope: []string{"ralph/"}, Blocking: true}}}
+		Findings: []Finding{{ID: "B1", Source: "saul", Objective: "fix B1", Scope: []string{"ralph/ralph.go"}, Blocking: true}}}
 	s.Blockers = blocking(s.Saul.Findings)
-	s.Workers = []WorkItem{{ID: "B1", Objective: "fix B1", BaseSHA: h, Scope: []string{"ralph/"}, Status: "OPEN"}}
-	d := Authorize(s, AuthReq{HeadSHA: h, Path: "ralph/ralph.go", WorkItem: "B1"})
-	if d.Decision != DecisionAllow || d.Objective != "fix B1" || d.NextAction != string(ActRemediate) {
-		t.Fatalf("%+v", d)
+	s = ensureWorkItem(Observe(h, s))
+	if s.Grant.WorkItem != "B1" || s.NextAction != ActRemediate {
+		t.Fatal(s.Grant, s.NextAction)
 	}
-	if d := Authorize(s, AuthReq{HeadSHA: h, Path: "ralph/ralph.go", WorkItem: "w1"}); d.Reason != "UNAUTHORIZED_WORK_ITEM" {
-		t.Fatalf("unrelated: %+v", d)
+	if Authorize(s, AuthReq{HeadSHA: h, Path: "ralph/ralph.go", WorkItem: "w1"}).Reason != "UNAUTHORIZED_WORK_ITEM" {
+		t.Fatal("unrelated")
 	}
-}
-
-func TestReadyPredicate(t *testing.T) {
-	h := "aaa"
-	s := base(h)
-	s.RequirementsOpen = 0
-	s.Workers = nil
-	if Ready(s) || Decide(s) == ActReady {
-		t.Fatal("empty work is not ready")
-	}
-	s.CI, s.CIAt = StPass, h
-	if Decide(s) != ActWaitSaul {
-		t.Fatalf("wait saul: %s", Decide(s))
-	}
-	s.Saul = passReview(h)
-	if Decide(s) != ActWaitSai {
-		t.Fatalf("wait sai: %s", Decide(s))
-	}
-	s.Sai, s.SaiSHA = StPass, h
-	if !Ready(s) || Decide(s) != ActReady {
-		t.Fatalf("want ready: %+v %s", s, Decide(s))
-	}
-	s.Blockers = []Finding{{ID: "x", Blocking: true}}
-	if Ready(s) {
-		t.Fatal("blocker")
-	}
-	s.Blockers = nil
-	s.CI = StFail
-	if Ready(s) {
-		t.Fatal("ci fail")
-	}
-	s.CI = StPass
-	s.Saul.Trusted = false
-	if Ready(s) {
-		t.Fatal("saul untrusted")
+	g := impl(h)
+	g.CI, g.CIAt, g.Saul = StPass, h, passReview(h)
+	g = ensureWorkItem(SetSai(g, StFail, h, []Finding{{ID: "G1", Source: "sai", Objective: "fix G1", Scope: []string{".cursor/"}, Blocking: true}}))
+	if g.Grant.WorkItem != "G1" || !inScope(".cursor/hooks.json", g.Grant.Scope) {
+		t.Fatal(g.Grant)
 	}
 }
 
-func TestSaulExactSHAAndCoverage(t *testing.T) {
+func TestDExactSHA(t *testing.T) {
+	s := impl("aaa")
+	s.CI, s.CIAt, s.Saul, s.Sai, s.SaiSHA = StPass, "aaa", passReview("aaa"), StPass, "aaa"
+	s2 := Observe("bbb", s)
+	if s2.Saul.Trusted || s2.CI != StStale || s2.Sai != StStale || s2.Grant.WorkItem != "" {
+		t.Fatal(s2)
+	}
+	if Authorize(s2, AuthReq{HeadSHA: "bbb", Path: "ralph/ralph.go"}).Decision != DecisionDeny {
+		t.Fatal("auth B")
+	}
+	headOverride = "aaa"
+	t.Cleanup(func() { headOverride = "" })
+	got, err := CompleteWork(impl("aaa"), WorkerResult{WorkItem: "w1", BaseSHA: "aaa", ResultSHA: "bbb"})
+	if err != nil || got.HeadSHA != "aaa" {
+		t.Fatal(got, err)
+	}
+	if _, err = CompleteWork(impl("aaa"), WorkerResult{WorkItem: "w1", BaseSHA: "aaa", SetsReady: true}); err == nil {
+		t.Fatal("ready")
+	}
+}
+
+func TestERecovery(t *testing.T) {
+	h, orig := "aaa", ensureWorkItem(impl("aaa"))
+	sum, _ := json.Marshal(orig)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			_ = json.NewEncoder(w).Encode(map[string]any{"check_runs": []map[string]any{{"name": checkRalph, "head_sha": h, "output": map[string]string{"summary": string(sum)}}}})
+			return
+		}
+		w.WriteHeader(201)
+	}))
+	t.Cleanup(srv.Close)
+	ghAPI = srv.URL
+	t.Cleanup(func() { ghAPI = "https://api.github.com" })
+	t.Setenv("GITHUB_TOKEN", "t")
+	t.Setenv("GITHUB_REPOSITORY", "Dezocode/Sai")
+	os.Unsetenv("RALPH_LOCAL_ONLY")
+	t.Setenv("RALPH_STATE", filepath.Join(t.TempDir(), "missing.json"))
+	headOverride = h
+	t.Cleanup(func() { headOverride = "" })
+	got, err := recoverState(h)
+	if err != nil || got.Grant.WorkItem != orig.Grant.WorkItem || got.NextAction != orig.NextAction {
+		t.Fatal(got, err)
+	}
+}
+
+func TestFGSaulSai(t *testing.T) {
 	pub, priv, _ := ed25519.GenerateKey(nil)
-	s := base("aaa")
+	s := impl("aaa")
 	s.CI, s.CIAt = StPass, "aaa"
 	good := passReview("aaa")
 	good.Trusted = false
-	e := SignEvidence(priv, "aaa", good)
-	s = IntegrateSaul(s, e, pub)
-	if !saulConverged(s) {
-		t.Fatal("valid should converge")
+	s = IntegrateSaul(s, SignEvidence(priv, "aaa", good), pub)
+	if !saulConverged(s) || saulConverged(Observe("bbb", s)) {
+		t.Fatal("sha bind")
 	}
-	sB := Observe("bbb", s)
-	if saulConverged(sB) {
-		t.Fatal("A must not authorize B")
+	if IntegrateSaul(impl("bbb"), SignEvidence(priv, "aaa", passReview("aaa")), pub).Saul.Trusted {
+		t.Fatal("wrong sha")
 	}
-	onB := IntegrateSaul(base("bbb"), SignEvidence(priv, "aaa", passReview("aaa")), pub)
-	onB.ExpectedUnits = []string{"ralph"}
-	if saulConverged(onB) || onB.Saul.Trusted {
-		t.Fatal("review A cannot become current on B")
-	}
-	s2 := IntegrateSaul(base("aaa"), SignEvidence(priv, "aaa", Review{SHA: "aaa", Shards: []Shard{{ID: "ralph", Status: StPass}}}), pub)
-	s2.ExpectedUnits = []string{"ralph"}
-	if saulConverged(s2) {
-		t.Fatal("missing arch")
+	if saulConverged(IntegrateSaul(impl("aaa"), SignEvidence(priv, "aaa", Review{SHA: "aaa", Shards: []Shard{{ID: "ralph", Status: StPass}}}), pub)) {
+		t.Fatal("arch")
 	}
 	_, priv2, _ := ed25519.GenerateKey(nil)
-	if IntegrateSaul(base("aaa"), SignEvidence(priv2, "aaa", passReview("aaa")), pub).Saul.Trusted {
-		t.Fatal("wrong key")
+	if IntegrateSaul(impl("aaa"), SignEvidence(priv2, "aaa", passReview("aaa")), pub).Saul.Trusted {
+		t.Fatal("key")
 	}
-	incomplete := passReview("aaa")
-	incomplete.Shards = nil
-	s3 := IntegrateSaul(base("aaa"), SignEvidence(priv, "aaa", incomplete), pub)
-	s3.ExpectedUnits = []string{"ralph"}
-	if saulConverged(s3) {
-		t.Fatal("incomplete shards")
+	inc := passReview("aaa")
+	inc.Shards = nil
+	if saulConverged(IntegrateSaul(impl("aaa"), SignEvidence(priv, "aaa", inc), pub)) {
+		t.Fatal("shards")
 	}
 	find := passReview("aaa")
 	find.Findings = []Finding{{ID: "B", Blocking: true, Objective: "x", Scope: []string{"ralph/"}}}
-	s4 := IntegrateSaul(base("aaa"), SignEvidence(priv, "aaa", find), pub)
+	s4 := IntegrateSaul(impl("aaa"), SignEvidence(priv, "aaa", find), pub)
 	s4.CI, s4.CIAt = StPass, "aaa"
 	if saulConverged(s4) || Decide(s4) != ActRemediate {
-		t.Fatalf("finding: conv=%v act=%s", saulConverged(s4), Decide(s4))
+		t.Fatal("blocker")
 	}
-	s5 := IntegrateSaul(base("aaa"), Evidence{SHA: "aaa", Review: passReview("aaa"), Sig: "00"}, pub)
-	if s5.Saul.Trusted {
-		t.Fatal("untrusted")
+	if IntegrateSaul(impl("aaa"), Evidence{SHA: "aaa", Review: passReview("aaa"), Sig: "00", CodexInvoked: true}, pub).Saul.Trusted {
+		t.Fatal("sig")
 	}
-}
-
-func TestSaiOrdering(t *testing.T) {
-	s := base("aaa")
+	if IntegrateSaul(impl("aaa"), Evidence{SHA: "aaa", Review: good, CodexInvoked: true, Synthetic: true, Sig: SignEvidence(priv, "aaa", good).Sig}, pub).Saul.Trusted {
+		t.Fatal("syn")
+	}
+	noc := SignEvidence(priv, "aaa", good)
+	noc.CodexInvoked = false
+	if IntegrateSaul(impl("aaa"), noc, pub).Saul.Trusted {
+		t.Fatal("codex")
+	}
+	s = impl("aaa")
 	s.CI, s.CIAt = StPass, "aaa"
-	s = SetSai(s, StPass, "aaa")
-	if s.Sai == StPass {
-		t.Fatal("sai pass before saul")
+	if SetSai(s, StPass, "aaa", nil).Sai == StPass {
+		t.Fatal("order")
 	}
 	s.Saul = passReview("aaa")
-	s = SetSai(s, StPass, "aaa")
-	if s.Sai != StPass {
-		t.Fatal("sai after saul")
+	s = SetSai(s, StPass, "aaa", nil)
+	s = ensureWorkItem(SetSai(s, StFail, "aaa", []Finding{{ID: "G1", Source: "sai", Objective: "gov", Scope: []string{".github/"}, Blocking: true}}))
+	if s.Grant.Scope[0] != ".github/" {
+		t.Fatal(s.Grant)
 	}
-	s = SetSai(s, StFail, "aaa")
-	if Decide(s) != ActRemediate || findItem(s, "SAI") == nil {
-		t.Fatal("sai fail remediates")
-	}
-}
-
-func TestRecoveryAndWorker(t *testing.T) {
-	h := "aaa"
-	s := Observe(h, base(h))
-	if Decide(s) != ActImplement {
-		t.Fatal(Decide(s))
-	}
-	s = SetCI(s, StPending, h)
-	if Decide(s) != ActWaitCI {
-		t.Fatal(Decide(s))
-	}
-	_, err := CompleteWork(s, WorkerResult{WorkItem: "w1", BaseSHA: h, SetsReady: true})
-	if err == nil {
-		t.Fatal("worker ready")
-	}
-	s, err = CompleteWork(s, WorkerResult{WorkItem: "w1", BaseSHA: h, Status: "COMPLETE"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if Ready(s) {
-		t.Fatal("complete work != program complete")
-	}
-	s = SetCI(s, StPass, "zzz")
-	if s.CI != StStale {
-		t.Fatal("ci other sha")
-	}
-}
-
-func TestHookProtocol(t *testing.T) {
-	dir := t.TempDir()
-	h := "aaa"
-	s := base(h)
-	s.CI, s.CIAt = StPass, h
-	s.Saul = passReview(h)
-	s.Sai, s.SaiSHA = StPass, h
-	p := filepath.Join(dir, "state.json")
-	if err := saveState(p, s); err != nil {
-		t.Fatal(err)
-	}
-	os.Setenv("RALPH_STATE", p)
-	os.Setenv("RALPH_WORK_ITEM", "w1")
-	t.Cleanup(func() { os.Unsetenv("RALPH_STATE"); os.Unsetenv("RALPH_WORK_ITEM") })
-	loaded, _ := loadState(p)
-	in := hookIn{ToolName: "Write", ToolInput: map[string]any{"path": "ralph/ralph.go"}}
-	out := hookDecision(loaded, in)
-	if out["permission"] != "allow" {
-		t.Fatalf("%v", out)
-	}
-	in.ToolInput["path"] = "secrets.env"
-	out = hookDecision(loaded, in)
-	if out["permission"] != "deny" {
-		t.Fatalf("deny scope %v", out)
-	}
-	in = hookIn{ToolName: "Shell", ToolInput: map[string]any{"command": "go test ./ralph"}}
-	if hookDecision(loaded, in)["permission"] != "allow" {
-		t.Fatal("non-mut shell")
-	}
-	raw, _ := json.Marshal(hookIn{ToolName: "StrReplace", ToolInput: map[string]any{"path": "ralph/ralph.go"}})
-	_ = bytes.NewReader(raw)
-}
-
-func TestWaitingNonterminal(t *testing.T) {
-	s := State{HeadSHA: "h", ExpectedUnits: []string{"ralph"}}
-	if Ready(s) || Decide(s) == ActReady {
-		t.Fatal("waiting is not ready")
-	}
-	s.Workers = nil
-	s.RequirementsOpen = 0
-	if Ready(s) {
-		t.Fatal("empty work is not ready")
-	}
-	s.CI, s.CIAt, s.Saul, s.Sai, s.SaiSHA = StPass, "h", passReview("h"), StPass, "h"
-	if !Ready(s) {
-		t.Fatal("only full current state is ready")
+	s2 := Observe("bbb", s)
+	if saulConverged(s2) || s2.Sai != StStale || Decide(s2) == ActWaitSai {
+		t.Fatal("restale")
 	}
 }

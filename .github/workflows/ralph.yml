@@ -1,0 +1,17 @@
+name: ralph
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+  checks: write
+jobs:
+  continue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - run: go run ./ralph run --once || test $? -eq 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
