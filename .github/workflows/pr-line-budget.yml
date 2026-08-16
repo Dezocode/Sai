@@ -1,0 +1,54 @@
+name: PR line budget
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pr-line-budget:
+    name: PR line budget
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce 1,200 changed-line maximum
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MAX_CHANGED_LINES: "1200"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pr_json="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPOSITORY}/pulls/${PR_NUMBER}")"
+
+          read -r additions deletions < <(
+            python3 -c 'import json,sys; p=json.load(sys.stdin); print(p["additions"], p["deletions"])' <<<"${pr_json}"
+          )
+
+          changed_lines=$((additions + deletions))
+
+          {
+            echo "## PR line budget"
+            echo
+            echo "- Additions: ${additions}"
+            echo "- Deletions: ${deletions}"
+            echo "- Total changed lines: **${changed_lines}**"
+            echo "- Hard maximum: **${MAX_CHANGED_LINES}**"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          echo "PR #${PR_NUMBER}: ${additions} additions + ${deletions} deletions = ${changed_lines} changed lines (max ${MAX_CHANGED_LINES})"
+
+          if (( changed_lines > MAX_CHANGED_LINES )); then
+            echo "::error title=PR too large::${changed_lines} changed lines exceeds the hard maximum of ${MAX_CHANGED_LINES}. Reduce, simplify, or split the PR."
+            exit 1
+          fi
+
+          echo "PR line budget passed."
