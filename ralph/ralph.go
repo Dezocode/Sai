@@ -98,18 +98,9 @@ type Blocker struct {
 	Actionable          bool     `json:"actionable,omitempty"`
 }
 type WorkItem struct {
-	ID         string   `json:"work_item_id"`
-	BlockerIDs []string `json:"blocker_ids"`
-	BaseSHA    string   `json:"base_sha"`
-	Objective  string   `json:"objective"`
-	Scope      []string `json:"scope"`
-	Acceptance []string `json:"acceptance"`
-	DependsOn  []string `json:"depends_on"`
-	Priority   int      `json:"priority"`
-	Evidence   []string `json:"evidence_refs"`
-	HeadSHA    string   `json:"head_sha"`
-	GrantID    string   `json:"grant_id"`
-	Status     string   `json:"status"`
+	ID, Objective, BaseSHA, HeadSHA, GrantID, Status   string
+	BlockerIDs, Scope, Acceptance, DependsOn, Evidence []string
+	Priority                                           int
 }
 type Grant struct {
 	WorkItem, HeadSHA, Objective string
@@ -1278,6 +1269,11 @@ func workerMain() int {
 		return 2
 	}
 	if err = persist(s); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 2
+	}
+	s, err = Cycle()
+	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 2
 	}
