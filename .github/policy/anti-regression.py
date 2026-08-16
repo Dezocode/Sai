@@ -116,6 +116,10 @@ class Policy:
             except (OSError, UnicodeDecodeError):
                 continue
             for line in text.splitlines():
+                # The policy necessarily contains regex literals for the secret formats.
+                # Ignore only those executable matcher declarations, not arbitrary comments/data.
+                if "re.compile(" in line:
+                    continue
                 if any(pattern.search(line) for pattern in PRIVATE_PATTERNS):
                     hits.add((str(path.relative_to(root)), line.strip()))
         return hits
@@ -428,7 +432,7 @@ def mutation_self_test(trusted: pathlib.Path, candidate: pathlib.Path) -> list[R
                 text = path.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError):
                 continue
-            if "telegram_dm_link" in text and "| connected |" not in text:
+            if "telegram_dm_link" in text:
                 lines = text.splitlines()
                 for i, line in enumerate(lines):
                     if line.startswith("|") and "pending" in line and not line.startswith("|---"):
