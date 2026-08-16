@@ -3,9 +3,6 @@ name: Anti-regression
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
-  # Bootstrap smoke only. pull_request_target becomes authoritative after merge to main.
-  push:
-    branches: [ci-pr-line-budget-1200]
 
 permissions:
   contents: read
@@ -18,7 +15,7 @@ jobs:
       - name: Checkout trusted base
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.sha || 'main' }}
+          ref: ${{ github.event.pull_request.base.sha }}
           path: trusted
           fetch-depth: 1
           persist-credentials: false
@@ -26,7 +23,7 @@ jobs:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           path: candidate
           fetch-depth: 1
           persist-credentials: false
@@ -179,15 +176,15 @@ jobs:
                       text = path.read_text(encoding="utf-8")
                   except (OSError, UnicodeDecodeError):
                       continue
-                  for number, line in enumerate(text.splitlines(), 1):
+                  for line in text.splitlines():
                       if any(pattern.search(line) for pattern in secret_patterns):
-                          hits.add((str(path.relative_to(root)), number, line.strip()))
+                          hits.add((str(path.relative_to(root)), line.strip()))
               return hits
 
           new_secret_hits = secret_hits(cand) - secret_hits(base)
           if new_secret_hits:
-              for path, line, _ in sorted(new_secret_hits):
-                  fail(f"new secret-like material detected: {path}:{line}")
+              for path, _ in sorted(new_secret_hits):
+                  fail(f"new secret-like material detected: {path}")
 
           notes.append(f"protected agents: {len(protected_agents)}")
           notes.append(f"verified capability IDs: {sum(len(v) for v in base_caps.values())}")
@@ -208,10 +205,5 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "pull_request_target" ]; then
-            echo "### Anti-regression: authoritative" >> "$GITHUB_STEP_SUMMARY"
-            echo "Policy came from the trusted base SHA and inspected the exact PR head without executing candidate code." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "### Anti-regression: bootstrap smoke" >> "$GITHUB_STEP_SUMMARY"
-            echo "This branch push tests the policy before merge. It is not an authoritative PR gate until the workflow exists on main." >> "$GITHUB_STEP_SUMMARY"
-          fi
+          echo "### Anti-regression" >> "$GITHUB_STEP_SUMMARY"
+          echo "Policy came from the trusted base SHA and inspected the exact PR head without executing candidate code." >> "$GITHUB_STEP_SUMMARY"
