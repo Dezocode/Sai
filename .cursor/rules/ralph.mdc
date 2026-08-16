@@ -2,4 +2,4 @@
 description: Ralph Go kernel owns edit steering. Rules do not authorize edits.
 alwaysApply: true
 ---
-Edits: `go run ./ralph hook`. Resume: `go run ./ralph run`. Env is not authority.
+Edits: `go run ./ralph hook`. Resume: `go run ./ralph run` (`--once` = one Cycle). Hostinger: workflow_dispatch ralph.yml @ PR ref after Saul `output.text`. Env is not Grant.

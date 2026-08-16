@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/ed25519"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -35,6 +37,8 @@ const (
 	DecisionDeny         = "DENY"
 	checkRalph           = "Ralph / Program State"
 	checkSaul            = "Saul / Product Quality"
+	schemaV1             = "saul-evidence-v1"
+	saulSandbox          = "clone exact HEAD; Go 1.22; python3; executable scripts/*"
 )
 
 var (
@@ -57,9 +61,11 @@ func fields(s string) map[string]bool {
 }
 
 type Finding struct {
-	ID, Source, Objective string
-	Scope                 []string
-	Blocking              bool
+	ID        string   `json:"id"`
+	Source    string   `json:"source"`
+	Objective string   `json:"objective"`
+	Scope     []string `json:"scope"`
+	Blocking  bool     `json:"blocking"`
 }
 type WorkItem struct {
 	ID, Objective, BaseSHA, Status string
@@ -69,9 +75,16 @@ type Grant struct {
 	WorkItem, HeadSHA, Objective string
 	Scope                        []string
 }
+type Disp struct {
+	Kind  string `json:"kind"`
+	Grant Grant  `json:"grant"`
+	Head  string `json:"head"`
+}
 type Shard struct {
-	ID     string
-	Status Status
+	ID     string   `json:"id"`
+	Digest string   `json:"digest"`
+	Paths  []string `json:"paths"`
+	Status Status   `json:"status"`
 }
 type Review struct {
 	SHA                               string
@@ -87,6 +100,7 @@ type State struct {
 	Blockers                                  []Finding
 	Workers                                   []WorkItem
 	Grant                                     Grant
+	Dispatch                                  Disp
 	CI, Sai                                   Status
 	Saul                                      Review
 	NextAction                                Action
@@ -101,17 +115,35 @@ type WorkerResult struct {
 	SetsReady                            bool
 }
 type Evidence struct {
-	SHA, Sig, ImplementationHead string
-	Review                       Review
-	Synthetic, CodexInvoked      bool
+	SchemaVersion    string    `json:"schema_version"`
+	Repository       string    `json:"repository"`
+	PR               int       `json:"pr"`
+	BaseSHA          string    `json:"base_sha"`
+	HeadSHA          string    `json:"head_sha"`
+	ManifestHash     string    `json:"manifest_hash"`
+	ReviewerIdentity string    `json:"reviewer_identity"`
+	KeyID            string    `json:"key_id"`
+	CheckRunID       int64     `json:"check_run_id"`
+	CodexInvoked     bool      `json:"codex_invoked"`
+	Synthetic        bool      `json:"synthetic"`
+	Shards           []Shard   `json:"shards"`
+	LocalArch        Status    `json:"local_arch"`
+	ImpactArch       Status    `json:"impact_arch"`
+	SystemArch       Status    `json:"system_arch"`
+	Findings         []Finding `json:"findings"`
+	FindingSetHash   string    `json:"finding_set_hash"`
+	Tests            []string  `json:"tests"`
+	FinalDisposition string    `json:"final_disposition"`
+	Sig              string    `json:"sig,omitempty"`
 }
 type hookIn struct {
 	ToolName  string         `json:"tool_name"`
 	ToolInput map[string]any `json:"tool_input"`
 }
 type ghCheck struct {
-	Name, HeadSHA, Status, Conclusion string
-	Output                            struct{ Summary string } `json:"output"`
+	ID                                             int64 `json:"id"`
+	Name, HeadSHA, Status, Conclusion, CompletedAt string
+	Output                                         struct{ Summary, Text string }
 }
 
 func gitOut(args ...string) (string, error) {
@@ -122,29 +154,18 @@ func gitOut(args ...string) (string, error) {
 	out, err := cmd.Output()
 	return strings.TrimSpace(string(out)), err
 }
-
-func gitHead() (string, error) {
-	if headOverride != "" {
-		return headOverride, nil
+func gitPick(over, arg, errn string, min int) (string, error) {
+	if over != "" {
+		return over, nil
 	}
-	h, err := gitOut("rev-parse", "HEAD")
-	if err != nil || len(h) < 7 {
-		return "", fmt.Errorf("git HEAD")
+	h, err := gitOut("rev-parse", arg)
+	if err != nil || len(h) < min {
+		return "", fmt.Errorf("%s", errn)
 	}
 	return h, nil
 }
-
-func gitRoot() (string, error) {
-	if rootOverride != "" {
-		return rootOverride, nil
-	}
-	r, err := gitOut("rev-parse", "--show-toplevel")
-	if err != nil || r == "" {
-		return "", fmt.Errorf("git root")
-	}
-	return r, nil
-}
-
+func gitHead() (string, error) { return gitPick(headOverride, "HEAD", "git HEAD", 7) }
+func gitRoot() (string, error) { return gitPick(rootOverride, "--show-toplevel", "git root", 1) }
 func shardUnits(s State) []string {
 	if len(s.HeadSHA) != 40 {
 		return []string{"ralph"}
@@ -165,11 +186,10 @@ func shardUnits(s State) []string {
 		}
 	}
 	if len(u) == 0 {
-		return []string{"ralph"}
+		u = []string{"ralph"}
 	}
 	return u
 }
-
 func repoRel(path, root string) (string, error) {
 	if path == "" || root == "" {
 		return "", fmt.Errorf("empty path")
@@ -179,10 +199,8 @@ func repoRel(path, root string) (string, error) {
 	}
 	clean := filepath.Clean(path)
 	if st, err := os.Lstat(clean); err == nil && st.Mode()&os.ModeSymlink != 0 {
-		if res, err := filepath.EvalSymlinks(clean); err != nil {
+		if clean, err = filepath.EvalSymlinks(clean); err != nil {
 			return "", fmt.Errorf("symlink")
-		} else {
-			clean = res
 		}
 	}
 	rel, err := filepath.Rel(filepath.Clean(root), clean)
@@ -191,7 +209,6 @@ func repoRel(path, root string) (string, error) {
 	}
 	return filepath.ToSlash(rel), nil
 }
-
 func blocking(fs []Finding) []Finding {
 	var o []Finding
 	for _, f := range fs {
@@ -201,7 +218,38 @@ func blocking(fs []Finding) []Finding {
 	}
 	return o
 }
-
+func product(fs []Finding) []Finding {
+	var o []Finding
+	for _, f := range blocking(fs) {
+		if !strings.HasPrefix(f.ID, "SAUL_EVIDENCE_") {
+			o = append(o, f)
+		}
+	}
+	return o
+}
+func mergeFindings(a, b []Finding) []Finding {
+	seen, o := map[string]int{}, []Finding{}
+	for _, f := range append(append([]Finding{}, a...), b...) {
+		if f.ID == "" {
+			continue
+		}
+		if i, ok := seen[f.ID]; ok {
+			o[i] = f
+			continue
+		}
+		seen[f.ID] = len(o)
+		o = append(o, f)
+	}
+	return o
+}
+func findingsHash(fs []Finding) string {
+	if fs == nil {
+		fs = []Finding{}
+	}
+	b, _ := json.Marshal(fs)
+	sum := sha256.Sum256(b)
+	return hex.EncodeToString(sum[:])
+}
 func saulConverged(s State) bool {
 	r := s.Saul
 	if !r.Trusted || r.SHA == "" || r.SHA != s.HeadSHA {
@@ -218,55 +266,41 @@ func saulConverged(s State) bool {
 	}
 	return r.LocalArch == StPass && r.ImpactArch == StPass && r.SystemArch == StPass && len(blocking(r.Findings)) == 0
 }
-
 func Ready(s State) bool {
 	return len(blocking(s.Blockers)) == 0 && s.CI == StPass && s.CIAt == s.HeadSHA && saulConverged(s) && s.Sai == StPass && s.SaiSHA == s.HeadSHA
 }
-
 func Decide(s State) Action {
-	if Ready(s) {
-		return ActReady
-	}
 	ciOK := s.CI == StPass && s.CIAt == s.HeadSHA
-	if !ciOK {
-		if (s.CI == StFail && s.CIAt == s.HeadSHA) || len(blocking(s.Blockers)) > 0 {
-			return ActRemediate
-		}
-		if s.CI == StPending && s.CIAt == s.HeadSHA {
-			return ActWaitCI
-		}
+	switch {
+	case Ready(s):
+		return ActReady
+	case !ciOK && ((s.CI == StFail && s.CIAt == s.HeadSHA) || len(product(s.Blockers)) > 0):
+		return ActRemediate
+	case !ciOK && s.CI == StPending && s.CIAt == s.HeadSHA:
+		return ActWaitCI
+	case !ciOK:
 		return ActImplement
-	}
-	if !saulConverged(s) {
-		if len(blocking(s.Blockers)) > 0 || len(blocking(s.Saul.Findings)) > 0 {
-			return ActRemediate
-		}
+	case !saulConverged(s) && (len(product(s.Blockers)) > 0 || len(product(s.Saul.Findings)) > 0):
+		return ActRemediate
+	case !saulConverged(s):
 		return ActWaitSaul
-	}
-	if s.Sai != StPass || s.SaiSHA != s.HeadSHA {
-		if s.Sai == StFail && s.SaiSHA == s.HeadSHA {
-			return ActRemediate
-		}
+	case s.Sai == StFail && s.SaiSHA == s.HeadSHA:
+		return ActRemediate
+	case s.Sai != StPass || s.SaiSHA != s.HeadSHA:
 		return ActWaitSai
+	default:
+		return ActObserve
 	}
-	return ActObserve
 }
-
 func Observe(head string, s State) State {
 	if head == "" {
 		head = s.HeadSHA
 	}
 	if s.HeadSHA != "" && head != s.HeadSHA {
-		if s.CIAt != head {
-			s.CI = StStale
-		}
-		if s.Saul.SHA != head {
-			s.Saul.Trusted = false
-		}
-		if s.SaiSHA != head {
-			s.Sai = StStale
-		}
-		s.Grant = Grant{}
+		s.CI = map[bool]Status{true: s.CI, false: StStale}[s.CIAt == head]
+		s.Saul.Trusted = s.Saul.Trusted && s.Saul.SHA == head
+		s.Sai = map[bool]Status{true: s.Sai, false: StStale}[s.SaiSHA == head]
+		s.Grant, s.Dispatch = Grant{}, Disp{}
 		for i := range s.Workers {
 			if s.Workers[i].BaseSHA != head {
 				s.Workers[i].Status = "STALE"
@@ -274,14 +308,16 @@ func Observe(head string, s State) State {
 		}
 	}
 	s.HeadSHA = head
+	if s.BaseSHA == "" && len(head) == 40 {
+		s.BaseSHA, _ = gitOut("merge-base", "HEAD", "origin/main")
+	}
 	s.NextAction = Decide(s)
 	s.Phase = s.NextAction
 	if s.NextAction != ActImplement && s.NextAction != ActRemediate {
-		s.Grant = Grant{}
+		s.Grant, s.Dispatch = Grant{}, Disp{}
 	}
 	return s
 }
-
 func inScope(rel string, scope []string) bool {
 	if rel == "" || len(scope) == 0 {
 		return false
@@ -295,7 +331,6 @@ func inScope(rel string, scope []string) bool {
 	}
 	return false
 }
-
 func findItem(s State, id string) *WorkItem {
 	for i := range s.Workers {
 		if s.Workers[i].ID == id && s.Workers[i].Status != "COMPLETE" && s.Workers[i].Status != "STALE" {
@@ -304,7 +339,6 @@ func findItem(s State, id string) *WorkItem {
 	}
 	return nil
 }
-
 func Authorize(s State, req AuthReq) Decision {
 	s = Observe(req.HeadSHA, s)
 	d := Decision{HeadSHA: s.HeadSHA, NextAction: string(s.NextAction), Decision: DecisionDeny}
@@ -328,52 +362,73 @@ func Authorize(s State, req AuthReq) Decision {
 	}
 	return d
 }
-
 func signMsg(e Evidence) ([]byte, error) {
-	return json.Marshal(struct {
-		SHA                     string
-		Review                  Review
-		Synthetic, CodexInvoked bool
-	}{e.SHA, e.Review, e.Synthetic, e.CodexInvoked})
+	e.Sig = ""
+	return json.Marshal(e)
 }
-
-func IntegrateSaul(s State, e Evidence, pub ed25519.PublicKey) State {
-	head := e.ImplementationHead
-	if head == "" {
-		head = e.SHA
+func untrusted(s State, extra ...Finding) State {
+	if s.HeadSHA != "" {
+		s.Saul = Review{SHA: s.HeadSHA, Trusted: false}
 	}
-	fail := func() State {
-		if head == s.HeadSHA {
-			s.Saul = Review{SHA: head, Trusted: false}
-		}
-		return Observe(s.HeadSHA, s)
-	}
-	msg, err := signMsg(e)
-	sig, err2 := hex.DecodeString(e.Sig)
-	if e.Synthetic || !e.CodexInvoked || head != s.HeadSHA || e.SHA != s.HeadSHA || err != nil || err2 != nil || len(pub) == 0 || !ed25519.Verify(pub, msg, sig) {
-		return fail()
-	}
-	r := e.Review
-	r.Trusted, r.SHA = true, e.SHA
-	s.Saul, s.Blockers = r, blocking(r.Findings)
-	if len(s.Blockers) > 0 {
-		s.Workers = workFrom(s.Blockers, s.HeadSHA)
+	if len(extra) > 0 {
+		s.Blockers = mergeFindings(s.Blockers, extra)
 	}
 	return Observe(s.HeadSHA, s)
 }
-
-func workFrom(fs []Finding, head string) []WorkItem {
+func IntegrateSaul(s State, e Evidence, pub ed25519.PublicKey, checkID int64) State {
+	if s.BaseSHA == "" {
+		s.BaseSHA = e.BaseSHA
+	}
+	got := map[string]bool{}
+	for _, sh := range e.Shards {
+		got[sh.ID] = sh.ID != ""
+	}
+	cover := len(e.Shards) > 0
+	for _, id := range shardUnits(s) {
+		cover = cover && got[id]
+	}
+	msg, err := signMsg(e)
+	sig, err2 := hex.DecodeString(e.Sig)
+	idOK := e.ReviewerIdentity != "" && !strings.Contains(strings.ToLower(e.ReviewerIdentity), "candidate")
+	req := e.SchemaVersion == schemaV1 && e.Repository == ghRepo() && e.PR == s.PR && e.PR != 0 &&
+		e.BaseSHA == s.BaseSHA && e.HeadSHA == s.HeadSHA && e.HeadSHA != "" && e.ManifestHash != "" &&
+		idOK && e.KeyID != "" && e.CheckRunID != 0 && (checkID == 0 || e.CheckRunID == checkID) &&
+		e.CodexInvoked && !e.Synthetic && cover && e.LocalArch != "" && e.ImpactArch != "" &&
+		e.SystemArch != "" && e.FindingSetHash == findingsHash(e.Findings) && len(e.Tests) > 0 && e.FinalDisposition != ""
+	if !req || err != nil || err2 != nil || len(pub) == 0 || !ed25519.Verify(pub, msg, sig) {
+		return untrusted(s)
+	}
+	r := Review{SHA: e.HeadSHA, Trusted: true, Shards: e.Shards, LocalArch: e.LocalArch, ImpactArch: e.ImpactArch, SystemArch: e.SystemArch, Findings: e.Findings}
+	s.Saul = r
+	var keep []Finding
+	for _, f := range s.Blockers {
+		if !strings.HasPrefix(f.ID, "SAUL_EVIDENCE_") {
+			keep = append(keep, f)
+		}
+	}
+	s.Blockers = mergeFindings(keep, blocking(r.Findings))
+	s.Workers = workMerge(s.Workers, s.Blockers, s.HeadSHA)
+	return Observe(s.HeadSHA, s)
+}
+func workMerge(old []WorkItem, fs []Finding, head string) []WorkItem {
+	st := map[string]string{}
+	for _, w := range old {
+		st[w.ID] = w.Status
+	}
 	var ws []WorkItem
 	for _, f := range fs {
 		sc := f.Scope
 		if len(sc) == 0 {
 			sc = defaultScope()
 		}
-		ws = append(ws, WorkItem{ID: f.ID, Objective: f.Objective, BaseSHA: head, Scope: sc, Status: "OPEN"})
+		w := WorkItem{ID: f.ID, Objective: f.Objective, BaseSHA: head, Scope: sc, Status: "OPEN"}
+		if x, ok := st[f.ID]; ok && x != "STALE" {
+			w.Status = x
+		}
+		ws = append(ws, w)
 	}
 	return ws
 }
-
 func SetCI(s State, st Status, sha string) State {
 	if sha != s.HeadSHA {
 		s.CI = StStale
@@ -382,7 +437,6 @@ func SetCI(s State, st Status, sha string) State {
 	s.CI, s.CIAt = st, sha
 	return Observe(s.HeadSHA, s)
 }
-
 func SetSai(s State, st Status, sha string, fs []Finding) State {
 	if st == StPass && !saulConverged(s) {
 		return Observe(s.HeadSHA, s)
@@ -396,21 +450,19 @@ func SetSai(s State, st Status, sha string, fs []Finding) State {
 		if len(fs) == 0 {
 			fs = []Finding{{ID: "SAI", Source: "sai", Objective: "remediate Sai governance blocker", Blocking: true, Scope: defaultScope()}}
 		}
-		s.Blockers = append(blocking(s.Blockers), fs...)
-		s.Workers = workFrom(fs, s.HeadSHA)
+		s.Blockers = mergeFindings(s.Blockers, fs)
+		s.Workers = workMerge(s.Workers, s.Blockers, s.HeadSHA)
 	}
 	return Observe(s.HeadSHA, s)
 }
-
 func CompleteWork(s State, r WorkerResult) (State, error) {
-	if r.SetsReady || r.Status == "READY_FOR_HUMAN_REVIEW" || r.Status == "done" || r.Status == "approved" {
-		return s, fmt.Errorf("worker cannot set terminal state")
-	}
 	w := findItem(s, r.WorkItem)
-	if w == nil {
+	switch {
+	case r.SetsReady || r.Status == "READY_FOR_HUMAN_REVIEW" || r.Status == "done" || r.Status == "approved":
+		return s, fmt.Errorf("worker cannot set terminal state")
+	case w == nil:
 		return s, fmt.Errorf("unknown work item")
-	}
-	if r.BaseSHA != s.HeadSHA || w.BaseSHA != s.HeadSHA {
+	case r.BaseSHA != s.HeadSHA || w.BaseSHA != s.HeadSHA:
 		return s, fmt.Errorf("stale work item")
 	}
 	if r.Status == "" {
@@ -423,65 +475,81 @@ func CompleteWork(s State, r WorkerResult) (State, error) {
 	}
 	return Observe(head, s), nil
 }
-
 func defaultScope() []string { return []string{"ralph/", ".cursor/", ".github/"} }
-
 func ensureWorkItem(s State) State {
 	if s.NextAction != ActImplement && s.NextAction != ActRemediate {
-		s.Grant = Grant{}
+		s.Grant, s.Dispatch = Grant{}, Disp{}
 		return s
 	}
 	if b := blocking(s.Blockers); len(b) > 0 {
-		s.Workers = workFrom(b, s.HeadSHA)
+		s.Workers = workMerge(s.Workers, b, s.HeadSHA)
 		sc := b[0].Scope
 		if len(sc) == 0 {
 			sc = defaultScope()
 		}
 		s.Grant = Grant{WorkItem: b[0].ID, HeadSHA: s.HeadSHA, Objective: b[0].Objective, Scope: sc}
-		return s
+	} else {
+		id, obj := "kernel", "advance Ralph control kernel"
+		if s.CI == StFail {
+			id, obj = "CI", "remediate deterministic CI failure"
+		}
+		s.Workers = workMerge(s.Workers, []Finding{{ID: id, Objective: obj, Blocking: true, Scope: defaultScope()}}, s.HeadSHA)
+		s.Grant = Grant{WorkItem: id, HeadSHA: s.HeadSHA, Objective: obj, Scope: defaultScope()}
 	}
-	id, obj := "kernel", "advance Ralph control kernel"
-	if s.CI == StFail {
-		id, obj = "CI", "remediate deterministic CI failure"
-	}
-	s.Workers = []WorkItem{{ID: id, Objective: obj, BaseSHA: s.HeadSHA, Scope: defaultScope(), Status: "OPEN"}}
-	s.Grant = Grant{WorkItem: id, HeadSHA: s.HeadSHA, Objective: obj, Scope: defaultScope()}
+	s.Dispatch = Disp{Kind: "cursor_primary", Grant: s.Grant, Head: s.HeadSHA}
 	return s
 }
-
 func localOnly() bool { return os.Getenv("RALPH_LOCAL_ONLY") == "1" }
-
-func loadState(path string) (State, error) {
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return State{}, err
-	}
-	var s State
-	return s, json.Unmarshal(b, &s)
-}
-
-func saveState(path string, s State) error {
-	b, err := json.MarshalIndent(s, "", "  ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(path, append(b, '\n'), 0644)
-}
-
 func statePath() string {
 	if p := os.Getenv("RALPH_STATE"); p != "" {
 		return p
 	}
 	return ".ralph-state.json"
 }
-
+func locked(path string, fn func() error) error {
+	lk, err := os.OpenFile(path+".lock", os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer lk.Close()
+	if err := syscall.Flock(int(lk.Fd()), syscall.LOCK_EX); err != nil {
+		return err
+	}
+	defer syscall.Flock(int(lk.Fd()), syscall.LOCK_UN)
+	return fn()
+}
+func loadState(path string) (State, error) {
+	var s State
+	err := locked(path, func() error {
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(b, &s)
+	})
+	return s, err
+}
+func saveState(path string, s State) error {
+	return locked(path, func() error {
+		b, err := json.Marshal(s)
+		if err != nil {
+			return err
+		}
+		tmp := path + ".tmp"
+		if err := os.WriteFile(tmp, append(b, '\n'), 0644); err != nil {
+			return err
+		}
+		return os.Rename(tmp, path)
+	})
+}
 func shellOK(cmd string) bool {
 	c := strings.TrimSpace(cmd)
 	low := strings.ToLower(c)
-	if c == "" || strings.ContainsAny(c, "|;$()<>") || strings.Contains(c, "&&") || strings.Contains(c, "../") {
-		return false
-	}
-	if strings.Contains(low, "-x post") || strings.Contains(low, "-x put") || strings.Contains(low, "-x patch") || strings.Contains(low, "-x delete") {
+	deny := c == "" || strings.ContainsAny(c, "|;$()`<>") || strings.Contains(c, "&&") || strings.Contains(c, "../") ||
+		strings.Contains(c, "\n") || strings.Contains(c, "<<") || strings.Contains(low, "-x post") ||
+		strings.Contains(low, "-x put") || strings.Contains(low, "-x patch") || strings.Contains(low, "-x delete") ||
+		strings.HasPrefix(low, "git checkout") || ((strings.HasPrefix(low, "gofmt") || strings.HasPrefix(low, "go fmt")) && strings.Contains(low, "-w"))
+	if deny {
 		return false
 	}
 	for _, p := range shellPref {
@@ -491,28 +559,22 @@ func shellOK(cmd string) bool {
 	}
 	return false
 }
-
 func allow() map[string]any { return map[string]any{"permission": "allow"} }
 func deny(reason string) map[string]any {
 	msg := "ralph DENY " + reason
 	return map[string]any{"permission": "deny", "agent_message": msg, "user_message": msg}
 }
-
 func hookDecision(s State, in hookIn, head, root string) map[string]any {
-	if in.ToolName == "" {
+	switch {
+	case in.ToolName == "":
 		return deny("MALFORMED")
-	}
-	if readOnly[in.ToolName] {
+	case readOnly[in.ToolName]:
 		return allow()
-	}
-	if in.ToolName == "Shell" {
-		cmd, _ := in.ToolInput["command"].(string)
-		if shellOK(cmd) {
-			return allow()
-		}
+	case in.ToolName == "Shell" && shellOK(fmt.Sprint(in.ToolInput["command"])):
+		return allow()
+	case in.ToolName == "Shell":
 		return deny("SHELL_MUTATION")
-	}
-	if !mutate[in.ToolName] {
+	case !mutate[in.ToolName]:
 		return deny("UNKNOWN_TOOL")
 	}
 	path := ""
@@ -532,7 +594,6 @@ func hookDecision(s State, in hookIn, head, root string) map[string]any {
 	}
 	return deny(d.Reason)
 }
-
 func ghToken() string {
 	if t := os.Getenv("GITHUB_TOKEN"); t != "" {
 		return t
@@ -540,20 +601,15 @@ func ghToken() string {
 	if t := os.Getenv("GH_TOKEN"); t != "" {
 		return t
 	}
-	out, err := exec.Command("gh", "auth", "token").Output()
-	if err != nil {
-		return ""
-	}
+	out, _ := exec.Command("gh", "auth", "token").Output()
 	return strings.TrimSpace(string(out))
 }
-
 func ghRepo() string {
 	if r := os.Getenv("GITHUB_REPOSITORY"); r != "" {
 		return r
 	}
 	return "Dezocode/Sai"
 }
-
 func ghJSON(method, path string, body, out any) error {
 	var rdr io.Reader
 	if body != nil {
@@ -571,9 +627,7 @@ func ghJSON(method, path string, body, out any) error {
 	if tok == "" {
 		return fmt.Errorf("github token missing")
 	}
-	req.Header.Set("Authorization", "Bearer "+tok)
-	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("Content-Type", "application/json")
+	req.Header = http.Header{"Authorization": {"Bearer " + tok}, "Accept": {"application/vnd.github+json"}, "Content-Type": {"application/json"}}
 	resp, err := doHTTP(req)
 	if err != nil {
 		return err
@@ -591,7 +645,6 @@ func ghJSON(method, path string, body, out any) error {
 	}
 	return json.Unmarshal(b, out)
 }
-
 func listChecks(sha string) ([]ghCheck, error) {
 	var wrap struct {
 		CheckRuns []ghCheck `json:"check_runs"`
@@ -599,36 +652,31 @@ func listChecks(sha string) ([]ghCheck, error) {
 	err := ghJSON("GET", "/repos/"+ghRepo()+"/commits/"+sha+"/check-runs?per_page=100", nil, &wrap)
 	return wrap.CheckRuns, err
 }
-
 func persist(s State) error {
-	if err := saveState(statePath(), s); err != nil {
+	if err := saveState(statePath(), s); err != nil || localOnly() {
 		return err
-	}
-	if localOnly() {
-		return nil
 	}
 	sum, err := json.Marshal(s)
 	if err != nil {
 		return err
 	}
-	conc := "neutral"
-	if Ready(s) {
-		conc = "success"
-	}
-	return ghJSON("POST", "/repos/"+ghRepo()+"/check-runs", map[string]any{
+	conc := map[bool]string{true: "success", false: "neutral"}[Ready(s)]
+	if err := ghJSON("POST", "/repos/"+ghRepo()+"/check-runs", map[string]any{
 		"name": checkRalph, "head_sha": s.HeadSHA, "status": "completed", "conclusion": conc,
 		"output": map[string]string{"title": string(s.NextAction), "summary": string(sum)},
-	}, nil)
+	}, nil); err != nil {
+		fmt.Fprintln(os.Stderr, "ralph persist:", err)
+	}
+	return nil
 }
-
 func recoverState(head string) (State, error) {
 	boot := State{ProgramID: "pr68-ralph", PR: 68, HeadSHA: head, CI: StMissing, Sai: StMissing}
 	local, lerr := loadState(statePath())
 	if localOnly() {
-		if lerr != nil {
-			return boot, nil
+		if lerr == nil {
+			boot = local
 		}
-		return Observe(head, local), nil
+		return Observe(head, boot), nil
 	}
 	runs, err := listChecks(head)
 	if err != nil {
@@ -648,7 +696,6 @@ func recoverState(head string) (State, error) {
 	}
 	return boot, nil
 }
-
 func integrateWorld(s State) (State, error) {
 	if localOnly() {
 		return s, nil
@@ -657,43 +704,39 @@ func integrateWorld(s State) (State, error) {
 	if err != nil {
 		return s, err
 	}
-	ci := map[string]string{}
+	ci, sawSaul := map[string]string{}, false
 	for _, c := range runs {
 		if c.HeadSHA != "" && c.HeadSHA != s.HeadSHA {
 			continue
 		}
-		if c.Name == checkSaul && c.Output.Summary != "" {
+		if c.Name == checkSaul {
+			sawSaul = true
 			var e Evidence
-			if json.Unmarshal([]byte(c.Output.Summary), &e) != nil {
-				s.Saul = Review{SHA: s.HeadSHA, Trusted: false}
-			} else if pub, perr := loadPub(); perr != nil {
-				s.Saul = Review{SHA: s.HeadSHA, Trusted: false}
-			} else {
-				s = IntegrateSaul(s, e, pub)
+			pub, perr := loadPub()
+			switch {
+			case strings.TrimSpace(c.Output.Text) == "":
+				s = untrusted(s, Finding{ID: "SAUL_EVIDENCE_TEXT", Source: "ralph", Objective: "Hostinger must publish signed Evidence JSON in Check output.text; sandbox=" + saulSandbox, Blocking: true, Scope: defaultScope()})
+			case json.Unmarshal([]byte(c.Output.Text), &e) != nil || perr != nil:
+				s = untrusted(s)
+			default:
+				s = IntegrateSaul(s, e, pub, c.ID)
 			}
 		}
 		for _, n := range ciNames {
 			if c.Name == n {
-				switch {
-				case c.Status != "completed":
-					ci[n] = "pending"
-				case c.Conclusion == "success":
-					ci[n] = "pass"
-				default:
-					ci[n] = "fail"
-				}
+				ci[n] = map[bool]string{true: "pending", false: map[bool]string{true: "pass", false: "fail"}[c.Conclusion == "success"]}[c.Status != "completed"]
 			}
 		}
 	}
+	if !sawSaul && s.Saul.SHA != s.HeadSHA {
+		s.Saul = Review{SHA: s.HeadSHA, Trusted: false}
+	}
 	st := Status(StPass)
 	for _, n := range ciNames {
-		switch ci[n] {
-		case "fail":
+		if ci[n] == "fail" {
 			st = StFail
-		case "", "pending":
-			if st != StFail {
-				st = StPending
-			}
+		} else if ci[n] != "pass" && st != StFail {
+			st = StPending
 		}
 	}
 	s = SetCI(s, st, s.HeadSHA)
@@ -702,7 +745,6 @@ func integrateWorld(s State) (State, error) {
 	}
 	return s, nil
 }
-
 func ingestSai(s State) (State, error) {
 	var raw []struct {
 		Body     string `json:"body"`
@@ -717,36 +759,29 @@ func ingestSai(s State) (State, error) {
 	}
 	for i := len(raw) - 1; i >= 0; i-- {
 		r := raw[i]
-		if !strings.Contains(r.Body, "[SAI Governance Review]") {
-			continue
-		}
-		if r.CommitID != "" && r.CommitID != s.HeadSHA && !strings.HasPrefix(s.HeadSHA, r.CommitID) {
+		if !strings.Contains(r.Body, "[SAI Governance Review]") || (r.CommitID != "" && r.CommitID != s.HeadSHA && !strings.HasPrefix(s.HeadSHA, r.CommitID)) {
 			continue
 		}
 		if strings.Contains(r.Body, "Classification: APPROVE") {
 			return SetSai(s, StPass, s.HeadSHA, nil), nil
 		}
-		fs := []Finding{{ID: "SAI", Source: "sai", Objective: "remediate Sai governance finding", Blocking: true, Scope: defaultScope()}}
-		return SetSai(s, StFail, s.HeadSHA, fs), nil
+		return SetSai(s, StFail, s.HeadSHA, []Finding{{ID: "SAI", Source: "sai", Objective: "remediate Sai governance finding", Blocking: true, Scope: defaultScope()}}), nil
 	}
 	return s, nil
 }
-
 func dispatch(s State) State {
 	s = ensureWorkItem(s)
-	if s.NextAction == ActWaitSaul {
+	if s.NextAction == ActWaitSaul && !localOnly() {
 		if _, err := os.Stat("/opt/sai/trusted-reviewer/scripts/saul-hostinger-bootstrap-review"); err == nil {
 			_ = exec.Command("/opt/sai/trusted-reviewer/scripts/saul-hostinger-bootstrap-review", "--head", s.HeadSHA).Run()
 		} else {
 			_ = ghJSON("POST", "/repos/"+ghRepo()+"/dispatches", map[string]any{
-				"event_type":     "saul-review",
-				"client_payload": map[string]string{"sha": s.HeadSHA, "pr": fmt.Sprint(s.PR)},
+				"event_type": "saul-review", "client_payload": map[string]string{"sha": s.HeadSHA, "pr": fmt.Sprint(s.PR)},
 			}, nil)
 		}
 	}
 	return s
 }
-
 func step(s State) (State, error) {
 	head, err := gitHead()
 	if err != nil {
@@ -760,7 +795,6 @@ func step(s State) (State, error) {
 	s = dispatch(Observe(head, s))
 	return s, persist(s)
 }
-
 func Cycle() (State, error) {
 	head, err := gitHead()
 	if err != nil {
@@ -772,7 +806,6 @@ func Cycle() (State, error) {
 	}
 	return step(s)
 }
-
 func loadPub() (ed25519.PublicKey, error) {
 	try := func(b []byte) (ed25519.PublicKey, error) {
 		raw, err := hex.DecodeString(strings.TrimSpace(string(b)))
@@ -782,11 +815,7 @@ func loadPub() (ed25519.PublicKey, error) {
 		return ed25519.PublicKey(raw), nil
 	}
 	if p := os.Getenv("SAI_SAUL_ATTEST_PUB"); p != "" {
-		if st, err := os.Stat(p); err == nil && !st.IsDir() {
-			b, err := os.ReadFile(p)
-			if err != nil {
-				return nil, err
-			}
+		if b, err := os.ReadFile(p); err == nil {
 			return try(b)
 		}
 		return try([]byte(p))
@@ -798,82 +827,75 @@ func loadPub() (ed25519.PublicKey, error) {
 	}
 	return nil, fmt.Errorf("saul trust anchor unavailable")
 }
-
 func SignEvidence(priv ed25519.PrivateKey, sha string, r Review) Evidence {
-	e := Evidence{SHA: sha, Review: r, CodexInvoked: true, ImplementationHead: sha}
+	e := Evidence{SchemaVersion: schemaV1, Repository: ghRepo(), PR: 68, BaseSHA: sha, HeadSHA: sha, ManifestHash: "m", ReviewerIdentity: "hostinger-saul-cto", KeyID: "saul-attestation-ed25519", CheckRunID: 1, CodexInvoked: true, Shards: r.Shards, LocalArch: r.LocalArch, ImpactArch: r.ImpactArch, SystemArch: r.SystemArch, Findings: r.Findings, Tests: []string{"go test ./ralph"}, FinalDisposition: "action_required"}
+	for _, p := range []*Status{&e.LocalArch, &e.ImpactArch, &e.SystemArch} {
+		if *p == "" {
+			*p = StFail
+		}
+	}
+	e.FindingSetHash = findingsHash(e.Findings)
 	msg, _ := signMsg(e)
 	e.Sig = hex.EncodeToString(ed25519.Sign(priv, msg))
 	return e
 }
-
 func hookMain() int {
-	raw, err := io.ReadAll(os.Stdin)
+	raw, _ := io.ReadAll(os.Stdin)
+	var in hookIn
+	if json.Unmarshal(raw, &in) != nil || in.ToolName == "" {
+		var m map[string]any
+		_ = json.Unmarshal(raw, &m)
+		in.ToolName, _ = m["toolName"].(string)
+	}
+	if in.ToolInput == nil {
+		in.ToolInput = map[string]any{}
+	}
+	cmd, _ := in.ToolInput["command"].(string)
+	head, herr := gitHead()
+	root, rerr := gitRoot()
 	out := deny("MALFORMED")
-	if err == nil {
-		var in hookIn
-		if json.Unmarshal(raw, &in) != nil || in.ToolName == "" {
-			var m map[string]any
-			_ = json.Unmarshal(raw, &m)
-			if t, ok := m["toolName"].(string); ok {
-				in.ToolName = t
-			}
+	switch {
+	case in.ToolName == "":
+		out = deny("MALFORMED")
+	case readOnly[in.ToolName] || (in.ToolName == "Shell" && shellOK(cmd)):
+		out = allow()
+	case herr != nil || rerr != nil:
+		out = deny("HEAD")
+	default:
+		s, lerr := loadState(statePath())
+		if lerr != nil || s.HeadSHA != head {
+			s, lerr = recoverState(head)
 		}
-		if in.ToolInput == nil {
-			in.ToolInput = map[string]any{}
-		}
-		cmd, _ := in.ToolInput["command"].(string)
-		head, herr := gitHead()
-		root, rerr := gitRoot()
-		switch {
-		case in.ToolName == "":
-			out = deny("MALFORMED")
-		case readOnly[in.ToolName] || (in.ToolName == "Shell" && shellOK(cmd)):
-			out = allow()
-		case herr != nil || rerr != nil:
-			out = deny("HEAD")
-		default:
-			s, lerr := loadState(statePath())
-			if lerr != nil || s.HeadSHA != head {
-				s, lerr = recoverState(head)
-			}
-			if lerr != nil {
-				out = deny("NO_STATE")
-			} else {
-				out = hookDecision(s, in, head, root)
-			}
-		}
+		out = map[bool]map[string]any{true: hookDecision(s, in, head, root), false: deny("NO_STATE")}[lerr == nil]
 	}
 	_ = json.NewEncoder(os.Stdout).Encode(out)
 	return 0
 }
-
 func runMain(once bool) int {
-	deadline, delay := time.Now().Add(8*time.Minute), 5*time.Second
-	if v := os.Getenv("RALPH_POLL_MS"); v != "" {
-		var n int
-		fmt.Sscanf(v, "%d", &n)
+	dead, delay, n := time.Now().Add(5*time.Hour), 15*time.Second, 0
+	if fmt.Sscanf(os.Getenv("RALPH_WAIT_MS"), "%d", &n); n > 0 {
+		dead = time.Now().Add(time.Duration(n) * time.Millisecond)
+	}
+	if fmt.Sscanf(os.Getenv("RALPH_POLL_MS"), "%d", &n); n > 0 {
 		delay = time.Duration(n) * time.Millisecond
 	}
 	for {
 		s, err := Cycle()
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "  ")
-		_ = enc.Encode(s)
-		if err != nil {
+		_ = json.NewEncoder(os.Stdout).Encode(s)
+		switch {
+		case err != nil:
 			fmt.Fprintln(os.Stderr, "ralph:", err)
 			return 2
-		}
-		if Ready(s) {
+		case Ready(s):
 			return 0
 		}
-		fmt.Fprintf(os.Stderr, "NONTERMINAL head=%s phase=%s action=%s\n", s.HeadSHA, s.Phase, s.NextAction)
-		if once || time.Now().After(deadline) || s.NextAction == ActImplement || s.NextAction == ActRemediate {
+		fmt.Fprintf(os.Stderr, "NONTERMINAL head=%s phase=%s action=%s dispatch=%s\n", s.HeadSHA, s.Phase, s.NextAction, s.Dispatch.Kind)
+		if once || s.NextAction == ActImplement || s.NextAction == ActRemediate || time.Now().After(dead) {
 			return 1
 		}
 		time.Sleep(delay)
 	}
 }
-
 func main() {
 	cmd, once := "hook", false
 	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-") {

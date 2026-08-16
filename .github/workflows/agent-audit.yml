@@ -100,7 +100,7 @@ jobs:
           done
 
       - name: Ralph control kernel
-        run: go test ./ralph
+        run: go test -race ./ralph
 
       - name: Confirm ICM workflow files present
         run: |
