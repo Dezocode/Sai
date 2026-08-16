@@ -497,19 +497,8 @@ func decodeSig(s string) []byte {
 	return b
 }
 func canResolve(old, neu Blocker) bool {
-	switch old.ResolutionAuthority {
-	case "saul":
-		return neu.SourceKind == "saul"
-	case "ci":
-		return (neu.SourceKind == "ci" || neu.SourceKind == "check") && neu.SourceID == old.SourceID
-	case "ralph":
-		return neu.SourceKind == "runtime" || neu.SourceKind == "primary"
-	case "source_actor":
-		return neu.SourceActor == old.SourceActor && neu.SourceKind == old.SourceKind
-	case "owner":
-		return neu.SourceKind == "comment"
-	}
-	return false
+	a, k := old.ResolutionAuthority, neu.SourceKind
+	return a == "saul" && k == "saul" || a == "ci" && (k == "ci" || k == "check") && neu.SourceID == old.SourceID || a == "ralph" && (k == "runtime" || k == "primary") || a == "source_actor" && neu.SourceActor == old.SourceActor && k == old.SourceKind || a == "owner" && k == "comment"
 }
 func mergeFrontierSaul(prior, inc []Blocker, saulIDs map[string]bool, saulOK bool, head string) []Blocker {
 	m, order := map[string]Blocker{}, []string{}

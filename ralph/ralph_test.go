@@ -6,10 +6,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sync"
-	"syscall"
 	"testing"
 	"time"
 )
@@ -173,12 +171,6 @@ func TestKernel(t *testing.T) {
 	}
 }
 
-func TestHelperRalphRun(t *testing.T) {
-	if os.Getenv("RALPH_BE_RUN") != "1" {
-		return
-	}
-	os.Exit(runMain(false))
-}
 func TestRunLifetime(t *testing.T) {
 	dir := t.TempDir()
 	wp, sp := dir+"/w.json", dir+"/s.json"
@@ -186,20 +178,24 @@ func TestRunLifetime(t *testing.T) {
 	w.Checks[0].Status = "in_progress"
 	b, _ := json.Marshal(w)
 	os.WriteFile(wp, b, 0644)
-	cmd := exec.Command(os.Args[0], "-test.run=TestHelperRalphRun", "--")
-	cmd.Env = append(os.Environ(), "RALPH_BE_RUN=1", "RALPH_WORLD="+wp, "RALPH_STATE="+sp, "RALPH_LOCAL_ONLY=1", "RALPH_POLL_MS=40", "RALPH_WAIT_MS=4000")
-	if err := cmd.Start(); err != nil {
-		t.Fatal(err)
-	}
-	defer cmd.Process.Kill()
+	t.Setenv("RALPH_WORLD", wp)
+	t.Setenv("RALPH_STATE", sp)
+	t.Setenv("RALPH_LOCAL_ONLY", "1")
+	t.Setenv("RALPH_POLL_MS", "40")
+	t.Setenv("RALPH_WAIT_MS", "4000")
+	ch := make(chan int, 1)
+	go func() { ch <- runMain(false) }()
 	dead := time.Now().Add(2 * time.Second)
 	for time.Now().Before(dead) {
 		if st, err := loadState(sp); err == nil && st.NextAction == ActImplement {
-			break
+			select {
+			case rc := <-ch:
+				t.Fatalf("exited %d", rc)
+			default:
+				return
+			}
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
-	if err := cmd.Process.Signal(syscall.Signal(0)); err != nil {
-		t.Fatal("dead")
-	}
+	t.Fatal("dead")
 }
