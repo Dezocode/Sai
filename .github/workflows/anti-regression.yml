@@ -1,0 +1,47 @@
+name: Anti-regression
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  anti-regression:
+    name: Anti-regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout trusted base
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run trusted behavioral policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 trusted/.github/policy/anti-regression.py \
+            --trusted trusted \
+            --candidate candidate \
+            --self-test
+
+      - name: Summarize trust mode
+        if: always()
+        shell: bash
+        run: |
+          echo "### Anti-regression" >> "$GITHUB_STEP_SUMMARY"
+          echo "Policy executed from the exact trusted base SHA against the exact PR head." >> "$GITHUB_STEP_SUMMARY"
+          echo "Candidate behavior is exercised as an untrusted system under test with no persisted Git credentials, no write permissions, and no repository secrets passed to it." >> "$GITHUB_STEP_SUMMARY"
