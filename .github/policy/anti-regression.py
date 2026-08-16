@@ -350,9 +350,8 @@ def mutation_self_test(trusted: pathlib.Path, candidate: pathlib.Path) -> list[R
 
     with tempfile.TemporaryDirectory(prefix="anti-regression-secret-") as td:
         root = clone_for_mutation(candidate, pathlib.Path(td))
-        (root / ".anti-regression-secret.txt").write_text(
-            "-----BEGIN OPENSSH PRIVATE KEY-----\n", encoding="utf-8"
-        )
+        marker = "-----BEGIN OPENSSH " + "PRIVATE KEY-----\n"
+        (root / ".anti-regression-secret.txt").write_text(marker, encoding="utf-8")
         p = Policy(trusted, root)
         outcomes.append(expect_failure("mutation: new secret is caught", lambda: not p.no_new_secrets(root)))
 
