@@ -109,11 +109,8 @@ func TestBHookMain(t *testing.T) {
 		}
 		return out
 	}
-	if !bytes.Contains(run(`{"tool_name":"Shell","tool_input":{"command":"git status"}}`), []byte(`"permission":"allow"`)) {
-		t.Fatal("read")
-	}
-	if bytes.Contains(run(`{"tool_name":"Write","tool_input":{"path":"ralph/ralph.go"}}`), []byte(`"permission":"allow"`)) {
-		t.Fatal("write")
+	if !bytes.Contains(run(`{"tool_name":"Shell","tool_input":{"command":"git status"}}`), []byte(`"permission":"allow"`)) || bytes.Contains(run(`{"tool_name":"Write","tool_input":{"path":"ralph/ralph.go"}}`), []byte(`"permission":"allow"`)) {
+		t.Fatal("hook main")
 	}
 }
 
