@@ -416,7 +416,7 @@ func checkHooks(root string) (ok, pre, post, stop bool, matcher string, failClos
 }
 
 func hook(in io.Reader, out, errw io.Writer, root string) int {
-	var raw map[string]any
+	var raw map[string]interface{}
 	if err := json.NewDecoder(in).Decode(&raw); err != nil {
 		fmt.Fprintf(out, `{"permission":"deny","agent_message":"sai-verify: invalid hook json"}`+"\n")
 		return 0
@@ -432,7 +432,7 @@ func hook(in io.Reader, out, errw io.Writer, root string) int {
 		}
 	}
 	if root == "." || root == "" {
-		if wr, _ := raw["workspace_roots"].([]any); len(wr) > 0 {
+		if wr, _ := raw["workspace_roots"].([]interface{}); len(wr) > 0 {
 			if s, ok := wr[0].(string); ok && s != "" {
 				root = s
 			}
@@ -471,8 +471,8 @@ func hook(in io.Reader, out, errw io.Writer, root string) int {
 	return 0
 }
 
-func extractPath(raw map[string]any) string {
-	in, _ := raw["tool_input"].(map[string]any)
+func extractPath(raw map[string]interface{}) string {
+	in, _ := raw["tool_input"].(map[string]interface{})
 	if in == nil {
 		in = raw
 	}

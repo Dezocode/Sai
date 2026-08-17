@@ -43,11 +43,11 @@ func root(t *testing.T) string {
 	}
 }
 
-func hookJSON(t *testing.T, r, payload string) map[string]any {
+func hookJSON(t *testing.T, r, payload string) map[string]interface{} {
 	t.Helper()
 	var out bytes.Buffer
 	run([]string{"hook", "--root", r}, strings.NewReader(payload), &out, bytes.NewBuffer(nil))
-	var m map[string]any
+	var m map[string]interface{}
 	json.Unmarshal(out.Bytes(), &m)
 	return m
 }
