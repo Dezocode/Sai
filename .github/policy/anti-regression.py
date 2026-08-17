@@ -332,7 +332,7 @@ class Policy:
             return False
         def covered(name: str) -> bool:
             for h in (doc.get("hooks") or {}).get(name) or []:
-                if "sai-verify" in str(h.get("command", "")) and h.get("matcher") in (".*", "^.*$", None, "") and (name not in ("preToolUse", "beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "sessionStart") or h.get("failClosed") is True):
+                if "sai-verify" in str(h.get("command", "")) and (h.get("matcher") in (".*", "^.*$") or name not in ("preToolUse", "postToolUse", "postToolUseFailure", "beforeShellExecution", "afterShellExecution", "beforeReadFile", "afterFileEdit", "subagentStart", "subagentStop")) and (name not in ("preToolUse", "postToolUse", "postToolUseFailure", "beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "sessionStart", "stop", "workspaceOpen") or h.get("failClosed") is True):
                     return True
             return False
         need = ("preToolUse", "postToolUse", "sessionStart", "beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "afterFileEdit", "subagentStart", "stop", "workspaceOpen")

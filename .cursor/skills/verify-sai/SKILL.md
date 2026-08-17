@@ -5,9 +5,7 @@ description: Prove Sai ICM coordination, CLI verifiers, CI, hooks, and OpenClaw 
 # Verify Sai
 Sai has no product UI server. The observable app is the ICM workspace, Bash verifiers, git hooks, GitHub Actions, Cursor hooks, and the OpenClaw dashboard scaffold. This skill drives those real entry points. The native map under `features/` is canonical. `cmd/sai-verify` is the only machine parser.
 ## Launch
-No long-lived process. From repo root: `go test ./...` then `go run ./cmd/sai-verify doctor`. Ready when doctor exits 0 and prints `ok`. Teardown: none (do not kill unrelated processes). Each CLI drive is its own process.
-## Doctor
-`go run ./cmd/sai-verify doctor` — map valid, every Cursor agent hook event is sai-verify fail-closed, HEAD bound. If anything looks off, run this before another drive.
+No long-lived process. `go test ./...`; `go run ./cmd/sai-verify doctor` (map+hooks). Completeness: `drive` then `doctor --evidence`. Teardown: none.
 ## Drive
 Prefer existing harnesses named in the feature file. Query context first: `go run ./cmd/sai-verify relevant --path <path> --tool <Tool>`. Cold agents: `go run ./cmd/sai-verify snapshot` (JSON) or `proof` (human). Every Cursor agent hook (`sessionStart` through `workspaceOpen`, including shell/MCP/read/edit/subagent) injects or gates on the same snapshot JSON. Never invent a second feature list.
 ## Evidence
@@ -15,5 +13,4 @@ Proofs are command + exit + stdout/stderr, plus a second read of stored state fo
 ## Cleanup
 Delete only temp dirs a drive created. Never kill by process name. Never delete evidence.
 ## Helpers
-- `go run ./cmd/sai-verify snapshot|proof|doctor|relevant|preserve|hook`
-- Hook wrapper: `.cursor/hooks/sai-verify.sh` (stdin JSON, stdout JSON)
+- `go run ./cmd/sai-verify snapshot|proof|doctor|relevant|preserve|hook|drive`; wrapper `.cursor/hooks/sai-verify.sh` (worktree-safe)

@@ -1,6 +1,7 @@
 # Handoff — 20260817-2002-pr69-verify-sai-cursor-cloud
-
-PR #69 `/goal` on `verification/repo-feature-map`. Do not merge/mark ready. Do not claim 100% map coverage: parent-folder IDs still group agent files; pstack slash catalog is marketplace not Sai; `.ai/projects/mimi-dispatcher/` is missing on disk (product gap).
-Kernel `cmd/sai-verify` is the only parser. Cursor agent hooks (19 events, failClosed) all call `.cursor/hooks/sai-verify.sh`. Permission events deny on map/preserve failure; others inject snapshot JSON.
-Exact-HEAD: `go test -race ./...`; `go vet ./...`; `go run ./cmd/sai-verify doctor|proof`. Unreachable: live gateway (`openclaw` CLI); ingest/MCQ/session/run-all stubs; connection-gate fail-closed without registry evidence.
-Maintain pass: source wave + live drive of mapped recipes (73 pass / 0 fail on named drives). Saul P1s remain Hostinger toolchain (no gcc / `go -version`); do not wait. Next: rebase #68 after merge; re-sweep IDs after any new concrete surface.
+PR #69 `/goal` on `verification/repo-feature-map`. Keep draft; do not merge.
+Kernel `cmd/sai-verify` is the only parser. Completeness is exact-HEAD evidence (`sai-verify-evidence.json` in git dir / CI `RUNNER_TEMP`), not map parse. `maintenance_required=false` only when evidence matches repo+HEAD+map hash, sweep=clean, live-drive fail=0.
+Hooks omit `permission: allow`; deny on map/preserve/stale HEAD. Binary cache is `--absolute-git-dir` (linked worktrees).
+Unreachable: live gateway (`openclaw` CLI); ingest/MCQ/session/run-all stubs (exit 2); connection-gate without registry evidence. Product gap: `.ai/projects/mimi-dispatcher/` absent. Parent-folder agent files remain grouped; pstack slash catalog is marketplace.
+Do not claim 100% mapping unless a whole-repo source sweep finds zero unmapped concrete supported surfaces.
+Next: after merge, BASE-built `sai-verify preserve` is the trusted anti-regression path. Saul Hostinger `go test`/`vet` toolchain remains out of scope.

@@ -6,7 +6,7 @@ GitHub Actions enforce ICM audit, trusted-base behavioral anti-regression, and a
 - `ci-anti-regression` `.github/workflows/anti-regression.yml` `pull_request_target` checks out exact base + head; runs `trusted/.github/policy/anti-regression.py`.
 - `ci-anti-policy` `.github/policy/anti-regression.py` JSON parse, no new secrets, gateway loopback, connection fail-closed, constitution (budget 1200 + trusted anti-regression shape), scaffold/shell/setup, mutation self-test.
 - `ci-line-budget` `.github/workflows/pr-line-budget.yml` `pull_request_target`; fail if GitHub `additions` > 1200; deletions free.
-- `ci-verify-sai` agent-audit runs `go test -race` / `go vet` and `go run ./cmd/sai-verify doctor|preserve|proof` on exact HEAD once the kernel exists.
+- `ci-verify-sai` agent-audit runs `go test -race` / `go vet` / `sai-verify drive|doctor|preserve|proof` on `pull_request.head.sha` (not the merge ref) once the kernel exists.
 - `ci-preserve-trusted` after this kernel is on base, trusted anti-regression builds BASE `sai-verify` and preserves BASE feature IDs against candidate (candidate cannot self-authorize deletions).
 ## How to get to it (user POV)
 - Open a PR targeting `main` — Actions: agent-audit, Anti-regression, PR line budget.

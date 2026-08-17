@@ -26,4 +26,4 @@ Preconditions: repo root.
 ## Gotchas
 - Isolation mode `prototype` vs `integration` is a contract field, not a hidden default.
 - Do not edit another contractor's claimed branch; coordinate via indexes + Slack.
-- OpenClaw dashboard remains prototype per DR-20260724 until a superseding decision.
+- OpenClaw dashboard remains prototype per DR-20260724. `.ai/projects/mimi-dispatcher/` is absent (contract exists; product gap).

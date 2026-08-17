@@ -24,9 +24,7 @@ decision records once they exist.
   `.cursor/settings.json` and indexed under `.ai/plugins/` (decision 0004).
   First plugin: pstack (`/poteto-mode`). Cloud Agents pin the project
   Custom Mode `/lauren-mode` with alias `/lauren` (decisions 0005, 0006).
-- Repo-local pstack verification skill `.cursor/skills/verify-sai/` is the
-  canonical feature map. `cmd/sai-verify` is the only machine parser (CLI,
-  Cursor pre/post hooks, CI). No second feature manifest.
+- `.cursor/skills/verify-sai/` is the canonical feature map; `cmd/sai-verify` is the only machine parser.
 - Three agents: CEO (orchestrator), secretary-dezocode, secretary-monaecode.
   Charters under `.ai/agents/_roles/`; named agent profiles under
   `.ai/agents/<name>/`.

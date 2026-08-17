@@ -18,8 +18,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.22"
 
@@ -108,9 +109,12 @@ jobs:
           chmod +x .cursor/hooks/sai-verify.sh
           go test -race ./...
           go vet ./...
-          go run ./cmd/sai-verify doctor
-          go run ./cmd/sai-verify preserve --base . --head .
-          go run ./cmd/sai-verify proof
+          EV="${RUNNER_TEMP:-/tmp}/sai-verify-evidence.json"
+          git fetch --depth=1 origin "${{ github.event.pull_request.base.sha }}" 2>/dev/null || true
+          go run ./cmd/sai-verify drive --evidence "$EV"
+          go run ./cmd/sai-verify doctor --evidence "$EV"
+          go run ./cmd/sai-verify preserve --base-ref "${{ github.event.pull_request.base.sha || 'origin/main' }}"
+          go run ./cmd/sai-verify proof --evidence "$EV"
 
       - name: Confirm ICM workflow files present
         run: |
