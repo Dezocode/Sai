@@ -2,7 +2,7 @@
 Operators bootstrap a loopback OpenClaw Gateway, run fail-closed fleet/telegram/secrets gates, and keep VPS services at documented stubs until implemented.
 ## Sub-features
 - `oc-gateway-bind` `openclaw-dashboard/scripts/verify-gateway-bind.sh` host `127.0.0.1`, `loopback_default`.
-- `oc-gateway-opts` `.ai/agents/alfred/runtimes/openclaw/gateway/config/gateway-options.json` + `gateway-exposure-policy.md`
+- `oc-gateway-opts` `.ai/agents/alfred/runtimes/openclaw/gateway/config/{gateway-options.json,gateway-exposure-policy.md}`
 - `oc-gateway-health` `openclaw-dashboard/scripts/verify-gateway-health.sh [--self-test|--port]`
 - `oc-deps` `openclaw-dashboard/scripts/verify-all-dependencies.sh [--self-test]`
 - `oc-vps` `openclaw-dashboard/docs/vps-bootstrap.md` + `host/systemd/openclaw-gateway.service` + `host/README.md`
@@ -12,7 +12,7 @@ Operators bootstrap a loopback OpenClaw Gateway, run fail-closed fleet/telegram/
 - `oc-telegram-session` `docs/telegram-session-protocol.md` + Alfred `telegram/BEHAVIORS.md` + smoke `telegram-session-reporting.sh`
 - `oc-telegram-mcq` `integrations/telegram/mcq-actions.md` + smoke `telegram-mcq.sh` (stub exit 2)
 - `oc-connection-gate` `tests/smoke/subagent-connection-gate.sh` fail-closed; `subagent-connection-gate-negative.sh` self-test
-- `oc-secrets` `scripts/verify-secrets-compliance.sh` + `docs/secrets-security.md` + `auth-matrix.md` + vault schema
+- `oc-secrets` `scripts/verify-secrets-compliance.sh` + smoke `tests/smoke/secrets-compliance.sh` + `docs/secrets-security.md` + `auth-matrix.md` + vault schema
 - `oc-ingest-slo` `scripts/verify-ingest-latency.sh` stub exit 2 until `services/activity-ingest` exists
 - `oc-smoke-all` `tests/smoke/all-gates.sh` orchestrator; `run-all.sh` stub exit 2
 - `oc-svc-ingest` `services/activity-ingest/README.md`

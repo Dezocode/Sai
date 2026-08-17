@@ -4,7 +4,7 @@ A principal names an agent, binds a charter, initializes hooks and capabilities,
 - `init-protocol` `.ai/INITIALIZE.md` Phases 0–9; not initialized until Phase 9 report.
 - `init-script` `scripts/agent-init` mechanical Phase 2; refuse fail; do not run in managed VMs to set hooksPath.
 - `onboard-protocol` `.ai/ONBOARDING.md` contractor persona gate + Sai audit.
-- `registry` `.ai/agents/registry.json` one row per agent; status `active`|`provisional`.
+- `registry` `.ai/agents/registry.json` one row per agent; status `active`|`provisional`|`retired`.
 - `charter-ceo` `.ai/agents/_roles/ceo/CHARTER.md`
 - `charter-secretary-dezocode` `.ai/agents/_roles/secretary-dezocode/CHARTER.md`
 - `charter-secretary-monaecode` `.ai/agents/_roles/secretary-monaecode/CHARTER.md`
@@ -21,10 +21,14 @@ A principal names an agent, binds a charter, initializes hooks and capabilities,
 - `agent-alpha` `.ai/agents/alpha/` provisional coding contractor
 - `scaffold-agent` `scripts/agent-scaffold --name --agent-id --role-title --principal --purpose --charter [--primary-runtime cursor|claude|codex|openclaw]`
 - `scaffold-memory` `scripts/agent-memory-scaffold --agent-id --folder [--contract-id]`
-- `verify-caps` `scripts/agent-verify-caps --tools-file .ai/agents/<name>/tools.json [--environment …]`
+- `verify-caps` `scripts/agent-verify-caps --tools-file .ai/agents/<name>/runtimes/<suite>/tools.json` (root `tools.json` is a manifest).
 - `automation-spec` `scripts/agent-automation-spec --agent-id --agent-name --role-title --principal --purpose`
 - `runtime-suites` `.ai/agents/<name>/runtimes/{cursor,claude,codex,openclaw}/` capability suites.
-- `agents-index` `.ai/agents/README.md` named-folder convention.
+- `sdk-claude` `.ai/agents/<name>/runtimes/claude/agent-sdk/` README + `config/agent-options.json` required for Claude-primary contracts.
+- `agent-memory-store` `.ai/agents/<name>/memory/manifest.json` from `scripts/agent-memory-scaffold`.
+- `agent-hooks-profile` `.ai/agents/<name>/hooks.json` git/reporting profile, not Cursor `preToolUse`.
+- `saul-roadmap` `.ai/agents/saul/roadmap.json` + `roadmap.md` CTO gates.
+- `agents-index` `.ai/agents/README.md` named-folder convention; each folder has `AGENT.md`+`skills.md`.
 - `automation-specs` `.ai/agents/automation-specs/cursor-cloud-30d8.md` bootstrap automation record.
 ## How to get to it (user POV)
 - New agent: execute `.ai/INITIALIZE.md`; contractor: `.ai/ONBOARDING.md` after contract first message.
@@ -36,6 +40,8 @@ Preconditions: repo root.
 - **Setup gate.** `scripts/verify-agent-setup`; exit 0.
 - **Scaffold reject.** `scripts/verify-scaffold-safety`; exit 0 (path traversal rejected).
 - **Caps help.** `scripts/agent-verify-caps 2>&1 | head -1`; usage on missing `--tools-file`.
+- **SDK.** `python3 -m json.tool .ai/agents/mimi/runtimes/claude/agent-sdk/config/agent-options.json`
+- **Roadmap.** `python3 -m json.tool .ai/agents/saul/roadmap.json`
 - **Proof.** `go run ./cmd/sai-verify relevant --path .ai/INITIALIZE.md --tool Read` lists `agent-lifecycle`.
 ## Gotchas
 - Do not self-name; principal grants name and role title.

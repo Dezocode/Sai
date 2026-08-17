@@ -26,7 +26,7 @@ func miniMap(t *testing.T, dir string, extra bool) {
 		os.WriteFile(filepath.Join(d, "beta.md"), []byte(body("beta")), 0644)
 	}
 	os.MkdirAll(filepath.Join(dir, ".cursor"), 0755)
-	os.WriteFile(filepath.Join(dir, ".cursor/hooks.json"), []byte(`{"version":1,"hooks":{"preToolUse":[{"command":".cursor/hooks/sai-verify.sh","matcher":".*","failClosed":true}],"postToolUse":[{"command":".cursor/hooks/sai-verify.sh","matcher":".*","failClosed":true}],"stop":[{"command":".cursor/hooks/sai-verify.sh"}]}}`), 0644)
+	os.WriteFile(filepath.Join(dir, ".cursor/hooks.json"), hooksJSON(), 0644)
 }
 
 func root(t *testing.T) string {
@@ -110,15 +110,26 @@ func TestRepoColdSyntheticHooks(t *testing.T) {
 		t.Fatal("dead")
 	}
 	pre := hookJSON(t, r, `{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}`)
-	if pre["permission"] != "allow" {
+	if pre["permission"] != "allow" || !strings.Contains(pre["agent_message"].(string), `"map_valid":true`) {
 		t.Fatal(pre)
 	}
 	post := hookJSON(t, r, `{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":"scripts/agent-report"},"tool_output":"{}"}`)
-	if !strings.Contains(post["additional_context"].(string), "sai-verify") {
+	if !strings.Contains(post["additional_context"].(string), `"preserve_ok"`) {
 		t.Fatal(post)
+	}
+	sess := hookJSON(t, r, `{"hook_event_name":"sessionStart"}`)
+	if !strings.Contains(sess["additional_context"].(string), `"obligations"`) {
+		t.Fatal(sess)
 	}
 	if hookJSON(t, r, `{"hook_event_name":"preToolUse","claimed_head":"0","tool_name":"Read","tool_input":{"path":"README.md"}}`)["permission"] != "deny" {
 		t.Fatal("stale pre")
+	}
+	sh := hookJSON(t, r, `{"hook_event_name":"beforeShellExecution","command":"scripts/agent-report"}`)
+	if sh["permission"] != "allow" || !strings.Contains(sh["agent_message"].(string), `"hooks_ok":true`) {
+		t.Fatal(sh)
+	}
+	if hookJSON(t, r, `{"hook_event_name":"afterFileEdit","edits":[{"file_path":".cursor/hooks.json"}]}`)["additional_context"] == nil {
+		t.Fatal("afterFileEdit")
 	}
 	out.Reset()
 	run([]string{"hook"}, strings.NewReader("x"), &out, bytes.NewBuffer(nil))

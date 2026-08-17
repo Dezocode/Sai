@@ -2,7 +2,7 @@
 Agents emit schema-valid SAI events, queue when Slack is down, install git hooks that report worktree/commit/push, and record Drive sync without blocking Git.
 ## Sub-features
 - `report-emit` `scripts/agent-report emit <TYPE> [--task-id …]` writes schema-valid JSON to `.git/agent-events/queue/` and mirrors `events.jsonl`.
-- `report-flush` `scripts/agent-report flush` FIFO delivery; missing `SAI_SLACK_BOT_TOKEN` keeps queue, exit 0 from emit `--no-deliver`.
+- `report-flush` `scripts/agent-report flush` FIFO; missing `SAI_SLACK_BOT_TOKEN` keeps queue and flush exits 1; `emit … --no-deliver` exits 0.
 - `report-push-confirm` `scripts/agent-report push-confirm [remote]` requires `git ls-remote` SHA == HEAD.
 - `report-redact` `agent-report` strips tokens/keys before queue or Slack.
 - `hook-install` `scripts/install-agent-hooks` sets `core.hooksPath=.githooks` and chmod.

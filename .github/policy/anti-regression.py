@@ -332,10 +332,11 @@ class Policy:
             return False
         def covered(name: str) -> bool:
             for h in (doc.get("hooks") or {}).get(name) or []:
-                if "sai-verify" in str(h.get("command", "")) and h.get("matcher") in (".*", "^.*$", None, "") and (name != "preToolUse" or h.get("failClosed") is True):
+                if "sai-verify" in str(h.get("command", "")) and h.get("matcher") in (".*", "^.*$", None, "") and (name not in ("preToolUse", "beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "sessionStart") or h.get("failClosed") is True):
                     return True
             return False
-        hook_ok = covered("preToolUse") and covered("postToolUse")
+        need = ("preToolUse", "postToolUse", "sessionStart", "beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "afterFileEdit", "subagentStart", "stop", "workspaceOpen")
+        hook_ok = all(covered(n) for n in need)
         self.record("Required pre/post verification hooks", hook_ok, "")
         has_kernel = (self.candidate / "cmd" / "sai-verify").is_dir()
         self.record("Candidate retains sai-verify kernel", has_kernel, "")
