@@ -7,7 +7,7 @@ Contract Administrator scaffolds versioned contracts and project branch indexes;
 - `contract-pr-review` `scripts/agent-contract-pr-review --contract-id ID --branch BRANCH [--task-id ID]` → pass|pending_manual|fail
 - `contract-splunk` `.ai/contracts/20260715-splunk-clone-monaecode/` plus reviews/
 - `contract-mimi-dispatcher` `.ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/`
-- `contract-openclaw` `.ai/contracts/20260722-openclaw-dashboard-dezocode/` including amendments and deploy checklists
+- `contract-openclaw` `.ai/contracts/20260722-openclaw-dashboard-dezocode/` including `first-prompt-attach-contract.md`, amendments, and deploy checklists
 - `project-splunk` `.ai/projects/splunk-clone/{branches-index,contract-refs,coordination/slack-channel}.json`
 - `project-openclaw` `.ai/projects/openclaw-dashboard/{branches-index,contract-refs,coordination/slack-channel}.json`
 - `contracts-readme` `.ai/contracts/README.md` ID format `YYYYMMDD-<slug>-<principal>`

@@ -8,8 +8,8 @@ Project-enabled Cursor plugins, SAI Cursor rules, and Layer 0 routers for Claude
 - `entry-agents` `AGENTS.md` Cloud/runtime notes + check commands.
 - `entry-claude` `CLAUDE.md` Claude Code router.
 - `entry-codex` `CODEX.md` Codex Desktop router.
-- `entry-openclaw` `OPENCLAW.md` Gateway/VPS router + Alfred deploy two-step.
-- `pstack-verify-skills` marketplace `/create-verification-skill` and `/maintain-verification-skill`; repo-local skill is this folder.
+- `entry-openclaw` `OPENCLAW.md` Gateway/VPS router + Alfred deploy two-step (`first-prompt-attach-contract.md`).
+- `pstack-verify-skills` marketplace `/create-verification-skill` and `/maintain-verification-skill`; repo-local `/verify-sai` is `.cursor/skills/verify-sai/`.
 - `decision-0004` `.ai/shared/memory/decisions/0004-cursor-project-plugins.md` project-scope plugins.
 ## How to get to it (user POV)
 - Cursor: type `/` → pstack skills; attach `@<name>` for `.ai/agents/<name>/`.

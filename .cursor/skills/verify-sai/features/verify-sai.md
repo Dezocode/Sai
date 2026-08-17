@@ -17,7 +17,7 @@ Future agents query the native pstack map through one Go API used by CLI, Cursor
 - `vs-ci` agent-audit exact candidate `head.sha` test/vet/drive/doctor; trusted anti-regression uses BASE binary after merge.
 - `vs-synthetic` `cmd/sai-verify/main_test.go`: A–H future-PR (unchanged, additive, delete, proof/entry replace, candidate Removal-authorized, missing base, stale HEAD, self-weakening, worktree).
 ## How to get to it (user POV)
-- Cold: `go run ./cmd/sai-verify snapshot|proof|relevant --path <file> --tool Read`. Agent loop: `.cursor/hooks.json`. CI: agent-audit + post-merge BASE preserve. Maintain: `/maintain-verification-skill` on this folder.
+- `/verify-sai` (`.cursor/skills/verify-sai/SKILL.md`). Cold: `go run ./cmd/sai-verify snapshot|proof|doctor|drive|preserve|hook|relevant --path <file> --tool Read`. Agent loop: `.cursor/hooks.json`. CI: agent-audit + post-merge BASE preserve. Maintain: `/maintain-verification-skill` on this folder.
 ## Driving it with verify-sai
 Preconditions: Go 1.16+; repo root.
 - **Doctor.** `go run ./cmd/sai-verify doctor`; exit 0 when map+hooks hold.

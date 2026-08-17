@@ -9,10 +9,10 @@ Operators bootstrap a loopback OpenClaw Gateway, run fail-closed fleet/telegram/
 - `oc-fleet` `openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh` + `docs/fleet-coherence-gate.md`
 - `oc-telegram-verify` `openclaw-dashboard/scripts/verify-agent-telegram.sh [--self-test|--scope …]`
 - `oc-telegram-registry` `openclaw-dashboard/docs/agent-telegram-registry.md` + `docs/blocked-agents.md`
-- `oc-telegram-session` `docs/telegram-session-protocol.md` + Alfred `telegram/BEHAVIORS.md` + smoke `telegram-session-reporting.sh` (stub exit 2 until run `telegram-session.jsonl`)
-- `oc-telegram-mcq` `integrations/telegram/mcq-actions.md` + smoke `telegram-mcq.sh` (stub exit 2)
+- `oc-telegram-session` `docs/telegram-session-protocol.md` + Alfred `telegram/{BEHAVIORS,session-memory}.md` + smoke `telegram-session-reporting.sh` (stub exit 2 until run `telegram-session.jsonl`)
+- `oc-telegram-mcq` `integrations/telegram/mcq-actions.md` + Alfred `telegram/BLOCKED-MCQ-CONTINUATION.md` + smoke `telegram-mcq.sh` (stub exit 2)
 - `oc-connection-gate` `tests/smoke/subagent-connection-gate.sh` fail-closed; `subagent-connection-gate-negative.sh` self-test
-- `oc-secrets` `scripts/verify-secrets-compliance.sh` + smoke `tests/smoke/secrets-compliance.sh` + `docs/secrets-security.md` + `auth-matrix.md` + vault schema
+- `oc-secrets` `scripts/verify-secrets-compliance.sh` + smoke `tests/smoke/secrets-compliance.sh` + `docs/secrets-security.md` + `auth-matrix.md` + `.ai/agents/alfred/runtimes/openclaw/gateway/config/secrets-store.schema.json`
 - `oc-ingest-slo` `scripts/verify-ingest-latency.sh` stub exit 2 until `services/activity-ingest` exists
 - `oc-smoke-all` `tests/smoke/all-gates.sh` orchestrator fails while child stubs fail; `run-all.sh` stub exit 2
 - `oc-svc-ingest` `services/activity-ingest/README.md`

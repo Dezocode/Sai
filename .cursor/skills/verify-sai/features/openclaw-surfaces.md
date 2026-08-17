@@ -19,7 +19,7 @@ The OpenClaw SAI Dashboard prototype exposes documented tabs, settings, desktop/
 - `oc-layered-load` `openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md`
 ## How to get to it (user POV)
 - Read `openclaw-dashboard/CONTEXT.md` then the tab/settings folder `CONTEXT.md`.
-- Design: `openclaw-dashboard/design/DESIGN-LANGUAGE.md`.
+- Design: `openclaw-dashboard/design/DESIGN-LANGUAGE.md`; smoke `openclaw-dashboard/tests/smoke/design-tokens.sh` and `design-compliance.sh`.
 - Desktop/iOS shells via `apps/desktop` and `apps/ios-whisper` (spec until src exists).
 ## Driving it with verify-sai
 Preconditions: repo root.
