@@ -5,7 +5,7 @@ description: Prove Sai ICM coordination, CLI verifiers, CI, hooks, and OpenClaw 
 # Verify Sai
 Sai has no product UI server. The observable app is the ICM workspace, Bash verifiers, git hooks, GitHub Actions, Cursor hooks, and the OpenClaw dashboard scaffold. This skill drives those real entry points. The native map under `features/` is canonical. `cmd/sai-verify` is the only machine parser.
 ## Launch
-No long-lived process. From repo root: `go test ./cmd/sai-verify` then `go run ./cmd/sai-verify doctor`. Ready when doctor exits 0 and prints `ok`. Teardown: none (do not kill unrelated processes). Each CLI drive is its own process.
+No long-lived process. From repo root: `go test ./...` then `go run ./cmd/sai-verify doctor`. Ready when doctor exits 0 and prints `ok`. Teardown: none (do not kill unrelated processes). Each CLI drive is its own process.
 ## Doctor
 `go run ./cmd/sai-verify doctor` — map valid, hooks cover pre/post `.*` fail-closed, HEAD bound. If anything looks off, run this before another drive.
 ## Drive

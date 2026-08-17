@@ -2,7 +2,7 @@
 Maintained source for every supported/observable Sai capability proved by this repository. Read this index, then the feature file. Grouping is for reader clarity; sub-feature IDs and entry points are the contract.
 ## Baseline preconditions
 - Work from the git repo root of `Dezocode/Sai` or `monaecode/Sai`.
-- `python3`, `bash`, `git`, `go` (≥1.22) on PATH. `rclone` and Slack/Drive tokens are optional.
+- `python3`, `bash`, `git`, `go` (≥1.18) on PATH. `rclone` and Slack/Drive tokens are optional.
 - Run `go run ./cmd/sai-verify doctor` and require exit 0.
 - Reuse existing `scripts/*` and `openclaw-dashboard/**` harnesses; do not wrap them in a second verifier.
 ## Driving conventions

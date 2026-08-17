@@ -106,8 +106,8 @@ jobs:
       - name: Verify sai-verify kernel and native map
         run: |
           chmod +x .cursor/hooks/sai-verify.sh
-          go test -race ./cmd/sai-verify
-          go vet ./cmd/sai-verify
+          go test -race ./...
+          go vet ./...
           go run ./cmd/sai-verify doctor
           go run ./cmd/sai-verify preserve --base . --head .
           go run ./cmd/sai-verify proof

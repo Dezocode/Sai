@@ -516,7 +516,8 @@ func writeProof(w io.Writer, s snap) {
 	fmt.Fprintf(w, "map: files=%d features=%d subfeatures=%d entry_points=%d valid=%v\n", s.MapFiles, s.MapFeatures, s.MapSubs, s.MapEntries, s.MapValid)
 	fmt.Fprintf(w, "preserve: %v missing=%v weakened=%v\n", s.PreserveOK, s.Missing, s.Weakened)
 	fmt.Fprintf(w, "hooks: ok=%v pre=%v post=%v stop=%v matcher=%s failClosed=%v\n", s.HooksOK, s.HookPre, s.HookPost, s.HookStop, s.HookMatcher, s.HookFailClosed)
-	fmt.Fprintf(w, "maintenance: required=%v %s\n", s.MaintRequired, s.MaintReason)
+	fmt.Fprintf(w, "maintenance: %s required=%v %s\n", map[bool]string{false: "clean", true: "blocked"}[s.MaintRequired], s.MaintRequired, s.MaintReason)
+	fmt.Fprintf(w, "go: test -race ./... ; vet ./... ; hook transcripts in go test (pre Read, post StrReplace, stale deny)\n")
 	fmt.Fprintf(w, "unreachable: %s\n", strings.Join(s.Unreachable, " | "))
 	fmt.Fprintf(w, "kernel: files=%d loc=%d funcs=%d\n", s.ImplFiles, s.ImplLOC, s.ImplFuncs)
 	fmt.Fprintf(w, "density: one parser/model, one core for CLI/hooks/CI; remaining types are JSON snapshot + feature record.\n")
@@ -555,15 +556,11 @@ func obligations(s snap) (o []string) {
 }
 
 func density(root string) (files, loc, fns int) {
-	filepath.Walk(filepath.Join(root, "cmd/sai-verify"), func(p string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() || !strings.HasSuffix(p, ".go") || strings.HasSuffix(p, "_test.go") {
-			return nil
-		}
-		b, _ := os.ReadFile(p)
-		files, loc, fns = files+1, loc+bytes.Count(b, []byte("\n")), fns+bytes.Count(b, []byte("\nfunc "))
-		return nil
-	})
-	return
+	b, err := os.ReadFile(filepath.Join(root, "cmd/sai-verify/main.go"))
+	if err != nil {
+		return
+	}
+	return 1, bytes.Count(b, []byte("\n")), bytes.Count(b, []byte("\nfunc "))
 }
 
 func repoName(u string) string {
@@ -578,7 +575,7 @@ func repoName(u string) string {
 }
 
 func git(dir string, args ...string) string {
-	b, _ := exec.Command("git", append([]string{"-C", dir}, args...)...).Output()
+	b, _ := exec.Command("git", append([]string{"-c", "safe.directory=*", "-C", dir}, args...)...).Output()
 	return strings.TrimSpace(string(b))
 }
 

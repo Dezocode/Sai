@@ -19,13 +19,13 @@ Future agents query the native pstack map through one Go API used by CLI, Cursor
 - CI: agent-audit + (post-merge) trusted anti-regression preserve
 - Maintain map: `/maintain-verification-skill` on `.cursor/skills/verify-sai/`
 ## Driving it with verify-sai
-Preconditions: Go 1.22+; repo root.
+Preconditions: Go 1.18+; repo root.
 - **Doctor.** `go run ./cmd/sai-verify doctor`; exit 0.
 - **Snapshot.** `go run ./cmd/sai-verify snapshot`; JSON `ok`, `head` matches `git rev-parse HEAD`.
 - **Hook pre.** `printf '%s' '{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}' | go run ./cmd/sai-verify hook`; `permission` allow; context names `icm-workspace` or `verify-sai`.
 - **Hook post.** same with `postToolUse` and `tool_output`; stdout has `additional_context`.
 - **Preserve self.** `go run ./cmd/sai-verify preserve --base . --head .`; exit 0.
-- **Tests.** `go test -race ./cmd/sai-verify`; `go vet ./cmd/sai-verify`
+- **Tests.** `go test -race ./...`; `go vet ./...`
 - **Proof.** `go run ./cmd/sai-verify proof`
 ## Gotchas
 - Conversation memory is not a proof source; recompute from repo+HEAD each invocation.

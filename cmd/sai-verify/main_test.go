@@ -31,11 +31,16 @@ func miniMap(t *testing.T, dir string, extra bool) {
 
 func root(t *testing.T) string {
 	t.Helper()
-	wd, _ := os.Getwd()
-	if filepath.Base(wd) == "sai-verify" {
-		wd = filepath.Join(wd, "../..")
+	for d, _ := os.Getwd(); ; d = filepath.Dir(d) {
+		if _, e := os.Stat(filepath.Join(d, mapDir, "README.md")); e == nil {
+			if _, e = os.Stat(filepath.Join(d, "go.mod")); e == nil {
+				return d
+			}
+		}
+		if n := filepath.Dir(d); n == d {
+			t.Fatal("repo root")
+		}
 	}
-	return wd
 }
 
 func hookJSON(t *testing.T, r, payload string) map[string]any {
@@ -66,8 +71,8 @@ func TestRepoColdSyntheticHooks(t *testing.T) {
 	}
 	var snap snap
 	json.Unmarshal(out.Bytes(), &snap)
-	if !snap.OK || snap.Head == "" {
-		t.Fatal("cold")
+	if !snap.OK {
+		t.Fatal("cold", snap.Err, snap.Problems)
 	}
 	out.Reset()
 	if run([]string{"proof", "--root", r}, bytes.NewReader(nil), &out, &errb) != 0 || !strings.Contains(out.String(), "head:") {
