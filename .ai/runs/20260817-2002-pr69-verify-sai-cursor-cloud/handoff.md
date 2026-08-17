@@ -1,7 +1,7 @@
 # Handoff — 20260817-2002-pr69-verify-sai-cursor-cloud
 PR #69 `/goal` on `verification/repo-feature-map`. Keep draft; do not merge.
-Kernel `cmd/sai-verify` is the only parser. Completeness is exact-HEAD evidence (`sai-verify-evidence.json` in git dir / CI `RUNNER_TEMP`), not map parse. `maintenance_required=false` only when evidence matches repo+HEAD+map hash, sweep=clean, live-drive fail=0.
-Hooks omit `permission: allow`; deny on map/preserve/stale HEAD. Binary cache is `--absolute-git-dir` (linked worktrees).
-Unreachable: live gateway (`openclaw` CLI); ingest/MCQ/session/run-all stubs (exit 2); connection-gate without registry evidence. Product gap: `.ai/projects/mimi-dispatcher/` absent. Parent-folder agent files remain grouped; pstack slash catalog is marketplace.
-Do not claim 100% mapping unless a whole-repo source sweep finds zero unmapped concrete supported surfaces.
+Kernel `cmd/sai-verify` is the only parser. Completeness is exact-HEAD evidence (`sai-verify-evidence.json` in git dir or CI `RUNNER_TEMP`), not map parse. `maintenance_required=false` only when evidence matches repo+HEAD+map hash, sweep=clean, live-drive fail=0.
+Hooks omit `permission: allow`; deny on map/preserve/stale HEAD. Binary cache is `--absolute-git-dir`.
+Live drive (named recipes): pass=59 fail=0 skip=0. Unreachable: live gateway needs `openclaw` CLI; ingest/MCQ/session/run-all stubs (exit 2); connection-gate without registry evidence. Product gap: `.ai/projects/mimi-dispatcher/` absent. Parent-folder agent files grouped; pstack slash catalog is marketplace.
+Do not claim 100% mapping unless a whole-repo source sweep finds zero unmapped concrete supported surfaces. Kernel inventory on this HEAD: unmapped none among watched drivers; grouping remains.
 Next: after merge, BASE-built `sai-verify preserve` is the trusted anti-regression path. Saul Hostinger `go test`/`vet` toolchain remains out of scope.
