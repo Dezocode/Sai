@@ -18,6 +18,7 @@ a change means the checks below that apply to the files touched.
 | `.ai/**` structure | `scripts/verify-semantic-hierarchy` |
 | Agent profiles, Claude SDK scaffold, contracts | `scripts/verify-agent-setup` |
 | Scaffold / contract-review regressions | `scripts/verify-scaffold-safety` |
+| Native feature map / `cmd/sai-verify` | `go test -race ./cmd/sai-verify`; `go vet ./cmd/sai-verify`; `go run ./cmd/sai-verify doctor` |
 
 ## Rules
 

@@ -19,6 +19,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
       - name: Determine commit range
         id: range
         run: |
@@ -98,6 +102,15 @@ jobs:
             python3 -m json.tool "$f" > /dev/null
             echo "OK $f"
           done
+
+      - name: Verify sai-verify kernel and native map
+        run: |
+          chmod +x .cursor/hooks/sai-verify.sh
+          go test -race ./cmd/sai-verify
+          go vet ./cmd/sai-verify
+          go run ./cmd/sai-verify doctor
+          go run ./cmd/sai-verify preserve --base . --head .
+          go run ./cmd/sai-verify proof
 
       - name: Confirm ICM workflow files present
         run: |

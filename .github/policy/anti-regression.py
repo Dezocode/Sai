@@ -312,6 +312,35 @@ class Policy:
             cwd=candidate,
         )
 
+    def feature_contract(self) -> bool:
+        kernel = self.trusted / "cmd" / "sai-verify"
+        if not kernel.is_dir():
+            return self.record("Feature map preservation", True, "base has no sai-verify kernel yet")
+        env = self.clean_env()
+        for k in ("HOME", "GOROOT", "GOPATH", "GOCACHE", "GOMODCACHE"):
+            if k in os.environ:
+                env[k] = os.environ[k]
+        bin_path = pathlib.Path(tempfile.mkdtemp(prefix="sai-verify-")) / "sai-verify"
+        built = subprocess.run(["go", "build", "-o", str(bin_path), "./cmd/sai-verify"], cwd=str(self.trusted), env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120, check=False)
+        if built.returncode != 0:
+            return self.record("Feature map preservation", False, (built.stdout or "")[-4000:])
+        ok = self.command("Protected BASE feature IDs are preserved", [str(bin_path), "preserve", "--base", str(self.trusted), "--head", str(self.candidate), "--root", str(self.candidate)], timeout=60)
+        try:
+            doc = json.loads((self.candidate / ".cursor" / "hooks.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            self.record("Required pre/post verification hooks", False, "hooks.json missing/invalid")
+            return False
+        def covered(name: str) -> bool:
+            for h in (doc.get("hooks") or {}).get(name) or []:
+                if "sai-verify" in str(h.get("command", "")) and h.get("matcher") in (".*", "^.*$", None, "") and (name != "preToolUse" or h.get("failClosed") is True):
+                    return True
+            return False
+        hook_ok = covered("preToolUse") and covered("postToolUse")
+        self.record("Required pre/post verification hooks", hook_ok, "")
+        has_kernel = (self.candidate / "cmd" / "sai-verify").is_dir()
+        self.record("Candidate retains sai-verify kernel", has_kernel, "")
+        return ok and hook_ok and has_kernel
+
     def run_all(self) -> bool:
         self.json_validity()
         self.no_new_secrets()
@@ -321,6 +350,7 @@ class Policy:
         self.scaffold_behavior()
         self.shell_authorization()
         self.agent_operability()
+        self.feature_contract()
         return all(result.ok for result in self.results)
 
     def report(self) -> bool:
@@ -458,6 +488,17 @@ def mutation_self_test(trusted: pathlib.Path, candidate: pathlib.Path) -> list[R
         p = Policy(trusted, root)
         outcomes.append(expect_failure("mutation: false connected state is caught", lambda: changed and not p.connection_truth(root)))
 
+    if (trusted / "cmd" / "sai-verify").is_dir():
+        with tempfile.TemporaryDirectory(prefix="anti-regression-feature-") as td:
+            root = clone_for_mutation(candidate, pathlib.Path(td))
+            dropped = False
+            for path in (root / ".cursor" / "skills" / "verify-sai" / "features").glob("*.md"):
+                if path.name != "README.md":
+                    path.unlink()
+                    dropped = True
+                    break
+            p = Policy(trusted, root)
+            outcomes.append(expect_failure("mutation: protected feature deletion is caught", lambda: dropped and not p.feature_contract()))
     return outcomes
 
 

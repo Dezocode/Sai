@@ -1,0 +1,2 @@
+# Plan — PR #69
+Units: (1) native `.cursor/skills/verify-sai` map from whole-repo discovery; (2) `cmd/sai-verify` one parser/core; (3) `.cursor/hooks.json` pre/post `.*` failClosed + stop; (4) agent-audit exact-HEAD + trusted anti-regression preserve after merge; (5) Go tests for add/delete/stale/cold/hooks. Reuse existing `scripts/*` and OpenClaw self-tests. Unreachable: live gateway/Telegram/ingest stubs named in map.

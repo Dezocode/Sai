@@ -1,0 +1,1 @@
+{"version":1,"hooks":{"preToolUse":[{"command":".cursor/hooks/sai-verify.sh","matcher":".*","failClosed":true,"timeout":60}],"postToolUse":[{"command":".cursor/hooks/sai-verify.sh","matcher":".*","failClosed":true,"timeout":60}],"stop":[{"command":".cursor/hooks/sai-verify.sh","timeout":60,"loop_limit":2}]}}
