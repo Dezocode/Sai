@@ -497,7 +497,7 @@ func relTool(f feat, tool string) bool {
 func ticks(line string) (o []string) {
 	for _, m := range tickRe.FindAllStringSubmatch(line, -1) {
 		s := m[1]
-		if strings.ContainsAny(s, " /") || strings.HasPrefix(s, "go ") || strings.HasPrefix(s, "test ") { o = append(o, s) }
+		if strings.Contains(s, "/") || strings.HasPrefix(s, "go ") || strings.HasPrefix(s, "test ") || strings.HasPrefix(s, "python") || strings.HasPrefix(s, "bash ") || strings.HasPrefix(s, "printf") || strings.HasPrefix(s, "grep ") || strings.HasPrefix(s, "SAI_") { o = append(o, s) }
 	}
 	return
 }

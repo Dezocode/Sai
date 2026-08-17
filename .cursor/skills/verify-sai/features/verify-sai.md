@@ -23,7 +23,7 @@ Preconditions: Go 1.16+; repo root.
 - **Doctor.** `go run ./cmd/sai-verify doctor`; exit 0 when map+hooks hold.
 - **Snapshot.** `go run ./cmd/sai-verify snapshot`; JSON `map_valid`, `head` matches `git rev-parse HEAD`.
 - **Hook pre.** `printf '%s' '{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}' | go run ./cmd/sai-verify hook`; exit 0; `additional_context` has `map_valid`; no `permission` key.
-- **Hook post.** same with `postToolUse` and `tool_output`; stdout has `additional_context`.
+- **Hook post.** `printf '%s' '{"hook_event_name":"postToolUse","tool_name":"Read","tool_input":{"path":"README.md"},"tool_output":"{}"}' | go run ./cmd/sai-verify hook`; exit 0; no `permission` key.
 - **Preserve.** `go run ./cmd/sai-verify preserve`; exit 0 (bootstrap if BASE has no map).
 - **Session hook.** `printf '%s' '{"hook_event_name":"sessionStart"}' | go run ./cmd/sai-verify hook`; `additional_context` has `map_valid`.
 - **Shell hook.** `printf '%s' '{"hook_event_name":"beforeShellExecution","command":"true"}' | go run ./cmd/sai-verify hook`; exit 0; no `permission` key.

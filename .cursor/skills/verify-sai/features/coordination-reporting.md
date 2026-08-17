@@ -22,7 +22,7 @@ Agents emit schema-valid SAI events, queue when Slack is down, install git hooks
 ## Driving it with verify-sai
 Preconditions: git repo; token optional.
 - **Syntax.** `bash -n scripts/agent-report .githooks/pre-push .githooks/post-commit`
-- **Emit.** `scripts/agent-report emit INTAKE --task-id 20990101-0000-verify-sai-fixture --purpose t --result t --no-deliver`; exit 0; queue JSON has `"event_type": "INTAKE"`.
+- **Emit.** `scripts/agent-report emit INTAKE --task-id 20990101-0000-verify-sai-fixture --purpose t --result t --no-deliver`; exit 0; queue JSON has event_type INTAKE.
 - **Drive pending.** `SAI_DRIVE_REMOTE= scripts/agent-sync-drive`; exit 0; output mentions pending.
 - **Proof.** `go run ./cmd/sai-verify relevant --path scripts/agent-report --tool Read` lists `coordination-reporting`.
 ## Gotchas
