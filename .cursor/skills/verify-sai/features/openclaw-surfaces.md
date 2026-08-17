@@ -15,7 +15,7 @@ The OpenClaw SAI Dashboard prototype exposes documented tabs, settings, desktop/
 - `oc-set-secrets` `openclaw-dashboard/settings/secrets/{CONTEXT,BUILD}.md` masked status, no secret values.
 - `oc-app-desktop` `openclaw-dashboard/apps/desktop/{CONTEXT,BUILD,tech-stack}.md`
 - `oc-app-ios` `openclaw-dashboard/apps/ios-whisper/{CONTEXT,BUILD,tech-stack}.md`
-- `oc-design` `openclaw-dashboard/design/{DESIGN-LANGUAGE.md,components.md,tokens.json}` + smoke `tests/smoke/design-tokens.sh` `design-compliance.sh`
+- `oc-design` `openclaw-dashboard/design/{DESIGN-LANGUAGE.md,components.md,tokens.json}` + smoke `tests/smoke/design-tokens.sh` `design-compliance.sh` + `design-compliance.md`
 - `oc-layered-load` `openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md`
 ## How to get to it (user POV)
 - Read `openclaw-dashboard/CONTEXT.md` then the tab/settings folder `CONTEXT.md`.

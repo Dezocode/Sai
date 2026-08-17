@@ -9,12 +9,12 @@ Operators bootstrap a loopback OpenClaw Gateway, run fail-closed fleet/telegram/
 - `oc-fleet` `openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh` + `docs/fleet-coherence-gate.md`
 - `oc-telegram-verify` `openclaw-dashboard/scripts/verify-agent-telegram.sh [--self-test|--scope …]`
 - `oc-telegram-registry` `openclaw-dashboard/docs/agent-telegram-registry.md` + `docs/blocked-agents.md`
-- `oc-telegram-session` `docs/telegram-session-protocol.md` + Alfred `telegram/BEHAVIORS.md` + smoke `telegram-session-reporting.sh`
+- `oc-telegram-session` `docs/telegram-session-protocol.md` + Alfred `telegram/BEHAVIORS.md` + smoke `telegram-session-reporting.sh` (stub exit 2 until run `telegram-session.jsonl`)
 - `oc-telegram-mcq` `integrations/telegram/mcq-actions.md` + smoke `telegram-mcq.sh` (stub exit 2)
 - `oc-connection-gate` `tests/smoke/subagent-connection-gate.sh` fail-closed; `subagent-connection-gate-negative.sh` self-test
 - `oc-secrets` `scripts/verify-secrets-compliance.sh` + smoke `tests/smoke/secrets-compliance.sh` + `docs/secrets-security.md` + `auth-matrix.md` + vault schema
 - `oc-ingest-slo` `scripts/verify-ingest-latency.sh` stub exit 2 until `services/activity-ingest` exists
-- `oc-smoke-all` `tests/smoke/all-gates.sh` orchestrator; `run-all.sh` stub exit 2
+- `oc-smoke-all` `tests/smoke/all-gates.sh` orchestrator fails while child stubs fail; `run-all.sh` stub exit 2
 - `oc-svc-ingest` `services/activity-ingest/README.md`
 - `oc-svc-presence` `services/agent-presence/README.md`
 - `oc-svc-github` `services/github-watch/README.md`
@@ -37,10 +37,11 @@ Preconditions: repo root. Gateway/Telegram live services optional.
 - **Secrets.** `openclaw-dashboard/scripts/verify-secrets-compliance.sh`; exit 0.
 - **Fleet files.** `openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh`; exit 0 if contract fields present.
 - **Stub SLO.** `openclaw-dashboard/scripts/verify-ingest-latency.sh`; expect exit 2; do not treat as success.
-- **Stub smoke.** `openclaw-dashboard/tests/smoke/run-all.sh`; expect exit 2.
+- **Stub smoke.** `openclaw-dashboard/tests/smoke/run-all.sh`; expect exit 2. `all-gates.sh` fails while those stubs fail.
+- **Stub session.** `openclaw-dashboard/tests/smoke/telegram-session-reporting.sh`; expect exit 2.
 - **Proof.** `go run ./cmd/sai-verify relevant --path openclaw-dashboard/scripts/verify-gateway-bind.sh --tool Shell` lists `openclaw-ops`.
 ## Gotchas
 - Live `verify-gateway-health.sh` without OpenClaw CLI is `verified-unreachable` (need `openclaw` + loopback gateway).
-- `telegram-mcq.sh` and ingest SLO are stubs (exit 2) until wired — prove the stub, do not skip.
+- `telegram-mcq.sh`, ingest SLO, and `telegram-session-reporting.sh` are stubs (exit 2) until wired — prove the stub, do not skip.
 - `subagent-connection-gate.sh` (non-negative) fail-closes until registry evidence exists.
 - Never bind gateway to `0.0.0.0`.
