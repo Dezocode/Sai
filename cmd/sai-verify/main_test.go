@@ -57,10 +57,23 @@ func TestFuturePRAndHooks(t *testing.T) {
 	if err != nil || !s.MapValid || s.MapFeatures < 10 || s.MapSubs < 80 || !s.HooksOK || !s.PreserveOK { t.Fatalf("cold map %v %v", s.Problems, err) }
 	if s.Completeness == "proven" && !s.EvidenceBound { t.Fatal("completeness without evidence") }
 	okRel := false
-	for _, h := range s.Relevant { okRel = okRel || h.ID == "icm-workspace" }
+	for _, h := range s.Relevant {
+		okRel = okRel || h.ID == "icm-workspace"
+		if h.ID == "icm-workspace" && (h.Title == "" || h.Why == "" || len(h.Gotchas) == 0) { t.Fatalf("enriched %+v", h) }
+	}
 	if !okRel { t.Fatalf("relevant %v", s.Relevant) }
-	sh, mcp, _ := func() (snap, snap, error) { a, _ := build(r, "", r, "scripts/agent-report", "Shell", "", "", ""); b, _ := build(r, "", r, "scripts/agent-report", "MCP", "", "", ""); return a, b, nil }()
-	if sh.Relevant[0].ID != "coordination-reporting" || mcp.Relevant[0].ID != "verify-sai" { t.Fatalf("tool relevant %v %v", sh.Relevant, mcp.Relevant) }
+	sh, _ := build(r, "", r, "scripts/agent-report", "Shell", "", "", "")
+	mcp, _ := build(r, "", r, "scripts/agent-report", "MCP", "", "", "")
+	rd, _ := build(r, "", r, "scripts/agent-report", "Read", "", "", "")
+	if sh.Relevant[0].ID != "coordination-reporting" || mcp.Relevant[0].ID != "verify-sai" || rd.Relevant[0].ID != "coordination-reporting" || rd.Tool != "Read" { t.Fatalf("tool relevant %v %v %v", sh.Relevant[0].ID, mcp.Relevant[0].ID, rd.Relevant[0].ID) }
+	c0, m0 := hk(t, r, `{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"scripts/agent-report"}}`)
+	ctx0, _ := m0["additional_context"].(string)
+	if c0 != 0 || !strings.Contains(ctx0, "FEATURE CONTEXT") || !strings.Contains(ctx0, "coordination-reporting") || !strings.Contains(ctx0, "Why:") { t.Fatal("68 pre", ctx0) }
+	c1, m1 := hk(t, r, `{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":"scripts/agent-report"},"tool_output":"{}"}`)
+	if c1 != 0 || !strings.Contains(m1["additional_context"].(string), "Required proof:") { t.Fatal("68 post") }
+	var rout bytes.Buffer
+	run([]string{"relevant", "--root", r, "--path", ".ai/CONTEXT.md", "--tool", "Read"}, bytes.NewReader(nil), &rout, bytes.NewBuffer(nil))
+	if !strings.Contains(rout.String(), `"title"`) || !strings.Contains(rout.String(), `"why"`) || !strings.Contains(rout.String(), "icm-workspace") { t.Fatal(rout.String()) }
 	alpha, beta := featBody("alpha", "", "", ""), featBody("beta", "", "", "")
 	base, head := t.TempDir(), t.TempDir()
 	mini(t, base, map[string]string{"alpha.md": alpha, "beta.md": beta})
@@ -85,7 +98,7 @@ func TestFuturePRAndHooks(t *testing.T) {
 	s, _ = build(d, d, d, "", "", "", "", "")
 	if s.MapValid { t.Fatal("malformed map") }
 	for _, tc := range []struct{ p, want string; deny bool }{
-		{`{"hook_event_name":"sessionStart"}`, `map_valid`, false},
+		{`{"hook_event_name":"sessionStart"}`, `FEATURE CONTEXT`, false},
 		{`{"hook_event_name":"afterFileEdit","edits":[{"file_path":"README.md"}]}`, `map_valid`, false},
 		{`{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":"scripts/agent-report"},"tool_output":"{}"}`, `preserve_ok`, false},
 		{`{"hook_event_name":"preToolUse","tool_name":"Grep","tool_input":{"path":".ai/CONTEXT.md"}}`, `icm-workspace`, false},

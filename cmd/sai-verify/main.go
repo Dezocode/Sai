@@ -28,18 +28,24 @@ var (
 type feat struct {
 	ID, Title, File, Desc string
 	Subs [][2]string
-	Ent, Proof, Paths, Rm, Unreach []string
+	Ent, Proof, Paths, Rm, Unreach, Gotchas []string
 }
 type hit struct {
-	ID      string   `json:"id"`
-	Subs    []string `json:"subs"`
-	Entries []string `json:"entries"`
-	Proofs  []string `json:"proofs"`
+	ID string `json:"id"`
+	Title string `json:"title"`
+	Why string `json:"why"`
+	Subs []string `json:"subfeatures"`
+	Entries []string `json:"entry_points"`
+	Proofs []string `json:"proofs"`
+	Paths []string `json:"affected_paths_or_surfaces"`
+	Gotchas []string `json:"gotchas"`
 }
 type snap struct {
 	Repo string `json:"repo"`
 	Base string `json:"base"`
 	Head string `json:"head"`
+	Path string `json:"path,omitempty"`
+	Tool string `json:"tool,omitempty"`
 	Dirty bool `json:"dirty"`
 	OK bool `json:"ok"`
 	Err string `json:"err,omitempty"`
@@ -53,7 +59,7 @@ type snap struct {
 	PreserveOK bool `json:"preserve_ok"`
 	Missing []string `json:"missing,omitempty"`
 	Weakened []string `json:"weakened,omitempty"`
-	Relevant []hit `json:"relevant"`
+	Relevant []hit `json:"features"`
 	HooksOK bool `json:"hooks_ok"`
 	HookPre bool `json:"hook_pre"`
 	HookPost bool `json:"hook_post"`
@@ -101,18 +107,18 @@ func run(args []string, in io.Reader, out, errw io.Writer) int {
 	s, ferr := build(root, baseDir, headDir, path, tool, wantHead, evPath, baseRef)
 	if ferr != nil && s.Err == "" { s.Err, s.OK = ferr.Error(), false }
 	if cmd == "drive" { return driveCmd(s, headDir, evPath, out) }
-	if cmd == "proof" {
-		writeProof(out, s, evPath, headDir)
-	} else if cmd == "relevant" {
-		_ = json.NewEncoder(out).Encode(s.Relevant)
-	} else if cmd != "preserve" {
-		_ = json.NewEncoder(out).Encode(s)
-	} else if s.PreserveOK { fmt.Fprintln(out, "preserve_ok") }
+	switch cmd {
+	case "proof": writeProof(out, s, evPath, headDir)
+	case "relevant": _ = json.NewEncoder(out).Encode(map[string]interface{}{"repo": s.Repo, "base": s.Base, "head": s.Head, "tool": s.Tool, "path": s.Path, "features": s.Relevant, "verification": map[string]interface{}{"map_valid": s.MapValid, "preserve_ok": s.PreserveOK, "maintenance_status": s.MaintStatus, "maintenance_head": s.MaintHead, "maintenance_map_hash": s.MaintMapHash, "whole_repo_completeness": s.Completeness, "obligations": s.Obligations}})
+	case "preserve":
+		if s.PreserveOK { fmt.Fprintln(out, "preserve_ok") }
+	default: _ = json.NewEncoder(out).Encode(s)
+	}
 	if cmd == "preserve" && !s.PreserveOK || cmd == "doctor" && (!s.MapValid || !s.HooksOK || s.Err != "" || evSet && s.Completeness != "proven") || cmd != "doctor" && cmd != "preserve" && cmd != "relevant" && !s.OK { return 1 }
 	return 0
 }
 func build(root, baseDir, headDir, path, tool, claimed, evPath, baseRef string) (snap, error) {
-	s := snap{PreserveOK: true, Repo: repoName(git(headDir, "config", "--get", "remote.origin.url")), Head: git(headDir, "rev-parse", "HEAD")}
+	s := snap{PreserveOK: true, Repo: repoName(git(headDir, "config", "--get", "remote.origin.url")), Head: git(headDir, "rev-parse", "HEAD"), Path: path, Tool: tool}
 	if s.Base = baseRef; s.Base == "" { s.Base = git(headDir, "merge-base", "HEAD", "origin/main") }
 	if s.Base == "" { s.Base = "unavailable" }
 	s.Dirty = git(headDir, "status", "--porcelain") != ""
@@ -313,6 +319,8 @@ func parseFeat(path, id string) (feat, []string) {
 			f.Ent = append(f.Ent, strings.TrimSpace(strings.TrimPrefix(line, "-")))
 		case strings.HasPrefix(sec, "Driving it") && strings.HasPrefix(line, "-"):
 			if len(ticks(line)) > 0 { f.Proof = append(f.Proof, strings.TrimSpace(line[1:])) }
+		case strings.HasPrefix(sec, "Gotchas") && strings.HasPrefix(line, "-"):
+			f.Gotchas = append(f.Gotchas, strings.TrimSpace(strings.TrimPrefix(line, "-")))
 		}
 	}
 	f.Paths = uniq(pathRe.FindAllString(string(b), -1))
@@ -359,7 +367,7 @@ func preserve(base, head []feat) (missing, weakened []string) {
 func relevant(fs []feat, path, tool string) []hit {
 	pl, out, fb := strings.ToLower(strings.TrimSpace(path)), []hit{}, hit{}
 	for _, f := range fs {
-		h := hit{ID: f.ID, Entries: f.Ent, Proofs: f.Proof}
+		h := hit{ID: f.ID, Title: f.Title, Why: f.Desc, Entries: f.Ent, Proofs: f.Proof, Paths: f.Paths, Gotchas: f.Gotchas}
 		for _, s := range f.Subs { h.Subs = append(h.Subs, s[0]) }
 		if f.ID == "verify-sai" { fb = h }
 		ok := path == "" && tool == "" && f.ID == "verify-sai"
@@ -449,16 +457,13 @@ func extractPath(raw map[string]interface{}) string {
 	return ""
 }
 func hookCtx(s snap) string {
-	rel := make([]string, 0, len(s.Relevant))
-	for _, h := range s.Relevant { rel = append(rel, h.ID) }
-	b, _ := json.Marshal(map[string]interface{}{
-		"repo": s.Repo, "base": s.Base, "head": s.Head, "ok": s.OK, "map_valid": s.MapValid, "preserve_ok": s.PreserveOK, "hooks_ok": s.HooksOK,
-		"hook_pre": s.HookPre, "hook_post": s.HookPost, "hook_stop": s.HookStop, "hook_fail_closed": s.HookFailClosed, "hook_events": s.HookEvents,
-		"maintenance_required": s.MaintRequired, "maintenance_status": s.MaintStatus, "whole_repo_completeness": s.Completeness,
-		"map_files": s.MapFiles, "map_subfeatures": s.MapSubs, "map_entry_points": s.MapEntries,
-		"relevant": rel, "obligations": s.Obligations, "missing": s.Missing, "unreachable": s.Unreachable, "impl_loc": s.ImplLOC, "impl_funcs": s.ImplFuncs,
-	})
-	return string(b)
+	var b strings.Builder
+	fmt.Fprintf(&b, "FEATURE CONTEXT\nTarget: %s %s\n", s.Path, s.Tool)
+	for _, h := range s.Relevant {
+		fmt.Fprintf(&b, "Relevant feature: %s (%s)\nWhy: %s\nImpacted capabilities: %s\nEntry points: %s\nRequired proof: %s\nGotchas: %s\n", h.Title, h.ID, h.Why, strings.Join(h.Subs, "; "), strings.Join(h.Entries, "; "), strings.Join(h.Proofs, "; "), strings.Join(h.Gotchas, "; "))
+	}
+	fmt.Fprintf(&b, "Contract: map_valid=%v preserve_ok=%v hooks_ok=%v\nMaintenance: %s completeness=%s %s\nRuntime: Desktop/CLI fire registered events; Cloud skips sessionStart/End, before/afterMCPExecution, workspaceOpen.\n", s.MapValid, s.PreserveOK, s.HooksOK, s.MaintStatus, s.Completeness, s.MaintReason)
+	return b.String()
 }
 func st(ok bool) string { if ok { return "PASS" }; return "FAIL" }
 func writeProof(w io.Writer, s snap, evPath, headDir string) {
