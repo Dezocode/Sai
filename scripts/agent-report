@@ -84,7 +84,17 @@ emit() {
 
   [ -n "$task_id" ] || task_id=$(infer_task_id)
   [ -n "$branch" ] || branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-  local base_sha; base_sha=$(git rev-parse --short HEAD 2>/dev/null || echo "0000000")
+  local base_sha merge_base
+  # Comparison boundary is the merge-base with main, not HEAD. Using HEAD
+  # made later events look like they started after the first commits.
+  merge_base=$(git merge-base HEAD origin/main 2>/dev/null \
+    || git merge-base HEAD main 2>/dev/null \
+    || true)
+  if [ -n "${merge_base:-}" ]; then
+    base_sha=$(git rev-parse --short "$merge_base")
+  else
+    base_sha=$(git rev-parse --short HEAD 2>/dev/null || echo "0000000")
+  fi
   local repository="${SAI_REPOSITORY:-Dezocode/Sai}"
   local ts; ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
   local event_id="${task_id}:$(date -u +%s%N)"

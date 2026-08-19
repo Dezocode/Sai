@@ -33,5 +33,5 @@
 
 - `Dezocode/Sai` — canonical, not a fork, default branch `main`.
 - `monaecode/Sai` — fork of `Dezocode/Sai`, default branch `main`.
-- Existing remote branches at time of writing: `main`,
-  `cursor/cloud-env-setup-532b`, `cursor/sai-agent-framework-30d8`.
+- Feature-branch names are ephemeral. This map does not inventory remote
+  branches.
