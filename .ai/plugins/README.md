@@ -10,7 +10,7 @@ Cursor registers `/` skills from:
 
 1. Built-in product skills (`/add-plugin`, `/create-skill`, `/loop`, …)
 2. Marketplace plugins enabled in committed `.cursor/settings.json`
-3. Project skills under `.cursor/skills/` and `.agents/skills/`
+3. Project skills under `.cursor/skills/` and `.agents/skills/` (SAI Custom Mode: `/lauren-mode`)
 4. Project commands under `.cursor/commands/`
 
 Cursor does **not** scan `.ai/plugins/` for `plugin.json`, `SKILL.md`, or
@@ -34,7 +34,9 @@ reach Cloud Agent VMs.
 2. Add `.ai/plugins/<slug>/manifest.json` and `README.md`.
 3. List it in this table.
 4. Do **not** copy the upstream skill tree into `.cursor/skills/` (duplicate
-   `/` names) or into `.ai/` expecting Cursor to load it.
+   `/` names) or into `.ai/` expecting Cursor to load it. A thin project
+   Custom Mode that **routes** to a plugin (`/lauren-mode` → pstack) is
+   allowed. See decision `0005-lauren-mode-cloud-skills`.
 5. Do **not** put plugins in `environment.json` — that schema has no
    `plugins` key.
 

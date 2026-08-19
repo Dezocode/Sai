@@ -1,0 +1,28 @@
+{
+  "task_id": "20260819-2341-lauren-mode-cloud-cursor-cloud",
+  "agent": "cursor-cloud",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/lauren-mode-cloud-fd30",
+  "base_sha": "dda0e97",
+  "purpose": "Add project Custom Mode /lauren-mode for SAI Cloud Agents, commit pstack model routing, and document 2026-08-19 harness (goal, cloud VM subagents, subscriptions, steering, Browser pane) against the live personal Cloud Agent environment",
+  "status": "plan",
+  "claimed_files": [
+    ".cursor/skills/lauren-mode/",
+    ".cursor/rules/pstack-models.mdc",
+    "AGENTS.md",
+    ".ai/CONTEXT.md",
+    ".ai/plugins/README.md",
+    ".ai/plugins/pstack/README.md",
+    ".ai/plugins/pstack/manifest.json",
+    ".ai/shared/memory/decisions/0005-lauren-mode-cloud-skills.md",
+    ".ai/shared/memory/conventions.md",
+    ".ai/shared/memory/architecture.md",
+    ".ai/shared/memory/repository-map.md",
+    ".ai/shared/references/agent-runtimes.md",
+    ".ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/"
+  ],
+  "trigger": "dezocode mobile Cloud Agent request: /cursor-sdk; Lauren mode in cloud skills; 08-19-26 changelog live; internal browser pane; cloud agent config; https://cursor.com/changelog/08-19-26",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "environment_public_id": "6f2ece39-800a-11f1-ba66-0e7d0216e441"
+}
