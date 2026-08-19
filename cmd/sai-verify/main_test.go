@@ -44,9 +44,9 @@ func root(t *testing.T) string {
 		if n := filepath.Dir(d); n == d { t.Fatal("repo root") }
 	}
 }
-func hk(t *testing.T, r, payload string) (int, map[string]interface{}) {
-	empty := t.TempDir(); mini(t, empty, map[string]string{}); var out bytes.Buffer
-	code := run([]string{"hook", "--root", r, "--base", empty}, strings.NewReader(payload), &out, bytes.NewBuffer(nil))
+func hk(t *testing.T, r, base, payload string) (int, map[string]interface{}) {
+	var out bytes.Buffer
+	code := run([]string{"hook", "--root", r, "--base", base}, strings.NewReader(payload), &out, bytes.NewBuffer(nil))
 	var m map[string]interface{}
 	json.Unmarshal(out.Bytes(), &m)
 	return code, m
@@ -66,10 +66,10 @@ func TestFuturePRAndHooks(t *testing.T) {
 	mcp, _ := build(r, "", r, "scripts/agent-report", "MCP", "", "", "")
 	rd, _ := build(r, "", r, "scripts/agent-report", "Read", "", "", "")
 	if sh.Relevant[0].ID != "coordination-reporting" || mcp.Relevant[0].ID != "verify-sai" || rd.Relevant[0].ID != "coordination-reporting" || rd.Tool != "Read" { t.Fatalf("tool relevant %v %v %v", sh.Relevant[0].ID, mcp.Relevant[0].ID, rd.Relevant[0].ID) }
-	c0, m0 := hk(t, r, `{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"scripts/agent-report"}}`)
+	c0, m0 := hk(t, r, empty, `{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"scripts/agent-report"}}`)
 	ctx0, _ := m0["additional_context"].(string)
 	if c0 != 0 || !strings.Contains(ctx0, "FEATURE CONTEXT") || !strings.Contains(ctx0, "coordination-reporting") || !strings.Contains(ctx0, "Why:") { t.Fatal("68 pre", ctx0) }
-	c1, m1 := hk(t, r, `{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":"scripts/agent-report"},"tool_output":"{}"}`)
+	c1, m1 := hk(t, r, empty, `{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":"scripts/agent-report"},"tool_output":"{}"}`)
 	if c1 != 0 || !strings.Contains(m1["additional_context"].(string), "Required proof:") { t.Fatal("68 post") }
 	var rout bytes.Buffer
 	run([]string{"relevant", "--root", r, "--path", ".ai/CONTEXT.md", "--tool", "Read"}, bytes.NewReader(nil), &rout, bytes.NewBuffer(nil))
@@ -108,7 +108,7 @@ func TestFuturePRAndHooks(t *testing.T) {
 		{`{"hook_event_name":"preToolUse","claimed_head":"0","tool_name":"Read","tool_input":{"path":"README.md"}}`, ``, true},
 		{`{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":".ai/CONTEXT.md"},"tool_output":"ok"}`, `icm-workspace`, false},
 	} {
-		c, m := hk(t, r, tc.p)
+		c, m := hk(t, r, empty, tc.p)
 		if tc.deny {
 			if c != 2 || m["permission"] != "deny" { t.Fatal("deny", tc.p, c, m) }
 			continue
@@ -118,7 +118,7 @@ func TestFuturePRAndHooks(t *testing.T) {
 	ev := filepath.Join(t.TempDir(), "ev.json")
 	os.WriteFile(ev, []byte(`{"head":"nope","map_hash":"x","sweep":"clean","fail":0,"unmapped":[]}`), 0644)
 	var out bytes.Buffer
-	run([]string{"hook", "--root", r, "--evidence", ev}, strings.NewReader(`{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}`), &out, bytes.NewBuffer(nil))
+	run([]string{"hook", "--root", r, "--base", empty, "--evidence", ev}, strings.NewReader(`{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}`), &out, bytes.NewBuffer(nil))
 	if strings.Contains(out.String(), `"permission":"allow"`) || !strings.Contains(out.String(), "mismatch") && !strings.Contains(out.String(), "unproven") { t.Fatal("stale evidence", out.String()) }
 	out.Reset()
 	run([]string{"hook"}, strings.NewReader("x"), &out, bytes.NewBuffer(nil))
