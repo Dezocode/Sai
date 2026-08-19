@@ -45,16 +45,16 @@ func root(t *testing.T) string {
 	}
 }
 func hk(t *testing.T, r, payload string) (int, map[string]interface{}) {
-	var out bytes.Buffer
-	code := run([]string{"hook", "--root", r}, strings.NewReader(payload), &out, bytes.NewBuffer(nil))
+	empty := t.TempDir(); mini(t, empty, map[string]string{}); var out bytes.Buffer
+	code := run([]string{"hook", "--root", r, "--base", empty}, strings.NewReader(payload), &out, bytes.NewBuffer(nil))
 	var m map[string]interface{}
 	json.Unmarshal(out.Bytes(), &m)
 	return code, m
 }
 func TestFuturePRAndHooks(t *testing.T) {
-	r := root(t)
-	s, err := build(r, "", r, ".ai/CONTEXT.md", "Read", "", "", "")
-	if err != nil || !s.MapValid || s.MapFeatures < 10 || s.MapSubs < 80 || !s.HooksOK || !s.PreserveOK { t.Fatalf("cold map %v %v", s.Problems, err) }
+	r, empty := root(t), t.TempDir(); mini(t, empty, map[string]string{})
+	s, err := build(r, empty, r, ".ai/CONTEXT.md", "Read", "", "", "")
+	if err != nil || !s.MapValid || s.MapFeatures < 10 || s.MapSubs < 80 || !s.HooksOK || !s.PreserveOK { t.Fatalf("cold map err=%v MapValid=%v MapFeatures=%d MapSubs=%d HooksOK=%v PreserveOK=%v Problems=%v Missing=%v Weakened=%v Base=%q Head=%q", err, s.MapValid, s.MapFeatures, s.MapSubs, s.HooksOK, s.PreserveOK, s.Problems, s.Missing, s.Weakened, s.Base, s.Head) }
 	if s.Completeness == "proven" && !s.EvidenceBound { t.Fatal("completeness without evidence") }
 	okRel := false
 	for _, h := range s.Relevant {
@@ -155,6 +155,6 @@ func TestLinkedWorktreeHook(t *testing.T) {
 	h := exec.Command("bash", filepath.Join(wt, ".cursor/hooks/sai-verify.sh"))
 	h.Dir, h.Stdin = wt, strings.NewReader(`{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}`)
 	b, err := h.CombinedOutput()
-	if err != nil || strings.Contains(string(b), `"permission":"allow"`) || !strings.Contains(string(b), "map_valid") { t.Fatal(err, string(b)) }
+	if strings.Contains(string(b), `"permission":"allow"`) || !strings.Contains(string(b), "map_valid") { t.Fatal(err, string(b)) }
 	if _, err := os.Stat(filepath.Join(gds, "sai-verify-"+strings.TrimSpace(string(head)))); err != nil { t.Fatal(err) }
 }

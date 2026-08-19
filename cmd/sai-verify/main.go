@@ -103,7 +103,7 @@ func run(args []string, in io.Reader, out, errw io.Writer) int {
 		cmd = a
 	}
 	if headDir == "" { headDir = root }
-	if cmd == "hook" { return hook(in, out, root, evPath) }
+	if cmd == "hook" { return hook(in, out, root, evPath, baseDir, baseRef) }
 	s, ferr := build(root, baseDir, headDir, path, tool, wantHead, evPath, baseRef)
 	if ferr != nil && s.Err == "" { s.Err, s.OK = ferr.Error(), false }
 	if cmd == "drive" { return driveCmd(s, headDir, evPath, out) }
@@ -403,7 +403,7 @@ func checkHooks(root string) (ok, pre, post, stop bool, matcher string, failClos
 	matcher, failClosed = ".*", ok
 	return
 }
-func hook(in io.Reader, out io.Writer, root, evPath string) int {
+func hook(in io.Reader, out io.Writer, root, evPath, baseDir, baseRef string) int {
 	var raw map[string]interface{}
 	if err := json.NewDecoder(in).Decode(&raw); err != nil {
 		fmt.Fprintf(out, `{"permission":"deny","agent_message":"sai-verify: invalid hook json"}`+"\n")
@@ -429,7 +429,7 @@ func hook(in io.Reader, out io.Writer, root, evPath string) int {
 			if s, ok := wr[0].(string); ok && s != "" { root = s }
 		}
 	}
-	s, err := build(root, "", root, extractPath(raw), str(raw["tool_name"]), str(raw["claimed_head"]), evPath, "")
+	s, err := build(root, baseDir, root, extractPath(raw), str(raw["tool_name"]), str(raw["claimed_head"]), evPath, baseRef)
 	ctx, deny := hookCtx(s), err != nil || !s.MapValid || !s.PreserveOK || !s.HooksOK || s.Err != ""
 	if deny {
 		fmt.Fprintf(out, `{"permission":"deny","user_message":"sai-verify failed","agent_message":%s,"additional_context":%s}`+"\n", jq(ctx), jq(ctx))
