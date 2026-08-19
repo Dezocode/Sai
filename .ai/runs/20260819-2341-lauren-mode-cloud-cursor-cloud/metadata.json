@@ -6,7 +6,7 @@
   "branch": "cursor/lauren-mode-cloud-fd30",
   "base_sha": "dda0e97",
   "purpose": "Add project Custom Mode /lauren-mode for SAI Cloud Agents, commit pstack model routing, and document 2026-08-19 harness (goal, cloud VM subagents, subscriptions, steering, Browser pane) against the live personal Cloud Agent environment",
-  "status": "plan",
+  "status": "handoff",
   "claimed_files": [
     ".cursor/skills/lauren-mode/",
     ".cursor/rules/pstack-models.mdc",

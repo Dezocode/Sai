@@ -1,0 +1,20 @@
+=== json ===
+manifest.json OK
+metadata.json OK
+.ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/01_intake/output/manifest.json OK
+.ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/02_plan/output/manifest.json OK
+.ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/03_implement/output/manifest.json OK
+=== yaml frontmatter ===
+.cursor/skills/lauren-mode/SKILL.md OK {'name': 'lauren-mode', 'mode': True, 'disable-model-invocation': True}
+.cursor/rules/pstack-models.mdc OK {'alwaysApply': True}
+=== chrome ===
+lrwxrwxrwx 1 root root 31 Jan  1  1970 /usr/bin/google-chrome -> /etc/alternatives/google-chrome
+lrwxrwxrwx 1 root root 32 Jan  1  1970 /usr/bin/google-chrome-stable -> /opt/google/chrome/google-chrome
+=== verify-semantic-hierarchy ===
+verify-semantic-hierarchy: OK
+=== verify-agent-audit ===
+verify-agent-audit: OK (origin/main..HEAD)
+=== verify-merge-handoff ===
+verify-merge-handoff: OK (1 task-id(s) checked)
+=== verify-agent-setup ===
+verify-agent-setup: OK
