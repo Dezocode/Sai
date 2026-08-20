@@ -413,7 +413,7 @@ func hook(in io.Reader, out io.Writer, root, evPath, baseDir, baseRef string) in
 	}
 	s, err := build(root, baseDir, root, extractPath(raw), str(raw["tool_name"]), str(raw["claimed_head"]), evPath, baseRef)
 	tn, cmd := str(raw["tool_name"]), str(raw["command"])
-	mut := ev == "beforeMCPExecution" || ev == "afterFileEdit" || tn == "Write" || tn == "StrReplace" || tn == "Delete" || tn == "ApplyPatch" || ev == "beforeShellExecution" && (strings.ContainsAny(cmd, ";|&`$()") || !strings.HasPrefix(strings.TrimSpace(cmd), "go run ./cmd/sai-verify drive") && !strings.HasPrefix(strings.TrimSpace(cmd), "go run ./cmd/sai-verify proof"))
+	mut := ev == "beforeMCPExecution" || ev == "afterFileEdit" || tn == "Write" || tn == "StrReplace" || tn == "Delete" || tn == "ApplyPatch" || ev == "beforeShellExecution" && (strings.ContainsAny(cmd, ";|&`$()") || strings.TrimSpace(cmd) != "go run ./cmd/sai-verify drive" && strings.TrimSpace(cmd) != "go run ./cmd/sai-verify proof")
 	ctx, deny := hookCtx(s), err != nil || !s.MapValid || !s.PreserveOK || !s.HooksOK || s.Err != "" || mut && s.MaintStatus != "missing" && !s.EvidenceBound
 	if deny {
 		fmt.Fprintf(out, `{"permission":"deny","user_message":"sai-verify failed","agent_message":%s,"additional_context":%s}`+"\n", jq(ctx), jq(ctx))
@@ -579,7 +579,7 @@ func driveCmd(s snap, headDir, evPath string, out io.Writer) int {
 	sweep := "dirty"; if len(s.Unmapped) == 0 { sweep = "clean" }
 	if evPath == "" { if gd := git(headDir, "rev-parse", "--absolute-git-dir"); gd != "" { evPath = filepath.Join(gd, "sai-verify-evidence.json") } else { evPath = "sai-verify-evidence.json" } }
 	b, _ := json.MarshalIndent(map[string]interface{}{"repo": s.Repo, "base": s.Base, "head": s.Head, "map_hash": mapHash(headDir), "sweep": sweep, "unmapped": s.Unmapped, "pass": pass, "fail": fail, "skip": 0, "unreachable": s.Unreachable, "drives": rows}, "", "  ")
-	_ = os.WriteFile(evPath, b, 0644); fmt.Fprintln(out, string(b)); if fail > 0 { return 1 }; return 0
+	ap, _ := filepath.Abs(evPath); gd := git(headDir, "rev-parse", "--absolute-git-dir"); hd, _ := filepath.Abs(headDir); tmp, _ := filepath.Abs(os.TempDir()); sep := string(filepath.Separator); if ap == "" || !(hd != "" && (ap == hd || strings.HasPrefix(ap, hd+sep)) || gd != "" && (ap == gd || strings.HasPrefix(ap, gd+sep)) || tmp != "" && (ap == tmp || strings.HasPrefix(ap, tmp+sep)) || strings.HasPrefix(ap, "/tmp/")) { fmt.Fprintln(out, `{"error":"evidence path"}`); return 1 }; _ = os.WriteFile(evPath, b, 0644); fmt.Fprintln(out, string(b)); if fail > 0 { return 1 }; return 0
 }
 func unreachable(fs []feat) []string {
 	var u []string
