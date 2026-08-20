@@ -119,7 +119,7 @@ func run(args []string, in io.Reader, out, errw io.Writer) int {
 func build(root, baseDir, headDir, path, tool, claimed, evPath, baseRef string) (snap, error) {
 	s := snap{PreserveOK: true, Repo: repoName(git(headDir, "config", "--get", "remote.origin.url")), Head: git(headDir, "rev-parse", "HEAD"), Path: path, Tool: tool}
 	if s.Base = baseRef; s.Base == "" { s.Base = git(headDir, "merge-base", "HEAD", "origin/main") }
-	if s.Base == "" { s.Base = "unavailable" }
+	if s.Base == "" { s.Base = git(headDir, "rev-parse", "--verify", "origin/main^{commit}") }; if s.Base == "" { s.Base = "unavailable" }
 	s.Dirty = git(headDir, "status", "--porcelain") != ""
 	if claimed != "" && claimed != s.Head {
 		s.OK, s.Err = false, "stale head: claimed "+claimed+" current "+s.Head
