@@ -339,10 +339,13 @@ class Policy:
         need = ("sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "workspaceOpen")
         hook_ok = all(covered(n) for n in need)
         has_kernel = (self.candidate / "cmd" / "sai-verify").is_dir()
-        def sig(root):
-            src = "".join(p.read_text(encoding="utf-8", errors="replace") for p in sorted((root / "cmd" / "sai-verify").rglob("*.go")) if not p.name.endswith("_test.go"))
-            return (src.count("exec.Command"), src.count("os.StartProcess"), src.count("syscall.Exec"), src.count("syscall.ForkExec"), bool(re.search(r'import\s+\w+\s+"os/exec"', src)))
-        shell_ok = has_kernel and sig(self.candidate) == (sig(self.trusted) if (self.trusted / "cmd" / "sai-verify").is_dir() else (2, 0, 0, 0, False))
+        def src_of(root):
+            return "".join(p.read_text(encoding="utf-8", errors="replace") for p in sorted((root / "cmd" / "sai-verify").rglob("*.go")) if not p.name.endswith("_test.go"))
+        def calls(s):
+            return tuple(re.findall(r'exec\.Command(?:Context)?\s*\((?:[^()]|\([^()]*\))*\)', re.sub(r'\s+', ' ', s)))
+        cs = src_of(self.candidate)
+        want = calls(src_of(self.trusted)) if (self.trusted / "cmd" / "sai-verify").is_dir() else ('exec.CommandContext(ctx, argv[0], argv[1:]...)', 'exec.Command("git", append([]string{"-c", "safe.directory=*", "-C", dir}, args...)...)')
+        shell_ok = has_kernel and calls(cs) == want and "os.StartProcess" not in cs and "syscall.Exec" not in cs and "syscall.ForkExec" not in cs and not re.search(r'import\s+\w+\s+"os/exec"', cs)
         self.record("Required pre/post verification hooks", hook_ok, "")
         self.record("Candidate retains sai-verify kernel", has_kernel, "")
         self.record("Candidate verifier is not a shell evaluator", shell_ok, "")
@@ -501,7 +504,7 @@ def mutation_self_test(trusted: pathlib.Path, candidate: pathlib.Path) -> list[R
             for path in (root / ".cursor" / "skills" / "verify-sai" / "features").glob("*.md"):
                 if path.name != "README.md": path.unlink(); dropped = True; break
             p = Policy(trusted, root); outcomes.append(expect_failure("mutation: protected feature deletion is caught", lambda: dropped and not p.feature_contract()))
-            t=pathlib.Path(td)/"t"; shutil.copytree(trusted,t,symlinks=True); shutil.rmtree(t/"cmd"/"sai-verify", ignore_errors=True); bp=Policy(t,candidate); okb=bp.feature_contract() and any(r.ok and "N/A" in (r.detail or "") for r in bp.results if r.name=="Feature map preservation"); bad=pathlib.Path(td)/"bad"; shutil.copytree(candidate,bad,symlinks=True); (bad/"cmd"/"sai-verify"/"helper.go").write_text('package main\nimport "os/exec"\nfunc pwn() { exec.CommandContext(nil, "ba"+"sh", "-l"+"c", "x") }\n'); bp2=Policy(t,bad); outcomes.append(Result("bootstrap: no BASE kernel is N/A and still checks candidate", okb and not bp2.feature_contract(), ""))
+            t=pathlib.Path(td)/"t"; shutil.copytree(trusted,t,symlinks=True); shutil.rmtree(t/"cmd"/"sai-verify", ignore_errors=True); bp=Policy(t,candidate); okb=bp.feature_contract() and any(r.ok and "N/A" in (r.detail or "") for r in bp.results if r.name=="Feature map preservation"); bad=pathlib.Path(td)/"bad"; shutil.copytree(candidate,bad,symlinks=True); (bad/"cmd"/"sai-verify"/"helper.go").write_text('package main\nimport "os/exec"\nfunc pwn() { exec.CommandContext(nil, "ba"+"sh", "-l"+"c", "x") }\n'); bp2=Policy(t,bad); sw=pathlib.Path(td)/"sw"; shutil.copytree(candidate,sw,symlinks=True); mp=sw/"cmd"/"sai-verify"/"main.go"; mp.write_text(mp.read_text(encoding="utf-8").replace("exec.CommandContext(ctx, argv[0], argv[1:]...)", 'exec.CommandContext(ctx, "bash", argv[1:]...)', 1), encoding="utf-8"); bp3=Policy(trusted,sw); outcomes.append(Result("bootstrap: no BASE kernel is N/A and still checks candidate", okb and not bp2.feature_contract() and not bp3.feature_contract(), ""))
     return outcomes
 
 
