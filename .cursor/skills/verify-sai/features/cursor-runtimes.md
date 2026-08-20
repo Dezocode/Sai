@@ -4,7 +4,7 @@ Project-enabled Cursor plugins, SAI Cursor rules, and Layer 0 routers for Claude
 - `cursor-settings` `.cursor/settings.json` `plugins.pstack.enabled: true` (cloud + local `/` commands).
 - `pstack-index` `.ai/plugins/pstack/{manifest.json,README.md}` ICM record; Cursor does not load from `.ai/`.
 - `plugins-index` `.ai/plugins/README.md` how slash commands actually load.
-- `cursor-rules` `.cursor/rules/sai-coordination.mdc` always-on SAI protocol.
+- `cursor-rules` `.cursor/rules/sai-coordination.mdc` always-on SAI protocol; `.cursor/rules/lauren-mode.mdc` and `.cursor/rules/pstack-models.mdc` (decisions 0005, 0006).
 - `entry-agents` `AGENTS.md` Cloud/runtime notes + check commands.
 - `entry-claude` `CLAUDE.md` Claude Code router.
 - `entry-codex` `CODEX.md` Codex Desktop router.
