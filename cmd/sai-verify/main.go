@@ -204,13 +204,12 @@ func loadFeatsRef(dir, ref string) ([]feat, []string) {
 }
 func mapHash(dir string) string {
 	h := sha256.New()
-	filepath.Walk(filepath.Join(dir, mapDir), func(p string, inf os.FileInfo, err error) error {
-		if err == nil && inf != nil && !inf.IsDir() {
-			b, _ := os.ReadFile(p)
-			h.Write(b)
-		}
-		return nil
-	})
+	for _, sub := range []string{mapDir, "cmd/sai-verify", ".cursor/hooks", ".cursor/hooks.json"} {
+		filepath.Walk(filepath.Join(dir, sub), func(p string, inf os.FileInfo, err error) error {
+			if err == nil && inf != nil && !inf.IsDir() && !strings.HasSuffix(p, "_test.go") { rel, _ := filepath.Rel(dir, p); b, _ := os.ReadFile(p); h.Write([]byte(rel)); h.Write(b) }
+			return nil
+		})
+	}
 	return fmt.Sprintf("%x", h.Sum(nil)[:16])
 }
 func bindEvidence(s *snap, evPath, headDir string) {

@@ -169,6 +169,7 @@ func TestLinkedWorktreeHook(t *testing.T) {
 	if st, err := os.Stat(filepath.Join(wt, ".git")); err != nil || st.IsDir() { t.Fatalf(".git file: %v %v", st, err) }
 	hook := func() { h := exec.Command("bash", filepath.Join(wt, ".cursor/hooks/sai-verify.sh")); h.Dir, h.Stdin = wt, strings.NewReader(`{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}`); b, err := h.CombinedOutput(); if strings.Contains(string(b), `"permission":"allow"`) || !strings.Contains(string(b), "map_valid") { t.Fatal(err, string(b)) } }
 	hook(); a, _ := filepath.Glob(glob); if len(a) != 1 { t.Fatal("cache", a) }
+	s0, _ := build(wt, "", wt, "", "", "", "", ""); evp := filepath.Join(t.TempDir(), "bound.json"); os.WriteFile(evp, []byte(`{"repo":"`+s0.Repo+`","base":"`+s0.Base+`","head":"`+s0.Head+`","map_hash":"`+mapHash(wt)+`","sweep":"clean","fail":0,"pass":1,"unmapped":[],"drives":[{"result":"PASS","stdout":"","stderr":""}]}`), 0644); if s1, _ := build(wt, "", wt, "", "", "", evp, ""); !s1.EvidenceBound { t.Fatal("clean evidence", s1.MaintReason) }
 	src, _ := os.ReadFile(filepath.Join(wt, "cmd/sai-verify/main.go")); os.WriteFile(filepath.Join(wt, "cmd/sai-verify/main.go"), append([]byte("//DIRTY\n"), src...), 0644); hook(); b2, _ := filepath.Glob(glob)
-	if len(b2) < 2 { t.Fatal("dirty HEAD cache reused", a, b2) }
+	if len(b2) < 2 { t.Fatal("dirty HEAD cache reused", a, b2) }; if s2, _ := build(wt, "", wt, "", "", "", evp, ""); s2.EvidenceBound { t.Fatal("dirty kernel still bound") }
 }
