@@ -256,23 +256,20 @@ func watch(f string) bool {
 func unmapped(root string, fs []feat) []string {
 	blob := git(root, "ls-files", "-z")
 	if blob == "" { return nil }
-	var b strings.Builder
-	var prefs []string
-	for _, f := range fs {
-		b.WriteString(f.Desc + strings.Join(f.Ent, "") + strings.Join(f.Proof, "") + strings.Join(f.Paths, ""))
-		for _, s := range f.Subs { b.WriteString(s[1]) }
-		for _, p := range f.Paths {
-			if i := strings.IndexAny(p, "*?{"); i > 1 { prefs = append(prefs, filepath.Clean(p[:i])) }
+	exact, prefs := map[string]bool{}, []string{}
+	for _, ft := range fs {
+		for _, p := range ft.Paths {
+			p = filepath.Clean(strings.TrimPrefix(p, "./"))
+			if i := strings.IndexAny(p, "*?{"); i > 1 { prefs = append(prefs, p, filepath.Clean(p[:i])) } else { exact[p] = true }
 		}
 	}
-	mapped := b.String()
 	var miss []string
 	for _, f := range strings.Split(blob, "\x00") {
 		if f == "" || !watch(f) { continue }
-		hit := strings.Contains(mapped, f)
+		hit := exact[f]
 		if !hit {
 			for _, p := range prefs {
-				if p != "." && (f == p || strings.HasPrefix(f, p+"/")) { hit = true; break }
+				if ok, _ := filepath.Match(p, f); ok || p != "." && (f == p || strings.HasPrefix(f, p+"/")) { hit = true; break }
 			}
 		}
 		if !hit { miss = append(miss, f) }
