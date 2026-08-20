@@ -1,0 +1,19 @@
+---
+description: SAI Lauren mode discovery for Cloud Agents (PR 70 skills)
+alwaysApply: true
+---
+
+# Lauren mode discovery
+
+Project Custom Mode paths:
+
+- `/lauren-mode` → `.cursor/skills/lauren-mode/SKILL.md`
+- `/lauren` → `.cursor/skills/lauren/SKILL.md` (mobile alias)
+
+Marketplace pstack stays in `.cursor/settings.json`. Cursor does not load `.ai/plugins/`.
+
+If those skill files are missing, do not conclude they were never added. This checkout is older than Dezocode/Sai#70 (`8a30202`) or a later discovery commit. Run `git fetch origin main` and `git ls-tree origin/main .cursor/skills`. Then check out a SHA that contains the files.
+
+Slash is hyphenated (`/lauren-mode`) or the short alias (`/lauren`). `/lauren mode` with a space is `/lauren` plus argument `mode`.
+
+Do not copy pstack into `.cursor/skills/` (decision 0004). Do not commit `.cursor/environment.json` (decision 0005).

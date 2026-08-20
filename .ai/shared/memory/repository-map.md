@@ -1,7 +1,7 @@
 # SAI — Repository map
 
-> Verified 2026-08-19 against `cursor/lauren-mode-cloud-fd30`
-> (`/lauren-mode` project Custom Mode + committed pstack-models.mdc).
+> Verified 2026-08-20 against `cursor/lauren-skills-fresh-fd30`
+> (`/lauren-mode` plus `/lauren` alias + discovery rule).
 > Prior: 2026-08-13 pstack plugin install; 2026-07-14 against commit
 > `34827e7` on `Dezocode/Sai:main`. Keep current when top-level structure
 > changes.
@@ -23,8 +23,8 @@
 | `.ai/runs/` | Per-task working artifacts (Layer 4) |
 | `.ai/audit/` | Audit trail documentation |
 | `.cursor/settings.json` | Project-scoped Cursor plugins (slash commands for cloud + local) |
-| `.cursor/skills/` | Project Agent Skills (Custom Mode: `/lauren-mode`) |
-| `.cursor/rules/` | Shared Cursor operating rules (`sai-coordination.mdc`, `pstack-models.mdc`) |
+| `.cursor/skills/` | Project Agent Skills (Custom Mode: `/lauren-mode`, alias `/lauren`) |
+| `.cursor/rules/` | Shared Cursor operating rules (`sai-coordination.mdc`, `pstack-models.mdc`, `lauren-mode.mdc`) |
 | `.githooks/` | Reporting git hooks |
 | `scripts/` | agent-init, agent-scaffold, agent-verify-caps, agent-automation-spec, agent-report, agent-sync-drive, install-agent-hooks, verify-agent-audit, verify-semantic-hierarchy |
 | `.github/workflows/` | CI audit + semantic hierarchy verification |

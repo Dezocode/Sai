@@ -30,7 +30,8 @@ Project skills under `.cursor/skills/` load in Cloud Agents and Desktop. A thin 
 - Two Custom Modes can appear (`/lauren-mode` and `/poteto-mode`). SAI Cloud Agents should pin `/lauren-mode`.
 - Model lines in `pstack-models.mdc` must stay inside the caller's available Task slugs. Re-run `/setup-pstack` and update the committed file when slugs change.
 - Personal environment `6f2ece39-800a-11f1-ba66-0e7d0216e441` remains the dashboard source of truth until a co-founder chooses a repo-managed environment.
+- Fresh-agent discovery (slash alias, model invocation, always-apply pointer, snapshot reuse) is decision 0006.
 
 ## Supersedes
 
-Nothing. Complements 0004. Does not reopen vendoring pstack.
+Nothing. Complements 0004. Does not reopen vendoring pstack. Discovery follow-up is 0006.

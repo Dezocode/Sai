@@ -1,10 +1,9 @@
 ---
 name: lauren-mode
 description: >-
-  SAI Cloud Custom Mode for Lauren Tan's pstack. Use for /lauren-mode, Lauren
-  mode, pinning poteto-mode in Cloud Agents, or 08-19-26 always-on cloud
-  harness work.
-disable-model-invocation: true
+  SAI Cloud Custom Mode for Lauren Tan's pstack. Use for /lauren-mode, /lauren,
+  Lauren mode, /lauren mode (space), pinning poteto-mode in Cloud Agents,
+  PR 70 cloud skills, or 08-19-26 always-on cloud harness work.
 mode: true
 icon: crown
 color: yellow
@@ -39,6 +38,8 @@ This file does **not** vendor pstack. The marketplace plugin stays enabled in `.
 
 In a **new** Cloud Agent or a reloaded Desktop window on a commit that includes this file:
 
-1. Type `/lauren-mode`
-2. Press Option+Enter / Alt+Enter, or choose Use as Mode
+1. Type `/lauren-mode` or `/lauren` (mobile often sends `/lauren mode` with a space)
+2. Press Option+Enter / Alt+Enter, or choose Use as Mode. Mobile has no Option+Enter; Use as Mode or type the slash so the skill attaches.
 3. Pair with `/goal` when the objective should survive the first PR
+
+If `.cursor/skills/lauren-mode/SKILL.md` is missing, this checkout is older than Dezocode/Sai#70 (`8a30202`). Fetch `origin/main` and check out that commit before claiming the skill was never added. Personal Cloud Agents on env `6f2ece39-800a-11f1-ba66-0e7d0216e441` reuse snapshot `bld-20260819-500928d1-8214-4bc0-9bb9-e36884ef51f0`, which predates the merge.

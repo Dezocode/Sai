@@ -4,7 +4,7 @@ Source: [cursor.com/changelog/08-19-26](https://cursor.com/changelog/08-19-26) a
 
 ## Custom Modes
 
-A slash skill attaches to one message. A Custom Mode keeps the skill pinned for the whole session. `/lauren-mode` is the SAI pin. `/poteto-mode` remains the upstream pstack skill (also `mode: true` in the plugin). Prefer `/lauren-mode` in Cloud Agents so the harness rules below stay in context.
+A slash skill attaches to one message. A Custom Mode keeps the skill pinned for the whole session. `/lauren-mode` is the SAI pin. `/lauren` is the same pin with a shorter slash. `/poteto-mode` remains the upstream pstack skill (also `mode: true` in the plugin). Prefer `/lauren-mode` or `/lauren` in Cloud Agents so the harness rules below stay in context.
 
 ## /goal
 
