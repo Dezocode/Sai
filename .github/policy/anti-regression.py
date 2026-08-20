@@ -313,18 +313,19 @@ class Policy:
         )
 
     def feature_contract(self) -> bool:
-        kernel = self.trusted / "cmd" / "sai-verify"
+        kernel = self.trusted / "cmd" / "sai-verify"; ok = True
         if not kernel.is_dir():
-            return self.record("Feature map preservation", False, "bootstrap: trusted base has no sai-verify kernel")
-        env = self.clean_env()
-        for k in ("HOME", "GOROOT", "GOPATH", "GOCACHE", "GOMODCACHE"):
-            if k in os.environ:
-                env[k] = os.environ[k]
-        bin_path = pathlib.Path(tempfile.mkdtemp(prefix="sai-verify-")) / "sai-verify"
-        built = subprocess.run(["go", "build", "-o", str(bin_path), "./cmd/sai-verify"], cwd=str(self.trusted), env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120, check=False)
-        if built.returncode != 0:
-            return self.record("Feature map preservation", False, (built.stdout or "")[-4000:])
-        ok = self.command("Protected BASE feature IDs are preserved", [str(bin_path), "preserve", "--base", str(self.trusted), "--head", str(self.candidate), "--root", str(self.candidate)], timeout=60)
+            self.record("Feature map preservation", True, "bootstrap N/A: trusted base predates sai-verify; nothing to preserve")
+        else:
+            env = self.clean_env()
+            for k in ("HOME", "GOROOT", "GOPATH", "GOCACHE", "GOMODCACHE"):
+                if k in os.environ:
+                    env[k] = os.environ[k]
+            bin_path = pathlib.Path(tempfile.mkdtemp(prefix="sai-verify-")) / "sai-verify"
+            built = subprocess.run(["go", "build", "-o", str(bin_path), "./cmd/sai-verify"], cwd=str(self.trusted), env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120, check=False)
+            if built.returncode != 0:
+                return self.record("Feature map preservation", False, (built.stdout or "")[-4000:])
+            ok = self.command("Protected BASE feature IDs are preserved", [str(bin_path), "preserve", "--base", str(self.trusted), "--head", str(self.candidate), "--root", str(self.candidate)], timeout=60)
         try:
             doc = json.loads((self.candidate / ".cursor" / "hooks.json").read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
@@ -501,6 +502,7 @@ def mutation_self_test(trusted: pathlib.Path, candidate: pathlib.Path) -> list[R
             for path in (root / ".cursor" / "skills" / "verify-sai" / "features").glob("*.md"):
                 if path.name != "README.md": path.unlink(); dropped = True; break
             p = Policy(trusted, root); outcomes.append(expect_failure("mutation: protected feature deletion is caught", lambda: dropped and not p.feature_contract()))
+            t=pathlib.Path(td)/"t"; shutil.copytree(trusted,t,symlinks=True); shutil.rmtree(t/"cmd"/"sai-verify", ignore_errors=True); bp=Policy(t,candidate); okb=bp.feature_contract() and any(r.ok and "N/A" in (r.detail or "") for r in bp.results if r.name=="Feature map preservation"); bad=pathlib.Path(td)/"bad"; shutil.copytree(candidate,bad,symlinks=True); (bad/"cmd"/"sai-verify"/"main.go").write_text('package main\nimport "os/exec"\nfunc main() { exec.Command("bash", "-lc", "x") }\n'); bp2=Policy(t,bad); outcomes.append(Result("bootstrap: no BASE kernel is N/A and still checks candidate", okb and not bp2.feature_contract(), ""))
     return outcomes
 
 
