@@ -416,8 +416,8 @@ func hook(in io.Reader, out io.Writer, root, evPath, baseDir, baseRef string) in
 		}
 	}
 	s, err := build(root, baseDir, root, extractPath(raw), str(raw["tool_name"]), str(raw["claimed_head"]), evPath, baseRef)
-	tn := str(raw["tool_name"])
-	mut := ev == "beforeShellExecution" || ev == "beforeMCPExecution" || ev == "afterFileEdit" || tn == "Write" || tn == "StrReplace" || tn == "Delete" || tn == "ApplyPatch"
+	tn, cmd := str(raw["tool_name"]), str(raw["command"])
+	mut := ev == "beforeMCPExecution" || ev == "afterFileEdit" || tn == "Write" || tn == "StrReplace" || tn == "Delete" || tn == "ApplyPatch" || ev == "beforeShellExecution" && (strings.ContainsAny(cmd, ";|&`$()") || !strings.HasPrefix(strings.TrimSpace(cmd), "go run ./cmd/sai-verify drive") && !strings.HasPrefix(strings.TrimSpace(cmd), "go run ./cmd/sai-verify proof"))
 	ctx, deny := hookCtx(s), err != nil || !s.MapValid || !s.PreserveOK || !s.HooksOK || s.Err != "" || mut && s.MaintStatus != "missing" && !s.EvidenceBound
 	if deny {
 		fmt.Fprintf(out, `{"permission":"deny","user_message":"sai-verify failed","agent_message":%s,"additional_context":%s}`+"\n", jq(ctx), jq(ctx))
