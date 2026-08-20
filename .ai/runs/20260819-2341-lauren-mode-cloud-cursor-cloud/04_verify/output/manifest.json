@@ -2,11 +2,12 @@
   "task_id": "20260819-2341-lauren-mode-cloud-cursor-cloud",
   "stage": "04_verify",
   "agent": "cursor-cloud",
-  "completed_at": "2026-08-19T23:50:00Z",
+  "completed_at": "2026-08-20T00:08:00Z",
   "status": "complete",
   "inputs": [
     ".ai/stages/04_verify/CONTEXT.md",
     ".ai/shared/references/testing.md",
+    "scripts/agent-report",
     ".cursor/skills/lauren-mode/SKILL.md",
     ".cursor/rules/pstack-models.mdc"
   ],
@@ -15,8 +16,11 @@
     ".ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/04_verify/output/icm-verify.log"
   ],
   "decisions": ["0005"],
-  "commits": ["8dd7270862fbb3307a1561656c5f6ee2d646a8e5"],
-  "events": ["20260819-2341-lauren-mode-cloud-cursor-cloud:1787182944364418785"],
+  "commits": [
+    "c69076ac8751181d1d859deb3e4fd0b240d72938",
+    "06a3a1d703d49f0048a197e0fb61b6f4618997fc"
+  ],
+  "events": [],
   "human_edits": "none",
-  "notes": "skipped: / picker proof (new session required). skipped: env rebuild. skipped: Drive sync."
+  "notes": "Report for 06a3a1d compare-tip fix. Written after that commit because the previous add raced the file write."
 }
