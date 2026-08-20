@@ -346,7 +346,7 @@ func preserve(base, head []feat) (missing, weakened []string) {
 	for _, f := range base {
 		if !rm[f.ID] && !has(f.ID) { missing = append(missing, f.ID) }
 		hf := hm[f.ID]
-		if has(f.ID) && (lost(subIDs(f), subIDs(hf)) || lost(f.Ent, hf.Ent) || lost(f.Proof, hf.Proof)) { weakened = append(weakened, f.ID) }
+		if has(f.ID) && (lost(func() []string { var o []string; for _, id := range subIDs(f) { if !rm[id] { o = append(o, id) } }; return o }(), subIDs(hf)) || lost(f.Ent, hf.Ent) || lost(f.Proof, hf.Proof)) { weakened = append(weakened, f.ID) }
 		for _, s := range f.Subs {
 			if !rm[s[0]] && !has(s[0]) { missing = append(missing, s[0]) }
 		}

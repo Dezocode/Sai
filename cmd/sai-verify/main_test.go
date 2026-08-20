@@ -88,7 +88,7 @@ func TestFuturePRAndHooks(t *testing.T) {
 	er := t.TempDir(); mini(t, er, map[string]string{"alpha.md": featBody("alpha", "", "", "Run `scripts/alpha-new`"), "beta.md": beta})
 	if s, _ = build(er, base, er, "", "", "", "", ""); s.PreserveOK || len(s.Weakened) == 0 { t.Fatal("D entry replace", s.Weakened) }
 	auth := t.TempDir(); mini(t, auth, map[string]string{"alpha.md": strings.Replace(alpha, "- none", "- Removal-authorized: beta", 1)})
-	if s, _ = build(auth, base, auth, "", "", "", "", ""); s.PreserveOK { t.Fatal("E candidate Removal-authorized") }
+	if s, _ = build(auth, base, auth, "", "", "", "", ""); s.PreserveOK { t.Fatal("E candidate Removal-authorized") }; ba, hd := t.TempDir(), t.TempDir(); mini(t, ba, map[string]string{"alpha.md": strings.Replace(alpha, "- none", "Removal-authorized: alpha-run", 1), "beta.md": beta}); mini(t, hd, map[string]string{"alpha.md": strings.Replace(alpha, "- `alpha-run` runs `scripts/alpha`.\n\n", "", 1), "beta.md": beta}); if s, _ = build(hd, ba, hd, "", "", "", "", ""); !s.PreserveOK { t.Fatal("F auth sub", s.Missing, s.Weakened) }
 	if s, _ = build(head, "", head, "", "", "", "", "deadbeef"); s.PreserveOK || strings.Join(s.Missing, "") != "trusted base unavailable" { t.Fatal("missing base", s.Missing, s.PreserveOK) }
 	if s, err = build(r, "", r, "", "", "deadbeef", "", ""); err == nil || s.OK { t.Fatal("stale HEAD") }
 	d := t.TempDir()
