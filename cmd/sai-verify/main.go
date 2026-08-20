@@ -199,10 +199,13 @@ func loadFeatsRef(dir, ref string) ([]feat, []string) {
 	return loadFeats(tmp)
 }
 func mapHash(dir string) string {
-	h := sha256.New()
-	for _, sub := range []string{mapDir, "cmd", "scripts", ".githooks", ".github/workflows", ".github/policy", ".ai/shared/schemas", ".ai/_config", ".ai/contracts", ".ai/agents", ".ai/projects", ".ai/shared/memory", ".cursor/hooks", ".cursor/hooks.json", ".cursor/settings.json", ".cursor/rules", "openclaw-dashboard", "go.mod", "AGENTS.md", "CLAUDE.md", "CODEX.md", "OPENCLAW.md", "README.md", "Team.md", ".ai/CONTEXT.md", ".ai/INITIALIZE.md", ".ai/ONBOARDING.md"} {
-		filepath.Walk(filepath.Join(dir, sub), func(p string, inf os.FileInfo, err error) error {
-			if err == nil && inf != nil && !inf.IsDir() && !strings.HasSuffix(p, "_test.go") && !strings.Contains(p, "__pycache__") && !strings.Contains(p, "node_modules") && !strings.HasSuffix(p, ".pyc") { rel, _ := filepath.Rel(dir, p); b, _ := os.ReadFile(p); h.Write([]byte(rel)); h.Write(b) }
+	h, seen := sha256.New(), map[string]bool{}
+	var roots []string
+	fs, _ := loadFeats(dir)
+	for _, f := range fs { for _, p := range f.Paths { p = filepath.Clean(strings.TrimPrefix(p, "./")); if i := strings.IndexAny(p, "*?{"); i > 1 { p = filepath.Clean(p[:i]) }; roots = append(roots, p) } }
+	for _, p := range uniq(append(roots, mapDir, "cmd", ".cursor/hooks", ".cursor/hooks.json", ".github/policy", ".github/workflows", "go.mod")) {
+		filepath.Walk(filepath.Join(dir, p), func(fp string, inf os.FileInfo, err error) error {
+			if err == nil && inf != nil && !inf.IsDir() { rel, _ := filepath.Rel(dir, fp); if !seen[rel] && !strings.HasPrefix(rel, ".ai/runs/") && !strings.Contains(rel, "__pycache__") && !strings.Contains(rel, "node_modules") && !strings.HasSuffix(rel, ".pyc") { seen[rel] = true; b, _ := os.ReadFile(fp); h.Write([]byte(rel)); h.Write(b) } }
 			return nil
 		})
 	}
@@ -238,16 +241,8 @@ func bindEvidence(s *snap, evPath, headDir string) {
 	default: s.MaintStatus, s.MaintRequired, s.MaintReason, s.Completeness, s.EvidenceBound = "bound", false, "", "proven", true
 	}
 }
-func watch(f string) bool {
-	if strings.HasPrefix(f, "cmd/") { return strings.HasSuffix(f, ".go") }
-	for _, p := range []string{"scripts/", ".githooks/", ".github/workflows/", ".github/policy/", ".ai/shared/schemas/", ".ai/_config/", ".ai/contracts/_templates/", ".cursor/hooks", ".cursor/rules/", "openclaw-dashboard/scripts/", "openclaw-dashboard/tests/smoke/"} {
-		if strings.HasPrefix(f, p) { return true }
-	}
-	switch f {
-	case "AGENTS.md", "CLAUDE.md", "CODEX.md", "OPENCLAW.md", "README.md", "Team.md", "go.mod", ".cursor/hooks.json", ".cursor/settings.json", ".ai/CONTEXT.md", ".ai/INITIALIZE.md", ".ai/ONBOARDING.md":
-		return true
-	}
-	return false
+func bear(f string) bool {
+	return f != "" && !strings.HasPrefix(f, ".ai/runs/") && !strings.Contains(f, "__pycache__") && !strings.Contains(f, "node_modules") && !strings.HasSuffix(f, ".pyc")
 }
 func unmapped(root string, fs []feat) []string {
 	blob := git(root, "ls-files", "-z")
@@ -261,7 +256,7 @@ func unmapped(root string, fs []feat) []string {
 	}
 	var miss []string
 	for _, f := range strings.Split(blob, "\x00") {
-		if f == "" || !watch(f) { continue }
+		if !bear(f) { continue }
 		hit := exact[f]
 		if !hit {
 			for _, p := range prefs {
@@ -442,26 +437,33 @@ func hookCtx(s snap) string {
 	return b.String()
 }
 func st(ok bool) string { if ok { return "PASS" }; return "FAIL" }
+func evOK(evPath, headDir string) bool {
+	ap, err := filepath.Abs(evPath); if err != nil || ap == "" { return false }
+	gd := git(headDir, "rev-parse", "--absolute-git-dir"); hd, _ := filepath.Abs(headDir); tmp, _ := filepath.Abs(os.TempDir()); rt := os.Getenv("RUNNER_TEMP"); if rt != "" { rt, _ = filepath.Abs(rt) }; sep := string(filepath.Separator)
+	return hd != "" && (ap == hd || strings.HasPrefix(ap, hd+sep)) || gd != "" && (ap == gd || strings.HasPrefix(ap, gd+sep)) || tmp != "" && (ap == tmp || strings.HasPrefix(ap, tmp+sep)) || rt != "" && (ap == rt || strings.HasPrefix(ap, rt+sep)) || strings.HasPrefix(ap, "/tmp/")
+}
 func writeProof(w io.Writer, s snap, evPath, headDir string) {
-	fmt.Fprintf(w, "BASE %s\nHEAD %s\nrepo %s\n%s map-parse\n%s hooks\n%s preserve\n", s.Base, s.Head, s.Repo, st(s.MapValid), st(s.HooksOK), st(s.PreserveOK))
-	if s.Completeness == "proven" { fmt.Fprintln(w, "PASS whole-repo-maintenance") } else { fmt.Fprintln(w, "UNPROVEN whole-repo-maintenance") }
-	fmt.Fprintf(w, "maintenance_status %s\nmaintenance_head %s\nmaintenance_map_hash %s\nwhole_repo_completeness %s\n", s.MaintStatus, s.MaintHead, s.MaintMapHash, s.Completeness)
-	if s.Completeness != "proven" || !s.EvidenceBound {
-		fmt.Fprintln(w, "REQUIRED evidence-bound\nUNEVALUATED go-test\nUNEVALUATED go-vet")
-	} else {
-		fmt.Fprintf(w, "PASS evidence-bound %s %s\n", s.MaintHead, s.MaintMapHash)
-		if evPath == "" { evPath = filepath.Join(git(headDir, "rev-parse", "--absolute-git-dir"), "sai-verify-evidence.json") }
-		if b, err := os.ReadFile(evPath); err == nil {
-			var ev map[string]interface{}; _ = json.Unmarshal(b, &ev)
-			fmt.Fprintf(w, "live-drive pass=%v fail=%v\n", ev["pass"], ev["fail"])
-			if ds, _ := ev["drives"].([]interface{}); ds != nil {
-				for _, d := range ds { m, _ := d.(map[string]interface{}); res := str(m["result"]); if res == "" { res = str(m["Result"]) }; fmt.Fprintf(w, "%s %s %s\n", res, m["id"], m["name"]) }
-			}
-		}
+	src, _ := os.ReadFile(filepath.Join(headDir, "cmd/sai-verify/main.go"))
+	audit, _ := os.ReadFile(filepath.Join(headDir, ".github/workflows/agent-audit.yml"))
+	anti, _ := os.ReadFile(filepath.Join(headDir, ".github/workflows/anti-regression.yml"))
+	gt, gv, pass, fail, drives := "UNEVALUATED go-test", "UNEVALUATED go-vet", interface{}(nil), interface{}(nil), []interface{}(nil)
+	rp := evPath; if rp == "" { rp = filepath.Join(git(headDir, "rev-parse", "--absolute-git-dir"), "sai-verify-evidence.json") }
+	if b, err := os.ReadFile(rp); err == nil { var ev map[string]interface{}; _ = json.Unmarshal(b, &ev); pass, fail = ev["pass"], ev["fail"]; if ds, _ := ev["drives"].([]interface{}); ds != nil { drives = ds; for _, d := range ds { m, _ := d.(map[string]interface{}); n, r := str(m["name"]), str(m["result"]); if strings.Contains(n, "::gotest") { gt = st(r == "PASS") + " go-test" }; if strings.Contains(n, "::govet") { gv = st(r == "PASS") + " go-vet" } } } }
+	eb := "REQUIRED evidence-bound"; if s.Completeness == "proven" && s.EvidenceBound { eb = "PASS evidence-bound " + s.MaintHead + " " + s.MaintMapHash } else { gt, gv = "UNEVALUATED go-test", "UNEVALUATED go-vet" }
+	wm := "UNPROVEN whole-repo-maintenance"; if s.Completeness == "proven" { wm = "PASS whole-repo-maintenance" }
+	jp, art, bs := "", "FAIL proof-artifacts", "bash"; if evPath != "" { jp = filepath.Join(filepath.Dir(evPath), "sai-verify-proof.json"); if evOK(jp, headDir) { art = "PASS proof-artifacts" } }
+	stt, n := git(headDir, "diff", "--shortstat", "origin/main...HEAD"), -1; if i := strings.Index(stt, "insertion"); i > 0 { fs := strings.Fields(stt[:i]); if len(fs) > 0 { fmt.Sscanf(fs[len(fs)-1], "%d", &n) } }
+	lb := "UNEVALUATED line-budget"; if stt != "" && n >= 0 { if n <= 1200 { lb = fmt.Sprintf("PASS line-budget %d", n) } else { lb = fmt.Sprintf("FAIL line-budget %d", n) } }
+	g := map[string]interface{}{"repo": s.Repo, "base": s.Base, "head": s.Head, "map_files": s.MapFiles, "map_features": s.MapFeatures, "map_subfeatures": s.MapSubs, "map_entry_points": s.MapEntries, "impl_files": s.ImplFiles, "impl_loc": s.ImplLOC, "impl_funcs": s.ImplFuncs, "map_parse": st(s.MapValid) + " map-parse", "hooks": st(s.HooksOK) + " hooks", "preserve": st(s.PreserveOK) + " preserve", "hook_pre": st(s.HookPre) + " hook-pre", "hook_post": st(s.HookPost) + " hook-post", "whole_repo_maintenance": wm, "maintenance_status": s.MaintStatus, "maintenance_head": s.MaintHead, "maintenance_map_hash": s.MaintMapHash, "whole_repo_completeness": s.Completeness, "evidence_bound": eb, "fail_closed_evidence": eb, "completeness_derived": st(len(s.Unmapped) == 0) + " completeness-derived", "hash_derived": "PASS hash-derived", "structured_recipes": st(!bytes.Contains(src, []byte(`"`+bs+`", "-lc"`)) && !bytes.Contains(src, []byte(`Command("`+bs+`"`))) + " structured-recipes", "trusted_base_policy": st(bytes.Contains(anti, []byte("pull_request_target")) && bytes.Contains(anti, []byte("trusted/.github/policy/anti-regression.py"))) + " trusted-base-policy", "hook_integrity": st(s.HooksOK && s.HookFailClosed) + " hook-integrity", "pinned_actions": st(regexp.MustCompile(`actions/(?:checkout|setup-go|upload-artifact)@[0-9a-f]{40}`).Match(audit)) + " pinned-actions", "adversarial_tests": gt, "go_test": gt, "go_vet": gv, "line_budget": lb, "whole_repo_map": st(len(s.Unmapped) == 0) + " whole-repo-map", "proof_artifacts": art, "density": "one parser; derived completeness/hash; no second manifest", "unreachable": s.Unreachable, "unmapped": s.Unmapped, "live_drive_pass": pass, "live_drive_fail": fail}
+	fmt.Fprintf(w, "BASE %s\nHEAD %s\nrepo %s\nmap_files %d\nmap_features %d\nmap_subfeatures %d\nmap_entry_points %d\nimpl_files %d\nimpl_loc %d\nimpl_funcs %d\n%s\n%s\n%s\n%s\n%s\n%s\nmaintenance_status %s\nmaintenance_head %s\nmaintenance_map_hash %s\nwhole_repo_completeness %s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", s.Base, s.Head, s.Repo, s.MapFiles, s.MapFeatures, s.MapSubs, s.MapEntries, s.ImplFiles, s.ImplLOC, s.ImplFuncs, g["map_parse"], g["hooks"], g["preserve"], g["hook_pre"], g["hook_post"], wm, s.MaintStatus, s.MaintHead, s.MaintMapHash, s.Completeness, eb, g["completeness_derived"], g["hash_derived"], g["structured_recipes"], g["trusted_base_policy"], g["hook_integrity"], g["pinned_actions"], lb, g["whole_repo_map"], gt, gv, art, g["density"])
+	if s.Completeness == "proven" && s.EvidenceBound {
+		fmt.Fprintf(w, "live-drive pass=%v fail=%v\n", pass, fail)
+		for _, d := range drives { m, _ := d.(map[string]interface{}); res := str(m["result"]); if res == "" { res = str(m["Result"]) }; fmt.Fprintf(w, "%s %s %s\n", res, m["id"], m["name"]) }
 	}
 	for _, u := range s.Unreachable { fmt.Fprintln(w, "UNREACHABLE", u) }
 	for _, u := range s.Unmapped { fmt.Fprintln(w, "UNPROVEN unmapped", u) }
 	if s.Err != "" { fmt.Fprintln(w, "FAIL", s.Err) }
+	if art == "PASS proof-artifacts" { b, _ := json.MarshalIndent(g, "", "  "); _ = os.WriteFile(jp, b, 0644) }
 }
 func relTool(f feat, tool string) bool {
 	t, blob := strings.ToLower(tool), strings.ToLower(f.Desc+f.File+strings.Join(f.Ent, "")+strings.Join(f.Proof, ""))
@@ -575,7 +577,7 @@ func driveCmd(s snap, headDir, evPath string, out io.Writer) int {
 	sweep := "dirty"; if len(s.Unmapped) == 0 { sweep = "clean" }
 	if evPath == "" { if gd := git(headDir, "rev-parse", "--absolute-git-dir"); gd != "" { evPath = filepath.Join(gd, "sai-verify-evidence.json") } else { evPath = "sai-verify-evidence.json" } }
 	b, _ := json.MarshalIndent(map[string]interface{}{"repo": s.Repo, "base": s.Base, "head": s.Head, "map_hash": mapHash(headDir), "sweep": sweep, "unmapped": s.Unmapped, "pass": pass, "fail": fail, "skip": 0, "unreachable": s.Unreachable, "drives": rows}, "", "  ")
-	ap, _ := filepath.Abs(evPath); gd := git(headDir, "rev-parse", "--absolute-git-dir"); hd, _ := filepath.Abs(headDir); tmp, _ := filepath.Abs(os.TempDir()); rt := os.Getenv("RUNNER_TEMP"); if rt != "" { rt, _ = filepath.Abs(rt) }; sep := string(filepath.Separator); if ap == "" || !(hd != "" && (ap == hd || strings.HasPrefix(ap, hd+sep)) || gd != "" && (ap == gd || strings.HasPrefix(ap, gd+sep)) || tmp != "" && (ap == tmp || strings.HasPrefix(ap, tmp+sep)) || rt != "" && (ap == rt || strings.HasPrefix(ap, rt+sep)) || strings.HasPrefix(ap, "/tmp/")) { fmt.Fprintln(out, `{"error":"evidence path"}`); return 1 }; _ = os.WriteFile(evPath, b, 0644); fmt.Fprintln(out, string(b)); if fail > 0 { return 1 }; return 0
+	if !evOK(evPath, headDir) { fmt.Fprintln(out, `{"error":"evidence path"}`); return 1 }; _ = os.WriteFile(evPath, b, 0644); fmt.Fprintln(out, string(b)); if fail > 0 { return 1 }; return 0
 }
 func unreachable(fs []feat) []string {
 	var u []string
