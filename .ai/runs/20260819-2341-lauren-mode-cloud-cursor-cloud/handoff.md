@@ -17,6 +17,11 @@ existing cloud agent config. Source: https://cursor.com/changelog/08-19-26
   this VM (0004 leftover).
 - Decision 0005. AGENTS.md and ICM indexes updated.
 - Did not copy pstack. Did not commit `.cursor/environment.json`.
+- Saul / Product Quality `action_required` on `c69076a`: later audit events
+  had the wrong `base_sha`; verification named an obsolete commit;
+  `agent-report` trusted a possibly stale `origin/main`. Follow-up in this
+  commit re-resolves the comparison tip (PR base or fetched `origin/main`,
+  else fail) and regenerates verification on that worktree.
 
 ## Live environment (inspected)
 
@@ -32,11 +37,9 @@ Desktop reload on this commit.
 
 ## Next safe action
 
-Co-founder review of draft PR https://github.com/Dezocode/Sai/pull/70.
-After merge, start a new Cloud Agent, type `/lauren-mode`, pin with
-Option+Enter. Do not Save a new `environment.json` unless replacing the
-personal env is intended.
-
-ICM verification on `origin/main..HEAD`: semantic-hierarchy, agent-audit,
-merge-handoff, and agent-setup all OK. Remote SHA matched `8dd7270` after
-the first push.
+PR https://github.com/Dezocode/Sai/pull/70 is **open**, not draft. Wait for
+Saul / Product Quality to re-run on the commit that contains the
+`agent-report` compare-tip fix and this regenerated verification. Then a
+co-founder can merge. After merge, start a new Cloud Agent, type
+`/lauren-mode`, pin with Option+Enter. Do not Save a new `environment.json`
+unless replacing the personal env is intended.

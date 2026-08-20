@@ -7,17 +7,22 @@
 
 - Security-policy hard gates: none touched.
 - Decision 0005 complements 0004. Does not vendor pstack. Does not add `environment.json`.
-- PR #70 is open (not draft). Not merged.
+- PR #70 is **open** (not draft). Not merged.
 
-## Saul P1/P2 follow-up
+## Saul follow-up (c69076a `action_required`)
 
-Saul / Product Quality returned `action_required` on HEAD `3e13074`:
-- P1: PR/VERIFY/HANDOFF events used `base_sha` `8223ff5` (an intermediate
-  commit) instead of merge-base `dda0e97`. Corrected in `events.jsonl`.
-  `scripts/agent-report` now records merge-base with `origin/main`.
-- P2: repository-map listed a stale exhaustive remote-branch inventory.
-  Removed. Branch names are not durable memory.
+P1: verification log/report named `8dd7270` while head was `c69076a`.
+Regenerated in this commit on the worktree that includes the compare-tip
+fix.
+
+P1: `agent-report` used a local `origin/main` merge-base without fetch.
+Now resolves `--base-sha`, `SAI_BASE_SHA`, `gh pr view` `baseRefOid`
+(fetched if needed), or a live `git fetch origin main`. No HEAD fallback.
+
+P2: handoff/publish still said draft and cited `8dd7270`/`bfe0781` as
+current. Refreshed to open PR 70 and labeled older SHAs as historical.
 
 ## Residual risk
 
-Custom Mode badge only appears after a new session loads this commit. Disclose that in the PR and handoff. Pending GitHub required checks at last look: Cursor Bugbot, Approval Agent, Security Reviewer. Those can still block merge after Saul goes green.
+Custom Mode badge only appears after a new session loads this commit.
+Saul must re-run on the commit that contains these files.
