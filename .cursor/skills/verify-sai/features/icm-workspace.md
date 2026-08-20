@@ -9,7 +9,7 @@ Operators and agents load Layer 0 identity, six stage contracts, run artifacts, 
 - `decision-0002` `.ai/shared/memory/decisions/0002-multi-runtime-agent-adapters.md`
 - `decision-0003` `.ai/shared/memory/decisions/0003-contractor-charters-and-agent-memory.md`
 - `decision-dr-20260724` `.ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md` prototype vs core.
-- `icm-schemas` `.ai/shared/schemas/agent-event.schema.json` (enum includes `BYPASS`; `.ai/_config/reporting.yaml` `event_types` omits it) `stage-output.schema.json` `contract.schema.json`.
+- `icm-schemas` `.ai/shared/schemas/agent-event.schema.json` (enum includes `BYPASS`; `.ai/_config/reporting.yaml` `event_types` omits it) `.ai/shared/schemas/stage-output.schema.json` `.ai/shared/schemas/contract.schema.json`.
 - `icm-security` `.ai/_config/security-policy.md` hard gates and `SAI_AUDIT_BYPASS`.
 - `icm-sync` `.ai/_config/sync-policy.md` Drive as replica, never Git replacement.
 - `icm-repos` `.ai/_config/repositories.yaml` Dezocode/Sai canonical, monaecode/Sai fork, SHA mirror.

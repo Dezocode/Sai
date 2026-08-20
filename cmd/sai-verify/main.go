@@ -270,7 +270,7 @@ func unmapped(root string, fs []feat) []string {
 	var miss []string
 	for _, f := range strings.Split(blob, "\x00") {
 		if f == "" || !watch(f) { continue }
-		hit := strings.Contains(mapped, f) || strings.Contains(mapped, filepath.Base(f))
+		hit := strings.Contains(mapped, f)
 		if !hit {
 			for _, p := range prefs {
 				if p != "." && (f == p || strings.HasPrefix(f, p+"/")) { hit = true; break }
@@ -417,7 +417,7 @@ func hook(in io.Reader, out io.Writer, root, evPath, baseDir, baseRef string) in
 	}
 	s, err := build(root, baseDir, root, extractPath(raw), str(raw["tool_name"]), str(raw["claimed_head"]), evPath, baseRef)
 	tn := str(raw["tool_name"])
-	mut := ev == "beforeShellExecution" || ev == "beforeMCPExecution" || tn == "Write" || tn == "StrReplace" || tn == "Delete" || tn == "ApplyPatch"
+	mut := ev == "beforeShellExecution" || ev == "beforeMCPExecution" || ev == "afterFileEdit" || tn == "Write" || tn == "StrReplace" || tn == "Delete" || tn == "ApplyPatch"
 	ctx, deny := hookCtx(s), err != nil || !s.MapValid || !s.PreserveOK || !s.HooksOK || s.Err != "" || mut && s.MaintStatus != "missing" && !s.EvidenceBound
 	if deny {
 		fmt.Fprintf(out, `{"permission":"deny","user_message":"sai-verify failed","agent_message":%s,"additional_context":%s}`+"\n", jq(ctx), jq(ctx))

@@ -339,13 +339,10 @@ class Policy:
         need = ("sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "workspaceOpen")
         hook_ok = all(covered(n) for n in need)
         has_kernel = (self.candidate / "cmd" / "sai-verify").is_dir()
-        src = "".join(re.sub(r'"\s*\+\s*"', "", p.read_text(encoding="utf-8", errors="replace")) for p in sorted((self.candidate / "cmd" / "sai-verify").rglob("*.go")) if not p.name.endswith("_test.go"))
-        shell_ok, i = True, 0
-        while shell_ok and (j := src.find("exec.Command", i)) >= 0:
-            snip = src[j:j+120]; i = j + 12
-            if snip.startswith("exec.CommandContext") and "argv[0]" in snip: continue
-            if snip.startswith('exec.Command("git"'): continue
-            shell_ok = False
+        def sig(root):
+            src = "".join(p.read_text(encoding="utf-8", errors="replace") for p in sorted((root / "cmd" / "sai-verify").rglob("*.go")) if not p.name.endswith("_test.go"))
+            return (src.count("exec.Command"), src.count("os.StartProcess"), src.count("syscall.Exec"), src.count("syscall.ForkExec"), bool(re.search(r'import\s+\w+\s+"os/exec"', src)))
+        shell_ok = has_kernel and sig(self.candidate) == (sig(self.trusted) if (self.trusted / "cmd" / "sai-verify").is_dir() else (2, 0, 0, 0, False))
         self.record("Required pre/post verification hooks", hook_ok, "")
         self.record("Candidate retains sai-verify kernel", has_kernel, "")
         self.record("Candidate verifier is not a shell evaluator", shell_ok, "")
