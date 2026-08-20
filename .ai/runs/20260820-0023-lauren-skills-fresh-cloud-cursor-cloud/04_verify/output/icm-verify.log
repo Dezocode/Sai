@@ -1,0 +1,62 @@
+=== HEAD ===
+5785d4786cb46dedd8750cd4df8797637c0c72b4
+5785d47 Make PR 70 Lauren mode attachable in a fresh Cloud Agent
+
+=== repro: origin/main vs HEAD ===
+-- origin/main disable-model-invocation --
+---
+name: lauren-mode
+description: >-
+  SAI Cloud Custom Mode for Lauren Tan's pstack. Use for /lauren-mode, Lauren
+  mode, pinning poteto-mode in Cloud Agents, or 08-19-26 always-on cloud
+  harness work.
+disable-model-invocation: true
+mode: true
+icon: crown
+color: yellow
+---
+
+-- HEAD disable-model-invocation (should be absent) --
+---
+name: lauren-mode
+description: >-
+  SAI Cloud Custom Mode for Lauren Tan's pstack. Use for /lauren-mode, /lauren,
+  Lauren mode, /lauren mode (space), pinning poteto-mode in Cloud Agents,
+  PR 70 cloud skills, or 08-19-26 always-on cloud harness work.
+mode: true
+icon: crown
+color: yellow
+---
+
+# Lauren mode
+-- origin/main /lauren skill --
+fatal: path '.cursor/skills/lauren/SKILL.md' exists on disk, but not in 'origin/main'
+absent (expected on origin/main)
+-- HEAD /lauren skill --
+present
+-- HEAD discovery rule --
+present
+
+=== python3 -m json.tool ===
+JSON_OK
+
+=== events.jsonl schema keys ===
+events.jsonl lines 6 OK
+
+=== frontmatter ===
+.cursor/skills/lauren-mode/SKILL.md ok
+.cursor/skills/lauren/SKILL.md ok
+.cursor/rules/lauren-mode.mdc ok
+frontmatter OK
+
+=== verify-semantic-hierarchy ===
+verify-semantic-hierarchy: OK
+
+=== verify-agent-audit origin/main..HEAD ===
+verify-agent-audit: OK (origin/main..HEAD)
+
+=== verify-merge-handoff origin/main..HEAD ===
+verify-merge-handoff: OK (1 task-id(s) checked)
+
+=== verify-agent-setup ===
+verify-agent-setup: OK

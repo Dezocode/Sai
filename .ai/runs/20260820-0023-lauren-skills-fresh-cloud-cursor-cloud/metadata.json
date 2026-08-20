@@ -6,7 +6,7 @@
   "branch": "cursor/lauren-skills-fresh-fd30",
   "base_sha": "8a302026ce77e3fb03fbcdc0f6f3a6041df1798c",
   "purpose": "Make PR 70 project skills usable in a fresh Cursor Cloud Agent: /lauren alias, description matching, always-on discovery, and gitSetup-reuse documentation",
-  "status": "implement",
+  "status": "handoff",
   "claimed_files": [
     ".cursor/skills/lauren-mode/SKILL.md",
     ".cursor/skills/lauren/SKILL.md",
