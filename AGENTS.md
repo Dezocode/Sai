@@ -30,13 +30,46 @@ Run the same suite CI runs — sources: `.github/workflows/agent-audit.yml` and
 - `scripts/verify-merge-handoff origin/main..HEAD` — HANDOFF documentation gate.
 - `python3 -m json.tool <file>` / `python3 -c 'import yaml,...'` — JSON/YAML lint.
 
-### Cursor plugins (slash commands)
+### Cursor plugins and Custom Modes
 
 This repo enables the **pstack** marketplace plugin at project scope in
 `.cursor/settings.json`. After a **new** Cloud Agent or a local window
-reload on a commit that includes that file, type `/` in command input and
-use `/poteto-mode` (default) or `/setup-pstack`. ICM index:
-`.ai/plugins/pstack/`. Cursor does not load plugins from `.ai/`.
+reload on a commit that includes that file, type `/` and use `/poteto-mode`
+or `/setup-pstack`. ICM index: `.ai/plugins/pstack/`. Cursor does not load
+plugins from `.ai/`.
+
+The project Custom Mode for Cloud Agents is `/lauren-mode`
+(`.cursor/skills/lauren-mode/`). Pin it with Option+Enter (Mac) or
+Alt+Enter (Windows), or choose Use as Mode, so the skill stays on for the
+session. It wraps pstack and adds the 2026-08-19 harness (`/goal`,
+subscriptions, VM-isolated subagents, steering), Browser pane notes, and
+`@cursor/sdk` cloud launch notes. Do not copy the pstack tree into
+`.cursor/skills/`.
+
+Shared pstack role models live in `.cursor/rules/pstack-models.mdc` so Cloud
+Agents get them. `~/.cursor/rules/pstack-models.mdc` from `/setup-pstack`
+does not apply here.
+
+### 2026-08-19 Cloud Agent harness
+
+- **Custom Mode.** `/lauren-mode` pinned as above.
+- **`/goal`.** Use `CreateGoal` / `UpdateGoal` for an objective that must
+  hold until complete. Pair with the mode. Use `/loop` only for recurring
+  check-ins.
+- **Subagents on their own VMs.** `Task` with `environment: "cloud"` (or
+  Desktop `/in-cloud`). One agent per working tree still holds.
+- **Subscriptions.** Describe the wait, or `/subscribe`. Cloud agents
+  auto-subscribe to PRs they create (GitHub Actions CI follow-ups).
+- **Steering.** Follow-ups wait for the next tool call. They do not interrupt
+  the current tool.
+- **Browser pane.** `@Browser` attaches the IDE Browser. GUI proof on this
+  VM uses `computerUse`. Chrome is `/usr/bin/google-chrome`.
+- **Environment.** Personal dashboard env
+  [6f2ece39-800a-11f1-ba66-0e7d0216e441](https://cursor.com/dashboard/cloud-agents/environments/e/6f2ece39-800a-11f1-ba66-0e7d0216e441).
+  Do not commit `.cursor/environment.json` unless a co-founder wants to
+  replace that personal config.
+
+Details: `.cursor/skills/lauren-mode/references/`.
 
 ### Non-obvious gotchas
 - **Commit trailers are enforced.** The cloud git identity

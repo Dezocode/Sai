@@ -14,6 +14,7 @@
   "cursor_loader": false,
   "install_command": "/add-plugin pstack",
   "primary_slash_command": "/poteto-mode",
+  "project_custom_mode": "/lauren-mode",
   "slash_commands": [
     "/poteto-mode",
     "/setup-pstack",
@@ -43,5 +44,5 @@
     "poteto-agent",
     "Comment Sicko"
   ],
-  "notes": "ICM index only. Cursor loads this plugin from the marketplace when plugins.pstack.enabled is true in committed .cursor/settings.json. Do not vendor the upstream tree here expecting slash-command registration."
+  "notes": "ICM index only. Cursor loads this plugin from the marketplace when plugins.pstack.enabled is true in committed .cursor/settings.json. Do not vendor the upstream tree here expecting slash-command registration. SAI Cloud Agents pin the project Custom Mode /lauren-mode (.cursor/skills/lauren-mode/), which routes to this plugin."
 }

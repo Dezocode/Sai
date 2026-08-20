@@ -7,9 +7,15 @@
 #                [--verification TEXT] [--scope CSV] [--branch NAME]
 #                [--commit SHA] [--pr-url URL] [--push-range RANGE]
 #                [--drive-status STATUS] [--drive-checksum SUM]
-#                [--risks TEXT] [--review-gate TEXT] [--no-deliver]
+#                [--risks TEXT] [--review-gate TEXT] [--base-sha SHA]
+#                [--no-deliver]
 #   agent-report flush            # deliver queued events, oldest first
 #   agent-report push-confirm     # verify remote SHA after a push, emit PUSH
+#
+# base_sha is the merge-base with the PR/default-branch tip, never HEAD.
+# That tip is --base-sha, else SAI_BASE_SHA, else `gh pr view` baseRefOid
+# (fetched if missing), else a live `git fetch origin main`. If none of
+# those can be established, emit fails instead of guessing.
 #
 # Behavior (see .ai/audit/README.md):
 #   * Events are schema-valid JSON (.ai/shared/schemas/agent-event.schema.json).
@@ -54,11 +60,49 @@ infer_task_id() {
   if [ -n "$latest" ]; then echo "$latest"; else date -u +"%Y%m%d-%H%M-adhoc-unknown"; fi
 }
 
+# Tip of the branch this work is compared against. Not HEAD. Not a stale
+# origin/main that was never fetched in this clone.
+resolve_compare_tip() {
+  local explicit=$1
+  local oid
+  if [ -n "$explicit" ]; then
+    git rev-parse --verify "${explicit}^{commit}" 2>/dev/null && return 0
+    echo "agent-report: --base-sha '$explicit' is not a commit in this repo" >&2
+    return 1
+  fi
+  if [ -n "${SAI_BASE_SHA:-}" ]; then
+    git rev-parse --verify "${SAI_BASE_SHA}^{commit}" 2>/dev/null && return 0
+    echo "agent-report: SAI_BASE_SHA is not a commit in this repo" >&2
+    return 1
+  fi
+  oid=$(gh pr view --json baseRefOid --jq '.baseRefOid' 2>/dev/null || true)
+  if [ -n "$oid" ] && [ "$oid" != "null" ]; then
+    if git cat-file -e "${oid}^{commit}" 2>/dev/null; then
+      printf '%s\n' "$oid"
+      return 0
+    fi
+    git fetch --quiet origin "$oid" 2>/dev/null || git fetch --quiet origin main 2>/dev/null || true
+    if git cat-file -e "${oid}^{commit}" 2>/dev/null; then
+      printf '%s\n' "$oid"
+      return 0
+    fi
+    echo "agent-report: PR base $oid is not present locally and fetch failed" >&2
+    return 1
+  fi
+  if git fetch --quiet origin main; then
+    git rev-parse --verify 'refs/remotes/origin/main^{commit}'
+    return 0
+  fi
+  echo "agent-report: cannot resolve comparison base. Pass --base-sha or SAI_BASE_SHA, or fetch origin main / open a PR." >&2
+  return 1
+}
+
 emit() {
   local event_type=$1; shift
   local task_id="" actor="${SAI_AGENT_ID:-unknown-agent}" purpose="" justification=""
   local result="" verification="" scope="" branch="" commit="" pr_url="" push_range=""
   local drive_status="not-applicable" drive_checksum="" risks="none" review_gate="" deliver=1
+  local opt_base_sha=""
 
   while [ $# -gt 0 ]; do
     case $1 in
@@ -77,6 +121,7 @@ emit() {
       --drive-checksum) drive_checksum=$2; shift 2;;
       --risks) risks=$2; shift 2;;
       --review-gate) review_gate=$2; shift 2;;
+      --base-sha) opt_base_sha=$2; shift 2;;
       --no-deliver) deliver=0; shift;;
       *) echo "agent-report: unknown option $1" >&2; return 2;;
     esac
@@ -84,7 +129,13 @@ emit() {
 
   [ -n "$task_id" ] || task_id=$(infer_task_id)
   [ -n "$branch" ] || branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-  local base_sha; base_sha=$(git rev-parse --short HEAD 2>/dev/null || echo "0000000")
+  local compare_tip merge_base base_sha
+  compare_tip=$(resolve_compare_tip "$opt_base_sha") || return 1
+  merge_base=$(git merge-base HEAD "$compare_tip") || {
+    echo "agent-report: no merge-base between HEAD and $compare_tip" >&2
+    return 1
+  }
+  base_sha=$(git rev-parse --short "$merge_base")
   local repository="${SAI_REPOSITORY:-Dezocode/Sai}"
   local ts; ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
   local event_id="${task_id}:$(date -u +%s%N)"

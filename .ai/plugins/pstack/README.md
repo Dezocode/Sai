@@ -34,12 +34,16 @@ expecting `/poteto-mode` to appear.
 
 1. `/setup-pstack` — pick models per role. It writes
    `~/.cursor/rules/pstack-models.mdc` on the local machine. That path does
-   **not** apply in Cloud Agents. For shared cloud+local model routing,
-   commit `.cursor/rules/pstack-models.mdc` instead (not done in the
-   install task; run `/setup-pstack` when you want it).
-2. `/poteto-mode` — default entry for any non-trivial task. Sticky across
-   turns. `disable-model-invocation: true`, so type the slash command; the
-   agent will not auto-enter it.
+   **not** apply in Cloud Agents. Shared cloud+local routing is committed
+   at `.cursor/rules/pstack-models.mdc` (decision 0005). Re-run
+   `/setup-pstack` and update that file when available model slugs change.
+2. `/poteto-mode` — default pstack entry for any non-trivial task. Sticky
+   across turns. `disable-model-invocation: true`, so type the slash
+   command; the agent will not auto-enter it.
+3. `/lauren-mode` — SAI project Custom Mode (`.cursor/skills/lauren-mode/`).
+   Pin it in Cloud Agents with Option+Enter / Use as Mode. It does not
+   replace the plugin. It adds the 2026-08-19 harness, Browser pane, and
+   SDK notes. See decision `0005-lauren-mode-cloud-skills`.
 
 ## Command input (skills)
 
@@ -48,7 +52,8 @@ when you want one:
 
 | Command | When |
 |---|---|
-| `/poteto-mode` | Default entry for rigorous work |
+| `/lauren-mode` | SAI Cloud Custom Mode pin (project skill, not the plugin) |
+| `/poteto-mode` | Default pstack entry for rigorous work |
 | `/setup-pstack` | Choose models per role |
 | `/how` | Walkthrough of how a subsystem works |
 | `/why` | Why something was built this way |

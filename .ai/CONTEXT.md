@@ -100,7 +100,9 @@ artifacts unless the task explicitly requires it.
   audit/                     <- audit trail documentation and committed audit records
 
 .cursor/settings.json                <- project-scoped Cursor plugins (slash commands)
+.cursor/skills/lauren-mode/          <- project Custom Mode for Cloud Agents
 .cursor/rules/sai-coordination.mdc   <- shared Cursor operating rules
+.cursor/rules/pstack-models.mdc      <- pstack role models (cloud + local)
 .githooks/                           <- reporting hooks (install via scripts/install-agent-hooks)
 scripts/                             <- agent-init, agent-report, agent-sync-drive,
                                         install-agent-hooks, verify-agent-audit,

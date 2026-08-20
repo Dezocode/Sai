@@ -1,9 +1,10 @@
 # SAI — Repository map
 
-> Verified 2026-08-13 against commit on `cursor/pstack-plugin-install-10de`
-> (pstack project plugin + `.ai/plugins/` index). Prior verification:
-> 2026-07-14 against commit `34827e7` on `Dezocode/Sai:main`.
-> Keep current when top-level structure changes.
+> Verified 2026-08-19 against `cursor/lauren-mode-cloud-fd30`
+> (`/lauren-mode` project Custom Mode + committed pstack-models.mdc).
+> Prior: 2026-08-13 pstack plugin install; 2026-07-14 against commit
+> `34827e7` on `Dezocode/Sai:main`. Keep current when top-level structure
+> changes.
 
 | Path | Purpose |
 |---|---|
@@ -22,7 +23,8 @@
 | `.ai/runs/` | Per-task working artifacts (Layer 4) |
 | `.ai/audit/` | Audit trail documentation |
 | `.cursor/settings.json` | Project-scoped Cursor plugins (slash commands for cloud + local) |
-| `.cursor/rules/` | Shared Cursor operating rules |
+| `.cursor/skills/` | Project Agent Skills (Custom Mode: `/lauren-mode`) |
+| `.cursor/rules/` | Shared Cursor operating rules (`sai-coordination.mdc`, `pstack-models.mdc`) |
 | `.githooks/` | Reporting git hooks |
 | `scripts/` | agent-init, agent-scaffold, agent-verify-caps, agent-automation-spec, agent-report, agent-sync-drive, install-agent-hooks, verify-agent-audit, verify-semantic-hierarchy |
 | `.github/workflows/` | CI audit + semantic hierarchy verification |
@@ -31,5 +33,5 @@
 
 - `Dezocode/Sai` — canonical, not a fork, default branch `main`.
 - `monaecode/Sai` — fork of `Dezocode/Sai`, default branch `main`.
-- Existing remote branches at time of writing: `main`,
-  `cursor/cloud-env-setup-532b`, `cursor/sai-agent-framework-30d8`.
+- Feature-branch names are ephemeral. This map does not inventory remote
+  branches.

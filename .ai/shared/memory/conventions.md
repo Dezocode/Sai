@@ -37,8 +37,13 @@ personal email addresses. Identify people by username and Slack ID only.
 - Index each enabled plugin under `.ai/plugins/<slug>/` (manifest + README).
   `.ai/plugins/` is documentation, not a Cursor loader.
 - Do not copy plugin skill trees into `.cursor/skills/` (duplicate slash
-  names) or into `.ai/` expecting `/` registration.
+  names) or into `.ai/` expecting `/` registration. A thin project Custom
+  Mode that routes to a plugin (`/lauren-mode`) is allowed (decision 0005).
+- Shared pstack model routing for Cloud Agents is
+  `.cursor/rules/pstack-models.mdc`, not `~/.cursor/rules/`.
 - Do not put plugins in `environment.json`.
+- Do not commit `.cursor/environment.json` unless replacing the personal
+  dashboard Cloud Agent environment is an explicit co-founder request.
 
 ## Documents
 
