@@ -165,11 +165,10 @@ func TestLinkedWorktreeHook(t *testing.T) {
 	if b, err := exec.Command("git", "-C", r, "worktree", "add", "--detach", wt, "HEAD").CombinedOutput(); err != nil { t.Skip(string(b)) }
 	defer exec.Command("git", "-C", r, "worktree", "remove", "--force", wt).Run()
 	for _, rel := range []string{".cursor/hooks/sai-verify.sh", "cmd/sai-verify/main.go", "go.mod"} { b, _ := os.ReadFile(filepath.Join(r, rel)); os.MkdirAll(filepath.Join(wt, filepath.Dir(rel)), 0755); os.WriteFile(filepath.Join(wt, rel), b, 0755) }
-	head, _ := exec.Command("git", "-C", wt, "rev-parse", "HEAD").Output(); gd, _ := exec.Command("git", "-C", wt, "rev-parse", "--absolute-git-dir").Output(); gds := strings.TrimSpace(string(gd))
-	os.Remove(filepath.Join(gds, "sai-verify-"+strings.TrimSpace(string(head))))
+	head, _ := exec.Command("git", "-C", wt, "rev-parse", "HEAD").Output(); gd, _ := exec.Command("git", "-C", wt, "rev-parse", "--absolute-git-dir").Output(); gds, hs := strings.TrimSpace(string(gd)), strings.TrimSpace(string(head)); glob := filepath.Join(gds, "sai-verify-"+hs+"-*"); ms, _ := filepath.Glob(glob); for _, m := range ms { os.Remove(m) }
 	if st, err := os.Stat(filepath.Join(wt, ".git")); err != nil || st.IsDir() { t.Fatalf(".git file: %v %v", st, err) }
-	h := exec.Command("bash", filepath.Join(wt, ".cursor/hooks/sai-verify.sh")); h.Dir, h.Stdin = wt, strings.NewReader(`{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}`)
-	b, err := h.CombinedOutput()
-	if strings.Contains(string(b), `"permission":"allow"`) || !strings.Contains(string(b), "map_valid") { t.Fatal(err, string(b)) }
-	if _, err := os.Stat(filepath.Join(gds, "sai-verify-"+strings.TrimSpace(string(head)))); err != nil { t.Fatal(err) }
+	hook := func() { h := exec.Command("bash", filepath.Join(wt, ".cursor/hooks/sai-verify.sh")); h.Dir, h.Stdin = wt, strings.NewReader(`{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}`); b, err := h.CombinedOutput(); if strings.Contains(string(b), `"permission":"allow"`) || !strings.Contains(string(b), "map_valid") { t.Fatal(err, string(b)) } }
+	hook(); a, _ := filepath.Glob(glob); if len(a) != 1 { t.Fatal("cache", a) }
+	src, _ := os.ReadFile(filepath.Join(wt, "cmd/sai-verify/main.go")); os.WriteFile(filepath.Join(wt, "cmd/sai-verify/main.go"), append([]byte("//DIRTY\n"), src...), 0644); hook(); b2, _ := filepath.Glob(glob)
+	if len(b2) < 2 { t.Fatal("dirty HEAD cache reused", a, b2) }
 }
