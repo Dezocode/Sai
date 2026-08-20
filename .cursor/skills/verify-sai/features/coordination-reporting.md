@@ -20,4 +20,4 @@ Agents emit schema-valid SAI events, queue when Slack is down, install git hooks
 - **Emit.** ::exec scripts/agent-report emit INTAKE --task-id 20990101-0000-verify-sai-fixture --purpose t --result t --no-deliver read=.git/agent-events/queue has=20990101-0000-verify-sai-fixture
 - **Drive pending.** ::exists scripts/agent-sync-drive
 ## Gotchas
-- `SAI_AGENT_REPORT_ACTIVE=1` prevents hook recursion. Slack MCP posts are not `agent-report` events unless also emitted. Never commit queue files under `.git/`. Emit recipes must `read=` the queue and `has=` the task-id; exit 0 without a new matching queue file is FAIL.
+- `SAI_AGENT_REPORT_ACTIVE=1` prevents hook recursion. Slack MCP posts are not `agent-report` events unless also emitted. Never commit queue files under `.git/`. Emit recipes must `read=` the queue and `has=` the task-id; a newly appearing queue file must contain that marker. Exit 0 without that follow-up is FAIL.

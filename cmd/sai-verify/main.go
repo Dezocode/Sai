@@ -564,7 +564,7 @@ func runRecipe(r recipe, dir string) (code int, stdout, stderr, note string) {
 	var o, e bytes.Buffer; var before []os.DirEntry; c.Stdout, c.Stderr = &o, &e; if r.read != "" { before, _ = os.ReadDir(filepath.Join(dir, r.read)) }
 	err := c.Run()
 	if ctx.Err() == context.DeadlineExceeded { return 1, o.String(), e.String(), "timeout" }
-	if err != nil { if ee, ok := err.(*exec.ExitError); ok { code = ee.ExitCode() } else { code = 1 } } else if r.read != "" { after, _ := os.ReadDir(filepath.Join(dir, r.read)); hit := false; for _, de := range after { b, _ := os.ReadFile(filepath.Join(dir, r.read, de.Name())); if (r.has == "" || bytes.Contains(b, []byte(r.has))) && len(after) > len(before) { hit = true; break } }; if !hit { return 1, o.String(), e.String(), "unread" } }
+	if err != nil { if ee, ok := err.(*exec.ExitError); ok { code = ee.ExitCode() } else { code = 1 } } else if r.read != "" { after, _ := os.ReadDir(filepath.Join(dir, r.read)); seen := map[string]bool{}; for _, de := range before { seen[de.Name()] = true }; hit := false; for _, de := range after { if seen[de.Name()] { continue }; b, _ := os.ReadFile(filepath.Join(dir, r.read, de.Name())); if r.has == "" || bytes.Contains(b, []byte(r.has)) { hit = true; break } }; if !hit { return 1, o.String(), e.String(), "unread" } }
 	return code, o.String(), e.String(), ""
 }
 func driveCmd(s snap, headDir, evPath string, out io.Writer) int {
