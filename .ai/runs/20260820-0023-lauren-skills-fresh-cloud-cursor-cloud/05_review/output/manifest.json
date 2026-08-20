@@ -12,7 +12,10 @@
     ".ai/runs/20260820-0023-lauren-skills-fresh-cloud-cursor-cloud/05_review/output/review.md"
   ],
   "decisions": ["0006"],
-  "commits": ["5785d4786cb46dedd8750cd4df8797637c0c72b4"],
+  "commits": [
+    "5785d4786cb46dedd8750cd4df8797637c0c72b4",
+    "4e206c276ac88f8cfd73ef2c2bc63834111fc7c4"
+  ],
   "events": [],
   "human_edits": "none",
   "notes": "Self-review. Proceed as draft PR 71."

@@ -10,9 +10,13 @@ PR 70 skills were already on `Dezocode/Sai:main` (`8a30202`). A fresh Cloud Agen
 - This session loaded `.cursor/skills/lauren-mode/` from a post-PR-70 tree. Cloud does scan that path when files exist.
 - User typed `/lauren mode` (space).
 
+## Saul
+
+Required check **Saul / Product Quality** on head `4e206c2` failed as infrastructure, not as a product review. Check run `96274883831` (`saul-runner-comptroller`): `SANDBOX_PROVISIONING_FAILED: required tool unavailable` in two seconds, zero findings. Repo copies of Saul's PR 70 guards pass on that commit.
+
 ## Next safe action
 
-Merge draft [PR 71](https://github.com/Dezocode/Sai/pull/71) after review. Start a **new** Cloud Agent on latest `main` (explicit branch from `origin/main`). Type `/lauren` or `/lauren-mode`. If the skill files are missing in that VM, `git fetch origin main` and check out that SHA. Do not expect snapshot `bld-20260819-500928d1-…` to contain PR 70 until git moves.
+A new push retriggers Saul. If the sandbox is still down, that is Hostinger Saul (`saul-runner-comptroller`), not this diff. Do not merge until Saul SUCCESS or a co-founder explicitly overrides that required check. After merge, start a **new** Cloud Agent on latest `main` with an explicit branch. Type `/lauren` or `/lauren-mode`.
 
 Do not commit `.cursor/environment.json`. Do not mark ready or merge without a co-founder.
 

@@ -20,7 +20,7 @@ ICM scripts run. AGENTS.md and skill refs updated with hyphen vs space and snaps
 
 ## 5. Commit boundaries
 
-One commit on this branch (`5785d47`) with required trailers. Verify artifacts are a second commit (this review round).
+Product commit `5785d47` plus verify-artifact commit `4e206c2`, both with required trailers. This follow-up rebinds the verify report to `4e206c2` after Saul's sandbox failed on that head.
 
 ## 6. Fork compatibility
 
@@ -33,3 +33,7 @@ Docs-and-skills only. Default merge target remains `Dezocode/Sai:main`.
 ## 8. Other runs
 
 July `in_progress` / `active` runs do not claim these paths. Prior lauren-mode run is `handoff`.
+
+## 9. Saul / Product Quality
+
+Check `96274883831` on `4e206c2` is infrastructure failure (`SANDBOX_PROVISIONING_FAILED: required tool unavailable`), not a P0/P1 product list. Repo guards that Saul ran on PR 70 pass here. Cannot claim Saul SUCCESS until a later check run reviews.
