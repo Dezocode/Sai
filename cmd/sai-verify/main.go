@@ -23,7 +23,6 @@ var (
 	tickRe  = regexp.MustCompile("`([^`]+)`")
 	allEv   = []string{"sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "workspaceOpen"}
 	matchEv = map[string]bool{"preToolUse": true, "postToolUse": true, "postToolUseFailure": true, "beforeShellExecution": true, "afterShellExecution": true, "beforeReadFile": true, "afterFileEdit": true, "subagentStart": true, "subagentStop": true}
-	failEv  = map[string]bool{"sessionStart": true, "preToolUse": true, "postToolUse": true, "postToolUseFailure": true, "subagentStart": true, "beforeShellExecution": true, "beforeMCPExecution": true, "beforeReadFile": true, "beforeSubmitPrompt": true, "workspaceOpen": true}
 )
 type feat struct {
 	ID, Title, File, Desc string
@@ -235,6 +234,8 @@ func bindEvidence(s *snap, evPath, headDir string) {
 	_, hasPass := ev["pass"]
 	n, _ := ev["fail"].(float64)
 	um, _ := ev["unmapped"].([]interface{})
+	ds, _ := ev["drives"].([]interface{})
+	ioOK := true; for _, d := range ds { m, _ := d.(map[string]interface{}); if str(m["result"]) != "SKIP" && (m["stdout"] == nil || m["stderr"] == nil) { ioOK = false } }
 	switch {
 	case repo != "" && s.Repo != "" && repo != s.Repo:
 		s.MaintReason = "evidence repo mismatch"
@@ -242,7 +243,7 @@ func bindEvidence(s *snap, evPath, headDir string) {
 		s.MaintReason = "evidence HEAD mismatch"
 	case mh != mapHash(headDir):
 		s.MaintReason = "evidence map hash mismatch"
-	case !hasFail || !hasPass || sweep == "":
+	case !hasFail || !hasPass || sweep == "" || !ioOK:
 		s.MaintReason = "incomplete evidence"
 	case sweep != "clean" || len(um) > 0:
 		s.MaintStatus, s.MaintReason = "incomplete", "source sweep not clean"
@@ -373,7 +374,7 @@ func relevant(fs []feat, path, tool string) []hit {
 		ok := path == "" && tool == "" && f.ID == "verify-sai"
 		for _, p := range f.Paths {
 			p = strings.ToLower(strings.TrimPrefix(p, "./"))
-			if p == "" { continue }
+			if p == "" || pl == "" { continue }
 			if strings.Contains(p, "/") { ok = ok || strings.Contains(pl, p) || strings.Contains(p, pl) } else { ok = ok || pl == p || strings.HasSuffix(pl, "/"+p) }
 		}
 		if ok && tool != "" && !relTool(f, tool) { ok = false }
@@ -392,7 +393,7 @@ func checkHooks(root string) (ok, pre, post, stop bool, matcher string, failClos
 	good := func(name string) bool {
 		for _, h := range doc.Hooks[name] {
 			if !strings.Contains(h.Command, "sai-verify") || matchEv[name] && h.Matcher != ".*" && h.Matcher != "^.*$" { continue }
-			return !failEv[name] || h.FailClosed
+			return h.FailClosed
 		}
 		return false
 	}
@@ -514,21 +515,21 @@ func driveCmd(s snap, headDir, evPath string, out io.Writer) int {
 			want, cmds := 0, ticks(p)
 			if strings.Contains(strings.ToLower(p), "expect exit 2") { want = 2 }
 			if len(cmds) == 0 { skip++; rows = append(rows, map[string]string{"id": f.ID, "name": p, "result": "SKIP"}); continue }
-			okAll, last := true, ""
+			okAll, last, outp := true, "", ""
 			for _, last = range cmds {
 				c := exec.Command("bash", "-lc", last)
 				c.Dir = headDir
-				code := 0
-				if err := c.Run(); err != nil {
+				b, err := c.CombinedOutput(); code := 0; outp = string(b)
+				if err != nil {
 					if ee, ok := err.(*exec.ExitError); ok { code = ee.ExitCode() } else { code = 1 }
 				}
 				if code != want {
 					okAll, fail = false, fail+1
-					rows = append(rows, map[string]string{"id": f.ID, "name": p, "cmd": last, "result": "FAIL", "note": fmt.Sprintf("exit %d", code)})
+					rows = append(rows, map[string]string{"id": f.ID, "name": p, "cmd": last, "result": "FAIL", "note": fmt.Sprintf("exit %d", code), "stdout": outp, "stderr": outp})
 					break
 				}
 			}
-			if okAll { pass++; rows = append(rows, map[string]string{"id": f.ID, "name": p, "cmd": last, "result": "PASS"}) }
+			if okAll { pass++; rows = append(rows, map[string]string{"id": f.ID, "name": p, "cmd": last, "result": "PASS", "stdout": outp, "stderr": outp}) }
 		}
 	}
 	sweep := "dirty"

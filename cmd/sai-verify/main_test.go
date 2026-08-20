@@ -98,7 +98,7 @@ func TestFuturePRAndHooks(t *testing.T) {
 	s, _ = build(d, d, d, "", "", "", "", "")
 	if s.MapValid { t.Fatal("malformed map") }
 	for _, tc := range []struct{ p, want string; deny bool }{
-		{`{"hook_event_name":"sessionStart"}`, `FEATURE CONTEXT`, false},
+		{`{"hook_event_name":"sessionStart"}`, `verify-sai`, false},
 		{`{"hook_event_name":"afterFileEdit","edits":[{"file_path":"README.md"}]}`, `map_valid`, false},
 		{`{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":"scripts/agent-report"},"tool_output":"{}"}`, `preserve_ok`, false},
 		{`{"hook_event_name":"preToolUse","tool_name":"Grep","tool_input":{"path":".ai/CONTEXT.md"}}`, `icm-workspace`, false},
@@ -113,7 +113,7 @@ func TestFuturePRAndHooks(t *testing.T) {
 			if c != 2 || m["permission"] != "deny" { t.Fatal("deny", tc.p, c, m) }
 			continue
 		}
-		if c != 0 || m["permission"] != nil || !strings.Contains(m["additional_context"].(string), tc.want) { t.Fatal(tc.want, c, m) }
+		if c != 0 || m["permission"] != nil || !strings.Contains(m["additional_context"].(string), tc.want) || strings.Contains(tc.p, "sessionStart") && strings.Count(m["additional_context"].(string), "Relevant feature:") != 1 { t.Fatal(tc.want, c, m) }
 	}
 	ev := filepath.Join(t.TempDir(), "ev.json")
 	os.WriteFile(ev, []byte(`{"head":"nope","map_hash":"x","sweep":"clean","fail":0,"unmapped":[]}`), 0644)
@@ -135,7 +135,7 @@ func TestFuturePRAndHooks(t *testing.T) {
 	if s.PreserveOK { t.Fatal("G trusted preserve still sees delete even if candidate kernel gutted") }
 	drv, evp, dout := t.TempDir(), filepath.Join(t.TempDir(), "ev.json"), bytes.Buffer{}
 	mini(t, drv, map[string]string{"alpha.md": featBody("alpha", "", "`/bin/true`; exit 0.", "Run `/bin/true`")})
-	if run([]string{"drive", "--root", drv, "--head", drv, "--base", drv, "--evidence", evp}, bytes.NewReader(nil), &dout, bytes.NewBuffer(nil)) != 0 || !strings.Contains(dout.String(), `"result": "PASS"`) { t.Fatal("drive", dout.String()) }
+	if run([]string{"drive", "--root", drv, "--head", drv, "--base", drv, "--evidence", evp}, bytes.NewReader(nil), &dout, bytes.NewBuffer(nil)) != 0 || !strings.Contains(dout.String(), `"result": "PASS"`) || !strings.Contains(dout.String(), `"stdout"`) || !strings.Contains(dout.String(), `"stderr"`) { t.Fatal("drive", dout.String()) }
 }
 func TestLinkedWorktreeHook(t *testing.T) {
 	r, wt := root(t), t.TempDir()

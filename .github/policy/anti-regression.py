@@ -332,10 +332,10 @@ class Policy:
             return False
         def covered(name: str) -> bool:
             for h in (doc.get("hooks") or {}).get(name) or []:
-                if "sai-verify" in str(h.get("command", "")) and (h.get("matcher") in (".*", "^.*$") or name not in ("preToolUse", "postToolUse", "postToolUseFailure", "beforeShellExecution", "afterShellExecution", "beforeReadFile", "afterFileEdit", "subagentStart", "subagentStop")) and (name not in ("preToolUse", "postToolUse", "postToolUseFailure", "beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "sessionStart", "stop", "workspaceOpen") or h.get("failClosed") is True):
+                if "sai-verify" in str(h.get("command", "")) and (h.get("matcher") in (".*", "^.*$") or name not in ("preToolUse", "postToolUse", "postToolUseFailure", "beforeShellExecution", "afterShellExecution", "beforeReadFile", "afterFileEdit", "subagentStart", "subagentStop")) and h.get("failClosed") is True:
                     return True
             return False
-        need = ("preToolUse", "postToolUse", "sessionStart", "beforeShellExecution", "beforeMCPExecution", "beforeReadFile", "afterFileEdit", "subagentStart", "stop", "workspaceOpen")
+        need = ("sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "workspaceOpen")
         hook_ok = all(covered(n) for n in need)
         self.record("Required pre/post verification hooks", hook_ok, "")
         has_kernel = (self.candidate / "cmd" / "sai-verify").is_dir()
