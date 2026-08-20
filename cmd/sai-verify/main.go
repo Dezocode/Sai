@@ -19,7 +19,7 @@ const mapDir = ".cursor/skills/verify-sai/features"
 var (
 	linkRe  = regexp.MustCompile(`\]\((?:\./)?([^)]+\.md)\)`)
 	idRe    = regexp.MustCompile("`([a-z][a-z0-9-]*)`")
-	pathRe  = regexp.MustCompile(`(?:\./)?(?:\.ai|\.cursor|\.github|\.githooks|scripts|openclaw-dashboard|cmd)(/[A-Za-z0-9_.*{}-]+)+|(?:AGENTS|CLAUDE|CODEX|OPENCLAW|README|Team)\.md|go\.mod`)
+	pathRe  = regexp.MustCompile(`(?:\./)?(?:\.ai|\.cursor|\.github|\.githooks|scripts|openclaw-dashboard|cmd)(/[A-Za-z0-9_.*{},-]+)+|(?:AGENTS|CLAUDE|CODEX|OPENCLAW|README|Team)\.md|go\.mod`)
 	rmRe    = regexp.MustCompile(`(?i)^Removal-authorized:\s*(.+)$`)
 	h2Re    = regexp.MustCompile(`^## `)
 	allEv   = []string{"sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "workspaceOpen"}
@@ -202,7 +202,7 @@ func mapHash(dir string) string {
 	h, seen := sha256.New(), map[string]bool{}
 	var roots []string
 	fs, _ := loadFeats(dir)
-	for _, f := range fs { for _, p := range f.Paths { p = filepath.Clean(strings.TrimPrefix(p, "./")); if i := strings.IndexAny(p, "*?{"); i > 1 { p = filepath.Clean(p[:i]) }; roots = append(roots, p) } }
+	for _, f := range fs { for _, p := range f.Paths { p = filepath.Clean(strings.TrimPrefix(p, "./")); alts := []string{p}; if i, j := strings.IndexByte(p, '{'), strings.LastIndexByte(p, '}'); i > 0 && j > i { alts = nil; for _, a := range strings.Split(p[i+1:j], ",") { alts = append(alts, p[:i]+a+p[j+1:]) } }; for _, e := range alts { if k := strings.IndexAny(e, "*?"); k > 1 { e = filepath.Clean(e[:k]) }; roots = append(roots, e) } } }
 	for _, p := range uniq(append(roots, mapDir, "cmd", ".cursor/hooks", ".cursor/hooks.json", ".github/policy", ".github/workflows", "go.mod")) {
 		filepath.Walk(filepath.Join(dir, p), func(fp string, inf os.FileInfo, err error) error {
 			if err == nil && inf != nil && !inf.IsDir() { rel, _ := filepath.Rel(dir, fp); if !seen[rel] && !strings.HasPrefix(rel, ".ai/runs/") && !strings.Contains(rel, "__pycache__") && !strings.Contains(rel, "node_modules") && !strings.HasSuffix(rel, ".pyc") { seen[rel] = true; b, _ := os.ReadFile(fp); h.Write([]byte(rel)); h.Write(b) } }
@@ -247,8 +247,8 @@ func unmapped(root string, fs []feat) []string {
 	exact, prefs := map[string]bool{}, []string{}
 	for _, ft := range fs {
 		for _, p := range ft.Paths {
-			p = filepath.Clean(strings.TrimPrefix(p, "./"))
-			if i := strings.IndexAny(p, "*?{"); i > 1 { prefs = append(prefs, p, filepath.Clean(p[:i])) } else { exact[p] = true }
+			p = filepath.Clean(strings.TrimPrefix(p, "./")); alts := []string{p}; if i, j := strings.IndexByte(p, '{'), strings.LastIndexByte(p, '}'); i > 0 && j > i { alts = nil; for _, a := range strings.Split(p[i+1:j], ",") { alts = append(alts, p[:i]+a+p[j+1:]) } }
+			for _, e := range alts { if k := strings.IndexAny(e, "*?"); k >= 0 { prefs = append(prefs, e); if strings.HasSuffix(e, "/*") { prefs = append(prefs, filepath.Clean(e[:k])) } } else { exact[e] = true } }
 		}
 	}
 	var miss []string
@@ -257,7 +257,7 @@ func unmapped(root string, fs []feat) []string {
 		hit := exact[f]
 		if !hit {
 			for _, p := range prefs {
-				if ok, _ := filepath.Match(p, f); ok || p != "." && (f == p || strings.HasPrefix(f, p+"/")) { hit = true; break }
+				if strings.ContainsAny(p, "*?") { if ok, _ := filepath.Match(p, f); ok { hit = true; break } } else if p != "." && (f == p || strings.HasPrefix(f, p+"/")) { hit = true; break }
 			}
 		}
 		if !hit { miss = append(miss, f) }
