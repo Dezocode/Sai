@@ -204,9 +204,9 @@ func loadFeatsRef(dir, ref string) ([]feat, []string) {
 }
 func mapHash(dir string) string {
 	h := sha256.New()
-	for _, sub := range []string{mapDir, "cmd/sai-verify", ".cursor/hooks", ".cursor/hooks.json"} {
+	for _, sub := range []string{mapDir, "cmd", "scripts", ".githooks", ".github/workflows", ".github/policy", ".ai/shared/schemas", ".ai/_config", ".ai/contracts/_templates", ".cursor/hooks", ".cursor/hooks.json", ".cursor/settings.json", ".cursor/rules", "openclaw-dashboard/scripts", "openclaw-dashboard/tests/smoke", "go.mod", "AGENTS.md", "CLAUDE.md", "CODEX.md", "OPENCLAW.md", "README.md", "Team.md", ".ai/CONTEXT.md", ".ai/INITIALIZE.md", ".ai/ONBOARDING.md"} {
 		filepath.Walk(filepath.Join(dir, sub), func(p string, inf os.FileInfo, err error) error {
-			if err == nil && inf != nil && !inf.IsDir() && !strings.HasSuffix(p, "_test.go") { rel, _ := filepath.Rel(dir, p); b, _ := os.ReadFile(p); h.Write([]byte(rel)); h.Write(b) }
+			if err == nil && inf != nil && !inf.IsDir() && !strings.HasSuffix(p, "_test.go") && !strings.Contains(p, "__pycache__") && !strings.HasSuffix(p, ".pyc") { rel, _ := filepath.Rel(dir, p); b, _ := os.ReadFile(p); h.Write([]byte(rel)); h.Write(b) }
 			return nil
 		})
 	}
@@ -473,7 +473,7 @@ func relTool(f feat, tool string) bool {
 	if strings.Contains(t, "shell") || t == "bash" { return strings.Contains(blob, "shell") || strings.Contains(blob, "scripts/") || f.ID == "verify-sai" }
 	return true
 }
-type recipe struct{ op string; argv []string; want int; to time.Duration }
+type recipe struct{ op, read, has string; argv []string; want int; to time.Duration }
 func okTok(a string) bool {
 	if a == "" || a == ".." || strings.Contains(a, "/../") || strings.HasPrefix(a, "../") { return false }
 	for _, c := range a { if (c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && (c < '0' || c > '9') && !strings.ContainsRune("-_.=/+,:@*", c) { return false } }
@@ -497,6 +497,7 @@ func parseRecipe(p string) (recipe, error) {
 	for _, t := range fs[1:] {
 		if strings.HasPrefix(t, "expect=") { fmt.Sscanf(t[7:], "%d", &r.want); continue }
 		if strings.HasPrefix(t, "timeout=") { n := 0; fmt.Sscanf(t[8:], "%d", &n); if n <= 0 { r.to = time.Millisecond } else { r.to = time.Duration(n) * time.Second }; continue }
+		if strings.HasPrefix(t, "read=") { r.read = t[5:]; continue }; if strings.HasPrefix(t, "has=") { r.has = t[4:]; continue }
 		r.argv = append(r.argv, t)
 	}
 	return r, r.err()
@@ -513,7 +514,7 @@ func (r recipe) err() error {
 	case "json":
 		if n != 1 || !relPath(a0) { return fmt.Errorf("json") }
 	case "exec":
-		if n == 0 || !allowBin(a0) { return fmt.Errorf("bin") }
+		if n == 0 || !allowBin(a0) || a0 == "scripts/agent-report" && (r.read == "" || !relPath(r.read)) { return fmt.Errorf("bin") }
 		for _, a := range r.argv[1:] { if !okTok(a) { return fmt.Errorf("arg") } }
 	case "py":
 		if n == 0 || !relPath(a0) || !strings.HasSuffix(a0, ".py") || (!strings.HasPrefix(a0, ".github/") && !strings.HasPrefix(a0, "scripts/")) { return fmt.Errorf("py") }
@@ -560,10 +561,10 @@ func runRecipe(r recipe, dir string) (code int, stdout, stderr, note string) {
 	default: return 1, "", "", "op"
 	}
 	c := exec.CommandContext(ctx, argv[0], argv[1:]...); c.Dir, c.Env = dir, recipeEnv(tmp)
-	var o, e bytes.Buffer; c.Stdout, c.Stderr = &o, &e
+	var o, e bytes.Buffer; var before []os.DirEntry; c.Stdout, c.Stderr = &o, &e; if r.read != "" { before, _ = os.ReadDir(filepath.Join(dir, r.read)) }
 	err := c.Run()
 	if ctx.Err() == context.DeadlineExceeded { return 1, o.String(), e.String(), "timeout" }
-	if err != nil { if ee, ok := err.(*exec.ExitError); ok { code = ee.ExitCode() } else { code = 1 } }
+	if err != nil { if ee, ok := err.(*exec.ExitError); ok { code = ee.ExitCode() } else { code = 1 } } else if r.read != "" { after, _ := os.ReadDir(filepath.Join(dir, r.read)); hit := false; for _, de := range after { b, _ := os.ReadFile(filepath.Join(dir, r.read, de.Name())); if (r.has == "" || bytes.Contains(b, []byte(r.has))) && len(after) > len(before) { hit = true; break } }; if !hit { return 1, o.String(), e.String(), "unread" } }
 	return code, o.String(), e.String(), ""
 }
 func driveCmd(s snap, headDir, evPath string, out io.Writer) int {
