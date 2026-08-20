@@ -19,17 +19,11 @@ Future agents query the native pstack map through one Go API used by CLI, Cursor
 ## How to get to it (user POV)
 - `/verify-sai` (`.cursor/skills/verify-sai/SKILL.md`). Cold: `go run ./cmd/sai-verify snapshot|proof|doctor|drive|preserve|hook|relevant --path <file> --tool Read`. Agent loop: `.cursor/hooks.json`. CI: agent-audit + post-merge BASE preserve. Maintain: `/maintain-verification-skill` on this folder.
 ## Driving it with verify-sai
-Preconditions: Go 1.16+; repo root.
-- **Doctor.** `go run ./cmd/sai-verify doctor`; exit 0 when map+hooks hold.
-- **Snapshot.** `go run ./cmd/sai-verify snapshot`; JSON `map_valid`, `head` matches `git rev-parse HEAD`.
-- **Hook pre.** `printf '%s' '{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}' | go run ./cmd/sai-verify hook`; exit 0; `additional_context` has `map_valid`; no `permission` key.
-- **Hook post.** `printf '%s' '{"hook_event_name":"postToolUse","tool_name":"Read","tool_input":{"path":"README.md"},"tool_output":"{}"}' | go run ./cmd/sai-verify hook`; exit 0; no `permission` key.
-- **Preserve.** `go run ./cmd/sai-verify preserve`; exit 0 (bootstrap if BASE has no map).
-- **Session hook.** `printf '%s' '{"hook_event_name":"sessionStart"}' | go run ./cmd/sai-verify hook`; `additional_context` has `map_valid`.
-- **Shell hook.** `printf '%s' '{"hook_event_name":"beforeShellExecution","command":"true"}' | go run ./cmd/sai-verify hook`; exit 0; no `permission` key.
-- **Module.** `test -f go.mod && grep -q github.com/Dezocode/Sai go.mod`
-- **Tests.** `go test -race ./...`; `go vet ./...`
-- **Proof.** `go run ./cmd/sai-verify proof`
+- **Doctor.** ::sai doctor
+- **Hooks.** ::json .cursor/hooks.json
+- **Module.** ::contains go.mod github.com/Dezocode/Sai
+- **Tests.** ::gotest -race ./... timeout=180
+- **Vet.** ::govet ./...
+- **Proof.** ::sai proof
 ## Gotchas
-- Recompute from repo+HEAD; conversation memory is not proof. Success hooks omit `permission` so they cannot override an adjacent deny. Matcher `.*` required; empty matcher fails hooks_ok. Cloud Agents do not run sessionStart/End, before/afterMCPExecution, or workspaceOpen; Desktop/CLI do.
-- Protected delete/rewrite fails preserve once BASE has the kernel. HEAD `Removal-authorized:` is ignored.
+- Recompute from repo+HEAD; conversation memory is not proof. Success hooks omit `permission` so they cannot override an adjacent deny. Matcher `.*` required; empty matcher fails hooks_ok. Cloud Agents do not run sessionStart/End, before/afterMCPExecution, or workspaceOpen; Desktop/CLI do. Protected delete/rewrite fails preserve once BASE has the kernel. HEAD `Removal-authorized:` is ignored.

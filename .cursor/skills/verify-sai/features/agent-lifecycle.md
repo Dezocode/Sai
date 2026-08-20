@@ -31,19 +31,13 @@ A principal names an agent, binds a charter, initializes hooks and capabilities,
 - `agents-index` `.ai/agents/README.md` named-folder convention; each folder has `AGENT.md`+`skills.md`.
 - `automation-specs` `.ai/agents/automation-specs/cursor-cloud-30d8.md` bootstrap automation record.
 ## How to get to it (user POV)
-- New agent: execute `.ai/INITIALIZE.md`; contractor: `.ai/ONBOARDING.md` after contract first message.
-- Attach `@<name>` in Cursor or open `CLAUDE.md`/`CODEX.md`/`OPENCLAW.md` then `AGENT.md`.
-- Scaffold only via `scripts/agent-scaffold` / `agent-memory-scaffold`.
+- New agent: execute `.ai/INITIALIZE.md`; contractor: `.ai/ONBOARDING.md` after contract first message. Attach `@<name>` in Cursor or open `CLAUDE.md`/`CODEX.md`/`OPENCLAW.md` then `AGENT.md`. Scaffold only via `scripts/agent-scaffold` / `agent-memory-scaffold`.
 ## Driving it with verify-sai
-Preconditions: repo root.
-- **Registry.** `python3 -m json.tool .ai/agents/registry.json`; every `folder` exists.
-- **Setup gate.** `scripts/verify-agent-setup`; exit 0.
-- **Scaffold reject.** `scripts/verify-scaffold-safety`; exit 0 (path traversal rejected).
-- **Caps help.** `scripts/agent-verify-caps 2>&1 | head -1`; usage on missing `--tools-file`.
-- **SDK.** `python3 -m json.tool .ai/agents/mimi/runtimes/claude/agent-sdk/config/agent-options.json`
-- **Roadmap.** `python3 -m json.tool .ai/agents/saul/roadmap.json`
-- **Proof.** `go run ./cmd/sai-verify relevant --path .ai/INITIALIZE.md --tool Read` lists `agent-lifecycle`.
+- **Registry.** ::json .ai/agents/registry.json
+- **Setup gate.** ::exec scripts/verify-agent-setup
+- **Scaffold reject.** ::exec scripts/verify-scaffold-safety
+- **Caps.** ::exec scripts/agent-verify-caps expect=1
+- **SDK.** ::json .ai/agents/mimi/runtimes/claude/agent-sdk/config/agent-options.json
+- **Roadmap.** ::json .ai/agents/saul/roadmap.json
 ## Gotchas
-- Do not self-name; principal grants name and role title.
-- Do not overwrite another runtime's `tools.json`.
-- `scripts/agent-init` warns against managed Cloud VM hooksPath.
+- Do not self-name; principal grants name and role title. Do not overwrite another runtime's `tools.json`. `scripts/agent-init` warns against managed Cloud VM hooksPath.

@@ -26,20 +26,18 @@ Operators bootstrap a loopback OpenClaw Gateway, run fail-closed fleet/telegram/
 - `oc-onboard-docs` `docs/subagent-onboarding-protocol.md` `alfred-smoke-runbook.md` `fulfillment-evidence.md` `sai-icm-integration.md` `icm-protocol-handbook.md`
 - `oc-notebooklm` `openclaw-dashboard/docs/sources/notebooklm-space-lobster/README.md`
 ## How to get to it (user POV)
-- VPS: `openclaw-dashboard/docs/vps-bootstrap.md` then `verify-all-dependencies.sh` and `verify-gateway-health.sh`
-- CI/local bind: `openclaw-dashboard/scripts/verify-gateway-bind.sh`
-- Fleet: `tests/smoke/all-gates.sh` / `fleet-coherence-gate.sh`
-- Telegram evidence: `docs/agent-telegram-registry.md` (connected=yes only with valid links)
+- VPS: `openclaw-dashboard/docs/vps-bootstrap.md` then `verify-all-dependencies.sh` and `verify-gateway-health.sh` CI/local bind: `openclaw-dashboard/scripts/verify-gateway-bind.sh` Fleet: `tests/smoke/all-gates.sh` / `fleet-coherence-gate.sh` Telegram evidence: `docs/agent-telegram-registry.md` (connected=yes only with valid links)
 ## Driving it with verify-sai
-Preconditions: repo root. Gateway/Telegram live services optional.
-- **Bind.** `openclaw-dashboard/scripts/verify-gateway-bind.sh`; exit 0.
-- **Self-tests.** `openclaw-dashboard/scripts/verify-all-dependencies.sh --self-test`; `openclaw-dashboard/scripts/verify-gateway-health.sh --self-test`; `openclaw-dashboard/scripts/verify-agent-telegram.sh --self-test`; `openclaw-dashboard/tests/smoke/subagent-connection-gate-negative.sh`
-- **Secrets.** `openclaw-dashboard/scripts/verify-secrets-compliance.sh`; exit 0.
-- **Fleet files.** `openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh`; exit 0 if contract fields present.
-- **Stubs.** `openclaw-dashboard/scripts/verify-ingest-latency.sh`; `openclaw-dashboard/tests/smoke/run-all.sh`; `openclaw-dashboard/tests/smoke/telegram-session-reporting.sh`; `openclaw-dashboard/tests/smoke/telegram-mcq.sh`; expect exit 2.
-- **Proof.** `go run ./cmd/sai-verify relevant --path openclaw-dashboard/scripts/verify-gateway-bind.sh --tool Shell` lists `openclaw-ops`.
+- **Bind.** ::exec openclaw-dashboard/scripts/verify-gateway-bind.sh
+- **Deps.** ::exec openclaw-dashboard/scripts/verify-all-dependencies.sh --self-test
+- **Health.** ::exec openclaw-dashboard/scripts/verify-gateway-health.sh --self-test
+- **Telegram.** ::exec openclaw-dashboard/scripts/verify-agent-telegram.sh --self-test
+- **Conn-neg.** ::exec openclaw-dashboard/tests/smoke/subagent-connection-gate-negative.sh
+- **Secrets.** ::exec openclaw-dashboard/scripts/verify-secrets-compliance.sh
+- **Fleet.** ::exec openclaw-dashboard/tests/smoke/fleet-coherence-gate.sh
+- **Ingest stub.** ::exec openclaw-dashboard/scripts/verify-ingest-latency.sh expect=2
+- **Run-all stub.** ::exec openclaw-dashboard/tests/smoke/run-all.sh expect=2
+- **Session stub.** ::exec openclaw-dashboard/tests/smoke/telegram-session-reporting.sh expect=2
+- **MCQ stub.** ::exec openclaw-dashboard/tests/smoke/telegram-mcq.sh expect=2
 ## Gotchas
-- Live `verify-gateway-health.sh` without OpenClaw CLI is `verified-unreachable` (need `openclaw` + loopback gateway).
-- `telegram-mcq.sh`, ingest SLO, and `telegram-session-reporting.sh` are stubs (exit 2) until wired — prove the stub, do not skip.
-- `subagent-connection-gate.sh` (non-negative) fail-closes until registry evidence exists.
-- Never bind gateway to `0.0.0.0`.
+- Live `verify-gateway-health.sh` without OpenClaw CLI is `verified-unreachable` (need `openclaw` + loopback gateway). `telegram-mcq.sh`, ingest SLO, and `telegram-session-reporting.sh` are stubs (exit 2) until wired — prove the stub, do not skip. `subagent-connection-gate.sh` (non-negative) fail-closes until registry evidence exists. Never bind gateway to `0.0.0.0`.

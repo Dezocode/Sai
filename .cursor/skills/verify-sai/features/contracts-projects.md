@@ -12,18 +12,12 @@ Contract Administrator scaffolds versioned contracts and project branch indexes;
 - `project-openclaw` `.ai/projects/openclaw-dashboard/{branches-index,contract-refs,coordination/slack-channel}.json`
 - `contracts-readme` `.ai/contracts/README.md` ID format `YYYYMMDD-<slug>-<principal>`
 ## How to get to it (user POV)
-- Create: `scripts/agent-contract-scaffold` as documented in `.ai/contracts/README.md`
-- Review: `scripts/agent-contract-pr-review --contract-id 20260715-splunk-clone-monaecode --branch <branch>`
-- Read live contracts under `.ai/contracts/<id>/contract.md`
+- Create: `scripts/agent-contract-scaffold` as documented in `.ai/contracts/README.md` Review: `scripts/agent-contract-pr-review --contract-id 20260715-splunk-clone-monaecode --branch <branch>` Read live contracts under `.ai/contracts/<id>/contract.md`
 ## Driving it with verify-sai
-Preconditions: repo root.
-- **Templates exist.** `test -f .ai/contracts/_templates/claude-contract-template.json`
-- **Schema.** `python3 -m json.tool .ai/shared/schemas/contract.schema.json`
-- **Live JSON.** `python3 -m json.tool .ai/contracts/20260722-openclaw-dashboard-dezocode/contract.json`
-- **Review usage.** `scripts/agent-contract-pr-review 2>&1 | grep -q contract-id`; exit 0.
-- **Allowlist on contracts.** `scripts/verify-contract-shell-allowlist`; exit 0.
-- **Proof.** `go run ./cmd/sai-verify relevant --path .ai/contracts/README.md --tool Read` lists `contracts-projects`.
+- **Templates.** ::exists .ai/contracts/_templates/claude-contract-template.json
+- **Schema.** ::json .ai/shared/schemas/contract.schema.json
+- **Live JSON.** ::json .ai/contracts/20260722-openclaw-dashboard-dezocode/contract.json
+- **Review.** ::exists scripts/agent-contract-pr-review
+- **Allowlist.** ::exec scripts/verify-contract-shell-allowlist
 ## Gotchas
-- Isolation mode `prototype` vs `integration` is a contract field, not a hidden default.
-- Do not edit another contractor's claimed branch; coordinate via indexes + Slack.
-- OpenClaw dashboard remains prototype per DR-20260724. `.ai/projects/mimi-dispatcher/` is absent (contract exists; product gap).
+- Isolation mode `prototype` vs `integration` is a contract field, not a hidden default. Do not edit another contractor's claimed branch; coordinate via indexes + Slack. OpenClaw dashboard remains prototype per DR-20260724. `.ai/projects/mimi-dispatcher/` is absent (contract exists; product gap).

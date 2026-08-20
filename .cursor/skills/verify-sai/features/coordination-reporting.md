@@ -15,17 +15,9 @@ Agents emit schema-valid SAI events, queue when Slack is down, install git hooks
 - `drive-sync` `scripts/agent-sync-drive [--remote] [--repo-key]` pending+exit 0 without rclone/remote.
 - `ci-handoff-slack` `scripts/ci-merge-handoff-slack` posts merge HANDOFF when token set.
 ## How to get to it (user POV)
-- `scripts/agent-report emit INTAKE --task-id <id> --purpose … --result …`
-- `scripts/install-agent-hooks` then ordinary `git commit` / `git push`
-- `.githooks/post-push-equivalent.sh -u origin <branch>` when a post-push confirm is required
-- `scripts/agent-sync-drive` after a verified remote SHA
+- `scripts/agent-report emit INTAKE --task-id <id> --purpose … --result …` `scripts/install-agent-hooks` then ordinary `git commit` / `git push` `.githooks/post-push-equivalent.sh -u origin <branch>` when a post-push confirm is required `scripts/agent-sync-drive` after a verified remote SHA
 ## Driving it with verify-sai
-Preconditions: git repo; token optional.
-- **Syntax.** `bash -n scripts/agent-report .githooks/pre-push .githooks/post-commit`
-- **Emit.** `scripts/agent-report emit INTAKE --task-id 20990101-0000-verify-sai-fixture --purpose t --result t --no-deliver`; exit 0; queue JSON has event_type INTAKE.
-- **Drive pending.** `SAI_DRIVE_REMOTE= scripts/agent-sync-drive`; exit 0; output mentions pending.
-- **Proof.** `go run ./cmd/sai-verify relevant --path scripts/agent-report --tool Read` lists `coordination-reporting`.
+- **Emit.** ::exec scripts/agent-report emit INTAKE --task-id 20990101-0000-verify-sai-fixture --purpose t --result t --no-deliver
+- **Drive pending.** ::exec scripts/agent-sync-drive
 ## Gotchas
-- `SAI_AGENT_REPORT_ACTIVE=1` prevents hook recursion.
-- Slack MCP posts are not `agent-report` events unless also emitted.
-- Never commit queue files under `.git/`.
+- `SAI_AGENT_REPORT_ACTIVE=1` prevents hook recursion. Slack MCP posts are not `agent-report` events unless also emitted. Never commit queue files under `.git/`.

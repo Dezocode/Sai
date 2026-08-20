@@ -2,6 +2,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 )
 const mapDir = ".cursor/skills/verify-sai/features"
 var (
@@ -20,7 +22,6 @@ var (
 	pathRe  = regexp.MustCompile(`(?:\./)?(?:\.ai|\.cursor|\.github|\.githooks|scripts|openclaw-dashboard|cmd)(/[A-Za-z0-9_.*{}-]+)+|(?:AGENTS|CLAUDE|CODEX|OPENCLAW|README|Team)\.md|go\.mod`)
 	rmRe    = regexp.MustCompile(`(?i)^Removal-authorized:\s*(.+)$`)
 	h2Re    = regexp.MustCompile(`^## `)
-	tickRe  = regexp.MustCompile("`([^`]+)`")
 	allEv   = []string{"sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "workspaceOpen"}
 	matchEv = map[string]bool{"preToolUse": true, "postToolUse": true, "postToolUseFailure": true, "beforeShellExecution": true, "afterShellExecution": true, "beforeReadFile": true, "afterFileEdit": true, "subagentStart": true, "subagentStop": true}
 )
@@ -178,19 +179,13 @@ func loadFeats(root string) ([]feat, []string) {
 	}
 	ents, _ := os.ReadDir(dir)
 	onDisk, seenIdx, fs, probs := map[string]bool{}, map[string]bool{}, []feat{}, []string{}
-	for _, e := range ents {
-		if !e.IsDir() && e.Name() != "README.md" && strings.HasSuffix(e.Name(), ".md") { onDisk[e.Name()] = true }
-	}
+	for _, e := range ents { if !e.IsDir() && e.Name() != "README.md" && strings.HasSuffix(e.Name(), ".md") { onDisk[e.Name()] = true } }
 	for _, name := range indexed {
-		if seenIdx[name] { probs = append(probs, "duplicate index "+name) }
-		seenIdx[name] = true
+		if seenIdx[name] { probs = append(probs, "duplicate index "+name) }; seenIdx[name] = true
 		if !onDisk[name] { probs = append(probs, "dead index "+name); continue }
-		f, p := parseFeat(filepath.Join(dir, name), strings.TrimSuffix(name, ".md"))
-		probs, fs = append(probs, p...), append(fs, f)
+		f, p := parseFeat(filepath.Join(dir, name), strings.TrimSuffix(name, ".md")); probs, fs = append(probs, p...), append(fs, f)
 	}
-	for name := range onDisk {
-		if !seenIdx[name] { probs = append(probs, "unindexed "+name) }
-	}
+	for name := range onDisk { if !seenIdx[name] { probs = append(probs, "unindexed "+name) } }
 	return fs, probs
 }
 func loadFeatsRef(dir, ref string) ([]feat, []string) {
@@ -229,28 +224,23 @@ func bindEvidence(s *snap, evPath, headDir string) {
 	mh, _ := ev["map_hash"].(string)
 	repo, _ := ev["repo"].(string)
 	sweep, _ := ev["sweep"].(string)
-	s.MaintHead, s.MaintMapHash, s.EvidenceBound, s.MaintStatus = head, mh, true, "stale"
+	s.MaintHead, s.MaintMapHash, s.MaintStatus = head, mh, "stale"
 	_, hasFail := ev["fail"]
 	_, hasPass := ev["pass"]
 	n, _ := ev["fail"].(float64)
 	um, _ := ev["unmapped"].([]interface{})
 	ds, _ := ev["drives"].([]interface{})
+	ebase, _ := ev["base"].(string)
 	ioOK := true; for _, d := range ds { m, _ := d.(map[string]interface{}); if str(m["result"]) != "SKIP" && (m["stdout"] == nil || m["stderr"] == nil) { ioOK = false } }
 	switch {
-	case repo != "" && s.Repo != "" && repo != s.Repo:
-		s.MaintReason = "evidence repo mismatch"
-	case head != s.Head:
-		s.MaintReason = "evidence HEAD mismatch"
-	case mh != mapHash(headDir):
-		s.MaintReason = "evidence map hash mismatch"
-	case !hasFail || !hasPass || sweep == "" || !ioOK:
-		s.MaintReason = "incomplete evidence"
-	case sweep != "clean" || len(um) > 0:
-		s.MaintStatus, s.MaintReason = "incomplete", "source sweep not clean"
-	case n != 0:
-		s.MaintStatus, s.MaintReason = "bound", "live-drive failures"
-	default:
-		s.MaintStatus, s.MaintRequired, s.MaintReason, s.Completeness = "bound", false, "", "proven"
+	case repo != "" && s.Repo != "" && repo != s.Repo: s.MaintReason = "evidence repo mismatch"
+	case ebase != "" && s.Base != "" && ebase != s.Base: s.MaintReason = "evidence base mismatch"
+	case head != s.Head: s.MaintReason = "evidence HEAD mismatch"
+	case mh != mapHash(headDir): s.MaintReason = "evidence map hash mismatch"
+	case !hasFail || !hasPass || sweep == "" || !ioOK: s.MaintReason = "incomplete evidence"
+	case sweep != "clean" || len(um) > 0: s.MaintStatus, s.MaintReason = "incomplete", "source sweep not clean"
+	case n != 0: s.MaintStatus, s.MaintReason = "bound", "live-drive failures"
+	default: s.MaintStatus, s.MaintRequired, s.MaintReason, s.Completeness, s.EvidenceBound = "bound", false, "", "proven", true
 	}
 }
 func watch(f string) bool {
@@ -319,7 +309,7 @@ func parseFeat(path, id string) (feat, []string) {
 		case strings.HasPrefix(sec, "How to get to it") && strings.HasPrefix(line, "-"):
 			f.Ent = append(f.Ent, strings.TrimSpace(strings.TrimPrefix(line, "-")))
 		case strings.HasPrefix(sec, "Driving it") && strings.HasPrefix(line, "-"):
-			if len(ticks(line)) > 0 { f.Proof = append(f.Proof, strings.TrimSpace(line[1:])) }
+			f.Proof = append(f.Proof, strings.TrimSpace(line[1:]))
 		case strings.HasPrefix(sec, "Gotchas") && strings.HasPrefix(line, "-"):
 			f.Gotchas = append(f.Gotchas, strings.TrimSpace(strings.TrimPrefix(line, "-")))
 		}
@@ -413,16 +403,11 @@ func hook(in io.Reader, out io.Writer, root, evPath, baseDir, baseRef string) in
 	ev, _ := raw["hook_event_name"].(string)
 	if ev == "" {
 		switch {
-		case raw["tool_output"] != nil:
-			ev = "postToolUse"
-		case raw["loop_count"] != nil && raw["tool_name"] == nil:
-			ev = "stop"
-		case raw["command"] != nil && raw["tool_name"] == nil:
-			ev = "beforeShellExecution"
-		case raw["session_id"] != nil && raw["tool_name"] == nil && raw["tool_input"] == nil:
-			ev = "sessionStart"
-		default:
-			ev = "preToolUse"
+		case raw["tool_output"] != nil: ev = "postToolUse"
+		case raw["loop_count"] != nil && raw["tool_name"] == nil: ev = "stop"
+		case raw["command"] != nil && raw["tool_name"] == nil: ev = "beforeShellExecution"
+		case raw["session_id"] != nil && raw["tool_name"] == nil && raw["tool_input"] == nil: ev = "sessionStart"
+		default: ev = "preToolUse"
 		}
 	}
 	if root == "." || root == "" {
@@ -431,7 +416,9 @@ func hook(in io.Reader, out io.Writer, root, evPath, baseDir, baseRef string) in
 		}
 	}
 	s, err := build(root, baseDir, root, extractPath(raw), str(raw["tool_name"]), str(raw["claimed_head"]), evPath, baseRef)
-	ctx, deny := hookCtx(s), err != nil || !s.MapValid || !s.PreserveOK || !s.HooksOK || s.Err != ""
+	tn := str(raw["tool_name"])
+	mut := ev == "beforeShellExecution" || ev == "beforeMCPExecution" || tn == "Write" || tn == "StrReplace" || tn == "Delete" || tn == "ApplyPatch"
+	ctx, deny := hookCtx(s), err != nil || !s.MapValid || !s.PreserveOK || !s.HooksOK || s.Err != "" || mut && s.MaintStatus != "missing" && !s.EvidenceBound
 	if deny {
 		fmt.Fprintf(out, `{"permission":"deny","user_message":"sai-verify failed","agent_message":%s,"additional_context":%s}`+"\n", jq(ctx), jq(ctx))
 		return 2
@@ -443,27 +430,23 @@ func hook(in io.Reader, out io.Writer, root, evPath, baseDir, baseRef string) in
 	return 0
 }
 func extractPath(raw map[string]interface{}) string {
-	in, _ := raw["tool_input"].(map[string]interface{})
-	if in == nil { in = map[string]interface{}{} }
+	in, _ := raw["tool_input"].(map[string]interface{}); if in == nil { in = map[string]interface{}{} }
 	for _, src := range []map[string]interface{}{in, raw} {
-		for _, k := range []string{"path", "file_path", "target_file", "filePath", "target_directory", "glob", "command", "url"} {
-			if s := str(src[k]); s != "" { return s }
-		}
+		for _, k := range []string{"path", "file_path", "target_file", "filePath", "target_directory", "glob", "command", "url"} { if s := str(src[k]); s != "" { return s } }
 	}
-	if eds, _ := raw["edits"].([]interface{}); len(eds) > 0 {
-		if m, _ := eds[0].(map[string]interface{}); m != nil {
-			if s := str(m["file_path"]); s != "" { return s }
-		}
-	}
+	if eds, _ := raw["edits"].([]interface{}); len(eds) > 0 { if m, _ := eds[0].(map[string]interface{}); m != nil { if s := str(m["file_path"]); s != "" { return s } } }
 	return ""
 }
 func hookCtx(s snap) string {
+	const capn = 6000
 	var b strings.Builder
-	fmt.Fprintf(&b, "FEATURE CONTEXT\nTarget: %s %s\n", s.Path, s.Tool)
+	fmt.Fprintf(&b, "FEATURE CONTEXT\nTarget: %s %s\nContract: map_valid=%v preserve_ok=%v hooks_ok=%v\nMaintenance: %s completeness=%s %s\nRuntime: Desktop/CLI fire registered events; Cloud skips sessionStart/End, before/afterMCPExecution, workspaceOpen.\n", s.Path, s.Tool, s.MapValid, s.PreserveOK, s.HooksOK, s.MaintStatus, s.Completeness, s.MaintReason)
 	for _, h := range s.Relevant {
-		fmt.Fprintf(&b, "Relevant feature: %s (%s)\nWhy: %s\nImpacted capabilities: %s\nEntry points: %s\nRequired proof: %s\nGotchas: %s\n", h.Title, h.ID, h.Why, strings.Join(h.Subs, "; "), strings.Join(h.Entries, "; "), strings.Join(h.Proofs, "; "), strings.Join(h.Gotchas, "; "))
+		chunk := fmt.Sprintf("Relevant feature: %s (%s)\nWhy: %s\nImpacted capabilities: %s\nEntry points: %s\nRequired proof: %s\nGotchas: %s\n", h.Title, h.ID, h.Why, strings.Join(h.Subs, "; "), strings.Join(h.Entries, "; "), strings.Join(h.Proofs, "; "), strings.Join(h.Gotchas, "; "))
+		if b.Len()+len(chunk) > capn { fmt.Fprintf(&b, "Relevant feature: %s (%s)\n", h.Title, h.ID); break }
+		b.WriteString(chunk)
 	}
-	fmt.Fprintf(&b, "Contract: map_valid=%v preserve_ok=%v hooks_ok=%v\nMaintenance: %s completeness=%s %s\nRuntime: Desktop/CLI fire registered events; Cloud skips sessionStart/End, before/afterMCPExecution, workspaceOpen.\n", s.MapValid, s.PreserveOK, s.HooksOK, s.MaintStatus, s.Completeness, s.MaintReason)
+	if b.Len() > capn { return b.String()[:capn] }
 	return b.String()
 }
 func st(ok bool) string { if ok { return "PASS" }; return "FAIL" }
@@ -471,22 +454,16 @@ func writeProof(w io.Writer, s snap, evPath, headDir string) {
 	fmt.Fprintf(w, "BASE %s\nHEAD %s\nrepo %s\n%s map-parse\n%s hooks\n%s preserve\n", s.Base, s.Head, s.Repo, st(s.MapValid), st(s.HooksOK), st(s.PreserveOK))
 	if s.Completeness == "proven" { fmt.Fprintln(w, "PASS whole-repo-maintenance") } else { fmt.Fprintln(w, "UNPROVEN whole-repo-maintenance") }
 	fmt.Fprintf(w, "maintenance_status %s\nmaintenance_head %s\nmaintenance_map_hash %s\nwhole_repo_completeness %s\n", s.MaintStatus, s.MaintHead, s.MaintMapHash, s.Completeness)
-	if !s.EvidenceBound {
+	if s.Completeness != "proven" || !s.EvidenceBound {
 		fmt.Fprintln(w, "REQUIRED evidence-bound\nUNEVALUATED go-test\nUNEVALUATED go-vet")
 	} else {
 		fmt.Fprintf(w, "PASS evidence-bound %s %s\n", s.MaintHead, s.MaintMapHash)
 		if evPath == "" { evPath = filepath.Join(git(headDir, "rev-parse", "--absolute-git-dir"), "sai-verify-evidence.json") }
 		if b, err := os.ReadFile(evPath); err == nil {
-			var ev map[string]interface{}
-			_ = json.Unmarshal(b, &ev)
+			var ev map[string]interface{}; _ = json.Unmarshal(b, &ev)
 			fmt.Fprintf(w, "live-drive pass=%v fail=%v\n", ev["pass"], ev["fail"])
 			if ds, _ := ev["drives"].([]interface{}); ds != nil {
-				for _, d := range ds {
-					m, _ := d.(map[string]interface{})
-					res := str(m["result"])
-					if res == "" { res = str(m["Result"]) }
-					fmt.Fprintf(w, "%s %s %s\n", res, m["id"], m["name"])
-				}
+				for _, d := range ds { m, _ := d.(map[string]interface{}); res := str(m["result"]); if res == "" { res = str(m["Result"]) }; fmt.Fprintf(w, "%s %s %s\n", res, m["id"], m["name"]) }
 			}
 		}
 	}
@@ -500,57 +477,116 @@ func relTool(f feat, tool string) bool {
 	if strings.Contains(t, "shell") || t == "bash" { return strings.Contains(blob, "shell") || strings.Contains(blob, "scripts/") || f.ID == "verify-sai" }
 	return true
 }
-func ticks(line string) (o []string) {
-	for _, m := range tickRe.FindAllStringSubmatch(line, -1) {
-		s := m[1]
-		if strings.Contains(s, "/") || strings.HasPrefix(s, "go ") || strings.HasPrefix(s, "test ") || strings.HasPrefix(s, "python") || strings.HasPrefix(s, "bash ") || strings.HasPrefix(s, "printf") || strings.HasPrefix(s, "grep ") || strings.HasPrefix(s, "SAI_") { o = append(o, s) }
+type recipe struct{ op string; argv []string; want int; to time.Duration }
+func okTok(a string) bool {
+	if a == "" || a == ".." || strings.Contains(a, "/../") || strings.HasPrefix(a, "../") { return false }
+	for _, c := range a { if (c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && (c < '0' || c > '9') && !strings.ContainsRune("-_.=/+,:@*", c) { return false } }
+	return true
+}
+func relPath(p string) bool { return p != "" && !filepath.IsAbs(p) && !strings.Contains(p, "..") && !strings.HasPrefix(p, "/") && okTok(p) }
+func allowBin(p string) bool {
+	if !relPath(p) { return false }
+	for _, pre := range []string{"scripts/verify-", "openclaw-dashboard/scripts/verify-", "openclaw-dashboard/tests/smoke/"} { if r := strings.TrimPrefix(p, pre); r != p && !strings.Contains(r, "/") { return true } }
+	switch p { case "scripts/agent-report", "scripts/agent-sync-drive", "scripts/agent-contract-pr-review", "scripts/agent-verify-caps": return true }
+	return false
+}
+func parseRecipe(p string) (recipe, error) {
+	i := strings.Index(p, "::")
+	if i < 0 { return recipe{}, fmt.Errorf("unstructured") }
+	pre, j := strings.TrimSpace(p[:i]), strings.LastIndex(strings.TrimSpace(p[:i]), "**")
+	if pre != "" && !(strings.HasPrefix(pre, "**") && strings.Count(pre, "**") >= 2 && j >= 0 && (strings.TrimSpace(pre[j+2:]) == "" || strings.TrimSpace(pre[j+2:]) == ".")) { return recipe{}, fmt.Errorf("unstructured") }
+	fs := strings.Fields(p[i+2:])
+	if len(fs) == 0 { return recipe{}, fmt.Errorf("empty") }
+	r := recipe{op: fs[0], to: 60 * time.Second}
+	for _, t := range fs[1:] {
+		if strings.HasPrefix(t, "expect=") { fmt.Sscanf(t[7:], "%d", &r.want); continue }
+		if strings.HasPrefix(t, "timeout=") { n := 0; fmt.Sscanf(t[8:], "%d", &n); if n <= 0 { r.to = time.Millisecond } else { r.to = time.Duration(n) * time.Second }; continue }
+		r.argv = append(r.argv, t)
 	}
-	return
+	return r, r.err()
+}
+func (r recipe) err() error {
+	n, a0 := len(r.argv), ""; if n > 0 { a0 = r.argv[0] }
+	tok := true; for _, a := range r.argv { if !okTok(a) { tok = false } }
+	switch r.op {
+	case "exists":
+		if n == 0 { return fmt.Errorf("exists") }
+		for _, a := range r.argv { if !relPath(a) { return fmt.Errorf("path") } }
+	case "contains":
+		if n < 2 || !relPath(a0) || !tok { return fmt.Errorf("contains") }
+	case "json":
+		if n != 1 || !relPath(a0) { return fmt.Errorf("json") }
+	case "exec":
+		if n == 0 || !allowBin(a0) { return fmt.Errorf("bin") }
+		for _, a := range r.argv[1:] { if !okTok(a) { return fmt.Errorf("arg") } }
+	case "py":
+		if n == 0 || !relPath(a0) || !strings.HasSuffix(a0, ".py") || (!strings.HasPrefix(a0, ".github/") && !strings.HasPrefix(a0, "scripts/")) { return fmt.Errorf("py") }
+		for _, a := range r.argv { if a == "-c" || !okTok(a) { return fmt.Errorf("py") } }
+	case "gotest":
+		for _, a := range r.argv { if a != "-race" && a != "./..." && !strings.HasPrefix(a, "./cmd/") && a != "-count=1" && !strings.HasPrefix(a, "-timeout=") { return fmt.Errorf("go") } }
+	case "govet":
+		for _, a := range r.argv { if a != "./..." && !strings.HasPrefix(a, "./cmd/") { return fmt.Errorf("vet") } }
+	case "sai":
+		if n == 0 { return fmt.Errorf("sai") }
+		switch a0 { case "snapshot", "proof", "doctor", "relevant", "preserve": default: return fmt.Errorf("sai") }
+		for _, a := range r.argv[1:] { if !okTok(a) { return fmt.Errorf("sai") } }
+	default:
+		return fmt.Errorf("op")
+	}
+	return nil
+}
+func recipeEnv(tmp string) []string {
+	env := []string{"PATH=" + os.Getenv("PATH"), "HOME=" + tmp, "LANG=C", "CI=true", "SAI_CI_STRICT_CONTRACTS=1", "SAI_CI_REQUIRE_SDK_SMOKE=0", "GOTOOLCHAIN=local", "GOCACHE=" + filepath.Join(tmp, "gc"), "TMPDIR=" + tmp}
+	for _, k := range []string{"GOROOT", "GOPATH", "GOMODCACHE"} { if v := os.Getenv(k); v != "" { env = append(env, k+"="+v) } }; return env
+}
+func runRecipe(r recipe, dir string) (code int, stdout, stderr, note string) {
+	if e := r.err(); e != nil { return 1, "", "", e.Error() }
+	switch r.op {
+	case "exists":
+		for _, p := range r.argv { if _, err := os.Stat(filepath.Join(dir, p)); err != nil { return 1, "", err.Error(), "missing" } }
+		return 0, "", "", ""
+	case "contains":
+		b, err := os.ReadFile(filepath.Join(dir, r.argv[0])); if err != nil { return 1, "", err.Error(), "read" }
+		if !strings.Contains(string(b), strings.Join(r.argv[1:], " ")) { return 1, "", "", "needle" }
+		return 0, "", "", ""
+	case "sai":
+		var o, e bytes.Buffer; return run(append(append([]string{}, r.argv...), "--root", dir), bytes.NewReader(nil), &o, &e), o.String(), e.String(), ""
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), r.to); defer cancel()
+	tmp, _ := os.MkdirTemp("", "sai-r-"); defer os.RemoveAll(tmp)
+	argv := r.argv
+	switch r.op {
+	case "json": argv = []string{"python3", "-m", "json.tool", r.argv[0]}
+	case "py": argv = append([]string{"python3"}, r.argv...)
+	case "gotest": argv = append([]string{"go", "test"}, r.argv...)
+	case "govet": argv = append([]string{"go", "vet"}, r.argv...)
+	case "exec":
+	default: return 1, "", "", "op"
+	}
+	c := exec.CommandContext(ctx, argv[0], argv[1:]...); c.Dir, c.Env = dir, recipeEnv(tmp)
+	var o, e bytes.Buffer; c.Stdout, c.Stderr = &o, &e
+	err := c.Run()
+	if ctx.Err() == context.DeadlineExceeded { return 1, o.String(), e.String(), "timeout" }
+	if err != nil { if ee, ok := err.(*exec.ExitError); ok { code = ee.ExitCode() } else { code = 1 } }
+	return code, o.String(), e.String(), ""
 }
 func driveCmd(s snap, headDir, evPath string, out io.Writer) int {
-	fs, _ := loadFeats(headDir)
-	rows, pass, fail, skip := []map[string]string{}, 0, 0, 0
+	fs, _ := loadFeats(headDir); rows, pass, fail := []map[string]string{}, 0, 0
 	for _, f := range fs {
 		for _, p := range f.Proof {
-			want, cmds := 0, ticks(p)
-			if strings.Contains(strings.ToLower(p), "expect exit 2") { want = 2 }
-			if len(cmds) == 0 { skip++; rows = append(rows, map[string]string{"id": f.ID, "name": p, "result": "SKIP"}); continue }
-			okAll, last, outp := true, "", ""
-			for _, last = range cmds {
-				c := exec.Command("bash", "-lc", last)
-				c.Dir = headDir
-				b, err := c.CombinedOutput(); code := 0; outp = string(b)
-				if err != nil {
-					if ee, ok := err.(*exec.ExitError); ok { code = ee.ExitCode() } else { code = 1 }
-				}
-				if code != want {
-					okAll, fail = false, fail+1
-					rows = append(rows, map[string]string{"id": f.ID, "name": p, "cmd": last, "result": "FAIL", "note": fmt.Sprintf("exit %d", code), "stdout": outp, "stderr": outp})
-					break
-				}
-			}
-			if okAll { pass++; rows = append(rows, map[string]string{"id": f.ID, "name": p, "cmd": last, "result": "PASS", "stdout": outp, "stderr": outp}) }
+			rec, err := parseRecipe(p); so, se, note, code, res := "", "", "", 1, "FAIL"
+			if err != nil { note, fail = err.Error(), fail+1 } else { code, so, se, note = runRecipe(rec, headDir); if code == rec.want { res, pass = "PASS", pass+1 } else { fail++ } }
+			rows = append(rows, map[string]string{"id": f.ID, "name": p, "result": res, "stdout": so, "stderr": se, "note": note, "exit": fmt.Sprintf("%d", code)})
 		}
 	}
-	sweep := "dirty"
-	if len(s.Unmapped) == 0 { sweep = "clean" }
-	if evPath == "" {
-		if gd := git(headDir, "rev-parse", "--absolute-git-dir"); gd != "" { evPath = filepath.Join(gd, "sai-verify-evidence.json") } else { evPath = "sai-verify-evidence.json" }
-	}
-	b, _ := json.MarshalIndent(map[string]interface{}{"repo": s.Repo, "base": s.Base, "head": s.Head, "map_hash": mapHash(headDir), "sweep": sweep, "unmapped": s.Unmapped, "pass": pass, "fail": fail, "skip": skip, "unreachable": s.Unreachable, "drives": rows}, "", "  ")
-	_ = os.WriteFile(evPath, b, 0644)
-	fmt.Fprintln(out, string(b))
-	if fail > 0 { return 1 }
-	return 0
+	sweep := "dirty"; if len(s.Unmapped) == 0 { sweep = "clean" }
+	if evPath == "" { if gd := git(headDir, "rev-parse", "--absolute-git-dir"); gd != "" { evPath = filepath.Join(gd, "sai-verify-evidence.json") } else { evPath = "sai-verify-evidence.json" } }
+	b, _ := json.MarshalIndent(map[string]interface{}{"repo": s.Repo, "base": s.Base, "head": s.Head, "map_hash": mapHash(headDir), "sweep": sweep, "unmapped": s.Unmapped, "pass": pass, "fail": fail, "skip": 0, "unreachable": s.Unreachable, "drives": rows}, "", "  ")
+	_ = os.WriteFile(evPath, b, 0644); fmt.Fprintln(out, string(b)); if fail > 0 { return 1 }; return 0
 }
 func unreachable(fs []feat) []string {
 	var u []string
-	for _, f := range fs {
-		u = append(u, f.Unreach...)
-		for _, s := range f.Subs {
-			if strings.Contains(strings.ToLower(s[1]), "stub exit 2") { u = append(u, s[0]+": "+s[1]) }
-		}
-	}
+	for _, f := range fs { u = append(u, f.Unreach...); for _, s := range f.Subs { if strings.Contains(strings.ToLower(s[1]), "stub exit 2") { u = append(u, s[0]+": "+s[1]) } } }
 	return uniq(u)
 }
 func repoName(u string) string {

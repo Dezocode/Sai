@@ -18,17 +18,13 @@ Operators and agents load Layer 0 identity, six stage contracts, run artifacts, 
 - `icm-refs` `.ai/shared/references/{git-workflow,testing,release-policy,icm-ci-policy,agent-runtimes,claude-agent-sdk,openclaw-runtime}.md`.
 - `icm-product` `README.md` product sentence; `Team.md` team page (may be empty).
 ## How to get to it (user POV)
-- Open `.ai/CONTEXT.md` then the stage `CONTEXT.md` for the current stage.
-- Create a run with `metadata.json` matching `.ai/runs/README.md`.
-- Read Layer 3 policy under `.ai/_config/` and `.ai/shared/` before edits.
+- Open `.ai/CONTEXT.md` then the stage `CONTEXT.md` for the current stage. Create a run with `metadata.json` matching `.ai/runs/README.md`. Read Layer 3 policy under `.ai/_config/` and `.ai/shared/` before edits.
 ## Driving it with verify-sai
-Preconditions: repo root; `python3`.
-- **Layer 0.** `test -f .ai/CONTEXT.md && test -f .ai/INITIALIZE.md`; both exist.
-- **Stages.** `scripts/verify-semantic-hierarchy`; exit 0 includes exactly six stages.
-- **Schemas.** `python3 -m json.tool .ai/shared/schemas/agent-event.schema.json`; exit 0.
-- **Policy YAML.** `python3 -c 'import yaml; yaml.safe_load(open(".ai/_config/repositories.yaml"))'`; exit 0.
-- **Decisions.** `test -f .ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md`
-- **Proof.** `go run ./cmd/sai-verify relevant --path .ai/CONTEXT.md --tool Read` lists `icm-workspace`.
+- **Layer 0.** ::exists .ai/CONTEXT.md .ai/INITIALIZE.md
+- **Stages.** ::exec scripts/verify-semantic-hierarchy
+- **Schemas.** ::json .ai/shared/schemas/agent-event.schema.json
+- **Policy YAML.** ::exists .ai/_config/repositories.yaml
+- **Decisions.** ::exists .ai/shared/memory/decisions/DR-20260724-openclaw-dashboard-prototype-boundary.md
+- **Proof.** ::sai relevant --path .ai/CONTEXT.md --tool Read
 ## Gotchas
-- `.ai/plugins/` is an ICM index, not a Cursor loader.
-- Empty `Team.md` is still a mapped surface; do not invent team content.
+- `.ai/plugins/` is an ICM index, not a Cursor loader. Empty `Team.md` is still a mapped surface; do not invent team content.

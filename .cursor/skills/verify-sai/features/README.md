@@ -1,7 +1,7 @@
 # Sai verification map
 Maintained source for every supported/observable Sai capability proved by this repository. Grouping is for reader clarity; sub-feature IDs and entry points are the contract.
 ## Baseline
-- Git root of `Dezocode/Sai` or `monaecode/Sai`. `python3`, `bash`, `git`, `go` (≥1.16); rclone/Slack/Drive optional. Drive named recipes then `go run ./cmd/sai-verify doctor --evidence <receipt>`. Bind receipts to repo + BASE + exact HEAD. Stub exit 2 is stub-exit-2, not success.
+- Git root of `Dezocode/Sai` or `monaecode/Sai`. `python3`, `bash`, `git`, `go` (≥1.16); rclone/Slack/Drive optional. Drive `::` recipes then `go run ./cmd/sai-verify doctor --evidence <receipt>`. Bind receipts to repo + BASE + exact HEAD. Stub `expect=2` is stub-exit-2, not success.
 ## Features
 - [ICM workspace](./icm-workspace.md) — layers, stages, runs, memory, schemas, policy, references.
 - [Agent lifecycle](./agent-lifecycle.md) — initialize, onboard, registry, named agents, scaffolds, caps, automation.

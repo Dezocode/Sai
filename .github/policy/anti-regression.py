@@ -315,7 +315,7 @@ class Policy:
     def feature_contract(self) -> bool:
         kernel = self.trusted / "cmd" / "sai-verify"
         if not kernel.is_dir():
-            return self.record("Feature map preservation", True, "base has no sai-verify kernel yet")
+            return self.record("Feature map preservation", False, "bootstrap: trusted base has no sai-verify kernel")
         env = self.clean_env()
         for k in ("HOME", "GOROOT", "GOPATH", "GOCACHE", "GOMODCACHE"):
             if k in os.environ:
@@ -337,10 +337,16 @@ class Policy:
             return False
         need = ("sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "workspaceOpen")
         hook_ok = all(covered(n) for n in need)
-        self.record("Required pre/post verification hooks", hook_ok, "")
+        src = ""
+        kp = self.candidate / "cmd" / "sai-verify" / "main.go"
+        if kp.is_file():
+            src = kp.read_text(encoding="utf-8", errors="replace")
         has_kernel = (self.candidate / "cmd" / "sai-verify").is_dir()
+        shell_ok = '"bash", "-lc"' not in src and "Command(\"bash\"" not in src and "Command(\"sh\"" not in src
+        self.record("Required pre/post verification hooks", hook_ok, "")
         self.record("Candidate retains sai-verify kernel", has_kernel, "")
-        return ok and hook_ok and has_kernel
+        self.record("Candidate verifier is not a shell evaluator", shell_ok, "")
+        return ok and hook_ok and has_kernel and shell_ok
 
     def run_all(self) -> bool:
         self.json_validity()
@@ -491,15 +497,10 @@ def mutation_self_test(trusted: pathlib.Path, candidate: pathlib.Path) -> list[R
 
     if (trusted / "cmd" / "sai-verify").is_dir():
         with tempfile.TemporaryDirectory(prefix="anti-regression-feature-") as td:
-            root = clone_for_mutation(candidate, pathlib.Path(td))
-            dropped = False
+            root = clone_for_mutation(candidate, pathlib.Path(td)); dropped = False
             for path in (root / ".cursor" / "skills" / "verify-sai" / "features").glob("*.md"):
-                if path.name != "README.md":
-                    path.unlink()
-                    dropped = True
-                    break
-            p = Policy(trusted, root)
-            outcomes.append(expect_failure("mutation: protected feature deletion is caught", lambda: dropped and not p.feature_contract()))
+                if path.name != "README.md": path.unlink(); dropped = True; break
+            p = Policy(trusted, root); outcomes.append(expect_failure("mutation: protected feature deletion is caught", lambda: dropped and not p.feature_contract()))
     return outcomes
 
 

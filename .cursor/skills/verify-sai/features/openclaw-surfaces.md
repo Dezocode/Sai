@@ -18,16 +18,10 @@ The OpenClaw SAI Dashboard prototype exposes documented tabs, settings, desktop/
 - `oc-design` `openclaw-dashboard/design/{DESIGN-LANGUAGE.md,components.md,tokens.json}` + smoke `tests/smoke/design-tokens.sh` `design-compliance.sh` + `design-compliance.md`
 - `oc-layered-load` `openclaw-dashboard/docs/LAYERED-LOAD-ORDER.md`
 ## How to get to it (user POV)
-- Read `openclaw-dashboard/CONTEXT.md` then the tab/settings folder `CONTEXT.md`.
-- Design: `openclaw-dashboard/design/DESIGN-LANGUAGE.md`; smoke `openclaw-dashboard/tests/smoke/design-tokens.sh` and `design-compliance.sh`.
-- Desktop/iOS shells via `apps/desktop` and `apps/ios-whisper` (spec until src exists).
+- Read `openclaw-dashboard/CONTEXT.md` then the tab/settings folder `CONTEXT.md`. Design: `openclaw-dashboard/design/DESIGN-LANGUAGE.md`; smoke `openclaw-dashboard/tests/smoke/design-tokens.sh` and `design-compliance.sh`. Desktop/iOS shells via `apps/desktop` and `apps/ios-whisper` (spec until src exists).
 ## Driving it with verify-sai
-Preconditions: repo root.
-- **Tokens.** `openclaw-dashboard/tests/smoke/design-tokens.sh`; exit 0.
-- **Design.** `openclaw-dashboard/tests/smoke/design-compliance.sh`; exit 0.
-- **Tab files.** `test -f openclaw-dashboard/tabs/chat-room/CONTEXT.md -a -f openclaw-dashboard/apps/desktop/CONTEXT.md`
-- **Proof.** `go run ./cmd/sai-verify relevant --path openclaw-dashboard/design/tokens.json --tool Read` lists `openclaw-surfaces`.
+- **Tokens.** ::exec openclaw-dashboard/tests/smoke/design-tokens.sh
+- **Design.** ::exec openclaw-dashboard/tests/smoke/design-compliance.sh
+- **Tab files.** ::exists openclaw-dashboard/tabs/chat-room/CONTEXT.md openclaw-dashboard/apps/desktop/CONTEXT.md
 ## Gotchas
-- Stack names in BUILD.md are experiment inputs, not parent-app decisions.
-- Chat tab is immersive-game mode; other tabs share the shell aesthetic.
-- Missing `apps/desktop/src` is expected; design smoke is schema-level until src exists.
+- Stack names in BUILD.md are experiment inputs, not parent-app decisions. Chat tab is immersive-game mode; other tabs share the shell aesthetic. Missing `apps/desktop/src` is expected; design smoke is schema-level until src exists.
