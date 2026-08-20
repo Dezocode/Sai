@@ -89,12 +89,8 @@ func run(args []string, in io.Reader, out, errw io.Writer) int {
 	for i := 0; i < len(args); i++ {
 		a := args[i]
 		if p, ok := set[a]; ok {
-			if i+1 < len(args) {
-				i++
-				*p = args[i]
-				evSet = evSet || a == "--evidence"
-			}
-			continue
+			if i+1 >= len(args) || strings.HasPrefix(args[i+1], "-") { fmt.Fprintf(errw, "missing value %s\n", a); return 2 }
+			i++; *p = args[i]; evSet = evSet || a == "--evidence"; continue
 		}
 		if strings.HasPrefix(a, "-") {
 			fmt.Fprintf(errw, "unknown flag %s\n", a)
@@ -232,8 +228,8 @@ func bindEvidence(s *snap, evPath, headDir string) {
 	ebase, _ := ev["base"].(string)
 	ioOK := true; for _, d := range ds { m, _ := d.(map[string]interface{}); if str(m["result"]) != "SKIP" && (m["stdout"] == nil || m["stderr"] == nil) { ioOK = false } }
 	switch {
-	case repo != "" && s.Repo != "" && repo != s.Repo: s.MaintReason = "evidence repo mismatch"
-	case ebase != "" && s.Base != "" && ebase != s.Base: s.MaintReason = "evidence base mismatch"
+	case repo == "" || s.Repo == "" || repo != s.Repo: s.MaintReason = "evidence repo mismatch"
+	case ebase == "" || s.Base == "" || ebase != s.Base: s.MaintReason = "evidence base mismatch"
 	case head != s.Head: s.MaintReason = "evidence HEAD mismatch"
 	case mh != mapHash(headDir): s.MaintReason = "evidence map hash mismatch"
 	case !hasFail || !hasPass || sweep == "" || !ioOK: s.MaintReason = "incomplete evidence"
