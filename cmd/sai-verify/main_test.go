@@ -70,7 +70,7 @@ func TestFuturePRAndHooks(t *testing.T) {
 	ctx0, _ := m0["additional_context"].(string)
 	if c0 != 0 || !strings.Contains(ctx0, "FEATURE CONTEXT") || !strings.Contains(ctx0, "coordination-reporting") || !strings.Contains(ctx0, "Why:") { t.Fatal("68 pre", ctx0) }
 	c1, m1 := hk(t, r, empty, `{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":"scripts/agent-report"},"tool_output":"{}"}`)
-	if c1 != 0 || !strings.Contains(m1["additional_context"].(string), "Required proof:") { t.Fatal("68 post", c1, m1) }
+	if c1 == 0 || !strings.Contains(m1["additional_context"].(string), "Required proof:") { t.Fatal("68 post", c1, m1) }
 	var rout bytes.Buffer
 	run([]string{"relevant", "--root", r, "--path", ".ai/CONTEXT.md", "--tool", "Read"}, bytes.NewReader(nil), &rout, bytes.NewBuffer(nil))
 	if !strings.Contains(rout.String(), `"title"`) || !strings.Contains(rout.String(), `"why"`) || !strings.Contains(rout.String(), "icm-workspace") { t.Fatal(rout.String()) }
@@ -99,14 +99,15 @@ func TestFuturePRAndHooks(t *testing.T) {
 	if s.MapValid { t.Fatal("malformed map") }
 	for _, tc := range []struct{ p, want string; deny bool }{
 		{`{"hook_event_name":"sessionStart"}`, `verify-sai`, false},
-		{`{"hook_event_name":"afterFileEdit","edits":[{"file_path":"README.md"}]}`, `map_valid`, false},
-		{`{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":"scripts/agent-report"},"tool_output":"{}"}`, `preserve_ok`, false},
+		{`{"hook_event_name":"afterFileEdit","edits":[{"file_path":"README.md"}]}`, `map_valid`, true},
+		{`{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":"scripts/agent-report"},"tool_output":"{}"}`, `preserve_ok`, true},
 		{`{"hook_event_name":"preToolUse","tool_name":"Grep","tool_input":{"path":".ai/CONTEXT.md"}}`, `icm-workspace`, false},
-		{`{"hook_event_name":"beforeShellExecution","command":"scripts/agent-report"}`, `coordination-reporting`, false},
-		{`{"hook_event_name":"beforeMCPExecution","tool_name":"MCP","tool_input":{"command":"scripts/agent-report"}}`, `verify-sai`, false},
+		{`{"hook_event_name":"beforeShellExecution","command":"scripts/agent-report"}`, `coordination-reporting`, true},
+		{`{"hook_event_name":"beforeMCPExecution","tool_name":"MCP","tool_input":{"command":"scripts/agent-report"}}`, `verify-sai`, true},
 		{`{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"/tmp/unrelated"}}`, `verify-sai`, false},
 		{`{"hook_event_name":"preToolUse","claimed_head":"0","tool_name":"Read","tool_input":{"path":"README.md"}}`, ``, true},
-		{`{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":".ai/CONTEXT.md"},"tool_output":"ok"}`, `icm-workspace`, false},
+		{`{"hook_event_name":"postToolUse","tool_name":"StrReplace","tool_input":{"path":".ai/CONTEXT.md"},"tool_output":"ok"}`, `icm-workspace`, true},
+		{`{"hook_event_name":"beforeShellExecution","command":"go run ./cmd/sai-verify drive"}`, `FEATURE CONTEXT`, false},
 	} {
 		c, m := hk(t, r, empty, tc.p)
 		if tc.deny {
@@ -155,10 +156,10 @@ func TestFuturePRAndHooks(t *testing.T) {
 	prb, mout := bytes.Buffer{}, bytes.Buffer{}
 	run([]string{"proof", "--root", r, "--evidence", stale}, bytes.NewReader(nil), &prb, bytes.NewBuffer(nil))
 	if strings.Contains(prb.String(), "PASS evidence-bound") || !strings.Contains(prb.String(), "REQUIRED evidence-bound") { t.Fatal("stale proof", prb.String()) }
-	if c, m := hk(t, r, empty, `{"hook_event_name":"beforeShellExecution","command":"true"}`); c != 0 { t.Fatal("missing evidence mut", c, m) }
+	if c, m := hk(t, r, empty, `{"hook_event_name":"beforeShellExecution","command":"true"}`); c == 0 || m["permission"] != "deny" { t.Fatal("missing evidence mut", c, m) }; if c, m := hk(t, r, empty, `{"hook_event_name":"beforeShellExecution","command":"go run ./cmd/sai-verify drive"}`); c != 0 { t.Fatal("missing drive recov", c, m) }
 	if run([]string{"hook", "--root", r, "--base", empty, "--evidence", stale}, strings.NewReader(`{"hook_event_name":"beforeShellExecution","command":"true"}`), &mout, bytes.NewBuffer(nil)) == 0 || !strings.Contains(mout.String(), `"permission":"deny"`) { t.Fatal("stale mut", mout.String()) }; mout.Reset(); if run([]string{"hook", "--root", r, "--base", empty, "--evidence", stale}, strings.NewReader(`{"hook_event_name":"beforeShellExecution","command":"go run ./cmd/sai-verify drive"}`), &mout, bytes.NewBuffer(nil)) != 0 || strings.Contains(mout.String(), `"permission":"deny"`) { t.Fatal("drive recov", mout.String()) }; mout.Reset(); if run([]string{"hook", "--root", r, "--base", empty, "--evidence", stale}, strings.NewReader(`{"hook_event_name":"beforeShellExecution","command":"go run ./cmd/sai-verify drive; echo pwned"}`), &mout, bytes.NewBuffer(nil)) == 0 || !strings.Contains(mout.String(), `"permission":"deny"`) { t.Fatal("drive inject", mout.String()) }; mout.Reset(); if run([]string{"hook", "--root", r, "--base", empty, "--evidence", stale}, strings.NewReader(`{"hook_event_name":"beforeShellExecution","command":"go run ./cmd/sai-verify drive --evidence /tmp/pwn"}`), &mout, bytes.NewBuffer(nil)) == 0 || !strings.Contains(mout.String(), `"permission":"deny"`) { t.Fatal("drive evidence flag", mout.String()) }
 	mout.Reset(); if run([]string{"hook", "--root", r, "--base", empty, "--evidence", stale}, strings.NewReader(`{"hook_event_name":"preToolUse","tool_name":"Write","tool_input":{"path":"README.md"}}`), &mout, bytes.NewBuffer(nil)); !strings.Contains(mout.String(), "deny") { t.Fatal("write mut", mout.String()) }; mout.Reset(); if run([]string{"hook", "--root", r, "--base", empty, "--evidence", stale}, strings.NewReader(`{"hook_event_name":"afterFileEdit","edits":[{"file_path":"README.md"}]}`), &mout, bytes.NewBuffer(nil)); !strings.Contains(mout.String(), "deny") { t.Fatal("afterFileEdit mut", mout.String()) }
-	cBroad, mBroad := hk(t, r, empty, `{"hook_event_name":"beforeShellExecution","command":"scripts"}`); ctxb, _ := mBroad["additional_context"].(string)
+	cBroad, mBroad := hk(t, r, empty, `{"hook_event_name":"beforeReadFile","tool_name":"Read","tool_input":{"path":"README.md"}}`); ctxb, _ := mBroad["additional_context"].(string)
 	if cBroad != 0 || len(ctxb) > 6000 || !strings.Contains(ctxb, "FEATURE CONTEXT") || !strings.Contains(ctxb, "Relevant feature:") { t.Fatal("ctx cap", cBroad, len(ctxb)) }
 }
 func TestLinkedWorktreeHook(t *testing.T) {
@@ -168,10 +169,10 @@ func TestLinkedWorktreeHook(t *testing.T) {
 	for _, rel := range []string{".cursor/hooks/sai-verify.sh", "cmd/sai-verify/main.go", "go.mod"} { b, _ := os.ReadFile(filepath.Join(r, rel)); os.MkdirAll(filepath.Join(wt, filepath.Dir(rel)), 0755); os.WriteFile(filepath.Join(wt, rel), b, 0755) }
 	head, _ := exec.Command("git", "-C", wt, "rev-parse", "HEAD").Output(); gd, _ := exec.Command("git", "-C", wt, "rev-parse", "--absolute-git-dir").Output(); gds, hs := strings.TrimSpace(string(gd)), strings.TrimSpace(string(head)); glob := filepath.Join(gds, "sai-verify-"+hs+"-*"); ms, _ := filepath.Glob(glob); for _, m := range ms { os.Remove(m) }
 	if st, err := os.Stat(filepath.Join(wt, ".git")); err != nil || st.IsDir() { t.Fatalf(".git file: %v %v", st, err) }
-	hook := func() { h := exec.Command("bash", filepath.Join(wt, ".cursor/hooks/sai-verify.sh")); h.Dir, h.Stdin = wt, strings.NewReader(`{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}`); b, err := h.CombinedOutput(); if strings.Contains(string(b), `"permission":"allow"`) || !strings.Contains(string(b), "map_valid") { t.Fatal(err, string(b)) } }
-	hook(); a, _ := filepath.Glob(glob); if len(a) != 1 { t.Fatal("cache", a) }
+	hook := func() { h := exec.Command("bash", filepath.Join(wt, ".cursor/hooks/sai-verify.sh")); h.Dir, h.Stdin = wt, strings.NewReader(`{"hook_event_name":"preToolUse","tool_name":"Read","tool_input":{"path":"README.md"}}`); b, err := h.CombinedOutput(); if strings.Contains(string(b), `"permission":"allow"`) || !strings.Contains(string(b), "FEATURE CONTEXT") { t.Fatal(err, string(b)) } }
+	hook(); a, _ := filepath.Glob(glob); if len(a) != 0 { t.Fatal("bootstrap compiled candidate", a) }
 	s0, _ := build(wt, "", wt, "", "", "", "", ""); evp := filepath.Join(t.TempDir(), "bound.json"); os.WriteFile(evp, []byte(`{"repo":"`+s0.Repo+`","base":"`+s0.Base+`","head":"`+s0.Head+`","map_hash":"`+mapHash(wt)+`","sweep":"clean","fail":0,"pass":1,"unmapped":[],"drives":[{"result":"PASS","stdout":"","stderr":""}]}`), 0644); if s1, _ := build(wt, "", wt, "", "", "", evp, ""); !s1.EvidenceBound { t.Fatal("clean evidence", s1.MaintReason) }; sp := filepath.Join(wt, "scripts/verify-semantic-hierarchy"); sb, _ := os.ReadFile(sp); os.WriteFile(sp, append(sb, []byte("\n#DIRTY\n")...), 0644); if s3, _ := build(wt, "", wt, "", "", "", evp, ""); s3.EvidenceBound { t.Fatal("dirty script still bound") }; os.WriteFile(sp, sb, 0644)
 	src, _ := os.ReadFile(filepath.Join(wt, "cmd/sai-verify/main.go")); os.WriteFile(filepath.Join(wt, "cmd/sai-verify/main.go"), append([]byte("//DIRTY\n"), src...), 0644); hook(); b2, _ := filepath.Glob(glob)
-	if len(b2) < 2 { t.Fatal("dirty HEAD cache reused", a, b2) }; if s2, _ := build(wt, "", wt, "", "", "", evp, ""); s2.EvidenceBound { t.Fatal("dirty kernel still bound") }
+	if len(b2) != 0 { t.Fatal("dirty candidate compiled", a, b2) }; if s2, _ := build(wt, "", wt, "", "", "", evp, ""); s2.EvidenceBound { t.Fatal("dirty kernel still bound") }
 	pref := t.TempDir(); mini(t, pref, map[string]string{"alpha.md": featBody("alpha", "", "::exists scripts/verify-agent-setup", "e")}); os.MkdirAll(filepath.Join(pref, "scripts"), 0755); os.WriteFile(filepath.Join(pref, "scripts/verify-agent-setup"), []byte("x"), 0755); os.WriteFile(filepath.Join(pref, "scripts/verify-agent"), []byte("x"), 0755); exec.Command("git", "init", "-q", pref).Run(); exec.Command("git", "-C", pref, "config", "user.email", "t@t").Run(); exec.Command("git", "-C", pref, "config", "user.name", "t").Run(); exec.Command("git", "-C", pref, "add", "-A").Run(); exec.Command("git", "-C", pref, "commit", "-q", "-m", "t").Run(); if su, _ := build(pref, pref, pref, "", "", "", "", ""); !strings.Contains(strings.Join(su.Unmapped, ","), "scripts/verify-agent") || strings.Contains(strings.Join(su.Unmapped, ","), "scripts/verify-agent-setup") { t.Fatal("prefix sweep", su.Unmapped) }
 }
