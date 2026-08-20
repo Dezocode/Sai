@@ -241,9 +241,6 @@ func bindEvidence(s *snap, evPath, headDir string) {
 	default: s.MaintStatus, s.MaintRequired, s.MaintReason, s.Completeness, s.EvidenceBound = "bound", false, "", "proven", true
 	}
 }
-func bear(f string) bool {
-	return f != "" && !strings.HasPrefix(f, ".ai/runs/") && !strings.Contains(f, "__pycache__") && !strings.Contains(f, "node_modules") && !strings.HasSuffix(f, ".pyc")
-}
 func unmapped(root string, fs []feat) []string {
 	blob := git(root, "ls-files", "-z")
 	if blob == "" { return nil }
@@ -256,7 +253,7 @@ func unmapped(root string, fs []feat) []string {
 	}
 	var miss []string
 	for _, f := range strings.Split(blob, "\x00") {
-		if !bear(f) { continue }
+		if f == "" || strings.HasPrefix(f, ".ai/runs/") || strings.Contains(f, "__pycache__") || strings.Contains(f, "node_modules") || strings.HasSuffix(f, ".pyc") { continue }
 		hit := exact[f]
 		if !hit {
 			for _, p := range prefs {

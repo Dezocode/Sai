@@ -120,7 +120,9 @@ jobs:
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
-        with: { name: sai-verify-proof-${{ github.event.pull_request.head.sha || github.sha }}, path: ${{ runner.temp }}/sai-verify-proof* }
+        with:
+          name: sai-verify-proof-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/sai-verify-proof*
 
       - name: Confirm ICM workflow files present
         run: |
