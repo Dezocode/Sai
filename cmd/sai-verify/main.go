@@ -204,9 +204,9 @@ func loadFeatsRef(dir, ref string) ([]feat, []string) {
 }
 func mapHash(dir string) string {
 	h := sha256.New()
-	for _, sub := range []string{mapDir, "cmd", "scripts", ".githooks", ".github/workflows", ".github/policy", ".ai/shared/schemas", ".ai/_config", ".ai/contracts/_templates", ".cursor/hooks", ".cursor/hooks.json", ".cursor/settings.json", ".cursor/rules", "openclaw-dashboard/scripts", "openclaw-dashboard/tests/smoke", "go.mod", "AGENTS.md", "CLAUDE.md", "CODEX.md", "OPENCLAW.md", "README.md", "Team.md", ".ai/CONTEXT.md", ".ai/INITIALIZE.md", ".ai/ONBOARDING.md"} {
+	for _, sub := range []string{mapDir, "cmd", "scripts", ".githooks", ".github/workflows", ".github/policy", ".ai/shared/schemas", ".ai/_config", ".ai/contracts", ".ai/agents", ".ai/projects", ".ai/shared/memory", ".cursor/hooks", ".cursor/hooks.json", ".cursor/settings.json", ".cursor/rules", "openclaw-dashboard", "go.mod", "AGENTS.md", "CLAUDE.md", "CODEX.md", "OPENCLAW.md", "README.md", "Team.md", ".ai/CONTEXT.md", ".ai/INITIALIZE.md", ".ai/ONBOARDING.md"} {
 		filepath.Walk(filepath.Join(dir, sub), func(p string, inf os.FileInfo, err error) error {
-			if err == nil && inf != nil && !inf.IsDir() && !strings.HasSuffix(p, "_test.go") && !strings.Contains(p, "__pycache__") && !strings.HasSuffix(p, ".pyc") { rel, _ := filepath.Rel(dir, p); b, _ := os.ReadFile(p); h.Write([]byte(rel)); h.Write(b) }
+			if err == nil && inf != nil && !inf.IsDir() && !strings.HasSuffix(p, "_test.go") && !strings.Contains(p, "__pycache__") && !strings.Contains(p, "node_modules") && !strings.HasSuffix(p, ".pyc") { rel, _ := filepath.Rel(dir, p); b, _ := os.ReadFile(p); h.Write([]byte(rel)); h.Write(b) }
 			return nil
 		})
 	}
