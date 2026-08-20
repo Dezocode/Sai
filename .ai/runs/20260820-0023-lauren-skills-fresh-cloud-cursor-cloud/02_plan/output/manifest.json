@@ -1,0 +1,21 @@
+{
+  "task_id": "20260820-0023-lauren-skills-fresh-cloud-cursor-cloud",
+  "stage": "02_plan",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-20T00:25:30Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260820-0023-lauren-skills-fresh-cloud-cursor-cloud/01_intake/output/intake.md",
+    ".ai/shared/memory/decisions/0005-lauren-mode-cloud-skills.md",
+    ".ai/shared/memory/conventions.md",
+    ".ai/stages/02_plan/CONTEXT.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260820-0023-lauren-skills-fresh-cloud-cursor-cloud/02_plan/output/plan.md"
+  ],
+  "decisions": ["0005", "0006"],
+  "commits": [],
+  "events": [],
+  "human_edits": "none",
+  "notes": "Playbook bug-fix.md. Smallest justified change is discoverability plus documenting gitSetup reuse. No environment.json."
+}

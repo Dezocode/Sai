@@ -39,12 +39,21 @@ or `/setup-pstack`. ICM index: `.ai/plugins/pstack/`. Cursor does not load
 plugins from `.ai/`.
 
 The project Custom Mode for Cloud Agents is `/lauren-mode`
-(`.cursor/skills/lauren-mode/`). Pin it with Option+Enter (Mac) or
-Alt+Enter (Windows), or choose Use as Mode, so the skill stays on for the
-session. It wraps pstack and adds the 2026-08-19 harness (`/goal`,
-subscriptions, VM-isolated subagents, steering), Browser pane notes, and
-`@cursor/sdk` cloud launch notes. Do not copy the pstack tree into
-`.cursor/skills/`.
+(`.cursor/skills/lauren-mode/`) with mobile alias `/lauren`
+(`.cursor/skills/lauren/`). Type the hyphenated command or `/lauren`.
+`/lauren mode` with a space is `/lauren` plus the word `mode`. Pin with
+Option+Enter (Mac) or Alt+Enter (Windows), or choose Use as Mode, so the
+skill stays on for the session. Mobile has no Option+Enter. It wraps
+pstack and adds the 2026-08-19 harness (`/goal`, subscriptions,
+VM-isolated subagents, steering), Browser pane notes, and `@cursor/sdk`
+cloud launch notes. Do not copy the pstack tree into `.cursor/skills/`.
+
+If `.cursor/skills/lauren-mode/` is missing, fetch `origin/main` (PR 70
+merged as `8a30202`) before claiming the skill was never added. Fresh
+agents on the personal env can reuse snapshot
+`bld-20260819-500928d1-8214-4bc0-9bb9-e36884ef51f0`, which predates that
+merge. Start a new agent on latest `main`, or check out that SHA in the
+VM.
 
 Shared pstack role models live in `.cursor/rules/pstack-models.mdc` so Cloud
 Agents get them. `~/.cursor/rules/pstack-models.mdc` from `/setup-pstack`
@@ -52,7 +61,7 @@ does not apply here.
 
 ### 2026-08-19 Cloud Agent harness
 
-- **Custom Mode.** `/lauren-mode` pinned as above.
+- **Custom Mode.** `/lauren-mode` or `/lauren` pinned as above.
 - **`/goal`.** Use `CreateGoal` / `UpdateGoal` for an objective that must
   hold until complete. Pair with the mode. Use `/loop` only for recurring
   check-ins.

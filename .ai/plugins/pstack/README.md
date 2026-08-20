@@ -40,10 +40,15 @@ expecting `/poteto-mode` to appear.
 2. `/poteto-mode` — default pstack entry for any non-trivial task. Sticky
    across turns. `disable-model-invocation: true`, so type the slash
    command; the agent will not auto-enter it.
-3. `/lauren-mode` — SAI project Custom Mode (`.cursor/skills/lauren-mode/`).
-   Pin it in Cloud Agents with Option+Enter / Use as Mode. It does not
+3. `/lauren-mode` or `/lauren` — SAI project Custom Mode
+   (`.cursor/skills/lauren-mode/` plus alias `.cursor/skills/lauren/`).
+   Pin it in Cloud Agents with Option+Enter / Use as Mode. Mobile often
+   types `/lauren mode` with a space; that is `/lauren`. It does not
    replace the plugin. It adds the 2026-08-19 harness, Browser pane, and
-   SDK notes. See decision `0005-lauren-mode-cloud-skills`.
+   SDK notes. See decisions `0005-lauren-mode-cloud-skills` and
+   `0006-lauren-mode-fresh-cloud-discovery`. If the skill files are
+   missing, fetch `origin/main` (PR 70, `8a30202`) before claiming they
+   were never added.
 
 ## Command input (skills)
 
@@ -53,6 +58,7 @@ when you want one:
 | Command | When |
 |---|---|
 | `/lauren-mode` | SAI Cloud Custom Mode pin (project skill, not the plugin) |
+| `/lauren` | Same pin, short slash for mobile command input |
 | `/poteto-mode` | Default pstack entry for rigorous work |
 | `/setup-pstack` | Choose models per role |
 | `/how` | Walkthrough of how a subsystem works |

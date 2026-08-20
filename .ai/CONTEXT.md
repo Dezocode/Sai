@@ -101,8 +101,10 @@ artifacts unless the task explicitly requires it.
 
 .cursor/settings.json                <- project-scoped Cursor plugins (slash commands)
 .cursor/skills/lauren-mode/          <- project Custom Mode for Cloud Agents
+.cursor/skills/lauren/               <- /lauren alias (same mode, mobile slash)
 .cursor/rules/sai-coordination.mdc   <- shared Cursor operating rules
 .cursor/rules/pstack-models.mdc      <- pstack role models (cloud + local)
+.cursor/rules/lauren-mode.mdc        <- Lauren mode discovery (always on)
 .githooks/                           <- reporting hooks (install via scripts/install-agent-hooks)
 scripts/                             <- agent-init, agent-report, agent-sync-drive,
                                         install-agent-hooks, verify-agent-audit,

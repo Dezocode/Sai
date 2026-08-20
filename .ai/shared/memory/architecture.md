@@ -23,7 +23,7 @@ decision records once they exist.
 - Cursor Marketplace plugins are enabled at project scope in
   `.cursor/settings.json` and indexed under `.ai/plugins/` (decision 0004).
   First plugin: pstack (`/poteto-mode`). Cloud Agents pin the project
-  Custom Mode `/lauren-mode` (decision 0005).
+  Custom Mode `/lauren-mode` with alias `/lauren` (decisions 0005, 0006).
 - Three agents: CEO (orchestrator), secretary-dezocode, secretary-monaecode.
   Charters under `.ai/agents/_roles/`; named agent profiles under
   `.ai/agents/<name>/`.

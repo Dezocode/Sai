@@ -22,6 +22,17 @@ To change install/start, use the dashboard Save flow after `propose-environment-
 
 ## What "live" means for this task
 
-- Skills and rules become live on the next Cloud Agent whose checkout includes this commit.
+- Skills and rules become live on the next Cloud Agent whose **working tree** includes this commit.
 - This session cannot hot-load `/lauren-mode` into its own `/` picker.
 - Recurring system builds on the personal environment may show `SKIPPED`. That is the dashboard scheduler, not a skills failure.
+
+## gitSetup reuse can hide PR 70
+
+Verified 2026-08-20 on fresh mobile agent `bc-01a01c89-0d79-709c-aacf-ba84185f18aa` (after PR 70 merged as `8a30202`):
+
+- `branchName` was null
+- `gitSetup` was `reuse` of snapshot `bld-20260819-500928d1-8214-4bc0-9bb9-e36884ef51f0`
+- Install exited 0 immediately (no clone of live `main`)
+- The agent thought the lauren files were absent. `origin/main` already had them.
+
+A new Cloud Agent on this personal env can boot the pre-merge snapshot tree. Type `/lauren` or `/lauren-mode` only after the checkout contains `.cursor/skills/lauren-mode/SKILL.md`. If it does not, fetch `origin/main` and check out that SHA. Starting the agent on an explicit branch from latest `main` avoids the null-branch reuse path.
