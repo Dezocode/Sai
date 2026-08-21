@@ -1,0 +1,22 @@
+{
+  "task_id": "20260821-2034-feature-maps-pages-cursor-cloud",
+  "stage": "01_intake",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-21T20:34:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/CONTEXT.md",
+    ".ai/_config/reporting.yaml",
+    ".cursor/skills/verify-sai/features/README.md",
+    ".cursor/skills/verify-sai/features/protected-ci.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/01_intake/output/intake.md",
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/metadata.json"
+  ],
+  "decisions": ["0004", "0005"],
+  "commits": [],
+  "events": ["20260821-2034-feature-maps-pages-cursor-cloud:INTAKE"],
+  "human_edits": "none",
+  "notes": "START_HEAD bb39842 matches GitHub main and OBSERVED_START_HEAD."
+}

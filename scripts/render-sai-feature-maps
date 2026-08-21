@@ -1,0 +1,385 @@
+#!/usr/bin/env python3
+"""Render Origin-light feature-maps.html from HEAD verify-sai maps.
+
+Reads `.cursor/skills/verify-sai/features/README.md` then sibling `*.md`
+using the same four-H2 contract as cmd/sai-verify (Sub-features, How to
+get to it, Driving it, Gotchas). Does not invent a second feature list.
+HTML is generated output, never the source of truth.
+"""
+from __future__ import annotations
+
+import argparse
+import html
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+from datetime import datetime
+from pathlib import Path
+
+MAP_DIR = Path(".cursor/skills/verify-sai/features")
+LINK_RE = re.compile(r"\]\((?:\./)?([^)]+\.md)\)")
+ID_RE = re.compile(r"`([a-z][a-z0-9-]*)`")
+CONSTITUTION = (
+    ("architecture.md", ".ai/shared/memory/architecture.md"),
+    ("AGENTS.md", "AGENTS.md"),
+    ("testing.md", ".ai/shared/references/testing.md"),
+    ("icm-ci-policy.md", ".ai/shared/references/icm-ci-policy.md"),
+    ("sai-design-language.json", "sai-design-language.json"),
+)
+KNOWN_CHECKS = (
+    "icm-enforcement",
+    "Anti-regression",
+    "PR line budget",
+    "Saul / Product Quality",
+)
+
+
+def git(root: Path, *args: str) -> str:
+    cp = subprocess.run(["git", *args], cwd=root, text=True, capture_output=True)
+    return cp.stdout.strip() if cp.returncode == 0 else ""
+
+
+def e(text: str) -> str:
+    return html.escape(text, quote=True)
+
+
+def load_index(readme: str) -> list[str]:
+    names: list[str] = []
+    in_feat = False
+    for line in readme.splitlines():
+        if line.startswith("## Features"):
+            in_feat = True
+            continue
+        if in_feat and line.startswith("## "):
+            break
+        if in_feat:
+            m = LINK_RE.search(line)
+            if m:
+                names.append(m.group(1))
+    return names
+
+
+def parse_feat(path: Path, fid: str) -> dict:
+    title, desc, sec = "", "", ""
+    subs: list[tuple[str, str]] = []
+    ents: list[str] = []
+    proofs: list[str] = []
+    gotchas: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("# ") and not title:
+            title = line[2:].strip()
+            continue
+        if line.startswith("## "):
+            sec = line[3:].strip()
+            continue
+        if not desc and line and not line.startswith("#") and not sec:
+            desc = line.strip()
+            continue
+        if not line.startswith("-"):
+            continue
+        body = line[1:].strip()
+        if sec.startswith("Sub-features"):
+            ids = ID_RE.findall(line)
+            if ids:
+                rest = ID_RE.sub("", line[1:]).strip()
+                subs.append((ids[0], rest))
+        elif sec.startswith("How to get to it"):
+            ents.append(body)
+        elif sec.startswith("Driving it"):
+            proofs.append(body)
+        elif sec.startswith("Gotchas"):
+            gotchas.append(body)
+    return {
+        "id": fid,
+        "file": path.name,
+        "title": title,
+        "desc": desc,
+        "subs": subs,
+        "ents": ents,
+        "proofs": proofs,
+        "gotchas": gotchas,
+    }
+
+
+def load_map(root: Path) -> tuple[list[dict], list[str], str]:
+    d = root / MAP_DIR
+    readme = (d / "README.md").read_text(encoding="utf-8")
+    indexed = load_index(readme)
+    on_disk = {p.name for p in d.glob("*.md") if p.name != "README.md"}
+    drift: list[str] = []
+    feats: list[dict] = []
+    seen: set[str] = set()
+    for name in indexed:
+        if name in seen:
+            drift.append("duplicate index " + name)
+        seen.add(name)
+        if name not in on_disk:
+            drift.append("dead index " + name)
+            continue
+        feats.append(parse_feat(d / name, name[: -len(".md")]))
+    for name in sorted(on_disk - seen):
+        drift.append("unindexed " + name)
+    cap = ""
+    for line in readme.splitlines():
+        if line.startswith("# "):
+            continue
+        if line.startswith("## "):
+            break
+        if line.strip():
+            cap = line.strip()
+            break
+    return feats, drift, cap
+
+
+def load_checks(path: Path | None, root: Path, sha: str) -> list[dict]:
+    rows: list[dict] = []
+    if path and path.is_file():
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            raw = []
+        rows = raw if isinstance(raw, list) else raw.get("check_runs", [])
+    else:
+        repo = git(root, "config", "--get", "remote.origin.url")
+        m = re.search(r"github.com[:/]([^/]+/[^/.]+)", repo)
+        slug = m.group(1) if m else "Dezocode/Sai"
+        cp = subprocess.run(
+            ["gh", "api", f"repos/{slug}/commits/{sha}/check-runs", "--paginate"],
+            text=True,
+            capture_output=True,
+        )
+        if cp.returncode == 0 and cp.stdout.strip():
+            try:
+                blob = json.loads(cp.stdout)
+            except json.JSONDecodeError:
+                blob = []
+            if isinstance(blob, list):
+                for part in blob:
+                    if isinstance(part, dict):
+                        rows.extend(part.get("check_runs", []) or ([part] if part.get("name") else []))
+            else:
+                rows = blob.get("check_runs", [])
+    latest: dict[str, dict] = {}
+    for r in rows:
+        name = str(r.get("name") or "").strip()
+        if not name:
+            continue
+        latest[name] = {
+            "name": name,
+            "conclusion": str(r.get("conclusion") or "").lower() or "unevaluated",
+            "status": str(r.get("status") or ""),
+        }
+    out = list(latest.values())
+    have = {c["name"] for c in out}
+    for name in KNOWN_CHECKS:
+        if name not in have:
+            out.append({"name": name, "conclusion": "unevaluated", "status": ""})
+    return out
+
+
+def constitution(root: Path) -> list[tuple[str, str]]:
+    return [(label, rel) for label, rel in CONSTITUTION if (root / rel).exists()]
+
+
+def pill_class(conclusion: str) -> str:
+    if conclusion in ("failure", "failed", "timed_out", "cancelled"):
+        return "bad"
+    if conclusion in ("action_required", "neutral", "stale"):
+        return "warn"
+    if conclusion in ("success", "passed"):
+        return "ok"
+    return "mute"
+
+
+def render(root: Path, feats: list[dict], drift: list[str], cap: str, checks: list[dict], branch: str, sha: str, when: str) -> str:
+    short = sha[:7] if sha else "unknown"
+    gh = "https://github.com/Dezocode/Sai"
+    nav_feat = ['<a class="on" data-id="readme" href="#readme">README.md</a>']
+    nav_feat += [f'<a data-id="{e(f["id"])}" href="#{e(f["id"])}">{e(f["file"])}</a>' for f in feats]
+    cons = constitution(root)
+    nav_con = [f"<span>{e(label)}</span>" for label, _ in cons]
+    cards = []
+    for f in feats:
+        pills = "".join(f'<span class="id">{e(sid)}</span>' for sid, _ in f["subs"])
+        cards.append(
+            f'<article class="card" id="{e(f["id"])}">'
+            f"<h2>{e(f['title'])}</h2>"
+            f'<p class="desc">{e(f["desc"])}</p>'
+            f'<div class="pills">{pills}</div></article>'
+        )
+    banner = ""
+    if drift:
+        items = "".join(f"<li>{e(x)}</li>" for x in drift)
+        banner = (
+            '<div class="drift"><strong>Docs drift.</strong> '
+            f"Map index vs siblings on this HEAD:<ul>{items}</ul></div>"
+        )
+    check_rows = []
+    for c in checks:
+        conc = c["conclusion"] or "unevaluated"
+        check_rows.append(
+            f'<li><span>{e(c["name"])}</span>'
+            f'<span class="st {pill_class(conc)}">{e(conc)}</span></li>'
+        )
+    check_note = (
+        "Check names from GitHub when a token is present. No secrets. "
+        "Missing conclusions stay unevaluated, never success."
+    )
+    sdl = (
+        '<div class="sdl"><div class="sdl-k">app constitution (not Origin chrome)</div>'
+        "<div>canvas #0F1115</div><div>accent #5B8CFF</div>"
+        "<div>foundation-draft · featureUIAllowed=false</div>"
+        "<div>Sai Design Language check is PR 73-only until that merges.</div></div>"
+    )
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sai feature maps</title>
+<style>
+:root{{--bg:#f8f8f8;--side:#f3f3f3;--ink:#141414;--mute:#6b6b6b;--line:#e6e6e6;--card:#fff;--accent:#34785c;--warn:#c9a227;--bad:#c45c4a;--ok:#3d8f6b;--sdl:#0F1115;--sdla:#5B8CFF}}
+*{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}}
+a{{color:inherit;text-decoration:none}}
+.top{{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--bg)}}
+.crumb{{font-weight:700}} .crumb span{{opacity:.55;font-weight:500}}
+.tabs{{display:flex;gap:4px}} .tabs a{{padding:6px 12px;border-radius:8px;color:var(--mute)}} .tabs a.on{{background:#ececec;color:var(--ink);font-weight:600}}
+.meta{{display:flex;gap:6px;margin-left:8px}} .pill{{background:#ececec;border-radius:999px;padding:3px 8px;font:12px/1.2 ui-monospace,monospace;color:#333}}
+.when{{margin-left:auto;color:var(--mute);font-size:12px}}
+.btn{{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:7px 14px;font-weight:650}}
+.shell{{display:grid;grid-template-columns:220px 1fr 260px;min-height:calc(100vh - 48px)}}
+.side{{background:var(--side);padding:18px 14px;border-right:1px solid var(--line)}}
+.right{{background:var(--side);padding:18px 14px;border-left:1px solid var(--line)}}
+h1{{font-size:28px;margin:0 0 6px}} .k{{font-size:11px;letter-spacing:.08em;color:var(--mute);font-weight:650;margin:16px 0 8px}}
+.nav a,.nav span{{display:block;padding:6px 8px;border-radius:6px;color:#333}} .nav a.on{{background:#e7e7e7;font-weight:600}}
+.main{{padding:28px 32px 48px}} .cap{{color:var(--mute);margin:0 0 16px;max-width:52rem}}
+.drift{{background:#fff8e5;border:1px solid #ead79a;border-radius:10px;padding:12px 14px;margin:0 0 18px;color:#6b4e12}}
+.card{{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 12px}}
+.card h2{{margin:0 0 6px;font-size:16px}} .desc{{margin:0 0 10px;color:#333}}
+.pills{{display:flex;flex-wrap:wrap;gap:6px}} .id{{background:#ececec;border-radius:999px;padding:2px 8px;font:12px/1.3 ui-monospace,monospace}}
+.checks{{list-style:none;margin:0;padding:0}} .checks li{{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}}
+.st{{border-radius:999px;padding:1px 8px;font-size:12px}} .st.ok{{background:#e7f3ec;color:#215a3d}} .st.bad{{background:#f8e8e5;color:#8a3228}} .st.warn{{background:#f7f0d8;color:#7a5d12}} .st.mute{{color:var(--mute);background:#ececec}}
+.note{{color:var(--mute);font-size:12px;margin:10px 0 18px}}
+.sdl{{background:var(--sdl);color:#e8e8e8;border-radius:10px;padding:12px 14px;font-size:12px}} .sdl-k{{color:var(--sdla);font-weight:700;margin-bottom:6px}}
+.host{{color:var(--mute);font-size:12px;margin-top:18px}}
+</style></head>
+<body>
+<header class="top">
+  <div class="crumb">Dezocode <span>/</span> Sai</div>
+  <nav class="tabs">
+    <a class="on" href="{gh}">Code</a>
+    <a href="{gh}/pulls">Pull Requests</a>
+    <a href="{gh}/settings">Settings</a>
+    <a href="#readme">Preview</a>
+  </nav>
+  <div class="meta"><span class="pill">{e(branch)}</span><span class="pill">{e(short)}</span></div>
+  <div class="when">{e(when)}</div>
+  <a class="btn" href="{gh}">Code</a>
+</header>
+<div class="shell">
+  <aside class="side">
+    <div class="k">VERIFY-SAI / FEATURES</div>
+    <nav class="nav">{''.join(nav_feat)}</nav>
+    <div class="k">CONSTITUTION</div>
+    <nav class="nav">{''.join(nav_con) if nav_con else '<span>none on this HEAD</span>'}</nav>
+  </aside>
+  <main class="main">
+    <h1 id="readme">Sai feature maps</h1>
+    <p class="cap">{e(cap)} Origin-styled surface, not a second constitution. Canonical parser remains <code>cmd/sai-verify</code>.</p>
+    {banner}
+    {''.join(cards)}
+  </main>
+  <aside class="right">
+    <div class="k">CHECKS · EXACT HEAD</div>
+    <ul class="checks">{''.join(check_rows)}</ul>
+    <p class="note">{e(check_note)}</p>
+    <div class="k">SAI DESIGN LANGUAGE</div>
+    {sdl}
+    <p class="host">GitHub Pages on Dezocode/Sai (site is public). Hostinger stays Saul-go. Drive HTML is recovery only.</p>
+  </aside>
+</div>
+<script>
+document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>{{
+  document.querySelectorAll('.nav a').forEach(x=>x.classList.toggle('on',x===a));
+}}));
+</script>
+</body></html>
+"""
+
+
+def write_site(out: Path, html_text: str) -> None:
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "feature-maps.html").write_text(html_text, encoding="utf-8")
+    (out / "index.html").write_text(html_text, encoding="utf-8")
+    (out / ".nojekyll").write_text("", encoding="utf-8")
+
+
+def verify(out: Path, feats: list[dict], html_text: str) -> None:
+    problems: list[str] = []
+    if not (out / ".nojekyll").is_file():
+        problems.append("missing .nojekyll")
+    if "#f8f8f8" not in html_text or "#34785c" not in html_text:
+        problems.append("missing Origin chrome tokens")
+    if "body{margin:0;background:var(--bg)" not in html_text:
+        problems.append("body is not Origin canvas")
+    if "Hostinger stays Saul-go" not in html_text:
+        problems.append("missing Hostinger boundary")
+    for f in feats:
+        if f["title"] not in html_text:
+            problems.append("missing title " + f["title"])
+        if not f["subs"]:
+            problems.append(f["id"] + " has no sub-features")
+        for sid, _ in f["subs"]:
+            if sid not in html_text:
+                problems.append("missing sub-id " + sid)
+    if problems:
+        raise SystemExit("render-sai-feature-maps --check failed:\n- " + "\n- ".join(problems))
+
+
+def main(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--root", default=".")
+    ap.add_argument("--out", default="")
+    ap.add_argument("--checks", default="")
+    ap.add_argument("--check", action="store_true")
+    ap.add_argument("--branch", default="")
+    ap.add_argument("--sha", default="")
+    ns = ap.parse_args(argv)
+    root = Path(ns.root).resolve()
+    os.chdir(root)
+    feats, drift, cap = load_map(root)
+    if not feats:
+        print("render-sai-feature-maps: no indexed features", file=sys.stderr)
+        return 1
+    sha = ns.sha or git(root, "rev-parse", "HEAD")
+    branch = ns.branch or git(root, "rev-parse", "--abbrev-ref", "HEAD") or "HEAD"
+    checks_path = Path(ns.checks) if ns.checks else None
+    checks = load_checks(checks_path, root, sha)
+    try:
+        from zoneinfo import ZoneInfo
+
+        when = datetime.now(ZoneInfo("America/Chicago")).strftime("%d %b %Y - %I:%M %p CT")
+    except Exception:
+        when = datetime.utcnow().strftime("%d %b %Y - %H:%M UTC")
+    html_text = render(root, feats, drift, cap, checks, branch, sha, when)
+    if ns.check:
+        with tempfile.TemporaryDirectory(prefix="sai-feature-maps-") as tmp:
+            out = Path(tmp)
+            write_site(out, html_text)
+            verify(out, feats, html_text)
+        print("OK render-sai-feature-maps --check features=%d" % len(feats))
+        return 0
+    if not ns.out:
+        print("render-sai-feature-maps: --out DIR required (or --check)", file=sys.stderr)
+        return 2
+    out = Path(ns.out)
+    if not out.is_absolute():
+        out = root / out
+    write_site(out, html_text)
+    print("wrote %s/feature-maps.html" % out)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
