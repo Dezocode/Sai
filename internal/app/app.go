@@ -1,5 +1,3 @@
-// Package app assembles the production Sai backend.
-// Domain behavior belongs in focused internal packages; this package owns process lifecycle.
 package app
 
 import (
@@ -10,25 +8,46 @@ import (
 	"time"
 )
 
+const DefaultAddr = "127.0.0.1:8080"
+
+func Addr() string {
+	if a := os.Getenv("SAI_ADDR"); a != "" {
+		return a
+	}
+	return DefaultAddr
+}
+
+func Handler() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health", probe)
+	mux.HandleFunc("/ready", probe)
+	return mux
+}
+
+func probe(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 type App struct {
 	server *http.Server
 }
 
 func New() *App {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", health)
-	mux.HandleFunc("/ready", ready)
-	addr := os.Getenv("SAI_ADDR")
-	if addr == "" {
-		addr = "127.0.0.1:8080"
-	}
 	return &App{server: &http.Server{
-		Addr:              addr,
-		Handler:           mux,
+		Addr:              Addr(),
+		Handler:           Handler(),
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}}
 }
+
+func (a *App) Addr() string          { return a.server.Addr }
+func (a *App) Handler() http.Handler { return a.server.Handler }
 
 func (a *App) Run(ctx context.Context) error {
 	errCh := make(chan error, 1)
@@ -45,8 +64,3 @@ func (a *App) Run(ctx context.Context) error {
 		return err
 	}
 }
-
-func health(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) }
-
-// ready is process-ready today; dependency readiness will be added as dependencies exist.
-func ready(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) }

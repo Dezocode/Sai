@@ -3,6 +3,8 @@ info:
   title: Sai API
   version: 0.1.0
   description: Typed external contract for native Sai clients. Domain authority remains server-side.
+servers:
+  - url: http://127.0.0.1:8080
 paths:
   /health:
     get:
