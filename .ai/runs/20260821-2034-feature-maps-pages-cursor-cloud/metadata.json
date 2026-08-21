@@ -9,7 +9,9 @@
   "start_head": "bb39842bf30bdb08ab0cf859bb4f5f39f379f8f9",
   "observed_start_head_note": "GitHub origin/main HEAD equals OBSERVED_START_HEAD (PR 73 base). No discrepancy.",
   "purpose": "Publish canonical verify-sai feature maps as Origin-light GitHub Pages. No product features. Do not stack onto PR 73.",
-  "status": "active",
+  "status": "complete",
+  "pr_url": "https://github.com/Dezocode/Sai/pull/74",
+  "product_head": "4db544e2e9da0097a5e55e45dc13684fb642184f",
   "claimed_files": [
     "scripts/render-sai-feature-maps",
     ".github/workflows/feature-maps-pages.yml",

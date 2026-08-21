@@ -1,0 +1,20 @@
+{
+  "task_id": "20260821-2034-feature-maps-pages-cursor-cloud",
+  "stage": "06_publish_sync",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-21T21:20:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/05_review/output/review.md",
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/handoff.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/06_publish_sync/output/publish.md",
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/handoff.md"
+  ],
+  "decisions": ["0004", "0005"],
+  "commits": ["4db544e2e9da0097a5e55e45dc13684fb642184f"],
+  "events": [],
+  "human_edits": "none",
+  "notes": "Draft PR 74. Pages Settings still required for live deploy."
+}
