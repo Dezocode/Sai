@@ -51,8 +51,42 @@ func TestSchemaRejectsMissingRequired(t *testing.T) {
 }
 
 func TestProductionContractSatisfiesSchema(t *testing.T) {
-	if err := check(filepath.Join("..", "..")); err != nil {
+	src := filepath.Join("..", "..")
+	if err := check(src); err != nil {
 		t.Fatal(err)
+	}
+	root := fixture(t, true, "")
+	for _, rel := range []string{"design/sai-design-language.json", "design/sai-design-language.schema.json", "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage/SaiDesignLanguage.swift"} {
+		b, err := os.ReadFile(filepath.Join(src, rel))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, rel), b, 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := check(root); err != nil {
+		t.Fatal(err)
+	}
+	cpath := filepath.Join(root, "design/sai-design-language.json")
+	b, err := os.ReadFile(cpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var m map[string]interface{}
+	if err := json.Unmarshal(b, &m); err != nil {
+		t.Fatal(err)
+	}
+	m["featureUIAllowed"] = true
+	out, err := json.Marshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cpath, out, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := check(root); err == nil {
+		t.Fatal("expected JSON/Swift featureUIAllowed drift to fail")
 	}
 }
 
