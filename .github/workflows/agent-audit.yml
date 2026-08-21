@@ -20,7 +20,6 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.22"
@@ -118,13 +117,11 @@ jobs:
           go run ./cmd/sai-verify doctor --evidence "$EV"
           go run ./cmd/sai-verify preserve --base-ref "$BASE"
           go run ./cmd/sai-verify proof --evidence "$EV" | tee "${RUNNER_TEMP}/sai-verify-proof.txt"; test -s "${RUNNER_TEMP}/sai-verify-proof.json"
-
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: sai-verify-proof-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/sai-verify-proof*
-
       - name: Confirm ICM workflow files present
         run: |
           test -f .github/workflows/agent-audit.yml
