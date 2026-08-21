@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sai.local/sai-design-language.schema.json",
+  "title": "Sai Design Language",
+  "type": "object",
+  "required": ["version", "status", "featureUIAllowed", "grid", "typography", "color", "borders", "elevation", "controls", "layout", "motion", "accessibility", "components", "layers", "dataVisualization", "media", "codePolicy"],
+  "properties": {
+    "version": {"type": "integer", "minimum": 1},
+    "status": {"type": "string"},
+    "featureUIAllowed": {"type": "boolean"},
+    "grid": {"type": "object", "required": ["unit", "spacing"]},
+    "typography": {"type": "object", "required": ["families", "dynamicType", "roles"]},
+    "color": {"type": "object", "minProperties": 10},
+    "borders": {"type": "object", "required": ["hairline", "focus", "radii"]},
+    "elevation": {"type": "object"},
+    "controls": {"type": "object", "required": ["macOS", "iOS", "states", "buttonVariants"]},
+    "layout": {"type": "object", "required": ["adaptiveWidths", "pagePadding", "maxContentWidth", "rules"]},
+    "motion": {"type": "object", "required": ["durationsMs", "easing", "reducedMotion"]},
+    "accessibility": {"type": "object"},
+    "components": {"type": "object", "required": ["required", "localFeaturePrimitivesAllowed"]},
+    "layers": {"type": "object"},
+    "dataVisualization": {"type": "object"},
+    "media": {"type": "object"},
+    "codePolicy": {"type": "object", "required": ["swiftDesignAuthorityPath", "featurePath"]}
+  }
+}

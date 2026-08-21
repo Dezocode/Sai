@@ -1,0 +1,2 @@
+SAI_ENVIRONMENT = staging
+// SAI_API_BASE_URL is supplied by release configuration; no secrets here.

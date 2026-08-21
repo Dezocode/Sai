@@ -1,0 +1,86 @@
+{
+  "$schema": "./sai-design-language.schema.json",
+  "version": 1,
+  "status": "foundation-draft",
+  "featureUIAllowed": false,
+  "grid": {
+    "unit": 4,
+    "spacing": {"none": 0, "xxs": 4, "xs": 8, "sm": 12, "md": 16, "lg": 24, "xl": 32, "xxl": 48, "section": 64}
+  },
+  "typography": {
+    "families": {"ui": "system", "mono": "system-monospaced"},
+    "dynamicType": true,
+    "roles": {
+      "caption": {"size": 11, "lineHeight": 14, "weight": "regular"},
+      "body": {"size": 15, "lineHeight": 20, "weight": "regular"},
+      "bodyStrong": {"size": 15, "lineHeight": 20, "weight": "semibold"},
+      "button": {"size": 15, "lineHeight": 18, "weight": "semibold"},
+      "title3": {"size": 20, "lineHeight": 25, "weight": "semibold"},
+      "title2": {"size": 24, "lineHeight": 29, "weight": "semibold"},
+      "title1": {"size": 30, "lineHeight": 36, "weight": "bold"},
+      "hero": {"size": 36, "lineHeight": 42, "weight": "bold"}
+    }
+  },
+  "color": {
+    "canvas": "#0F1115", "surface": "#171A21", "surfaceRaised": "#20242D", "surfaceOverlay": "#292E39",
+    "textPrimary": "#F4F5F7", "textSecondary": "#AEB5C2", "textMuted": "#7D8796",
+    "border": "#343B48", "borderStrong": "#4B5565", "focus": "#5B8CFF",
+    "accent": "#5B8CFF", "accentPressed": "#4776E6", "success": "#36C98F", "warning": "#E7B84B", "danger": "#F06A73"
+  },
+  "borders": {"hairline": 1, "focus": 2, "radii": {"none": 0, "small": 4, "control": 8, "card": 12, "sheet": 16, "pill": 999}},
+  "elevation": {"card": "subtle", "menu": "medium", "sheet": "strong", "modal": "strong"},
+  "controls": {
+    "macOS": {"compactHeight": 28, "regularHeight": 32, "prominentHeight": 36, "icon": 16},
+    "iOS": {"compactHeight": 40, "regularHeight": 44, "prominentHeight": 48, "icon": 18, "minimumTouchTarget": 44},
+    "states": ["default", "hover-when-pointer", "focus-visible", "pressed", "disabled", "loading"],
+    "buttonVariants": ["primary", "secondary", "tertiary", "destructive", "icon"],
+    "inputVariants": ["text", "secure", "search", "multiline"],
+    "selection": ["checkbox", "radio", "toggle", "select"]
+  },
+  "layout": {
+    "adaptiveWidths": {"compactMax": 599, "regularMax": 899, "wideMin": 900},
+    "pagePadding": {"compact": 16, "regular": 24, "wide": 32},
+    "maxContentWidth": 1200,
+    "columnGap": 24,
+    "minimumReadableWidth": 280,
+    "rules": [
+      "features consume SaiAdaptiveLayout; no raw width breakpoints",
+      "persistent sidebars collapse or become navigation destinations in compact width",
+      "multi-column forms collapse to one column in compact width",
+      "modal presentation may adapt to sheet presentation on compact iOS",
+      "safe areas and keyboard avoidance are platform responsibilities"
+    ]
+  },
+  "motion": {
+    "durationsMs": {"instant": 80, "fast": 120, "normal": 200, "slow": 320},
+    "easing": {"standard": "easeInOut", "enter": "easeOut", "exit": "easeIn"},
+    "reducedMotion": "remove nonessential scale/translation and preserve state clarity"
+  },
+  "accessibility": {
+    "minimumTextContrast": 4.5,
+    "minimumLargeTextContrast": 3.0,
+    "minimumIOSTouchTarget": 44,
+    "dynamicTypeRequired": true,
+    "keyboardFocusRequired": true,
+    "semanticLabelsRequired": true,
+    "doNotEncodeMeaningByColorAlone": true
+  },
+  "components": {
+    "required": ["SaiText", "SaiButton", "SaiIconButton", "SaiTextField", "SaiSecureField", "SaiSearchField", "SaiSelect", "SaiToggle", "SaiCheckbox", "SaiRadio", "SaiCard", "SaiDivider", "SaiBadge", "SaiTabs", "SaiNavigation", "SaiToolbar", "SaiList", "SaiTable", "SaiSheet", "SaiDialog", "SaiMenu", "SaiTooltip", "SaiToast", "SaiProgress", "SaiSkeleton", "SaiEmptyState", "SaiErrorState"],
+    "localFeaturePrimitivesAllowed": false
+  },
+  "layers": {"base": 0, "navigation": 100, "overlay": 200, "menu": 300, "sheet": 400, "modal": 500, "toast": 600, "tooltip": 700},
+  "dataVisualization": {"lineWidth": 2, "axisRole": "caption", "positiveRole": "success", "negativeRole": "danger", "neutralRole": "accent"},
+  "media": {"defaultRadius": "card", "contentMode": "aspectFill-unless-semantic-content-requires-fit", "decorativeImagesRequireEmptyAccessibilityLabel": true},
+  "codePolicy": {
+    "swiftDesignAuthorityPath": "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage",
+    "featurePath": "apps/apple/Packages/SaiKit/Sources/SaiFeatures",
+    "forbidRawHexOutsideDesignAuthority": true,
+    "forbidNumericPaddingOutsideDesignAuthority": true,
+    "forbidNumericCornerRadiusOutsideDesignAuthority": true,
+    "forbidSystemFontSizeOutsideDesignAuthority": true,
+    "forbidNumericFrameGeometryOutsideDesignAuthority": true,
+    "forbidNumericShadowRadiusOutsideDesignAuthority": true,
+    "forbidNumericZIndexOutsideDesignAuthority": true
+  }
+}

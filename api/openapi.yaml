@@ -1,0 +1,18 @@
+openapi: 3.0.3
+info:
+  title: Sai API
+  version: 0.1.0
+  description: Typed external contract for native Sai clients. Domain authority remains server-side.
+paths:
+  /health:
+    get:
+      operationId: health
+      responses:
+        "204":
+          description: Process is alive.
+  /ready:
+    get:
+      operationId: ready
+      responses:
+        "204":
+          description: Process and required dependencies are ready.
