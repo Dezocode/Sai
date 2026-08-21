@@ -86,7 +86,7 @@ func check(root string) error {
 			}
 		}
 		if !c.FeatureUIAllowed && strings.HasPrefix(rel, filepath.ToSlash(c.CodePolicy.FeaturePath)+"/") &&
-			(strings.Contains(text, ": View") || strings.Contains(text, "some View") {
+			(strings.Contains(text, ": View") || strings.Contains(text, "some View")) {
 			return fmt.Errorf("%s: feature UI is locked while design status=%s", rel, c.Status)
 		}
 		return nil
