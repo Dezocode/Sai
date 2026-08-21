@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Render Origin-light feature-maps.html from HEAD verify-sai maps.
 
-Reads `.cursor/skills/verify-sai/features/README.md` then sibling `*.md`
-using the same four-H2 contract as cmd/sai-verify (Sub-features, How to
-get to it, Driving it, Gotchas). Does not invent a second feature list.
-HTML is generated output, never the source of truth.
+Consumes `go run ./cmd/sai-verify maps` JSON. Does not parse README index
+or four-H2 Markdown. HTML is generated output, never the source of truth.
 """
 from __future__ import annotations
 
@@ -19,9 +17,6 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-MAP_DIR = Path(".cursor/skills/verify-sai/features")
-LINK_RE = re.compile(r"\]\((?:\./)?([^)]+\.md)\)")
-ID_RE = re.compile(r"`([a-z][a-z0-9-]*)`")
 CONSTITUTION = (
     ("architecture.md", ".ai/shared/memory/architecture.md"),
     ("AGENTS.md", "AGENTS.md"),
@@ -66,91 +61,47 @@ def feat_section(title: str, inner: str) -> str:
     return f'<section class="sec"><h2>{e(title)}</h2>{inner}</section>'
 
 
-def load_index(readme: str) -> list[str]:
-    names: list[str] = []
-    in_feat = False
-    for line in readme.splitlines():
-        if line.startswith("## Features"):
-            in_feat = True
-            continue
-        if in_feat and line.startswith("## "):
-            break
-        if in_feat:
-            m = LINK_RE.search(line)
-            if m:
-                names.append(m.group(1))
-    return names
-
-
-def parse_feat(path: Path, fid: str) -> dict:
-    title, desc, sec = "", "", ""
-    subs: list[tuple[str, str]] = []
-    ents: list[str] = []
-    proofs: list[str] = []
-    gotchas: list[str] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if line.startswith("# ") and not title:
-            title = line[2:].strip()
-            continue
-        if line.startswith("## "):
-            sec = line[3:].strip()
-            continue
-        if not desc and line and not line.startswith("#") and not sec:
-            desc = line.strip()
-            continue
-        if not line.startswith("-"):
-            continue
-        body = line[1:].strip()
-        if sec.startswith("Sub-features"):
-            ids = ID_RE.findall(line)
-            if ids:
-                rest = ID_RE.sub("", line[1:]).strip()
-                subs.append((ids[0], rest))
-        elif sec.startswith("How to get to it"):
-            ents.append(body)
-        elif sec.startswith("Driving it"):
-            proofs.append(body)
-        elif sec.startswith("Gotchas"):
-            gotchas.append(body)
-    return {
-        "id": fid,
-        "file": path.name,
-        "title": title,
-        "desc": desc,
-        "subs": subs,
-        "ents": ents,
-        "proofs": proofs,
-        "gotchas": gotchas,
-    }
-
-
-def load_map(root: Path) -> tuple[list[dict], list[str], str]:
-    d = root / MAP_DIR
-    readme = (d / "README.md").read_text(encoding="utf-8")
-    indexed = load_index(readme)
-    on_disk = {p.name for p in d.glob("*.md") if p.name != "README.md"}
-    drift: list[str] = []
+def load_kernel_maps(root: Path) -> tuple[list[dict], list[str], str]:
+    cmd = ["go", "run", "./cmd/sai-verify", "maps", "--root", str(root)]
+    try:
+        cp = subprocess.run(cmd, cwd=root, text=True, capture_output=True)
+    except FileNotFoundError as exc:
+        raise SystemExit(
+            "render-sai-feature-maps: go is required to consume cmd/sai-verify maps"
+        ) from exc
+    if cp.returncode != 0:
+        err = (cp.stderr or cp.stdout or "sai-verify maps failed").strip()
+        raise SystemExit("render-sai-feature-maps: " + err)
+    try:
+        payload = json.loads(cp.stdout)
+    except json.JSONDecodeError as exc:
+        raise SystemExit("render-sai-feature-maps: sai-verify maps JSON is invalid") from exc
+    if not isinstance(payload, dict):
+        raise SystemExit("render-sai-feature-maps: sai-verify maps JSON is not an object")
     feats: list[dict] = []
-    seen: set[str] = set()
-    for name in indexed:
-        if name in seen:
-            drift.append("duplicate index " + name)
-        seen.add(name)
-        if name not in on_disk:
-            drift.append("dead index " + name)
+    for raw in payload.get("features") or []:
+        if not isinstance(raw, dict):
             continue
-        feats.append(parse_feat(d / name, name[: -len(".md")]))
-    for name in sorted(on_disk - seen):
-        drift.append("unindexed " + name)
-    cap = ""
-    for line in readme.splitlines():
-        if line.startswith("# "):
-            continue
-        if line.startswith("## "):
-            break
-        if line.strip():
-            cap = line.strip()
-            break
+        subs: list[tuple[str, str]] = []
+        for pair in raw.get("subfeatures") or []:
+            if isinstance(pair, (list, tuple)) and len(pair) >= 1:
+                sid = str(pair[0])
+                rest = str(pair[1]) if len(pair) > 1 else ""
+                subs.append((sid, rest))
+        feats.append(
+            {
+                "id": str(raw.get("id") or ""),
+                "file": str(raw.get("file") or ""),
+                "title": str(raw.get("title") or ""),
+                "desc": str(raw.get("desc") or ""),
+                "subs": subs,
+                "ents": [str(x) for x in (raw.get("entry_points") or [])],
+                "proofs": [str(x) for x in (raw.get("proofs") or [])],
+                "gotchas": [str(x) for x in (raw.get("gotchas") or [])],
+            }
+        )
+    drift = [str(x) for x in (payload.get("problems") or [])]
+    cap = str(payload.get("caption") or "")
     return feats, drift, cap
 
 
@@ -389,7 +340,7 @@ def main(argv: list[str]) -> int:
     ns = ap.parse_args(argv)
     root = Path(ns.root).resolve()
     os.chdir(root)
-    feats, drift, cap = load_map(root)
+    feats, drift, cap = load_kernel_maps(root)
     if not feats:
         print("render-sai-feature-maps: no indexed features", file=sys.stderr)
         return 1

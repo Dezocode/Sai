@@ -7,19 +7,22 @@
   "branch": "cursor/feature-maps-pages-32aa",
   "base_sha": "bb39842bf30bdb08ab0cf859bb4f5f39f379f8f9",
   "start_head": "bb39842bf30bdb08ab0cf859bb4f5f39f379f8f9",
-  "observed_start_head_note": "GitHub origin/main HEAD equals OBSERVED_START_HEAD (PR 73 base). No discrepancy.",
-  "purpose": "Publish canonical verify-sai feature maps as Origin-light GitHub Pages. No product features. Do not stack onto PR 73.",
+  "observed_start_head_note": "GitHub origin/main HEAD equals OBSERVED_START_HEAD. No discrepancy.",
+  "purpose": "Publish canonical verify-sai feature maps as Origin-light GitHub Pages. Parser is cmd/sai-verify maps. No product features. Do not stack onto PR 73.",
   "status": "active",
   "pr_url": "https://github.com/Dezocode/Sai/pull/74",
-  "product_head": "4db544e2e9da0097a5e55e45dc13684fb642184f",
+  "product_head": "36e124fa55ccf8dfb6ca2c125f7a1a71289419bf",
   "claimed_files": [
+    "cmd/sai-verify/main.go",
+    "cmd/sai-verify/main_test.go",
     "scripts/render-sai-feature-maps",
     ".github/workflows/feature-maps-pages.yml",
     ".cursor/skills/verify-sai/features/protected-ci.md",
     ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/"
   ],
-  "trigger": "dezocode /lauren-mode /goal feature maps GitHub Pages buildout; new PR; do not update PR 73; do not reuse bc-98be4562-0631-4643-875d-5b8831b8e95f",
+  "trigger": "dezocode /lauren-mode /goal feature maps GitHub Pages; close dual parser UNIT-0018; include-hidden-files UNIT-0017",
   "worktree": "isolated cloud-agent VM workspace (non-synced)",
   "environment_public_id": "6f2ece39-800a-11f1-ba66-0e7d0216e441",
-  "saul_p1": "UNIT-0018 four-H2 card render follow-up on PR 74"
+  "saul_p1": "UNIT-0018 dual parser. Renderer must consume cmd/sai-verify maps JSON.",
+  "saul_check_id_on_36e124f": "96920958116"
 }

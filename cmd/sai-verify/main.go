@@ -100,6 +100,10 @@ func run(args []string, in io.Reader, out, errw io.Writer) int {
 	}
 	if headDir == "" { headDir = root }
 	if cmd == "hook" { return hook(in, out, root, evPath, baseDir, baseRef) }
+	if cmd == "maps" {
+		if err := mapsCmd(headDir, out); err != nil { fmt.Fprintln(errw, err); return 1 }
+		return 0
+	}
 	s, ferr := build(root, baseDir, headDir, path, tool, wantHead, evPath, baseRef)
 	if ferr != nil && s.Err == "" { s.Err, s.OK = ferr.Error(), false }
 	if cmd == "drive" { return driveCmd(s, headDir, evPath, out) }
@@ -157,6 +161,38 @@ func fillMap(s *snap, fs []feat, probs []string) {
 	}
 	sort.Strings(s.IDs)
 	s.Problems, s.MapValid = uniq(probs), len(uniq(probs)) == 0 && len(fs) > 0
+}
+
+func mapsCmd(headDir string, out io.Writer) error {
+head := git(headDir, "rev-parse", "HEAD")
+feats, problems := loadFeats(headDir)
+if len(feats) == 0 { return fmt.Errorf("sai-verify maps: no features under %s", mapDir) }
+cap := ""
+if b, err := os.ReadFile(filepath.Join(headDir, mapDir, "README.md")); err == nil {
+for _, line := range strings.Split(string(b), "\n") {
+if strings.HasPrefix(line, "# ") { continue }
+if strings.HasPrefix(line, "## ") { break }
+if t := strings.TrimSpace(line); t != "" { cap = t; break }
+}
+}
+type row struct {
+ID string `json:"id"`
+File string `json:"file"`
+Title string `json:"title"`
+Desc string `json:"desc"`
+Subfeatures [][2]string `json:"subfeatures"`
+EntryPoints []string `json:"entry_points"`
+Proofs []string `json:"proofs"`
+Gotchas []string `json:"gotchas"`
+}
+payload := struct {
+Head string `json:"head"`
+Caption string `json:"caption"`
+Problems []string `json:"problems"`
+Features []row `json:"features"`
+}{Head: head, Caption: cap, Problems: problems, Features: []row{}}
+for _, f := range feats { payload.Features = append(payload.Features, row{f.ID, f.File, f.Title, f.Desc, f.Subs, f.Ent, f.Proof, f.Gotchas}) }
+enc := json.NewEncoder(out); enc.SetEscapeHTML(false); return enc.Encode(payload)
 }
 func loadFeats(root string) ([]feat, []string) {
 	dir := filepath.Join(root, mapDir)

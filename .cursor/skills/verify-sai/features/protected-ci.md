@@ -11,7 +11,7 @@ GitHub Actions enforce ICM audit, trusted-base behavioral anti-regression, and a
 - `ci-feature-maps-pages` `.github/workflows/feature-maps-pages.yml` builds Origin-light HTML from HEAD `.cursor/skills/verify-sai/features/` via `scripts/render-sai-feature-maps`; `main` deploy is non-required GitHub Pages.
 ## How to get to it (user POV)
 - Open a PR targeting `main` — Actions: agent-audit, Anti-regression, PR line budget. Push any branch — agent-audit `icm-enforcement`. Inspect policy: `.github/policy/anti-regression.py --trusted <dir> --candidate <dir> --self-test`
-- Pages: local `scripts/render-sai-feature-maps --check`; PR job `build` without `github-pages` env; trusted check-run fetch then `unset GITHUB_TOKEN GH_TOKEN` before renderer; `main` push deploys if Pages source is GitHub Actions.
+- Pages: local `scripts/render-sai-feature-maps --check`; renderer consumes `go run ./cmd/sai-verify maps`; PR job `build` without `github-pages` env; trusted check-run fetch then `unset GITHUB_TOKEN GH_TOKEN` before renderer; `main` push deploys if Pages source is GitHub Actions.
 ## Driving it with verify-sai
 - **Workflows.** ::exists .github/workflows/agent-audit.yml .github/workflows/anti-regression.yml .github/workflows/pr-line-budget.yml
 - **Policy.** ::py .github/policy/anti-regression.py --trusted . --candidate . --self-test timeout=180
@@ -19,7 +19,10 @@ GitHub Actions enforce ICM audit, trusted-base behavioral anti-regression, and a
 - **Trusted path.** ::contains .github/workflows/anti-regression.yml trusted/.github/policy/anti-regression.py
 - **Pages render.** ::exists scripts/render-sai-feature-maps
 - **Pages workflow.** ::exists .github/workflows/feature-maps-pages.yml
+- **Pages maps.** ::contains scripts/render-sai-feature-maps go run ./cmd/sai-verify maps
+- **Pages hidden.** ::contains .github/workflows/feature-maps-pages.yml include-hidden-files
 ## Gotchas
 - `pull_request_target` must not persist credentials or pass secrets to candidate. agent-audit checks out with `persist-credentials: false` and unsets `GITHUB_TOKEN` before candidate `go test`. Policy rejects package-level `= func(` initializers. Raising 1200 or dropping trusted-base execution is a constitution failure. Candidate-modified verifier is never the sole authority after BASE has `sai-verify`. After BASE has the kernel, `runRecipe`/`allowBin`/`parseRecipe`/recipe.err/`git`/`recipeEnv` text must match trusted so argv cannot become `bash -lc` while leaving the exec call sites unchanged.
 - Pages HTML is public; no secrets. Org Free Pages may need a public repo. Failed deploy must not be a required check. Hostinger stays Saul-go.
 - Pages `build`/`deploy` fetch check-runs in a trusted step, then `unset GITHUB_TOKEN GH_TOKEN` before `scripts/render-sai-feature-maps`. Do not export GH_TOKEN into the candidate renderer step.
+- Feature-map interpretation stays in `cmd/sai-verify maps`. The Pages generator consumes that JSON. Do not add a second README or four-H2 parser.
