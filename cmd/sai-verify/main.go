@@ -167,6 +167,9 @@ func mapsCmd(headDir string, out io.Writer) error {
 head := git(headDir, "rev-parse", "HEAD")
 feats, problems := loadFeats(headDir)
 if len(feats) == 0 { return fmt.Errorf("sai-verify maps: no features under %s", mapDir) }
+s := snap{}
+fillMap(&s, feats, problems)
+if !s.MapValid { return fmt.Errorf("sai-verify maps: invalid map: %s", strings.Join(s.Problems, "; ")) }
 cap := ""
 if b, err := os.ReadFile(filepath.Join(headDir, mapDir, "README.md")); err == nil {
 for _, line := range strings.Split(string(b), "\n") {
@@ -190,7 +193,7 @@ Head string `json:"head"`
 Caption string `json:"caption"`
 Problems []string `json:"problems"`
 Features []row `json:"features"`
-}{Head: head, Caption: cap, Problems: problems, Features: []row{}}
+}{Head: head, Caption: cap, Problems: s.Problems, Features: []row{}}
 for _, f := range feats { payload.Features = append(payload.Features, row{f.ID, f.File, f.Title, f.Desc, f.Subs, f.Ent, f.Proof, f.Gotchas}) }
 enc := json.NewEncoder(out); enc.SetEscapeHTML(false); return enc.Encode(payload)
 }

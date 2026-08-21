@@ -186,4 +186,12 @@ func TestMapsJSON(t *testing.T) {
 	if c := run([]string{"maps", "--root", root(t)}, bytes.NewReader(nil), &out, &errw); c != 0 { t.Fatal("maps", c, errw.String(), out.String()) }
 	s := out.String()
 	if !strings.Contains(s, `"id":"protected-ci"`) || !strings.Contains(s, `"subfeatures"`) || !strings.Contains(s, "ci-feature-maps-pages") || !strings.Contains(s, `"entry_points"`) || !strings.Contains(s, `"proofs"`) || !strings.Contains(s, `"gotchas"`) { t.Fatal("protected-ci maps dump", s) }
+	d := t.TempDir()
+	mini(t, d, map[string]string{"alpha.md": featBody("alpha", "", "", "")})
+	idx, _ := os.ReadFile(filepath.Join(d, mapDir, "README.md"))
+	os.WriteFile(filepath.Join(d, mapDir, "README.md"), append(idx, []byte("- [X](./nope.md)\n")...), 0644)
+	var out2, errw2 bytes.Buffer
+	if c := run([]string{"maps", "--root", d}, bytes.NewReader(nil), &out2, &errw2); c == 0 { t.Fatal("maps invalid", errw2.String(), out2.String()) }
+	if out2.Len() != 0 { t.Fatal("maps invalid stdout", out2.String()) }
+	if !strings.Contains(errw2.String(), "invalid map") || !strings.Contains(errw2.String(), "dead index") { t.Fatal("maps invalid stderr", errw2.String()) }
 }
