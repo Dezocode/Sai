@@ -1,0 +1,31 @@
+{
+  "task_id": "20260821-1954-pr73-foundation-cursor-cloud",
+  "agent": "cursor-cloud",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "foundation/sai-app-skeleton",
+  "base_sha": "7aa423f31a4084afb73d2ca3d5c981ea47bbff73",
+  "purpose": "Restore truncated sai-verify kernel, expand pathRe for product roots, land GET-only probes and native shell wiring on PR 73",
+  "status": "handoff",
+  "claimed_files": [
+    "cmd/sai-verify/main.go",
+    "cmd/sai-verify/foundation_roots_test.go",
+    "internal/app/app.go",
+    "internal/app/app_test.go",
+    "api/openapi.yaml",
+    "apps/apple/Packages/SaiKit/Package.swift",
+    "apps/apple/Packages/SaiKit/Sources/SaiFoundation/SaiFoundation.swift",
+    "apps/apple/Packages/SaiKit/Sources/SaiAPI/SaiAPI.swift",
+    "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage/SaiDesignLanguage.swift",
+    "apps/apple/SaiMac/SaiMacApp.swift",
+    "apps/apple/SaiIOS/SaiIOSApp.swift",
+    "apps/apple/Config/Development.xcconfig",
+    "apps/apple/Config/Staging.xcconfig",
+    "apps/apple/Config/Production.xcconfig",
+    "apps/apple/README.md",
+    ".ai/runs/20260821-1954-pr73-foundation-cursor-cloud/"
+  ],
+  "trigger": "parent: restore PR 73 kernel truncation then remaining foundation on foundation/sai-app-skeleton",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "pr": 73
+}
