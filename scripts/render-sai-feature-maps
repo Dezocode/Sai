@@ -101,6 +101,8 @@ def load_kernel_maps(root: Path) -> tuple[list[dict], list[str], str]:
             }
         )
     drift = [str(x) for x in (payload.get("problems") or [])]
+    if drift:
+        raise SystemExit("render-sai-feature-maps: invalid map: " + "; ".join(drift))
     cap = str(payload.get("caption") or "")
     return feats, drift, cap
 
