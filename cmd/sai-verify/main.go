@@ -435,9 +435,9 @@ func hookCtx(s snap) string {
 }
 func st(ok bool) string { if ok { return "PASS" }; return "FAIL" }
 func evOK(evPath, headDir string) bool {
-	ap, err := filepath.Abs(evPath); if err != nil || ap == "" { return false }
-	gd := git(headDir, "rev-parse", "--absolute-git-dir"); hd, _ := filepath.Abs(headDir); tmp, _ := filepath.Abs(os.TempDir()); rt := os.Getenv("RUNNER_TEMP"); if rt != "" { rt, _ = filepath.Abs(rt) }; sep := string(filepath.Separator)
-	return hd != "" && (ap == hd || strings.HasPrefix(ap, hd+sep)) || gd != "" && (ap == gd || strings.HasPrefix(ap, gd+sep)) || tmp != "" && (ap == tmp || strings.HasPrefix(ap, tmp+sep)) || rt != "" && (ap == rt || strings.HasPrefix(ap, rt+sep)) || strings.HasPrefix(ap, "/tmp/")
+	ap, err := filepath.Abs(evPath); if err != nil || ap == "" || !strings.HasSuffix(strings.ToLower(ap), ".json") { return false }; if st, e := os.Lstat(ap); e == nil && (!st.Mode().IsRegular() || st.Mode()&os.ModeSymlink != 0) { return false }
+	par, err := filepath.EvalSymlinks(filepath.Dir(ap)); if err != nil { return false }
+	under := func(r string) bool { if r == "" { return false }; r, _ = filepath.Abs(r); if rr, e := filepath.EvalSymlinks(r); e == nil { r = rr }; return par == r || strings.HasPrefix(par, r+string(filepath.Separator)) }; gd, tmp, rt := git(headDir, "rev-parse", "--absolute-git-dir"), os.TempDir(), os.Getenv("RUNNER_TEMP"); return (!under(headDir) || under(gd)) && (under(gd) || under(tmp) || under(rt) || par == "/tmp" || strings.HasPrefix(par, "/tmp"+string(filepath.Separator)))
 }
 func writeProof(w io.Writer, s snap, evPath, headDir string) {
 	src, _ := os.ReadFile(filepath.Join(headDir, "cmd/sai-verify/main.go"))
@@ -460,7 +460,7 @@ func writeProof(w io.Writer, s snap, evPath, headDir string) {
 	for _, u := range s.Unreachable { fmt.Fprintln(w, "UNREACHABLE", u) }
 	for _, u := range s.Unmapped { fmt.Fprintln(w, "UNPROVEN unmapped", u) }
 	if s.Err != "" { fmt.Fprintln(w, "FAIL", s.Err) }
-	if art == "PASS proof-artifacts" { b, _ := json.MarshalIndent(g, "", "  "); _ = os.WriteFile(jp, b, 0644) }
+	if art == "PASS proof-artifacts" { b, _ := json.MarshalIndent(g, "", "  "); tf := jp + ".tmp"; os.Remove(tf); f, err := os.OpenFile(tf, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644); if err == nil { _, err = f.Write(b); f.Close(); if err != nil || os.Rename(tf, jp) != nil { os.Remove(tf) } } }
 }
 func relTool(f feat, tool string) bool {
 	t, blob := strings.ToLower(tool), strings.ToLower(f.Desc+f.File+strings.Join(f.Ent, "")+strings.Join(f.Proof, ""))
@@ -574,7 +574,7 @@ func driveCmd(s snap, headDir, evPath string, out io.Writer) int {
 	sweep := "dirty"; if len(s.Unmapped) == 0 { sweep = "clean" }
 	if evPath == "" { if gd := git(headDir, "rev-parse", "--absolute-git-dir"); gd != "" { evPath = filepath.Join(gd, "sai-verify-evidence.json") } else { evPath = "sai-verify-evidence.json" } }
 	b, _ := json.MarshalIndent(map[string]interface{}{"repo": s.Repo, "base": s.Base, "head": s.Head, "map_hash": mapHash(headDir), "sweep": sweep, "unmapped": s.Unmapped, "pass": pass, "fail": fail, "skip": 0, "unreachable": s.Unreachable, "drives": rows}, "", "  ")
-	if !evOK(evPath, headDir) { fmt.Fprintln(out, `{"error":"evidence path"}`); return 1 }; _ = os.WriteFile(evPath, b, 0644); fmt.Fprintln(out, string(b)); if fail > 0 { return 1 }; return 0
+	if !evOK(evPath, headDir) { fmt.Fprintln(out, `{"error":"evidence path"}`); return 1 }; tf := evPath + ".tmp"; os.Remove(tf); f, err := os.OpenFile(tf, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644); if err != nil { fmt.Fprintln(out, `{"error":"evidence path"}`); return 1 }; _, err = f.Write(b); f.Close(); if err != nil || os.Rename(tf, evPath) != nil { os.Remove(tf); fmt.Fprintln(out, `{"error":"evidence path"}`); return 1 }; fmt.Fprintln(out, string(b)); if fail > 0 { return 1 }; return 0
 }
 func unreachable(fs []feat) []string {
 	var u []string
