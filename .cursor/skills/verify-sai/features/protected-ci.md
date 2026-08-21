@@ -16,4 +16,4 @@ GitHub Actions enforce ICM audit, trusted-base behavioral anti-regression, and a
 - **Budget.** ::contains .github/workflows/pr-line-budget.yml MAX_ADDITIONS
 - **Trusted path.** ::contains .github/workflows/anti-regression.yml trusted/.github/policy/anti-regression.py
 ## Gotchas
-- `pull_request_target` must not persist credentials or pass secrets to candidate. Raising 1200 or dropping trusted-base execution is a constitution failure. Candidate-modified verifier is never the sole authority after BASE has `sai-verify`.
+- `pull_request_target` must not persist credentials or pass secrets to candidate. Raising 1200 or dropping trusted-base execution is a constitution failure. Candidate-modified verifier is never the sole authority after BASE has `sai-verify`. After BASE has the kernel, `runRecipe`/`allowBin`/`parseRecipe`/recipe.err text must match trusted so argv cannot become `bash -lc` while leaving the exec call sites unchanged.
