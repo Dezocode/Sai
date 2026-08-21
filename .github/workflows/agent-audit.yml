@@ -15,9 +15,14 @@ jobs:
   icm-enforcement:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: "1.22"
 
       - name: Determine commit range
         id: range
@@ -99,6 +104,24 @@ jobs:
             echo "OK $f"
           done
 
+      - name: Verify sai-verify kernel and native map
+        run: |
+          unset GITHUB_TOKEN GH_TOKEN; chmod +x .cursor/hooks/sai-verify.sh
+          go test -race ./...
+          go vet ./...
+          EV="${RUNNER_TEMP:-/tmp}/sai-verify-evidence.json"
+          BASE="${{ github.event.pull_request.base.sha || 'origin/main' }}"
+          git fetch --depth=1 origin "$BASE" 2>/dev/null || true
+          if git cat-file -e "$BASE:cmd/sai-verify/main.go" 2>/dev/null; then mkdir -p "${RUNNER_TEMP}/tk" && git archive "$BASE" cmd/sai-verify go.mod | tar -x -C "${RUNNER_TEMP}/tk" && (cd "${RUNNER_TEMP}/tk" && go build -o "${RUNNER_TEMP}/tv" ./cmd/sai-verify) && "${RUNNER_TEMP}/tv" preserve --base-ref "$BASE" --head "$(pwd)" --root "$(pwd)"; else echo "BOOTSTRAP: BASE has no sai-verify kernel; candidate drive is test plane, not preservation policy"; fi
+          go run ./cmd/sai-verify drive --evidence "$EV"
+          go run ./cmd/sai-verify doctor --evidence "$EV"
+          go run ./cmd/sai-verify preserve --base-ref "$BASE"
+          go run ./cmd/sai-verify proof --evidence "$EV" | tee "${RUNNER_TEMP}/sai-verify-proof.txt"; test -s "${RUNNER_TEMP}/sai-verify-proof.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: sai-verify-proof-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/sai-verify-proof*
       - name: Confirm ICM workflow files present
         run: |
           test -f .github/workflows/agent-audit.yml
@@ -122,7 +145,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 

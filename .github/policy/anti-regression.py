@@ -312,6 +312,46 @@ class Policy:
             cwd=candidate,
         )
 
+    def feature_contract(self) -> bool:
+        kernel = self.trusted / "cmd" / "sai-verify"; ok = True
+        if not kernel.is_dir():
+            self.record("Feature map preservation", True, "bootstrap N/A: trusted base predates sai-verify; nothing to preserve")
+        else:
+            env = self.clean_env()
+            for k in ("HOME", "GOROOT", "GOPATH", "GOCACHE", "GOMODCACHE"):
+                if k in os.environ:
+                    env[k] = os.environ[k]
+            bin_path = pathlib.Path(tempfile.mkdtemp(prefix="sai-verify-")) / "sai-verify"
+            built = subprocess.run(["go", "build", "-o", str(bin_path), "./cmd/sai-verify"], cwd=str(self.trusted), env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120, check=False)
+            if built.returncode != 0:
+                return self.record("Feature map preservation", False, (built.stdout or "")[-4000:])
+            ok = self.command("Protected BASE feature IDs are preserved", [str(bin_path), "preserve", "--base", str(self.trusted), "--head", str(self.candidate), "--root", str(self.candidate)], timeout=60)
+        try:
+            doc = json.loads((self.candidate / ".cursor" / "hooks.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            self.record("Required pre/post verification hooks", False, "hooks.json missing/invalid")
+            return False
+        def covered(name: str) -> bool:
+            for h in (doc.get("hooks") or {}).get(name) or []:
+                if "sai-verify" in str(h.get("command", "")) and (h.get("matcher") in (".*", "^.*$") or name not in ("preToolUse", "postToolUse", "postToolUseFailure", "beforeShellExecution", "afterShellExecution", "beforeReadFile", "afterFileEdit", "subagentStart", "subagentStop")) and h.get("failClosed") is True:
+                    return True
+            return False
+        need = ("sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "workspaceOpen")
+        hook_ok = all(covered(n) for n in need)
+        has_kernel = (self.candidate / "cmd" / "sai-verify").is_dir()
+        def src_of(root):
+            return "".join(p.read_text(encoding="utf-8", errors="replace") for p in sorted((root / "cmd" / "sai-verify").rglob("*.go")) if not p.name.endswith("_test.go"))
+        def calls(s):
+            return tuple(re.findall(r'exec\.Command(?:Context)?\s*\((?:[^()]|\([^()]*\))*\)', re.sub(r'\s+', ' ', s)))
+        cs = src_of(self.candidate); chunk=lambda s,n: (lambda i: "" if i<0 else re.sub(r"\s+"," ", s[i:(j if (j:=s.find("\nfunc ",i+1))>0 else len(s))]))(s.find("func "+n))
+        want = calls(src_of(self.trusted)) if (self.trusted / "cmd" / "sai-verify").is_dir() else ('exec.CommandContext(ctx, argv[0], argv[1:]...)', 'exec.Command("git", append([]string{"-c", "safe.directory=*", "-C", dir}, args...)...)')
+        ts = src_of(self.trusted) if (self.trusted / "cmd" / "sai-verify").is_dir() else ""
+        shell_ok = has_kernel and calls(cs) == want and "os.StartProcess" not in cs and "syscall.Exec" not in cs and "syscall.ForkExec" not in cs and "func init(" not in cs and "plugin.Open" not in cs and not re.search(r'(?:^|[^:])=\s*func\s*\(', cs) and not re.search(r'(?:^|[\n;( ])\s*(?!import\b)(?:\w+|\.)\s+"os/exec"', cs) and not re.search(r'(?:^|[\n;( ])\s*(?!import\b)(?:\w+|\.)\s+"syscall"', cs) and (not ts or all(chunk(cs,n)==chunk(ts,n) for n in ("runRecipe(","allowBin(","parseRecipe(","(r recipe) err(","git(","recipeEnv(")))
+        self.record("Required pre/post verification hooks", hook_ok, "")
+        self.record("Candidate retains sai-verify kernel", has_kernel, "")
+        self.record("Candidate verifier is not a shell evaluator", shell_ok, "")
+        return ok and hook_ok and has_kernel and shell_ok
+
     def run_all(self) -> bool:
         self.json_validity()
         self.no_new_secrets()
@@ -321,6 +361,7 @@ class Policy:
         self.scaffold_behavior()
         self.shell_authorization()
         self.agent_operability()
+        self.feature_contract()
         return all(result.ok for result in self.results)
 
     def report(self) -> bool:
@@ -458,6 +499,13 @@ def mutation_self_test(trusted: pathlib.Path, candidate: pathlib.Path) -> list[R
         p = Policy(trusted, root)
         outcomes.append(expect_failure("mutation: false connected state is caught", lambda: changed and not p.connection_truth(root)))
 
+    if (trusted / "cmd" / "sai-verify").is_dir():
+        with tempfile.TemporaryDirectory(prefix="anti-regression-feature-") as td:
+            root = clone_for_mutation(candidate, pathlib.Path(td)); dropped = False
+            for path in (root / ".cursor" / "skills" / "verify-sai" / "features").glob("*.md"):
+                if path.name != "README.md": path.unlink(); dropped = True; break
+            p = Policy(trusted, root); outcomes.append(expect_failure("mutation: protected feature deletion is caught", lambda: dropped and not p.feature_contract()))
+            t=pathlib.Path(td)/"t"; shutil.copytree(trusted,t,symlinks=True); shutil.rmtree(t/"cmd"/"sai-verify", ignore_errors=True); bp=Policy(t,candidate); okb=bp.feature_contract() and any(r.ok and "N/A" in (r.detail or "") for r in bp.results if r.name=="Feature map preservation"); bad=pathlib.Path(td)/"bad"; shutil.copytree(candidate,bad,symlinks=True); (bad/"cmd"/"sai-verify"/"helper.go").write_text('package main\nimport "os/exec"\nfunc pwn() { exec.CommandContext(nil, "ba"+"sh", "-l"+"c", "x") }\n'); bp2=Policy(t,bad); sw=pathlib.Path(td)/"sw"; shutil.copytree(candidate,sw,symlinks=True); mp=sw/"cmd"/"sai-verify"/"main.go"; mp.write_text(mp.read_text(encoding="utf-8").replace("exec.CommandContext(ctx, argv[0], argv[1:]...)", 'exec.CommandContext(ctx, "bash", argv[1:]...)', 1), encoding="utf-8"); bp3=Policy(trusted,sw); al=pathlib.Path(td)/"al"; shutil.copytree(candidate,al,symlinks=True); (al/"cmd"/"sai-verify"/"helper.go").write_text('package main\nimport (\n\txe "os/exec"\n)\nfunc pwn() { xe.Command("true") }\n'); bp4=Policy(t,al); ini=pathlib.Path(td)/"ini"; shutil.copytree(candidate,ini,symlinks=True); (ini/"cmd"/"sai-verify"/"helper.go").write_text('package main\nfunc init() {}\n'); bp5=Policy(t,ini); sy=pathlib.Path(td)/"sy"; shutil.copytree(candidate,sy,symlinks=True); (sy/"cmd"/"sai-verify"/"helper.go").write_text('package main\nimport (\n\tsy "syscall"\n)\nfunc pwn() { _, _ = sy.ForkExec("", nil, nil) }\n'); sh=pathlib.Path(td)/"sh"; shutil.copytree(candidate,sh,symlinks=True); hp=sh/"cmd"/"sai-verify"/"main.go"; hp.write_text(hp.read_text(encoding="utf-8").replace("argv := r.argv", 'argv := []string{"bash", "-lc", "true"}', 1), encoding="utf-8"); iv=pathlib.Path(td)/"iv"; shutil.copytree(candidate,iv,symlinks=True); (iv/"cmd"/"sai-verify"/"helper.go").write_text('package main\nvar bootstrap = func() int { return 0 }()\n'); outcomes.append(Result("bootstrap: no BASE kernel is N/A and still checks candidate", okb and not bp2.feature_contract() and not bp3.feature_contract() and not bp4.feature_contract() and not Policy(trusted,al).feature_contract() and not bp5.feature_contract() and not Policy(trusted,sy).feature_contract() and not Policy(t,sy).feature_contract() and not Policy(trusted,sh).feature_contract() and not Policy(trusted,iv).feature_contract() and not Policy(t,iv).feature_contract(), ""))
     return outcomes
 
 
