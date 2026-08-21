@@ -51,25 +51,22 @@ func (a *App) Addr() string          { return a.server.Addr }
 func (a *App) Handler() http.Handler { return a.server.Handler }
 
 func (a *App) Run(ctx context.Context) error {
-	done := make(chan struct{})
-	defer close(done)
-	go func() {
-		select {
-		case <-ctx.Done():
-			shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			_ = a.server.Shutdown(shutdown)
-		case <-done:
-		}
-	}()
 	ln, err := net.Listen("tcp", a.server.Addr)
 	if err != nil {
 		return err
 	}
 	defer ln.Close()
+	a.server.Addr = ln.Addr().String()
+	shutErr := make(chan error, 1)
+	go func() {
+		<-ctx.Done()
+		c, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		shutErr <- a.server.Shutdown(c)
+	}()
 	err = a.server.Serve(ln)
 	if errors.Is(err, http.ErrServerClosed) {
-		return nil
+		return <-shutErr
 	}
 	return err
 }

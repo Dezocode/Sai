@@ -64,7 +64,8 @@ func check(root string) error {
 		if walkErr != nil {
 			return walkErr
 		}
-		if d.IsDir() || filepath.Ext(path) != ".swift" {
+		slash := filepath.ToSlash(path)
+		if d.IsDir() || filepath.Ext(path) != ".swift" || strings.Contains(slash, "/.build/") || strings.Contains(slash, "/.swiftpm/") {
 			return nil
 		}
 		rel, err := filepath.Rel(root, path)
