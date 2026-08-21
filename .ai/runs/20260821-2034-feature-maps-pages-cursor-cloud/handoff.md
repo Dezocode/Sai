@@ -8,14 +8,15 @@ Sai is the app for parents to give their children access to the internet and AI 
 
 - START_HEAD: `bb39842bf30bdb08ab0cf859bb4f5f39f379f8f9` (GitHub `origin/main`. Equals OBSERVED_START_HEAD. Main did not move.)
 - PRODUCT_HEAD: `4db544e2e9da0097a5e55e45dc13684fb642184f` (generator, workflow, additive map)
-- Saul P1 follow-up: token split in `.github/workflows/feature-maps-pages.yml` (this commit)
+- Token-split head: `09ab88f1bee5da62a53155fef7eb7b0068b0fc5b` (UNIT-0017)
+- Four-H2 card render: this follow-up (UNIT-0018 / P2 missing-gh)
 - Branch: `cursor/feature-maps-pages-32aa`
 - PR: https://github.com/Dezocode/Sai/pull/74 (draft). Did not update PR 73.
 - Agent: cursor-cloud / `bc-e0e95991-dee1-4019-a799-278f28c332aa`
 
 ## Files
 
-- `scripts/render-sai-feature-maps` — Python 3 generator from HEAD maps
+- `scripts/render-sai-feature-maps` — four-H2 cards; `html.escape`; missing `gh` → unevaluated
 - `.github/workflows/feature-maps-pages.yml` — trusted check-run fetch, then unset tokens before renderer
 - `.cursor/skills/verify-sai/features/protected-ci.md` — additive `ci-feature-maps-pages` plus token-split how-to/gotcha
 - `.ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/`
@@ -38,7 +39,7 @@ scripts/render-sai-feature-maps --out DIR
 
 ## CI / blockers
 
-- Saul / Product Quality P1 on `6a858c8` (UNIT-0017 token in renderer) is the follow-up this commit addresses. Do not claim Saul success until the new head re-runs.
+- Saul P1 UNIT-0018 (discarded four-H2 content) is the follow-up this commit addresses. Do not claim Saul success until the new head re-runs.
 - Live Pages URL is pending Settings. Do not merge. Stay draft.
 - Slack `SAI_SLACK_BOT_TOKEN` unset; events queued.
 - Next safe action: wait for Saul / Product Quality on this head; co-founder reviews draft PR 74.

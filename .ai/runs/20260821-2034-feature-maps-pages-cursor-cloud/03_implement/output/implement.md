@@ -9,4 +9,6 @@ Workflow `Feature maps Pages` (`.github/workflows/feature-maps-pages.yml`):
 
 Map: additive `ci-feature-maps-pages` on `protected-ci.md`. Existing Workflows `::exists` line unchanged. Proofs are `::exists`. How-to and a new gotcha record the token split.
 
+Saul P1 UNIT-0018: cards emit canonical Sub-features, How to get to it, Driving it, and Gotchas (escaped map text, not ID pills only). Missing `gh` in local `--check` falls back to unevaluated known checks instead of crashing.
+
 No Apple, Go kernel, or SDL product edits. Hostinger untouched. PR 73 untouched.

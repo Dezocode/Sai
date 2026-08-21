@@ -46,6 +46,26 @@ def e(text: str) -> str:
     return html.escape(text, quote=True)
 
 
+def items_ul(items: list[str]) -> str:
+    if not items:
+        return '<p class="empty">None listed on this HEAD.</p>'
+    return "<ul>" + "".join(f"<li>{e(x)}</li>" for x in items) + "</ul>"
+
+
+def subs_ul(subs: list[tuple[str, str]]) -> str:
+    if not subs:
+        return '<p class="empty">None listed on this HEAD.</p>'
+    rows = []
+    for sid, rest in subs:
+        extra = f" {e(rest)}" if rest else ""
+        rows.append(f'<li><span class="id">{e(sid)}</span>{extra}</li>')
+    return "<ul>" + "".join(rows) + "</ul>"
+
+
+def feat_section(title: str, inner: str) -> str:
+    return f'<section class="sec"><h2>{e(title)}</h2>{inner}</section>'
+
+
 def load_index(readme: str) -> list[str]:
     names: list[str] = []
     in_feat = False
@@ -146,14 +166,20 @@ def load_checks(path: Path | None, root: Path, sha: str) -> list[dict]:
         repo = git(root, "config", "--get", "remote.origin.url")
         m = re.search(r"github.com[:/]([^/]+/[^/.]+)", repo)
         slug = m.group(1) if m else "Dezocode/Sai"
-        cp = subprocess.run(
-            ["gh", "api", f"repos/{slug}/commits/{sha}/check-runs", "--paginate"],
-            text=True,
-            capture_output=True,
-        )
-        if cp.returncode == 0 and cp.stdout.strip():
+        stdout = ""
+        try:
+            cp = subprocess.run(
+                ["gh", "api", f"repos/{slug}/commits/{sha}/check-runs", "--paginate"],
+                text=True,
+                capture_output=True,
+            )
+            if cp.returncode == 0:
+                stdout = cp.stdout.strip()
+        except (FileNotFoundError, OSError):
+            stdout = ""
+        if stdout:
             try:
-                blob = json.loads(cp.stdout)
+                blob = json.loads(stdout)
             except json.JSONDecodeError:
                 blob = []
             if isinstance(blob, list):
@@ -203,12 +229,15 @@ def render(root: Path, feats: list[dict], drift: list[str], cap: str, checks: li
     nav_con = [f"<span>{e(label)}</span>" for label, _ in cons]
     cards = []
     for f in feats:
-        pills = "".join(f'<span class="id">{e(sid)}</span>' for sid, _ in f["subs"])
         cards.append(
             f'<article class="card" id="{e(f["id"])}">'
-            f"<h2>{e(f['title'])}</h2>"
+            f'<h2 class="feat">{e(f["title"])}</h2>'
             f'<p class="desc">{e(f["desc"])}</p>'
-            f'<div class="pills">{pills}</div></article>'
+            f'{feat_section("Sub-features", subs_ul(f["subs"]))}'
+            f'{feat_section("How to get to it", items_ul(f["ents"]))}'
+            f'{feat_section("Driving it", items_ul(f["proofs"]))}'
+            f'{feat_section("Gotchas", items_ul(f["gotchas"]))}'
+            "</article>"
         )
     banner = ""
     if drift:
@@ -256,8 +285,10 @@ h1{{font-size:28px;margin:0 0 6px}} .k{{font-size:11px;letter-spacing:.08em;colo
 .main{{padding:28px 32px 48px}} .cap{{color:var(--mute);margin:0 0 16px;max-width:52rem}}
 .drift{{background:#fff8e5;border:1px solid #ead79a;border-radius:10px;padding:12px 14px;margin:0 0 18px;color:#6b4e12}}
 .card{{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 12px}}
-.card h2{{margin:0 0 6px;font-size:16px}} .desc{{margin:0 0 10px;color:#333}}
-.pills{{display:flex;flex-wrap:wrap;gap:6px}} .id{{background:#ececec;border-radius:999px;padding:2px 8px;font:12px/1.3 ui-monospace,monospace}}
+.card h2.feat{{margin:0 0 6px;font-size:16px}} .desc{{margin:0 0 10px;color:#333}}
+.sec{{margin:12px 0 0}} .sec h2{{margin:0 0 6px;font-size:12px;letter-spacing:.04em;color:var(--mute);font-weight:650}}
+.sec ul{{margin:0;padding:0 0 0 1.2rem}} .sec li{{margin:0 0 4px}} .empty{{margin:0;color:var(--mute)}}
+.id{{background:#ececec;border-radius:999px;padding:2px 8px;font:12px/1.3 ui-monospace,monospace}}
 .checks{{list-style:none;margin:0;padding:0}} .checks li{{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}}
 .st{{border-radius:999px;padding:1px 8px;font-size:12px}} .st.ok{{background:#e7f3ec;color:#215a3d}} .st.bad{{background:#f8e8e5;color:#8a3228}} .st.warn{{background:#f7f0d8;color:#7a5d12}} .st.mute{{color:var(--mute);background:#ececec}}
 .note{{color:var(--mute);font-size:12px;margin:10px 0 18px}}
@@ -325,14 +356,24 @@ def verify(out: Path, feats: list[dict], html_text: str) -> None:
         problems.append("body is not Origin canvas")
     if "Hostinger stays Saul-go" not in html_text:
         problems.append("missing Hostinger boundary")
+    for heading in ("Sub-features", "How to get to it", "Driving it", "Gotchas"):
+        if f"<h2>{heading}</h2>" not in html_text:
+            problems.append("missing four-H2 heading " + heading)
     for f in feats:
         if f["title"] not in html_text:
             problems.append("missing title " + f["title"])
         if not f["subs"]:
             problems.append(f["id"] + " has no sub-features")
-        for sid, _ in f["subs"]:
+        for sid, rest in f["subs"]:
             if sid not in html_text:
                 problems.append("missing sub-id " + sid)
+            if rest and e(rest) not in html_text:
+                problems.append("missing sub-rest " + sid)
+        for kind, rows in (("ents", f["ents"]), ("proofs", f["proofs"]), ("gotchas", f["gotchas"])):
+            for row in rows:
+                if e(row) not in html_text:
+                    problems.append("missing " + kind + " text in " + f["id"])
+                    break
     if problems:
         raise SystemExit("render-sai-feature-maps --check failed:\n- " + "\n- ".join(problems))
 
