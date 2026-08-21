@@ -209,7 +209,7 @@ func mapHash(dir string) string {
 			return nil
 		})
 	}
-	return fmt.Sprintf("%x", h.Sum(nil)[:16])
+	for _, f := range strings.Split(git(dir, "ls-files", "-z", "--others", "--exclude-standard"), "\x00") { if f != "" && !seen[f] && !strings.HasPrefix(f, ".ai/runs/") && !strings.Contains(f, "__pycache__") && !strings.Contains(f, "node_modules") && !strings.HasSuffix(f, ".pyc") { seen[f] = true; b, _ := os.ReadFile(filepath.Join(dir, f)); h.Write([]byte(f)); h.Write(b) } }; return fmt.Sprintf("%x", h.Sum(nil)[:16])
 }
 func bindEvidence(s *snap, evPath, headDir string) {
 	s.MaintStatus, s.Completeness, s.MaintRequired, s.MaintReason = "missing", "unproven", true, "no exact-head maintenance evidence"
@@ -242,7 +242,7 @@ func bindEvidence(s *snap, evPath, headDir string) {
 	}
 }
 func unmapped(root string, fs []feat) []string {
-	blob := git(root, "ls-files", "-z")
+	blob := git(root, "ls-files", "-z") + "\x00" + git(root, "ls-files", "-z", "--others", "--exclude-standard")
 	if blob == "" { return nil }
 	exact, prefs := map[string]bool{}, []string{}
 	for _, ft := range fs {
