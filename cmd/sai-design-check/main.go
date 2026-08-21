@@ -40,6 +40,71 @@ func main() {
 	fmt.Println("Sai Design Language: PASS")
 }
 
+func nest(v interface{}, keys ...string) interface{} {
+	for _, k := range keys {
+		m, _ := v.(map[string]interface{})
+		v = m[k]
+	}
+	return v
+}
+
+func matchSwift(root string, c contract, body []byte) error {
+	var raw map[string]interface{}
+	if json.Unmarshal(body, &raw) != nil {
+		return fmt.Errorf("tokens: contract")
+	}
+	b, err := os.ReadFile(filepath.Join(root, c.CodePolicy.DesignPath, "SaiDesignLanguage.swift"))
+	if err != nil {
+		return err
+	}
+	s := string(b)
+	m := regexp.MustCompile(`featureUIAllowed\s*=\s*(true|false)`).FindStringSubmatch(s)
+	if len(m) < 2 || (m[1] == "true") != c.FeatureUIAllowed {
+		return fmt.Errorf("tokens: featureUIAllowed")
+	}
+
+eqRGB := func(field, hex string) error {
+		g := regexp.MustCompile(field + `\s*=\s*Color\(\s*red:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*,\s*green:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*,\s*blue:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*\)`).FindStringSubmatch(s)
+		var hr, hg, hb int
+		var r, gv, bv float64
+		if len(g) < 4 || len(hex) != 7 || fmt.Sscanf(hex[1:], "%02x%02x%02x", &hr, &hg, &hb) != 3 {
+			return fmt.Errorf("tokens: %s", field)
+		}
+		fmt.Sscanf(g[1]+" "+g[2]+" "+g[3], "%f %f %f", &r, &gv, &bv)
+		if int(r+0.5) != hr || int(gv+0.5) != hg || int(bv+0.5) != hb {
+			return fmt.Errorf("tokens: %s != %s", field, hex)
+		}
+		return nil
+	}
+
+eqN := func(field string, want float64) error {
+		g := regexp.MustCompile(field + `:\s*CGFloat\s*=\s*([0-9.]+)`).FindStringSubmatch(s)
+		var n float64
+		if len(g) < 2 {
+			return fmt.Errorf("tokens: %s", field)
+		}
+		fmt.Sscanf(g[1], "%f", &n)
+		if n != want {
+			return fmt.Errorf("tokens: %s", field)
+		}
+		return nil
+	}
+	canvas, _ := nest(raw, "color", "canvas").(string)
+	text, _ := nest(raw, "color", "textPrimary").(string)
+	if err := eqRGB("canvas", canvas); err != nil {
+		return err
+	}
+	if err := eqRGB("textPrimary", text); err != nil {
+		return err
+	}
+	lg, _ := nest(raw, "grid", "spacing", "lg").(float64)
+	t2, _ := nest(raw, "typography", "roles", "title2", "size").(float64)
+	if err := eqN("spacingLg", lg); err != nil {
+		return err
+	}
+	return eqN("title2", t2)
+}
+
 func check(root string) error {
 	body, err := os.ReadFile(filepath.Join(root, "design", "sai-design-language.json"))
 	if err != nil {
@@ -58,6 +123,11 @@ func check(root string) error {
 	}
 	if c.CodePolicy.DesignPath == "" || c.CodePolicy.FeaturePath == "" {
 		return fmt.Errorf("contract metadata/codePolicy incomplete")
+	}
+	if _, err := os.Stat(filepath.Join(root, c.CodePolicy.DesignPath, "SaiDesignLanguage.swift")); err == nil {
+		if err := matchSwift(root, c, body); err != nil {
+			return err
+		}
 	}
 	apple := filepath.Join(root, "apps", "apple")
 	return filepath.WalkDir(apple, func(path string, d fs.DirEntry, walkErr error) error {
