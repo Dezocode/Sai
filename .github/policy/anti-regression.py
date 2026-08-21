@@ -346,7 +346,7 @@ class Policy:
         cs = src_of(self.candidate); chunk=lambda s,n: (lambda i: "" if i<0 else re.sub(r"\s+"," ", s[i:(j if (j:=s.find("\nfunc ",i+1))>0 else len(s))]))(s.find("func "+n))
         want = calls(src_of(self.trusted)) if (self.trusted / "cmd" / "sai-verify").is_dir() else ('exec.CommandContext(ctx, argv[0], argv[1:]...)', 'exec.Command("git", append([]string{"-c", "safe.directory=*", "-C", dir}, args...)...)')
         ts = src_of(self.trusted) if (self.trusted / "cmd" / "sai-verify").is_dir() else ""
-        shell_ok = has_kernel and calls(cs) == want and "os.StartProcess" not in cs and "syscall.Exec" not in cs and "syscall.ForkExec" not in cs and "func init(" not in cs and "plugin.Open" not in cs and not re.search(r'(?:^|[\n;( ])\s*(?!import\b)(?:\w+|\.)\s+"os/exec"', cs) and not re.search(r'(?:^|[\n;( ])\s*(?!import\b)(?:\w+|\.)\s+"syscall"', cs) and (not ts or all(chunk(cs,n)==chunk(ts,n) for n in ("runRecipe(","allowBin(","parseRecipe(","(r recipe) err(")))
+        shell_ok = has_kernel and calls(cs) == want and "os.StartProcess" not in cs and "syscall.Exec" not in cs and "syscall.ForkExec" not in cs and "func init(" not in cs and "plugin.Open" not in cs and not re.search(r'(?:^|[\n;( ])\s*(?!import\b)(?:\w+|\.)\s+"os/exec"', cs) and not re.search(r'(?:^|[\n;( ])\s*(?!import\b)(?:\w+|\.)\s+"syscall"', cs) and (not ts or all(chunk(cs,n)==chunk(ts,n) for n in ("runRecipe(","allowBin(","parseRecipe(","(r recipe) err(","git(","recipeEnv(")))
         self.record("Required pre/post verification hooks", hook_ok, "")
         self.record("Candidate retains sai-verify kernel", has_kernel, "")
         self.record("Candidate verifier is not a shell evaluator", shell_ok, "")
