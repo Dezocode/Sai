@@ -236,7 +236,7 @@ func bindEvidence(s *snap, evPath, headDir string) {
 	case head != s.Head: s.MaintReason = "evidence HEAD mismatch"
 	case mh != mapHash(headDir): s.MaintReason = "evidence map hash mismatch"
 	case !hasFail || !hasPass || sweep == "" || !ioOK: s.MaintReason = "incomplete evidence"
-	case sweep != "clean" || len(um) > 0: s.MaintStatus, s.MaintReason = "incomplete", "source sweep not clean"
+	case sweep != "clean" || len(um) > 0 || len(s.Unmapped) > 0: s.MaintStatus, s.MaintReason = "incomplete", "source sweep not clean"
 	case n != 0: s.MaintStatus, s.MaintReason = "bound", "live-drive failures"
 	default: s.MaintStatus, s.MaintRequired, s.MaintReason, s.Completeness, s.EvidenceBound = "bound", false, "", "proven", true
 	}
