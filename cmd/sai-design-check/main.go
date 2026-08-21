@@ -94,7 +94,7 @@ func check(root string) error {
 }
 
 func validateSchema(schema, doc []byte) error {
-	var s, d any
+	var s, d interface{}
 	if err := json.Unmarshal(schema, &s); err != nil {
 		return err
 	}
@@ -104,8 +104,8 @@ func validateSchema(schema, doc []byte) error {
 	return applySchema(s, d, "$")
 }
 
-func applySchema(schema, doc any, path string) error {
-	sm, ok := schema.(map[string]any)
+func applySchema(schema, doc interface{}, path string) error {
+	sm, ok := schema.(map[string]interface{})
 	if !ok {
 		return nil
 	}
@@ -115,8 +115,8 @@ func applySchema(schema, doc any, path string) error {
 		}
 	}
 	switch v := doc.(type) {
-	case map[string]any:
-		if req, ok := sm["required"].([]any); ok {
+	case map[string]interface{}:
+		if req, ok := sm["required"].([]interface{}); ok {
 			for _, r := range req {
 				key, _ := r.(string)
 				if _, ok := v[key]; !ok {
@@ -127,7 +127,7 @@ func applySchema(schema, doc any, path string) error {
 		if min, ok := sm["minProperties"].(float64); ok && float64(len(v)) < min {
 			return fmt.Errorf("%s minProperties", path)
 		}
-		if props, ok := sm["properties"].(map[string]any); ok {
+		if props, ok := sm["properties"].(map[string]interface{}); ok {
 			for k, sub := range props {
 				if child, ok := v[k]; ok {
 					if err := applySchema(sub, child, path+"."+k); err != nil {
@@ -144,13 +144,13 @@ func applySchema(schema, doc any, path string) error {
 	return nil
 }
 
-func checkJSONType(t string, doc any, path string) error {
+func checkJSONType(t string, doc interface{}, path string) error {
 	ok := false
 	switch t {
 	case "object":
-		_, ok = doc.(map[string]any)
+		_, ok = doc.(map[string]interface{})
 	case "array":
-		_, ok = doc.([]any)
+		_, ok = doc.([]interface{})
 	case "string":
 		_, ok = doc.(string)
 	case "boolean":

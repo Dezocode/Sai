@@ -29,7 +29,7 @@ func TestSchemaRejectsMissingRequired(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var m map[string]any
+	var m map[string]interface{}
 	if err := json.Unmarshal(b, &m); err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +60,7 @@ func fixture(t *testing.T, designAuthority bool, source string) string {
 			t.Fatal(err)
 		}
 	}
-	c := map[string]any{
+	c := map[string]interface{}{
 		"version": 1, "status": "approved", "featureUIAllowed": true,
 		"grid": map[string]int{"unit": 4, "spacing": 1}, "typography": map[string]int{"families": 1, "dynamicType": 1, "roles": 1},
 		"color": map[string]int{"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10},
