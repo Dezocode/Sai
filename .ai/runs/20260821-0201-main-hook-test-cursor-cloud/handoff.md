@@ -1,2 +1,2 @@
 # Handoff — 20260821-0201-main-hook-test-cursor-cloud
-PR 69 merge commit `f5f4fcb` failed `icm-enforcement` on main. `TestLinkedWorktreeHook` globbed `sai-verify-$HEAD-*` and treated the wrapper's BASE cache as a candidate compile once `merge-base(HEAD, origin/main)` equalled HEAD. The wrapper only writes `gitdir/sai-verify-$merge-base-$srcid` from `git archive "$base"`. Allow that BASE key. Still fail any other HEAD-keyed binary. Keep follow-up draft until reviewed. Do not reopen #69.
+PR 69 merge `f5f4fcb` failed `TestLinkedWorktreeHook` on main. Allow BASE-keyed `sai-verify-$merge-base-*` cache. Bugbot on #69: drive now fails `scripts/agent-report` recipes that omit `has=` (pinned `runRecipe`/`err` bodies stay identical to BASE). Keep PR 72 draft. Do not reopen #69.

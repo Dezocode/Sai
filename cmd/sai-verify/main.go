@@ -567,7 +567,7 @@ func driveCmd(s snap, headDir, evPath string, out io.Writer) int {
 	for _, f := range fs {
 		for _, p := range f.Proof {
 			rec, err := parseRecipe(p); so, se, note, code, res := "", "", "", 1, "FAIL"
-			if err != nil { note, fail = err.Error(), fail+1 } else { code, so, se, note = runRecipe(rec, headDir); if code == rec.want { res, pass = "PASS", pass+1 } else { fail++ } }
+			if err != nil { note, fail = err.Error(), fail+1 } else if len(rec.argv) > 0 && rec.argv[0] == "scripts/agent-report" && (rec.has == "" || !okTok(rec.has)) { note, fail = "has", fail+1 } else { code, so, se, note = runRecipe(rec, headDir); if code == rec.want { res, pass = "PASS", pass+1 } else { fail++ } }
 			rows = append(rows, map[string]string{"id": f.ID, "name": p, "result": res, "stdout": so, "stderr": se, "note": note, "exit": fmt.Sprintf("%d", code)})
 		}
 	}
