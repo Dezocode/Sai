@@ -1,2 +1,3 @@
 SAI_ENVIRONMENT = production
+INFOPLIST_KEY_SAI_ENVIRONMENT = $(SAI_ENVIRONMENT)
 // SAI_API_BASE_URL is supplied by release configuration; no secrets here.

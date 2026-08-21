@@ -3,6 +3,10 @@ import PackageDescription
 
 let package = Package(
     name: "SaiKit",
+    platforms: [
+        .macOS(.v14),
+        .iOS(.v17),
+    ],
     products: [
         .library(name: "SaiDesignLanguage", targets: ["SaiDesignLanguage"]),
         .library(name: "SaiFoundation", targets: ["SaiFoundation"]),
