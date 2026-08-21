@@ -21,7 +21,7 @@ GitHub Actions enforce ICM audit, trusted-base behavioral anti-regression, and a
 - **Pages workflow.** ::exists .github/workflows/feature-maps-pages.yml
 - **Pages maps.** ::contains scripts/render-sai-feature-maps go run ./cmd/sai-verify maps
 - **Pages hidden.** ::contains .github/workflows/feature-maps-pages.yml include-hidden-files
-- **Pages PR checks.** ::contains .github/workflows/feature-maps-pages.yml echo '[]'
+- **Pages PR checks.** ::contains .github/workflows/feature-maps-pages.yml feature-maps-checks.json
 ## Gotchas
 - `pull_request_target` must not persist credentials or pass secrets to candidate. agent-audit checks out with `persist-credentials: false` and unsets `GITHUB_TOKEN` before candidate `go test`. Policy rejects package-level `= func(` initializers. Raising 1200 or dropping trusted-base execution is a constitution failure. Candidate-modified verifier is never the sole authority after BASE has `sai-verify`. After BASE has the kernel, `runRecipe`/`allowBin`/`parseRecipe`/recipe.err/`git`/`recipeEnv` text must match trusted so argv cannot become `bash -lc` while leaving the exec call sites unchanged.
 - Pages HTML is public; no secrets. Org Free Pages may need a public repo. Failed deploy must not be a required check. Hostinger stays Saul-go.
