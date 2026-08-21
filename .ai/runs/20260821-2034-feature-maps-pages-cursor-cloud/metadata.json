@@ -9,7 +9,7 @@
   "start_head": "bb39842bf30bdb08ab0cf859bb4f5f39f379f8f9",
   "observed_start_head_note": "GitHub origin/main HEAD equals OBSERVED_START_HEAD (PR 73 base). No discrepancy.",
   "purpose": "Publish canonical verify-sai feature maps as Origin-light GitHub Pages. No product features. Do not stack onto PR 73.",
-  "status": "complete",
+  "status": "active",
   "pr_url": "https://github.com/Dezocode/Sai/pull/74",
   "product_head": "4db544e2e9da0097a5e55e45dc13684fb642184f",
   "claimed_files": [
@@ -20,5 +20,6 @@
   ],
   "trigger": "dezocode /lauren-mode /goal feature maps GitHub Pages buildout; new PR; do not update PR 73; do not reuse bc-98be4562-0631-4643-875d-5b8831b8e95f",
   "worktree": "isolated cloud-agent VM workspace (non-synced)",
-  "environment_public_id": "6f2ece39-800a-11f1-ba66-0e7d0216e441"
+  "environment_public_id": "6f2ece39-800a-11f1-ba66-0e7d0216e441",
+  "saul_p1": "UNIT-0017 token-split follow-up on PR 74"
 }

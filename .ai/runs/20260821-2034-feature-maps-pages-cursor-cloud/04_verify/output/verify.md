@@ -3,9 +3,9 @@
 Local (this VM, exact HEAD maps):
 
 - `scripts/render-sai-feature-maps --check` → `OK render-sai-feature-maps --check features=10`
-- `scripts/render-sai-feature-maps --out /tmp/feature-maps-site` → Origin tokens `#f8f8f8` `#f3f3f3` `#141414` `#34785c`; SDL chip `#0F1115` `#5B8CFF`; empty `.nojekyll`; `ci-feature-maps-pages` present; Hostinger sentence present
-- `go run ./cmd/sai-verify drive` → pass=56 fail=0, `ci-feature-maps-pages` in doctor ids, Pages proofs PASS
+- Token split: two fetch steps with `GH_TOKEN`; two render steps with `unset GITHUB_TOKEN GH_TOKEN` and no `gh api`
+- `go run ./cmd/sai-verify drive` rebound after workflow + map edits: pass=56 fail=0, completeness=proven
 - `scripts/verify-semantic-hierarchy` → OK
-- Generator + workflow + map line count ~491 before run artifacts. Under 1200.
+- Insertions vs origin/main: 793 (budget 1200)
 
-Skipped: live GitHub Pages deploy (needs Settings Pages=GitHub Actions and `github-pages` env). Saul / Product Quality is not this PR's job. Hostinger not touched.
+Skipped: live GitHub Pages deploy (needs Settings Pages=GitHub Actions). Hostinger not touched. Saul re-run pending on the token-split head.
