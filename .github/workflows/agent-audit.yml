@@ -18,6 +18,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
+          persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
@@ -106,7 +107,7 @@ jobs:
 
       - name: Verify sai-verify kernel and native map
         run: |
-          chmod +x .cursor/hooks/sai-verify.sh
+          unset GITHUB_TOKEN GH_TOKEN; chmod +x .cursor/hooks/sai-verify.sh
           go test -race ./...
           go vet ./...
           EV="${RUNNER_TEMP:-/tmp}/sai-verify-evidence.json"
