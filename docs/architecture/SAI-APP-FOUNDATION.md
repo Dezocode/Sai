@@ -19,44 +19,11 @@ Sai must scale in users, devices, features, contributors, and agent-driven devel
 
 ## System topology
 
-```text
-macOS SwiftUI ─┐
-iPhone SwiftUI ├── SaiAPI ── HTTPS/WebSocket ── cmd/sai (Go)
-iPad SwiftUI  ─┘                              │
-                                             ├─ domain packages
-Apple-only adapters                           ├─ persistence
-FamilyControls / ManagedSettings              ├─ integrations
-DeviceActivity / NetworkExtension             └─ events/notifications
-Keychain / Push / StoreKit
-```
-
-Swift is allowed to perform OS-specific actions. It is not allowed to become a second policy engine. Example: Go decides that a policy requires an app restriction; Swift translates that decision into `ManagedSettings`.
+macOS/iPhone/iPad SwiftUI clients talk to `cmd/sai` through `SaiAPI`. Swift may call Apple APIs (FamilyControls, ManagedSettings, DeviceActivity, NetworkExtension, Keychain, Push, StoreKit). It is not a second policy engine. Go decides policy; Swift translates it.
 
 ## Repository skeleton
 
-```text
-apps/apple/
-  SaiMac/                         macOS executable shell
-  SaiIOS/                         iOS/iPadOS executable shell
-  Config/                         Development/Staging/Production xcconfig
-  Packages/SaiKit/
-    Sources/SaiDesignLanguage/    tokens, primitives, adaptive UI
-    Sources/SaiFoundation/        shared client foundations
-    Sources/SaiAPI/               typed transport/client boundary
-    Sources/SaiFeatures/          product feature composition
-cmd/
-  sai/                            production Go executable
-  sai-design-check/               design/code-schema CI verifier
-  sai-verify/                     existing independent repo verifier
-internal/
-  app/                            process lifecycle/composition
-  future domains: api, auth, family, policy, devices, activity,
-                  notifications, persistence, integrations
-api/openapi.yaml                  product API contract
-design/                           Sai-specific design constitution
-migrations/                       ordered datastore migrations
-deploy/backend/                   backend deployment contract
-```
+`apps/apple/` holds `SaiMac`/`SaiIOS` shells, xcconfig, and `Packages/SaiKit` (`SaiDesignLanguage`, `SaiFoundation`, `SaiAPI`, `SaiFeatures`). `cmd/sai` is the production Go binary; `cmd/sai-design-check` is the design CI verifier; `cmd/sai-verify` stays independent. `internal/app` is process lifecycle. Future domains stay under `internal/`. Contracts live in `api/openapi.yaml`, `design/`, `migrations/`, and `deploy/backend/`.
 
 ## Go architecture
 
@@ -64,131 +31,64 @@ Use the existing root Go module. Multiple `cmd/*` directories are separate binar
 
 `cmd/sai` should only load configuration, construct dependencies, start the application, handle shutdown, and report fatal startup errors. Domain behavior belongs under `internal/`.
 
-Package direction is intentionally simple:
-
-```text
-transport/API -> domain/service -> persistence/integration ports
-```
+Package direction: `transport/API -> domain/service -> persistence/integration ports`.
 
 Do not place policy decisions in HTTP handlers, database code, or Swift clients. Avoid a framework-shaped architecture, dependency-injection framework, global mutable state, hidden goroutines, unbounded queues, and speculative microservices. Pass `context.Context` across blocking boundaries, make ownership of goroutines explicit, bound concurrency, return useful errors, and keep hot paths allocation-conscious.
 
-Start as a modular monolith because it is denser, faster to change, easier to test, and cheaper to deploy. A package may later become a service only when there is measured need for independent scale, fault isolation, security isolation, or release cadence.
+Start as a modular monolith. A package may later become a service only when there is measured need for independent scale, fault isolation, security isolation, or release cadence.
 
 ## Apple architecture
 
 The Apple clients are native SwiftUI. `SaiMac` and `SaiIOS` are thin executable targets over shared local Swift package modules.
 
-- `SaiDesignLanguage`: the only authority for visual tokens, primitives, component states, adaptive behavior, and motion.
+- `SaiDesignLanguage`: the only authority for visual tokens, primitives, component states, adaptive behavior, and motion. Runtime values are mechanically compared to `design/sai-design-language.json` by `cmd/sai-design-check`.
 - `SaiFoundation`: shared non-domain client infrastructure and environment configuration.
 - `SaiAPI`: typed network models, request/response transport, streaming, and generated API surfaces when generation is introduced.
 - `SaiFeatures`: screen/feature composition. It may choose approved components but must not define a competing design system or authoritative backend policy.
 - Platform code inside executable targets is the escape hatch for AppKit/UIKit and Apple frameworks that cannot live portably in shared SwiftUI.
 
-Prefer Swift concurrency (`async/await`, actors where shared mutable state requires isolation) and keep main-thread work bounded. Views render state; they should not perform network, persistence, or domain-policy work directly.
+Prefer Swift concurrency and keep main-thread work bounded. Views render state; they should not perform network, persistence, or domain-policy work directly.
 
 ## Sai Design Language
 
 The design language is Sai-specific, not a generic UI lint suite and not the OpenClaw prototype's design system. It is governed by:
 
-- `design/sai-design-language.json` — machine authority.
-- `design/sai-design-language.schema.json` — structural schema.
-- `design/SAI-DESIGN-LANGUAGE.md` — human/agent contract.
-- `cmd/sai-design-check` — deterministic verifier.
-- `.github/workflows/sai-design-language.yml` — **one GitHub check named `Sai Design Language`**.
-
-The contract owns spacing, typography, colors, borders, radii, elevation, control geometry, component variants/states, navigation, screen adaptability, breakpoints/adaptive widths, touch targets, motion, reduced motion, accessibility, layering, data visualization, media treatment, and source-code styling rules.
+- `design/sai-design-language.json` - machine authority. `cmd/sai-design-check` compares `SaiDesignLanguage.swift` runtime tokens (`featureUIAllowed`, canvas, textPrimary, spacingLg, title2) to this file.
+- `design/sai-design-language.schema.json` - structural schema.
+- `design/SAI-DESIGN-LANGUAGE.md` - human/agent contract.
+- `cmd/sai-design-check` - deterministic verifier (schema, Swift/JSON bind, source policy, feature-UI lock).
+- `.github/workflows/sai-design-language.yml` - **one GitHub check named `Sai Design Language`**.
 
 Feature code must not guess arbitrary padding, colors, font sizes, radii, control heights, shadows, z-index, animation durations, or breakpoints. If a new visual requirement is legitimate, change the design contract/component first, verify it, then consume it.
 
-The initial token values are **provisional design-work values**, not final aesthetic approval. CI therefore keeps `featureUIAllowed=false` until the design phase explicitly approves the language. This prevents skeleton work from silently becoming product design.
+The initial token values are **provisional design-work values**, not final aesthetic approval. CI therefore keeps `featureUIAllowed=false` until the design phase explicitly approves the language.
 
 ## CI model
 
-The design suite intentionally reports one result:
-
-```text
-Sai Design Language
-  contract/schema validation
-  Swift source policy
-  forbidden arbitrary visual literals
-  design-module boundary
-  feature-UI lock while design is draft
-  shared Swift package compilation
-```
-
-A later visual-fixture phase belongs behind this same check: canonical component previews, fixed macOS/iPhone/iPad viewports, accessibility states, light/dark variants if supported, and screenshot regression. Do not create a forest of independently required design checks.
-
-General product validation should remain conceptually separate: `Sai Go`, `Sai Apple`, `Sai Verify`, and independent Saul review. Design failures are design failures; backend failures are backend failures.
+One result named `Sai Design Language` covers contract/schema validation, JSON-to-Swift token bind, Swift source policy, forbidden literals, design-module boundary, feature-UI lock while draft, and shared Swift package compilation. Later visual fixtures belong behind this same check. Product validation stays conceptually separate (`Sai Go`, `Sai Apple`, `Sai Verify`, Saul).
 
 ## Coding schema
 
-### Go
-- One root module; purpose-specific binaries under `cmd/`.
-- `cmd/*` is composition only; reusable/domain behavior lives under `internal/`.
-- Standard library first; dependencies need an explicit benefit.
-- Context and cancellation cross blocking boundaries.
-- Concurrency is bounded and owned; no orphan/background loops without lifecycle control.
-- Errors preserve cause/context; panic is not normal control flow.
-- Transport, domain, and persistence concerns do not collapse into one package.
+Go: one root module; `cmd/*` is composition; domain lives under `internal/`; standard library first; context crosses blocking boundaries; concurrency is bounded and owned; errors preserve cause; transport/domain/persistence stay distinct.
 
-### Swift
-- Shared code lives in `SaiKit`; executable targets remain thin.
-- UI design values and primitives live only in `SaiDesignLanguage`.
-- Feature views compose approved primitives; they do not define local design systems.
-- Swift owns presentation state and Apple adapters, not canonical parental policy or authorization.
-- Prefer value types, protocol boundaries where substitution is real, Swift concurrency, and explicit actor ownership.
-- Avoid singleton mutable state, hidden networking in views, and duplicated API models.
+Swift: shared code in `SaiKit`; UI tokens only in `SaiDesignLanguage`; feature views compose approved primitives; Swift owns presentation and Apple adapters, not canonical policy; prefer value types and Swift concurrency.
 
-### API
-- `api/openapi.yaml` is the external client/server contract.
-- Prefer additive/backward-compatible evolution; breaking changes require explicit version/migration handling.
-- Streaming/live state must define reconnect, stale-state, retry, and version-skew behavior.
+API: `api/openapi.yaml` is the external contract. Prefer additive evolution. Streaming must define reconnect, stale-state, retry, and version-skew behavior.
 
-## Persistence and migrations
+## Persistence, performance, environments
 
-Persistence is behind Go package boundaries. Schema changes are ordered, reviewable migrations in `migrations/`; application startup must not perform surprising destructive migration behavior. Keep credentials out of source and Apple configuration files.
+Persistence is behind Go package boundaries. Schema changes are ordered migrations in `migrations/`. Keep credentials out of source.
 
-## Performance and scalability
+Keep the Go core stateless where practical. Keep request paths bounded and cancellation-aware. Avoid network calls inside rendering. Paginate/stream large collections. Cache only with an explicit invalidation owner.
 
-Performance is a feature, but architecture must be driven by measurements rather than ceremony.
+Apple configuration uses Development/Staging/Production xcconfig for public endpoints, never secrets. Development talks to localhost Go. The Go application exposes `/health` and `/ready`. Signing material stays outside Git.
 
-- Keep the Go core stateless where practical so instances can scale horizontally.
-- Keep request paths bounded and cancellation-aware.
-- Avoid network calls inside rendering and avoid blocking SwiftUI's main actor.
-- Paginate/stream large collections rather than loading unbounded histories.
-- Batch/coalesce high-frequency activity where latency requirements permit.
-- Establish benchmarks and SLOs when real workloads exist; do not invent meaningless thresholds before the product exists.
-- Prefer compact data models and stable APIs over layers of translation objects.
-- Cache only with an explicit invalidation owner.
+## Testing, security, density
 
-## Environments and deployment
+Test at the narrowest useful layer. Every bug fix should prefer a regression test that demonstrates the failure before the fix.
 
-Apple configuration uses `Development.xcconfig`, `Staging.xcconfig`, and `Production.xcconfig`. They may contain public endpoint/configuration values, never secrets.
+Server authorization is authoritative. Never trust a client to enforce parent/child authorization. Store secrets in Keychain on Apple and an external secret mechanism on servers.
 
-Development: SwiftUI client -> localhost Go server.  
-Staging: signed test client -> staging API/database.  
-Production: released client -> production API/database.
+A feature PR should add domain behavior in Go, OpenAPI when needed, typed client behavior in `SaiAPI`, and SwiftUI composition in `SaiFeatures`, reusing `SaiDesignLanguage`.
 
-Backend delivery should be reproducible: test -> build immutable artifact -> migrate safely -> deploy staging -> health/readiness -> promote production. The Go application exposes `/health` for process health and `/ready` for dependency readiness.
-
-macOS distribution may later use the Mac App Store or Developer ID distribution. Direct distribution requires signing, hardened runtime as applicable, notarization, stapling, and a release artifact. iOS/iPadOS ships through App Store Connect/TestFlight/App Store. Signing identities and provisioning material stay outside Git.
-
-## Testing strategy
-
-Test at the narrowest useful layer: Go unit/package tests for domain behavior; API contract/integration tests at transport boundaries; Swift package tests for client logic; SwiftUI/component snapshot and accessibility tests for design; a small number of end-to-end journeys for cross-system confidence.
-
-Every bug fix should prefer a regression test that demonstrates the failure before the fix. Tests should attack authority boundaries and failure modes, not only happy paths.
-
-## Security boundaries
-
-Server authorization is authoritative. Never trust a client to enforce parent/child authorization, policy, subscription state, or audit integrity. Store device/user secrets in Keychain on Apple platforms and in an external secret mechanism on servers. Log identifiers and outcomes, not credentials or sensitive content by default. Least privilege applies to Apple entitlements, service credentials, database roles, and CI tokens.
-
-## Feature implementation rule
-
-A feature PR should normally add domain behavior in Go, contract changes in OpenAPI when needed, typed client behavior in `SaiAPI`, and SwiftUI composition in `SaiFeatures`. The feature should reuse `SaiDesignLanguage` rather than creating local design primitives.
-
-When an agent encounters an architectural or visual choice not covered here, the correct action is to amend the appropriate contract first—not make a one-off choice inside the feature.
-
-## Density rule
-
-Do not optimize for minimum line count. Optimize for minimum **independent semantic machinery**. A slightly larger shared implementation is preferable to five smaller implementations that can drift. New abstractions must demonstrate repeated responsibility or a hard boundary; otherwise keep the code direct.
+Do not optimize for minimum line count. Optimize for minimum independent semantic machinery.
