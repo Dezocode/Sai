@@ -4,6 +4,7 @@ name: Feature maps Pages
 # PR/push: build only (no github-pages environment).
 # main push: deploy via Actions Pages. Settings still need Pages=GitHub Actions.
 # Candidate renderer must not receive GH_TOKEN or GITHUB_TOKEN.
+# pull_request / non-main build must not receive github.token at all.
 on:
   push:
     branches: ["**"]
@@ -23,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      checks: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -32,15 +32,9 @@ jobs:
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.22"
-      - name: Fetch check-run metadata
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Write empty check-run metadata
         run: |
-          SHA="${{ github.event.pull_request.head.sha || github.sha }}"
-          CHECKS="${RUNNER_TEMP}/feature-maps-checks.json"
-          gh api "repos/${GITHUB_REPOSITORY}/commits/${SHA}/check-runs" \
-            --jq '[.check_runs[] | {name, conclusion, status}]' > "$CHECKS" || echo '[]' > "$CHECKS"
-          test -s "$CHECKS"
+          echo '[]' > "${RUNNER_TEMP}/feature-maps-checks.json"
       - name: Render feature maps
         run: |
           unset GITHUB_TOKEN GH_TOKEN
