@@ -62,12 +62,12 @@ func matchSwift(root string, c contract, body []byte) error {
 	if len(m) < 2 || (m[1] == "true") != c.FeatureUIAllowed {
 		return fmt.Errorf("tokens: featureUIAllowed")
 	}
-
-eqRGB := func(field, hex string) error {
+	eqRGB := func(field, hex string) error {
 		g := regexp.MustCompile(field + `\s*=\s*Color\(\s*red:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*,\s*green:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*,\s*blue:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*\)`).FindStringSubmatch(s)
 		var hr, hg, hb int
 		var r, gv, bv float64
-		if len(g) < 4 || len(hex) != 7 || fmt.Sscanf(hex[1:], "%02x%02x%02x", &hr, &hg, &hb) != 3 {
+		nhex, _ := fmt.Sscanf(hex, "#%02x%02x%02x", &hr, &hg, &hb)
+		if len(g) < 4 || nhex != 3 {
 			return fmt.Errorf("tokens: %s", field)
 		}
 		fmt.Sscanf(g[1]+" "+g[2]+" "+g[3], "%f %f %f", &r, &gv, &bv)
@@ -76,8 +76,7 @@ eqRGB := func(field, hex string) error {
 		}
 		return nil
 	}
-
-eqN := func(field string, want float64) error {
+	eqN := func(field string, want float64) error {
 		g := regexp.MustCompile(field + `:\s*CGFloat\s*=\s*([0-9.]+)`).FindStringSubmatch(s)
 		var n float64
 		if len(g) < 2 {
