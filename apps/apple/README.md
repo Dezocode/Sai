@@ -2,7 +2,7 @@
 
 Native SwiftUI clients for macOS, iPhone, and iPad.
 
-`SaiMac/` and `SaiIOS/` are executable shells. They compose `SaiCanvas`/`SaiText` from `SaiDesignLanguage` and silently ping `health`/`ready` via `SaiHTTPClient`. No feature UI.
+`apps/apple/Package.swift` is the checked-in SwiftPM build graph for the `SaiMac` and `SaiIOS` executable targets. They compose `SaiCanvas`/`SaiText` from `SaiDesignLanguage` and silently ping `health`/`ready` via `SaiHTTPClient`. No feature UI. Xcode project and signing files are not hand-authored in this skeleton.
 
 Shared implementation lives in the local `Packages/SaiKit` package:
 
@@ -11,9 +11,14 @@ Shared implementation lives in the local `Packages/SaiKit` package:
 - `SaiAPI` — GET probes expecting 204.
 - `SaiFeatures` — empty namespace until design unlocks feature UI.
 
-Apple-only frameworks stay in thin platform adapters near the executable target when they cannot be shared.
+Build:
 
-The intended Xcode workspace/project should reference these sources rather than duplicate them. Project-file generation is deliberately not hand-authored in this skeleton.
+```text
+swift build --package-path apps/apple/Packages/SaiKit
+swift build --package-path apps/apple
+```
+
+Apple-only frameworks stay in thin platform adapters near the executable target when they cannot be shared.
 
 ## Environments
 

@@ -11,23 +11,9 @@ import (
 )
 
 type contract struct {
-	Version           int             `json:"version"`
-	Status            string          `json:"status"`
-	FeatureUIAllowed  bool            `json:"featureUIAllowed"`
-	Grid              json.RawMessage `json:"grid"`
-	Typography        json.RawMessage `json:"typography"`
-	Color             json.RawMessage `json:"color"`
-	Borders           json.RawMessage `json:"borders"`
-	Elevation         json.RawMessage `json:"elevation"`
-	Controls          json.RawMessage `json:"controls"`
-	Layout            json.RawMessage `json:"layout"`
-	Motion            json.RawMessage `json:"motion"`
-	Accessibility     json.RawMessage `json:"accessibility"`
-	Components        json.RawMessage `json:"components"`
-	Layers            json.RawMessage `json:"layers"`
-	DataVisualization json.RawMessage `json:"dataVisualization"`
-	Media             json.RawMessage `json:"media"`
-	CodePolicy        struct {
+	Status           string `json:"status"`
+	FeatureUIAllowed bool   `json:"featureUIAllowed"`
+	CodePolicy       struct {
 		DesignPath  string `json:"swiftDesignAuthorityPath"`
 		FeaturePath string `json:"featurePath"`
 	} `json:"codePolicy"`
@@ -55,22 +41,24 @@ func main() {
 }
 
 func check(root string) error {
-	c, err := loadContract(filepath.Join(root, "design", "sai-design-language.json"))
+	body, err := os.ReadFile(filepath.Join(root, "design", "sai-design-language.json"))
 	if err != nil {
-		return err
+		return fmt.Errorf("contract: %w", err)
 	}
-	if _, err := os.Stat(filepath.Join(root, "design", "sai-design-language.schema.json")); err != nil {
+	schema, err := os.ReadFile(filepath.Join(root, "design", "sai-design-language.schema.json"))
+	if err != nil {
 		return fmt.Errorf("schema: %w", err)
 	}
-	for _, raw := range []json.RawMessage{c.Grid, c.Typography, c.Color, c.Borders, c.Elevation, c.Controls, c.Layout, c.Motion, c.Accessibility, c.Components, c.Layers, c.DataVisualization, c.Media} {
-		if len(raw) == 0 || string(raw) == "null" {
-			return fmt.Errorf("contract is missing a required design domain")
-		}
+	if err := validateSchema(schema, body); err != nil {
+		return fmt.Errorf("schema: %w", err)
 	}
-	if c.Version < 1 || c.Status == "" || c.CodePolicy.DesignPath == "" || c.CodePolicy.FeaturePath == "" {
+	var c contract
+	if err := json.Unmarshal(body, &c); err != nil {
+		return fmt.Errorf("contract JSON: %w", err)
+	}
+	if c.CodePolicy.DesignPath == "" || c.CodePolicy.FeaturePath == "" {
 		return fmt.Errorf("contract metadata/codePolicy incomplete")
 	}
-
 	apple := filepath.Join(root, "apps", "apple")
 	return filepath.WalkDir(apple, func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -84,11 +72,11 @@ func check(root string) error {
 			return err
 		}
 		rel = filepath.ToSlash(rel)
-		body, err := os.ReadFile(path)
+		textb, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
-		text := string(body)
+		text := string(textb)
 		if strings.HasPrefix(rel, filepath.ToSlash(c.CodePolicy.DesignPath)+"/") {
 			return nil
 		}
@@ -98,21 +86,85 @@ func check(root string) error {
 			}
 		}
 		if !c.FeatureUIAllowed && strings.HasPrefix(rel, filepath.ToSlash(c.CodePolicy.FeaturePath)+"/") &&
-			(strings.Contains(text, ": View") || strings.Contains(text, "some View")) {
+			(strings.Contains(text, ": View") || strings.Contains(text, "some View") {
 			return fmt.Errorf("%s: feature UI is locked while design status=%s", rel, c.Status)
 		}
 		return nil
 	})
 }
 
-func loadContract(path string) (contract, error) {
-	var c contract
-	body, err := os.ReadFile(path)
-	if err != nil {
-		return c, fmt.Errorf("contract: %w", err)
+func validateSchema(schema, doc []byte) error {
+	var s, d any
+	if err := json.Unmarshal(schema, &s); err != nil {
+		return err
 	}
-	if err := json.Unmarshal(body, &c); err != nil {
-		return c, fmt.Errorf("contract JSON: %w", err)
+	if err := json.Unmarshal(doc, &d); err != nil {
+		return err
 	}
-	return c, nil
+	return applySchema(s, d, "$")
+}
+
+func applySchema(schema, doc any, path string) error {
+	sm, ok := schema.(map[string]any)
+	if !ok {
+		return nil
+	}
+	if t, ok := sm["type"].(string); ok {
+		if err := checkJSONType(t, doc, path); err != nil {
+			return err
+		}
+	}
+	switch v := doc.(type) {
+	case map[string]any:
+		if req, ok := sm["required"].([]any); ok {
+			for _, r := range req {
+				key, _ := r.(string)
+				if _, ok := v[key]; !ok {
+					return fmt.Errorf("%s missing required %s", path, key)
+				}
+			}
+		}
+		if min, ok := sm["minProperties"].(float64); ok && float64(len(v)) < min {
+			return fmt.Errorf("%s minProperties", path)
+		}
+		if props, ok := sm["properties"].(map[string]any); ok {
+			for k, sub := range props {
+				if child, ok := v[k]; ok {
+					if err := applySchema(sub, child, path+"."+k); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	case float64:
+		if min, ok := sm["minimum"].(float64); ok && v < min {
+			return fmt.Errorf("%s minimum", path)
+		}
+	}
+	return nil
+}
+
+func checkJSONType(t string, doc any, path string) error {
+	ok := false
+	switch t {
+	case "object":
+		_, ok = doc.(map[string]any)
+	case "array":
+		_, ok = doc.([]any)
+	case "string":
+		_, ok = doc.(string)
+	case "boolean":
+		_, ok = doc.(bool)
+	case "integer":
+		n, isNum := doc.(float64)
+		ok = isNum && n == float64(int64(n))
+	case "number":
+		_, ok = doc.(float64)
+	default:
+		return nil
+	}
+	if !ok {
+		return fmt.Errorf("%s want %s", path, t)
+	}
+	return nil
 }

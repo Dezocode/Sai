@@ -34,5 +34,7 @@ jobs:
         run: |
           go test ./cmd/sai-design-check/...
           go run ./cmd/sai-design-check
-      - name: Compile shared Apple modules
-        run: swift build --package-path apps/apple/Packages/SaiKit
+      - name: Compile SaiKit and native application shells
+        run: |
+          swift build --package-path apps/apple/Packages/SaiKit
+          swift build --package-path apps/apple

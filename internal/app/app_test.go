@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -59,6 +60,28 @@ func TestRunCancels(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("timeout")
 	}
+}
+
+func TestRunCanceledBeforeListen(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := ln.Addr().String()
+	if err := ln.Close(); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("SAI_ADDR", addr)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := New().Run(ctx); err != nil {
+		t.Fatal(err)
+	}
+	ln, err = net.Listen("tcp", addr)
+	if err != nil {
+		t.Fatal("listener leaked", err)
+	}
+	ln.Close()
 }
 
 func TestConfigConsumersAgree(t *testing.T) {

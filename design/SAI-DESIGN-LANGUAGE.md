@@ -20,7 +20,7 @@ Platform differences are part of the language, not exceptions invented by featur
 
 ## One CI result
 
-`.github/workflows/sai-design-language.yml` reports one required result named **Sai Design Language**. Internally it validates the contract, runs verifier tests, scans Swift source policy, and compiles the shared Swift package on macOS.
+`.github/workflows/sai-design-language.yml` reports one required result named **Sai Design Language**. Internally it validates `sai-design-language.json` against `sai-design-language.schema.json`, runs verifier tests, scans Swift source policy, compiles `SaiKit`, and compiles the `SaiMac`/`SaiIOS` SwiftPM executable targets.
 
 Visual regression belongs behind the same check when canonical fixtures are implemented: component/state galleries at fixed macOS, iPhone, and iPad sizes with intentional baseline updates.
 

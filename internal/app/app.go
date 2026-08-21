@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -50,17 +51,25 @@ func (a *App) Addr() string          { return a.server.Addr }
 func (a *App) Handler() http.Handler { return a.server.Handler }
 
 func (a *App) Run(ctx context.Context) error {
-	errCh := make(chan error, 1)
-	go func() { errCh <- a.server.ListenAndServe() }()
-	select {
-	case <-ctx.Done():
-		shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		return a.server.Shutdown(shutdown)
-	case err := <-errCh:
-		if errors.Is(err, http.ErrServerClosed) {
-			return nil
+	done := make(chan struct{})
+	defer close(done)
+	go func() {
+		select {
+		case <-ctx.Done():
+			shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			_ = a.server.Shutdown(shutdown)
+		case <-done:
 		}
+	}()
+	ln, err := net.Listen("tcp", a.server.Addr)
+	if err != nil {
 		return err
 	}
+	defer ln.Close()
+	err = a.server.Serve(ln)
+	if errors.Is(err, http.ErrServerClosed) {
+		return nil
+	}
+	return err
 }
