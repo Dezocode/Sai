@@ -38,3 +38,4 @@ jobs:
         run: |
           swift build --package-path apps/apple/Packages/SaiKit
           swift build --package-path apps/apple
+          swift build --package-path apps/apple --product SaiIOS --triple arm64-apple-ios-simulator -Xswiftc -sdk -Xswiftc "$(xcrun --sdk iphonesimulator --show-sdk-path)"

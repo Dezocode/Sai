@@ -8,10 +8,14 @@ import (
 )
 
 func TestForbiddenFeatureLiteralFails(t *testing.T) {
-	root := fixture(t, false, `import SwiftUI
-struct Bad: View { var body: some View { Text("x").padding(17) } }`)
-	if err := check(root); err == nil {
-		t.Fatal("expected arbitrary feature padding to fail")
+	srcs := []string{`import SwiftUI
+struct Bad: View { var body: some View { Text("x").padding(17) } }`, `import SwiftUI
+struct C: View { var body: some View { Color.red } }`, `import SwiftUI
+struct D: View { var body: some View { Color(red: 1, green: 0, blue: 0) } }`}
+	for _, src := range srcs {
+		if err := check(fixture(t, false, src)); err == nil {
+			t.Fatal("expected arbitrary feature literal to fail")
+		}
 	}
 }
 

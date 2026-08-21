@@ -23,7 +23,7 @@ var forbidden = []struct {
 	name string
 	re   *regexp.Regexp
 }{
-	{"raw hex color", regexp.MustCompile(`#[0-9A-Fa-f]{6,8}`)},
+	{"raw hex or Color literal", regexp.MustCompile(`#[0-9A-Fa-f]{6,8}|\b(?:Color|UIColor|NSColor)\s*\(|\b(?:Color|UIColor|NSColor)\.(?:red|blue|green|orange|yellow|pink|purple|gray|grey|black|white|primary|secondary|accentColor)\b`)},
 	{"numeric padding", regexp.MustCompile(`\.padding\s*\([^)]*\b[0-9]+(?:\.[0-9]+)?\b`)},
 	{"numeric corner radius", regexp.MustCompile(`\.cornerRadius\s*\(\s*[0-9]`)},
 	{"raw system font size", regexp.MustCompile(`\.font\s*\(\s*\.system\s*\(\s*size\s*:\s*[0-9]`)},
