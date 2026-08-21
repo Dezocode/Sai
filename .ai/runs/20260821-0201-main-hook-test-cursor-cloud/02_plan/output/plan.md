@@ -1,0 +1,2 @@
+# Plan
+Allow only the exact BASE cache name `sai-verify-$merge-base-$srcid` in `TestLinkedWorktreeHook`. After planting `sai-verify-$HEAD-cafec0decafe0000`, invoke the hook while the decoy exists. Assert FEATURE CONTEXT still comes from the BASE binary, the decoy stays 1 byte, and `sai-verify-$merge-base-$srcid` remains the only accepted kernel cache. A glob that merely sees the decoy filename is not a test.
