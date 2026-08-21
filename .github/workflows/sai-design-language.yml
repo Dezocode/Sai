@@ -38,4 +38,4 @@ jobs:
         run: |
           swift build --package-path apps/apple/Packages/SaiKit
           swift build --package-path apps/apple
-          swift build --package-path apps/apple/Packages/SaiKit --build-path /tmp/sai-ios -Xswiftc -sdk -Xswiftc "$(xcrun --sdk iphonesimulator --show-sdk-path)" -Xswiftc -target -Xswiftc arm64-apple-ios17.0-simulator
+          (cd apps/apple/Packages/SaiKit && xcodebuild -list && xcodebuild -scheme SaiFeatures -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/sai-ios CODE_SIGNING_ALLOWED=NO)
