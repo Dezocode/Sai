@@ -1,6 +1,10 @@
 # Sai prototype plugin lane
 
-Status: **enabling contract**. This branch exists to create a safe prototype-plugin lane and bootstrap Sai Author without weakening the merged Sai application foundation.
+Status: **enabling contract — this PR is contract-only (documentation)**. It
+defines the safe prototype-plugin lane; the Sai Author bootstrap itself,
+the verifier enforcement, and the mechanical isolation proofs are successor
+work under separately identified PRs. No production authority boundary is
+weakened by this document.
 
 ## Goal
 
@@ -10,7 +14,23 @@ Preferred prototype root:
 
 `prototypes/plugins/`
 
-Sai Author is the first prototype plugin. This enabling PR proves the lane with a minimal runnable/buildable Author shell; it does not implement the word processor itself or freeze a permanent production plugin SDK.
+Sai Author is the first prototype plugin. **This PR contains the lane
+contract only**; it deliberately does not include the Author shell, build
+targets, verifier changes, or isolation tests. Those are delivered by the
+successor PRs listed below, which must satisfy every requirement stated
+here before they can be considered owner-ready.
+
+### Successor work (explicitly out of scope for this PR)
+
+1. `prototype/lane-enforcement`: verifier-owned fail-closed exemption for
+   `prototypes/plugins/` in the design-check/verify kernel, near-prefix
+   rejection, candidate-JSON hardening, and mechanical production→prototype
+   dependency-isolation tests.
+2. `prototype/sai-author-shell`: minimal runnable/buildable Sai Author
+   prototype (root/editor placeholder plus settings placeholder) under
+   `prototypes/plugins/author/`, with macOS/iOS Simulator build proof and
+   `sai-verify` surface mapping.
+3. Follow-on product prototyping per the direction below.
 
 ## Required architecture
 
@@ -25,13 +45,19 @@ Sai Author is the first prototype plugin. This enabling PR proves the lane with 
 
 ## Sai Author bootstrap
 
-Create the smallest real Sai Author prototype that establishes a continuation point for product development across macOS and iOS/iPadOS. A root/editor placeholder and settings/configuration placeholder are sufficient for this PR.
+The smallest real Sai Author prototype establishes a continuation point for
+product development across macOS and iOS/iPadOS. A root/editor placeholder
+and settings/configuration placeholder are sufficient for the
+`prototype/sai-author-shell` successor PR; this contract only fixes the
+requirements that shell must satisfy.
 
-Do not build the full editor, AI workflows, persistence, collaboration, marketplace, downloadable-code runtime, or final plugin platform here.
+Do not build the full editor, AI workflows, persistence, collaboration,
+marketplace, downloadable-code runtime, or final plugin platform in any
+enabling or successor PR.
 
 ## Adversarial acceptance
 
-The implementation must prove at least that:
+The successor implementation PRs must prove at least that:
 
 - production SwiftUI remains blocked where the merged foundation blocks it;
 - SwiftUI is permitted only in the canonical prototype scope intended by this PR;
@@ -57,16 +83,23 @@ Older-head Saul results are historical only. Synthetic/fallback/sandbox-provisio
 
 ## Merge gate
 
-Owner-ready requires all of the following on the exact final HEAD:
+This contract PR is owner-ready when all of the following hold on its exact
+final HEAD:
+
+- the contract is complete, unambiguous, and consistent with the merged
+  foundation's authority boundaries;
+- exact-head CI/preservation evidence is green;
+- independent quality review has no unresolved blocker;
+- genuine exact-head Saul reports P0=P1=P2=0.
+
+The successor implementation PRs additionally carry, on their own exact
+final HEADs, every item below before owner merge approval:
 
 - minimal runnable/buildable Sai Author prototype exists;
 - relevant macOS and iOS Simulator build coverage passes;
 - production feature UI remains locked;
 - prototype authority is verifier-owned and fail-closed;
 - production/prototype dependency isolation is mechanically proven;
-- `sai-verify` recognizes and proves the new surface;
-- exact-head CI/preservation evidence is green;
-- independent quality review has no unresolved blocker;
-- genuine exact-head Saul reports P0=P1=P2=0.
+- `sai-verify` recognizes and proves the new surface.
 
 Remain draft and unmerged until those conditions are satisfied and an owner explicitly chooses to merge.
