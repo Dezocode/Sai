@@ -152,13 +152,21 @@ func TestEnforcementClosed(t *testing.T) {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "Sneak.swift"), []byte("import SwiftUI\nstruct Sneak: View { var body: some View { Text(\"x\") } }\n"), 0644); err != nil {
-		t.Fatal(err)
+	sneak := filepath.Join(dir, "Sneak.swift")
+	for _, src := range []string{
+		"struct Sneak: View { var body: some View { Text(\"x\") } }\n",
+		"struct Sneak:View { var body: some SwiftUI.View { Text(\"x\") } }\n",
+		"struct Sneak: SwiftUI.View { var body: some SwiftUI.View { Text(\"x\") } }\n",
+		"struct Sneak {}\nextension Sneak: View { var body: some SwiftUI.View { Text(\"x\") } }\n",
+	} {
+		if err := os.WriteFile(sneak, []byte("import SwiftUI\n"+src), 0644); err != nil {
+			t.Fatal(err)
+		}
+		if err := check(root); err == nil {
+			t.Fatal(src)
+		}
 	}
-	if err := check(root); err == nil {
-		t.Fatal("lock")
-	}
-	if err := os.Remove(filepath.Join(dir, "Sneak.swift")); err != nil {
+	if err := os.Remove(sneak); err != nil {
 		t.Fatal(err)
 	}
 	mac := filepath.Join(root, "apps/apple/SaiMac")
@@ -171,7 +179,7 @@ func TestEnforcementClosed(t *testing.T) {
 	if err := check(root); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(mac, "SaiMacApp.swift"), []byte("import SwiftUI\nstruct Sneak: View { var body: some View { Text(\"x\") } }\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(mac, "SaiMacApp.swift"), []byte("struct Sneak: SwiftUI.View { var body: some SwiftUI.View { Text(\"x\") } }\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	if err := check(root); err == nil {
