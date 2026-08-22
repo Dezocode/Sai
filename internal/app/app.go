@@ -57,6 +57,9 @@ func (a *App) Run(ctx context.Context) error {
 	}
 	defer ln.Close()
 	a.server.Addr = ln.Addr().String()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	ctx, stop := context.WithCancel(ctx)
 	defer stop()
 	shutErr := make(chan error, 1)
