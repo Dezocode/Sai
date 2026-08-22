@@ -1,0 +1,24 @@
+{
+  "task_id": "20260821-2034-feature-maps-pages-cursor-cloud",
+  "stage": "03_implement",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-21T21:10:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/02_plan/output/plan.md",
+    ".cursor/skills/verify-sai/features/README.md",
+    ".cursor/skills/verify-sai/features/protected-ci.md",
+    "cmd/sai-verify/main.go"
+  ],
+  "outputs": [
+    "scripts/render-sai-feature-maps",
+    ".github/workflows/feature-maps-pages.yml",
+    ".cursor/skills/verify-sai/features/protected-ci.md",
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/03_implement/output/implement.md"
+  ],
+  "decisions": ["0004", "0005"],
+  "commits": [],
+  "events": [],
+  "human_edits": "none",
+  "notes": "Kernel allowBin does not include scripts/render-sai-feature-maps. Map proofs use ::exists. Workflow and --check still run the renderer."
+}
