@@ -21,7 +21,9 @@ public struct SaiConfiguration: Sendable {
             guard let injected, !injected.isEmpty else { throw SaiConfigurationError.missingURL }
             raw = injected
         }
-        guard let url = URL(string: raw) else { throw SaiConfigurationError.missingURL }
+        guard let url = URL(string: raw), let host = url.host, !host.isEmpty else { throw SaiConfigurationError.missingURL }
+        let scheme = url.scheme?.lowercased()
+        guard scheme == "https" || (scheme == "http" && e == "development") else { throw SaiConfigurationError.missingURL }
         return SaiConfiguration(environment: e, apiBaseURL: url)
     }
 }

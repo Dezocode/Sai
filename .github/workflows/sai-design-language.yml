@@ -39,3 +39,4 @@ jobs:
           swift build --package-path apps/apple/Packages/SaiKit
           swift build --package-path apps/apple
           (cd apps/apple/Packages/SaiKit && xcodebuild -list && xcodebuild -scheme SaiFeatures -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/sai-ios CODE_SIGNING_ALLOWED=NO)
+          (cd apps/apple && xcodebuild -scheme SaiIOS -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/sai-ios-app CODE_SIGNING_ALLOWED=NO)
