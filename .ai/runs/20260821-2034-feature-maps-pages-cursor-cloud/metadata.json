@@ -1,0 +1,33 @@
+{
+  "task_id": "20260821-2034-feature-maps-pages-cursor-cloud",
+  "agent": "cursor-cloud",
+  "agent_run": "bc-e0e95991-dee1-4019-a799-278f28c332aa",
+  "worker_run": "bc-5becca1d-506c-5f8a-8ea4-dca3a37e8053",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/feature-maps-pages-32aa",
+  "base_sha": "bb39842bf30bdb08ab0cf859bb4f5f39f379f8f9",
+  "start_head": "bb39842bf30bdb08ab0cf859bb4f5f39f379f8f9",
+  "confirmed_github_head_before_worker": "aeb1dfe1bcae573bb0dcf150b5c563fb317d1d06",
+  "observed_start_head_note": "GitHub origin/main HEAD equals OBSERVED_START_HEAD. Independently confirmed origin/cursor/feature-maps-pages-32aa == aeb1dfe before this worker. Did not reset.",
+  "purpose": "Publish canonical verify-sai feature maps as Origin-light GitHub Pages. Parser is cmd/sai-verify maps. Fail-closed mapsCmd via fillMap. No product features. Do not stack onto PR 73.",
+  "status": "active",
+  "pr_url": "https://github.com/Dezocode/Sai/pull/74",
+  "product_head": "50d45edd345047bc4a49388a59f0010abbdc6bd2",
+  "remaining_action": "Wait candidate CI green on NEW HEAD, then fresh Codex Saul. Do not claim Saul SUCCESS.",
+  "units_closed": ["UNIT-0018", "UNIT-0020", "UNIT-0019"],
+  "parser_boundary": "cmd/sai-verify maps reuses fillMap; invalid map returns before Encode (empty stdout). Renderer consumes JSON only.",
+  "claimed_files": [
+    "cmd/sai-verify/main.go",
+    "cmd/sai-verify/main_test.go",
+    "scripts/render-sai-feature-maps",
+    ".github/workflows/feature-maps-pages.yml",
+    ".cursor/skills/verify-sai/features/protected-ci.md",
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/"
+  ],
+  "trigger": "dezocode /lauren-mode /goal feature maps GitHub Pages; close UNIT-0018 UNIT-0020 UNIT-0019 fail-closed mapsCmd",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "environment_public_id": "6f2ece39-800a-11f1-ba66-0e7d0216e441",
+  "saul_p1": "UNIT-0018 fail-closed mapsCmd. Renderer must consume cmd/sai-verify maps JSON.",
+  "saul_check_id_on_36e124f": "96920958116"
+}

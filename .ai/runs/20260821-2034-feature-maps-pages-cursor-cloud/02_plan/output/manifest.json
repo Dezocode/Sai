@@ -1,0 +1,20 @@
+{
+  "task_id": "20260821-2034-feature-maps-pages-cursor-cloud",
+  "stage": "02_plan",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-21T20:34:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/01_intake/output/intake.md",
+    "cmd/sai-verify/main.go",
+    ".github/policy/anti-regression.py"
+  ],
+  "outputs": [
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/02_plan/output/plan.md"
+  ],
+  "decisions": ["0004", "0005"],
+  "commits": [],
+  "events": ["20260821-2034-feature-maps-pages-cursor-cloud:PLAN"],
+  "human_edits": "none",
+  "notes": "Generator stays a script. Kernel remains the only parser. Pages workflow is non-required."
+}
