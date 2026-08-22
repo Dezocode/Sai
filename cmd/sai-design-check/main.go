@@ -86,8 +86,7 @@ func matchSwift(root string, c contract, body []byte) error {
 		}
 		return nil
 	}
-
-eqN := func(field string, want float64) error {
+	eqN := func(field string, want float64) error {
 		g := regexp.MustCompile(field + `:\s*CGFloat\s*=\s*([0-9.]+)`).FindStringSubmatch(s)
 		var n float64
 		if len(g) < 2 {
@@ -176,7 +175,7 @@ func check(root string) error {
 		if !c.FeatureUIAllowed && (rel == "apps/apple/SaiMac/SaiMacApp.swift" || rel == "apps/apple/SaiIOS/SaiIOSApp.swift") && (strings.Count(text, "SaiCanvas") != 1 || strings.Count(text, "SaiText") != 1 || !shellBody.MatchString(text) || shellUI.MatchString(text)) {
 			return fmt.Errorf("%s: shell composition", rel)
 		}
-		if !c.FeatureUIAllowed && rel != "apps/apple/SaiMac/SaiMacApp.swift" && rel != "apps/apple/SaiIOS/SaiIOSApp.swift" && swiftUIImport.MatchString(text) {
+		if !c.FeatureUIAllowed && rel != "apps/apple/SaiMac/SaiMacApp.swift" && rel != "apps/apple/SaiIOS/SaiIOSApp.swift" && (swiftUIImport.MatchString(text) || strings.Contains(text, "SaiText") || strings.Contains(text, "SaiCanvas")) {
 			return fmt.Errorf("%s: import SwiftUI is locked while design status=%s", rel, c.Status)
 		}
 		return nil
