@@ -1,0 +1,15 @@
+{
+  "task_id": "20260822-2020-pr75-contract-rescope-hermes",
+  "agent": "hermes-sai-agent",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "prototype/sai-plugin-lane",
+  "base_sha": "2a8f89f",
+  "purpose": "Resolve Saul P1 CODEX finding on d9934ee ('enabling PR promises a runnable prototype but contains no prototype implementation') via the finding's second offered remedy: rescope PR 75 as contract-only, name successor PRs (prototype/lane-enforcement, prototype/sai-author-shell) that carry the implementation requirements, and align the PR body with the doc.",
+  "status": "in_progress",
+  "claimed_files": [
+    "docs/architecture/SAI-PROTOTYPE-PLUGIN-LANE.md",
+    ".ai/runs/20260822-2020-pr75-contract-rescope-hermes/"
+  ],
+  "trigger": "Saul round 3 review on head d9934ee (hostinger-saul-cto, codex_invoked=true, synthetic=false); owner directive to continue until human verification is ready"
+}
