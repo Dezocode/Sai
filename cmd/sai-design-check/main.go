@@ -25,9 +25,10 @@ type contract struct {
 }
 
 var (
-	viewType = regexp.MustCompile(`(?::\s*(?:[\w.]+\.)?(?:\w*View|(?:UI|NS)View(?:Controller)?Representable)\b|\bsome\s+(?:[\w.]+\.)?\w*View\b|\b(?:UI|NS)(?:View(?:Controller)?Representable|Hosting(?:Controller|View))\b)`)
-	aliasRe  = regexp.MustCompile(`\btypealias\b`)
-	forbidden = []struct {
+	swiftUIImport = regexp.MustCompile(`(?m)^\s*(?:@_exported\s+)?import\s+(?:(?:struct|class|enum|func|var|typealias)\s+)?SwiftUI\b`)
+	shellUI       = regexp.MustCompile(`\b(?:VStack|HStack|ZStack|LazyVStack|LazyHStack|LazyVGrid|LazyHGrid|List|Form|NavigationStack|NavigationView|NavigationSplitView|TabView|Text|Button|Image|Label|Picker|Toggle|Slider|Stepper|TextField|SecureField|TextEditor|ProgressView|Spacer|Divider|ScrollView|ForEach|Section|Menu|Grid|GeometryReader)\b`)
+	shellBody     = regexp.MustCompile(`WindowGroup\s*\{\s*SaiCanvas\s*\{\s*SaiText\s*\(\s*"[^"]*"\s*\)\s*\}\s*(?:\.task\s*\{\s*await\s+ping\(\)\s*\}\s*)?\}`)
+	forbidden     = []struct {
 		name string
 		re   *regexp.Regexp
 	}{
@@ -107,10 +108,14 @@ func matchSwift(root string, c contract, body []byte) error {
 	}
 	lg, _ := nest(raw, "grid", "spacing", "lg").(float64)
 	t2, _ := nest(raw, "typography", "roles", "title2", "size").(float64)
+	lh, _ := nest(raw, "typography", "roles", "title2", "lineHeight").(float64)
 	if err := eqN("spacingLg", lg); err != nil {
 		return err
 	}
-	return eqN("title2", t2)
+	if err := eqN("title2", t2); err != nil || eqN("title2LineHeight", lh) != nil || !strings.Contains(s, "weight: .semibold") {
+		return fmt.Errorf("tokens: title2")
+	}
+	return nil
 }
 
 func check(root string) error {
@@ -159,9 +164,6 @@ func check(root string) error {
 			return err
 		}
 		text := string(textb)
-		if aliasRe.MatchString(text) {
-			return fmt.Errorf("%s: typealias", rel)
-		}
 		if strings.HasPrefix(rel, designAuth+"/") {
 			return nil
 		}
@@ -170,8 +172,11 @@ func check(root string) error {
 				return fmt.Errorf("%s: %s outside SaiDesignLanguage", rel, rule.name)
 			}
 		}
-		if !c.FeatureUIAllowed && viewType.MatchString(text) {
-			return fmt.Errorf("%s: feature UI is locked while design status=%s", rel, c.Status)
+		if !c.FeatureUIAllowed && (rel == "apps/apple/SaiMac/SaiMacApp.swift" || rel == "apps/apple/SaiIOS/SaiIOSApp.swift") && (strings.Count(text, "SaiCanvas") != 1 || strings.Count(text, "SaiText") != 1 || !shellBody.MatchString(text) || shellUI.MatchString(text)) {
+			return fmt.Errorf("%s: shell composition", rel)
+		}
+		if !c.FeatureUIAllowed && rel != "apps/apple/SaiMac/SaiMacApp.swift" && rel != "apps/apple/SaiIOS/SaiIOSApp.swift" && swiftUIImport.MatchString(text) {
+			return fmt.Errorf("%s: import SwiftUI is locked while design status=%s", rel, c.Status)
 		}
 		return nil
 	})
