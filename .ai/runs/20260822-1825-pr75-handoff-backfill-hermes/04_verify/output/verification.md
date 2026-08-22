@@ -30,10 +30,14 @@ OK 20260822-1303-sai-plugin-lane-bootstrap 2 events
 OK 20260822-1825-pr75-handoff-backfill-hermes 4 events
 ```
 
-2. Post-remediation capture on the remediation commit (this tree): recorded in
+2. Post-remediation capture on commit `472d597a9a952999b2b40febbf5fe0b623803b9f`
+   (the direct parent of the commit carrying this file): recorded verbatim in
    `.ai/runs/20260822-1930-saul-findings-remediation-hermes/04_verify/output/captured-transcripts.md`,
-   produced by executing the same suite after the remediation changes were
-   committed, and embedded verbatim there.
+   Capture 2. Verification of any later evidence-only commits is carried by
+   branch CI on GitHub, which binds check results to each exact pushed SHA,
+   and by the PR 75 evidence comments; a git commit cannot contain a
+   transcript of checks run against its own SHA, so ancestor captures plus
+   SHA-bound CI are the terminal evidence chain.
 
 Historical note (kept for audit truth): on the first local commit
 (`eccedae`, never pushed) `scripts/verify-merge-handoff origin/main..HEAD`

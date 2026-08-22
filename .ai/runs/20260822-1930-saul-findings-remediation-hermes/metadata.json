@@ -7,6 +7,7 @@
   "base_sha": "2a8f89f",
   "purpose": "Remediate Saul review findings CODEX-UNIT-0004-0001 (P2: verification.md contains prospective instructions instead of captured results), CODEX-UNIT-0005-0001 (P1: VERIFY event records success that had not yet been obtained at that point in the sequence), CODEX-UNIT-0007-0001 (P2: metadata status stale at in_progress after terminal HANDOFF event). All three target run artifacts of 20260822-1825-pr75-handoff-backfill-hermes.",
   "status": "in_progress",
+  "status_note": "intentionally in_progress: no in-tree artifact may truthfully mark this run complete before its own push exists; terminal state is established post-push by branch CI bound to exact SHAs and a fresh genuine Saul review (see handoff.md Evidence-chain statement)",
   "claimed_files": [
     ".ai/runs/20260822-1825-pr75-handoff-backfill-hermes/",
     ".ai/runs/20260822-1930-saul-findings-remediation-hermes/"

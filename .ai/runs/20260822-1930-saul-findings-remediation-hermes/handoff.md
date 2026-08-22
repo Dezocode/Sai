@@ -1,38 +1,43 @@
-# Handoff — 20260822-saul-findings-remediation (task 20260822-1930-saul-findings-remediation-hermes)
+# Handoff — task 20260822-1930-saul-findings-remediation-hermes
 
-## What was done (facts at time of writing)
-Remediated all three Saul findings from review run 97075351246 against
-`88b29d18fcd02bdda6242fc7df6b5a6287702b47` (PR 75):
+## Status
+Remediation **in progress**: Saul round-1 findings (review `97075351246` @
+`88b29d1`) are fixed in commits `3be4ccc` + `472d597`; Saul round 2
+(review `97082894733` @ `472d597`) returned five findings caused by evidence
+files referencing terminal events absent from the reviewed tree. This
+commit series fixes those five by removing every self-referential or
+forward-looking claim:
 
-- **P1 CODEX-UNIT-0005-0001** — `.ai/runs/20260822-1825-pr75-handoff-backfill-hermes/events.jsonl`
-  rebuilt as a truthful lifecycle: INTAKE → COMMIT(`eccedae`, local) →
-  **VERIFY fail** (verify-merge-handoff correctly blocked that first commit;
-  captured output retained) → COMMIT amend disclosure (`88b29d1`) →
-  **VERIFY pass** on exact head `88b29d1` → PUSH with ls-remote SHA proof →
-  PR evidence comment → HANDOFF last.
-- **P2 CODEX-UNIT-0007-0001** — same run's `metadata.json` now `completed`
-  with an explicit `status_history` naming who set it and when, instead of a
-  stale silent flip.
-- **P2 CODEX-UNIT-0004-0001** — `04_verify/output/verification.md` rewritten:
-  prospective "must report OK" statements removed; verbatim captured
-  transcripts embedded instead.
+- In-tree `events.jsonl` now records only events about **ancestor** commits.
+- Exact-head verification is delegated to captured ancestor transcripts plus
+  GitHub branch CI, which binds check outcomes to each pushed SHA.
+- This file describes only evidence present in the reviewed tree.
+- Run `metadata.json` stays `in_progress` with an explicit note, because no
+  in-tree artifact can truthfully mark this run complete before its own push
+  exists.
 
-## Evidence locations
-- Capture on remediation commit `3be4ccc` (including the expected
-  merge-handoff block before this run's own handoff existed):
-  `.ai/runs/20260822-1930-saul-findings-remediation-hermes/04_verify/output/captured-transcripts.md`.
-- Terminal verification evidence for the pushed head is carried by the
-  follow-up events appended to this run's `events.jsonl` (committed directly
-  after this file) and by the PR 75 evidence comments plus branch CI status,
-  which bind results to exact SHAs.
+## Evidence in this tree (all verbatim captures)
+- `.ai/runs/20260822-1930-saul-findings-remediation-hermes/04_verify/output/captured-transcripts.md`
+  - Capture 1 @ `3be4ccc`: suite output including the expected
+    verify-merge-handoff block (this run's handoff not yet staged).
+  - Capture 2 @ `472d597` (direct parent of the commit carrying this file):
+    hierarchy OK, agent-audit OK, merge-handoff OK (3 task-ids), JSON lint x3,
+    events parse (2/8/3).
+- `.ai/runs/20260822-1825-pr75-handoff-backfill-hermes/04_verify/output/verification.md`
+  points only at files and SHAs present in history.
+
+## Terminal evidence chain (outside any single commit)
+GitHub branch CI and PR 75 evidence comments bind check results to exact
+pushed SHAs after each push; that is the authoritative post-push record for
+the head under review. The genuine Saul review itself remains the required
+product gate per the PR contract.
 
 ## Risks
 - Documentation/audit-artifact change only; no production code touched.
-- History note for reviewers: three local commits were amended before any
-  push during the original backfill (disclosed in the 1825 run's events);
-  this remediation used only forward commits, no amendments, no force-push.
+- If HEAD moves again, all in-tree statements remain valid because none of
+  them assert results for their own SHA.
 
 ## Next safe action
-Push the branch, confirm GitHub CI (`icm-enforcement`, build, anti-regression,
-line budget) on the new exact head, and await a fresh genuine exact-head Saul
-review; PR remains DRAFT pending P0=P1=P2=0 and owner decision.
+Push this evidence-only commit, confirm branch CI green on it, and let the
+exact-head Saul review run again. Do not amend, force-push, merge, or mark
+the PR ready; those actions require explicit co-founder authorization.
