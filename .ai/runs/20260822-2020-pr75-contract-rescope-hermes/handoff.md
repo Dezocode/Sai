@@ -41,6 +41,11 @@ branch CI and PR 75 evidence comments, which name exact SHAs.
   (`prototype/sai-author-shell`) is already specified and unblocked.
 
 ## Next safe action
-Commit staged handoff, run full gates on the final head, push, verify
-remote SHA, confirm CI, and await fresh exact-head Saul review. PR remains
-DRAFT until P0=P1=P2=0 and an owner explicitly chooses to merge.
+The rescope commits, PR-body alignment, and evidence pushes for this task are
+complete through head `069621c1a14342e8452c237c44af97be9eafcbc6` (branch CI
+green, Saul round 4 = SUCCESS with two non-blocking P2s on handoff wording,
+addressed by the commit carrying this file). Outstanding at the current head:
+fresh exact-head Saul review and, per the contract's successor plan,
+implementation under `prototype/lane-enforcement` and
+`prototype/sai-author-shell`. Do not amend, force-push, merge, or mark the PR
+ready; those actions require explicit co-founder authorization.

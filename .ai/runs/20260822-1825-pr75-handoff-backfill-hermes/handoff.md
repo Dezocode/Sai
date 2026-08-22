@@ -14,8 +14,11 @@ boundaries untouched.
 - Both new `events.jsonl` files parse line-by-line as valid JSON → OK
 - `scripts/verify-agent-audit -n 20 HEAD` → `OK`
 - `scripts/verify-merge-handoff origin/main..HEAD` → FAILED once for this task's
-  missing handoff (gate behaving correctly), fixed by adding this file; must be
-  re-run to OK after amend before push.
+  missing handoff (gate behaving correctly), fixed by adding this file;
+  the post-amend rerun subsequently PASSED on exact head
+  `88b29d18fcd02bdda6242fc7df6b5a6287702b47` (`verify-merge-handoff: OK
+  (2 task-id(s) checked)`); see the VERIFY fail/pass pair and the PUSH event
+  with ls-remote proof in this run's `events.jsonl`.
 
 ## Risks
 - Documentation-only repair; no runtime risk.
