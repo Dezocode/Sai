@@ -57,6 +57,8 @@ func (a *App) Run(ctx context.Context) error {
 	}
 	defer ln.Close()
 	a.server.Addr = ln.Addr().String()
+	ctx, stop := context.WithCancel(ctx)
+	defer stop()
 	shutErr := make(chan error, 1)
 	go func() {
 		<-ctx.Done()
@@ -65,8 +67,10 @@ func (a *App) Run(ctx context.Context) error {
 		shutErr <- a.server.Shutdown(c)
 	}()
 	err = a.server.Serve(ln)
-	if errors.Is(err, http.ErrServerClosed) {
-		return <-shutErr
+	stop()
+	shut := <-shutErr
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
 	}
-	return err
+	return shut
 }

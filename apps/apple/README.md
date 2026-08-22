@@ -20,11 +20,4 @@ Apple-only frameworks stay in thin platform adapters near the executable target 
 - Development -> `http://127.0.0.1:8080` (`INFOPLIST_KEY_SAI_*`)
 - Staging/Production -> environment key only; API URL is supplied by release config
 
-Never place credentials in xcconfig or Git.
-
-## Delivery
-
-macOS: test -> archive -> sign -> notarize/staple for direct distribution or submit through App Store Connect.
-iOS/iPadOS: test -> archive -> App Store Connect -> TestFlight -> App Store.
-
-Before feature UI begins, the Sai Design Language must leave `foundation-draft` and set `featureUIAllowed=true`.
+Never place credentials in xcconfig or Git. Before feature UI begins, the Sai Design Language must leave `foundation-draft` and set `featureUIAllowed=true`.
