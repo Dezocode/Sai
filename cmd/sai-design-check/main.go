@@ -45,10 +45,6 @@ func main() {
 	fmt.Println("Sai Design Language: PASS")
 }
 
-func appleShell(rel string) bool {
-	return rel == "apps/apple/SaiMac/SaiMacApp.swift" || rel == "apps/apple/SaiIOS/SaiIOSApp.swift"
-}
-
 func nest(v interface{}, keys ...string) interface{} {
 	for _, k := range keys {
 		m, _ := v.(map[string]interface{})
@@ -162,7 +158,7 @@ func check(root string) error {
 				return fmt.Errorf("%s: %s outside SaiDesignLanguage", rel, rule.name)
 			}
 		}
-		if !c.FeatureUIAllowed && !appleShell(rel) && (strings.Contains(text, ": View") || strings.Contains(text, "some View")) {
+		if !c.FeatureUIAllowed && (strings.Contains(text, ": View") || strings.Contains(text, "some View")) {
 			return fmt.Errorf("%s: feature UI is locked while design status=%s", rel, c.Status)
 		}
 		return nil
@@ -201,7 +197,7 @@ func applySchema(schema, doc interface{}, path string) error {
 			}
 		}
 		if min, ok := sm["minProperties"].(float64); ok && float64(len(v)) < min {
-			return fmt.Errorf("%s minProperties", path)
+			return fmt.Errorf("%s minimum", path)
 		}
 		if props, ok := sm["properties"].(map[string]interface{}); ok {
 			for k, sub := range props {

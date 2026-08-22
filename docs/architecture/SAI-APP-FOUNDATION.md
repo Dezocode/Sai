@@ -7,12 +7,12 @@ Status: **foundation skeleton**. Contract for the production Sai app before feat
 1. **SwiftUI at the Apple edge; Go at the core.** Swift owns presentation and Apple APIs. Go owns authoritative product/domain behavior. Swift is not a second policy engine.
 2. **One design language.** Feature code selects approved choices; it does not invent visual choices.
 3. **One typed product contract.** `api/openapi.yaml` is the external API boundary. Mac and iPhone must not develop different backend semantics.
-4. **Thin entrypoints.** `cmd/sai/main.go`, `SaiMacApp.swift`, and `SaiIOSApp.swift` assemble systems; they do not accumulate business logic.
+4. **Thin entrypoints.** `cmd/sai/main.go`, `SaiMacApp.swift`, and `SaiIOSApp.swift` assemble systems; they do not accumulate business logic or product Views.
 5. **Standard library / platform primitives first.** Add dependencies when they remove more complexity than they introduce.
 6. **Dense code, not compressed code.** One authoritative implementation reused by multiple interfaces, not duplicated wrappers or state machines.
 7. **Measure before distributing.** Modular monolith first. Split services only with scaling, isolation, ownership, or deployment evidence.
 8. **CI is architecture.** Rules that matter are executable checks.
-9. **No product feature UI while draft.** `featureUIAllowed=false` locks product Views outside `SaiDesignLanguage` and the `SaiMac`/`SaiIOS` app entry files.
+9. **No product feature UI while draft.** `featureUIAllowed=false` locks product Views outside `SaiDesignLanguage`. Thin shells may compose approved primitives; they may not declare product Views.
 10. **`sai-verify` remains independent.** Product code may be verified by it but must not share its entrypoint or become a runtime dependency.
 
 ## Topology

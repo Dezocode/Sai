@@ -10,9 +10,10 @@ public enum SaiDesignLanguage {
 
 public struct SaiText: View {
     let text: String
+    @ScaledMetric(relativeTo: .title2) private var size = SaiDesignLanguage.title2
     public init(_ text: String) { self.text = text }
     public var body: some View {
-        Text(text).font(.system(size: SaiDesignLanguage.title2, relativeTo: .title2)).foregroundStyle(SaiDesignLanguage.textPrimary)
+        Text(text).font(.system(size: size)).foregroundStyle(SaiDesignLanguage.textPrimary)
     }
 }
 

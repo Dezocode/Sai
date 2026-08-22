@@ -165,11 +165,17 @@ func TestEnforcementClosed(t *testing.T) {
 	if err := os.MkdirAll(mac, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(mac, "SaiMacApp.swift"), []byte("import SwiftUI\n@main struct SaiMacApp: App { var body: some Scene { WindowGroup { Content() } } }\nstruct Content: View { var body: some View { Text(\"Sai\") } }\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(mac, "SaiMacApp.swift"), []byte("@main struct SaiMacApp: App { var body: some Scene { WindowGroup { SaiCanvas { SaiText(\"Sai\") } } } }\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	if err := check(root); err != nil {
 		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(mac, "SaiMacApp.swift"), []byte("import SwiftUI\nstruct Sneak: View { var body: some View { Text(\"x\") } }\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := check(root); err == nil {
+		t.Fatal("entry View")
 	}
 }
 
