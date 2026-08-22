@@ -6,7 +6,19 @@
   "branch": "prototype/sai-plugin-lane",
   "base_sha": "2a8f89f",
   "purpose": "Repair icm-enforcement failure on PR 75 head a882bd0: backfill the missing handoff for task-id 20260822-1303-sai-plugin-lane-bootstrap with explicit provenance, then re-run the ICM verification suite",
-  "status": "in_progress",
+  "status": "completed",
+  "status_history": [
+    {
+      "status": "in_progress",
+      "note": "initial state while artifacts were being written and verified"
+    },
+    {
+      "status": "completed",
+      "at": "2026-08-22T19:47:00Z",
+      "by": "remediation task 20260822-1930-saul-findings-remediation-hermes",
+      "note": "set after exact-head verification rerun passed; see that task's events.jsonl VERIFY entries for command outputs"
+    }
+  ],
   "claimed_files": [
     ".ai/runs/20260822-1303-sai-plugin-lane-bootstrap/",
     ".ai/runs/20260822-1825-pr75-handoff-backfill-hermes/"
