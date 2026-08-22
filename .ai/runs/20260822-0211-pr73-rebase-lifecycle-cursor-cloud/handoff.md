@@ -13,6 +13,6 @@ FINAL_HEAD=pending this push
 
 Draft PR 73. Original /goal unchanged. Do not merge.
 
-Reproduced @ 579062b: designAuth skip allowed `typealias Surface=View`; `: Surface` missed `\\w*View`; walk was `apps/apple` only. Fixed: ban typealias everywhere, walk all `.swift`, Hosting adapters. Thin shells compose primitives; no product Views.
+P1 @ bcda0fed: View-regex missed WindowGroup { VStack { Text; Button } } and func -> Text. Global typealias ban was overbroad. Draft lock is import SwiftUI except SaiDesignLanguage plus exact shells; shells must match SaiCanvas { SaiText }; typealias allowed.
 
-Historical Saul: 96967347020 @ 8aa271f ACTION_REQUIRED (fixed). 96968318437 @ 3c3c776 infra. 96977541457 @ d41f56b ACTION_REQUIRED (aliases; 579062b). 96978547876 @ 579062b infra SANDBOX_PROVISIONING_FAILED, not product SUCCESS. Fresh Saul pending new HEAD.
+Historical Saul is not authority for HEAD. Exact-head Saul pending Hostinger. Do not merge until this lock is green and a fresh Saul runs on the new SHA.
