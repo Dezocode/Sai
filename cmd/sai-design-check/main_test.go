@@ -148,11 +148,21 @@ func TestEnforcementClosed(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, designAuth, "SaiDesignLanguage.swift"), []byte(authoritySwift(false)), 0644); err != nil {
 		t.Fatal(err)
 	}
-	dir := filepath.Join(root, "apps/apple/Packages/SaiKit/Sources/SaiFoundation")
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		t.Fatal(err)
+	fail := func(rel, src string) {
+		t.Helper()
+		p := filepath.Join(root, rel)
+		if err := os.MkdirAll(filepath.Dir(p), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(src), 0644); err != nil {
+			t.Fatal(err)
+		}
+		if err := check(root); err == nil {
+			t.Fatal(rel)
+		}
+		os.Remove(p)
 	}
-	sneak := filepath.Join(dir, "Sneak.swift")
+	base := "apps/apple/Packages/SaiKit/Sources/SaiFoundation/Sneak.swift"
 	for _, src := range []string{
 		"struct Sneak: View { var body: some View { Text(\"x\") } }\n",
 		"struct Sneak:View { var body: some SwiftUI.View { Text(\"x\") } }\n",
@@ -161,32 +171,22 @@ func TestEnforcementClosed(t *testing.T) {
 		"struct Sneak: FeatureView { var body: some SwiftUI.View { Text(\"x\") } }\n",
 		"typealias Surface = SwiftUI.View\nstruct Sneak {}\n",
 		"struct Sneak: UIViewControllerRepresentable {}\n",
+		"struct Sneak: UIHostingController<Text> {}\n",
 	} {
-		if err := os.WriteFile(sneak, []byte("import SwiftUI\n"+src), 0644); err != nil {
-			t.Fatal(err)
-		}
-		if err := check(root); err == nil {
-			t.Fatal(src)
-		}
+		fail(base, "import SwiftUI\n"+src)
 	}
-	if err := os.Remove(sneak); err != nil {
+	fail(designAuth+"/Alias.swift", "typealias Surface = SwiftUI.View\n")
+	fail("Extra.swift", "struct Sneak: View { var body: some View { Text(\"x\") } }\n")
+	mac := "apps/apple/SaiMac/SaiMacApp.swift"
+	fail(mac, "struct Sneak: SwiftUI.View { var body: some SwiftUI.View { Text(\"x\") } }\n")
+	if err := os.MkdirAll(filepath.Join(root, filepath.Dir(mac)), 0755); err != nil {
 		t.Fatal(err)
 	}
-	mac := filepath.Join(root, "apps/apple/SaiMac")
-	if err := os.MkdirAll(mac, 0755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(mac, "SaiMacApp.swift"), []byte("@main struct SaiMacApp: App { var body: some Scene { WindowGroup { SaiCanvas { SaiText(\"Sai\") } } } }\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, mac), []byte("@main struct SaiMacApp: App { var body: some Scene { WindowGroup { SaiCanvas { SaiText(\"Sai\") } } } }\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	if err := check(root); err != nil {
 		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(mac, "SaiMacApp.swift"), []byte("struct Sneak: SwiftUI.View { var body: some SwiftUI.View { Text(\"x\") } }\n"), 0644); err != nil {
-		t.Fatal(err)
-	}
-	if err := check(root); err == nil {
-		t.Fatal("entry View")
 	}
 }
 
@@ -223,7 +223,7 @@ func fixture(t *testing.T, designAuthority bool, source string) string {
 	if err := os.WriteFile(filepath.Join(root, "design/sai-design-language.json"), b, 0644); err != nil {
 		t.Fatal(err)
 	}
-	schema, err := os.ReadFile(filepath.Join("..", "..", "design", "sai-design-language.schema.json"))
+	schema, err := os.ReadFile(filepath.Join("..", "..", "design/sai-design-language.schema.json"))
 	if err != nil {
 		t.Fatal(err)
 	}

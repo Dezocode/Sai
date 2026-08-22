@@ -25,12 +25,13 @@ type contract struct {
 }
 
 var (
-	viewType = regexp.MustCompile(`(?::\s*(?:[\w.]+\.)?(?:\w*View|(?:UI|NS)View(?:Controller)?Representable)\b|\bsome\s+(?:[\w.]+\.)?\w*View\b|\b(?:(?:UI|NS)View(?:Controller)?Representable|typealias)\b)`)
+	viewType = regexp.MustCompile(`(?::\s*(?:[\w.]+\.)?(?:\w*View|(?:UI|NS)View(?:Controller)?Representable)\b|\bsome\s+(?:[\w.]+\.)?\w*View\b|\b(?:UI|NS)(?:View(?:Controller)?Representable|Hosting(?:Controller|View))\b)`)
+	aliasRe  = regexp.MustCompile(`\btypealias\b`)
 	forbidden = []struct {
 		name string
 		re   *regexp.Regexp
 	}{
-		{"raw hex or Color literal", regexp.MustCompile(`#[0-9A-Fa-f]{6,8}|\b(?:Color|UIColor|NSColor)\s*\(|\b(?:Color|UIColor|NSColor)\.(?:red|blue|green|orange|yellow|pink|purple|gray|grey|black|white|primary|secondary|accentColor)\b`)},
+		{"raw hex or Color literal", regexp.MustCompile(`#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6,8})\b|\b(?:Color|UIColor|NSColor)\s*\(|\b(?:Color|UIColor|NSColor)\.(?:red|blue|green|orange|yellow|pink|purple|gray|grey|black|white|primary|secondary|accentColor)\b`)},
 		{"numeric padding", regexp.MustCompile(`\.padding\s*\([^)]*\b[0-9]+(?:\.[0-9]+)?\b`)},
 		{"numeric corner radius", regexp.MustCompile(`\.cornerRadius\s*\(\s*[0-9]`)},
 		{"raw system font size", regexp.MustCompile(`\.font\s*\(\s*\.system\s*\(\s*size\s*:\s*[0-9]`)},
@@ -134,13 +135,18 @@ func check(root string) error {
 	if err := matchSwift(root, c, body); err != nil {
 		return err
 	}
-	apple := filepath.Join(root, "apps", "apple")
-	return filepath.WalkDir(apple, func(path string, d fs.DirEntry, walkErr error) error {
+	return filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
-		slash := filepath.ToSlash(path)
-		if d.IsDir() || filepath.Ext(path) != ".swift" || strings.Contains(slash, "/.build/") || strings.Contains(slash, "/.swiftpm/") {
+		if d.IsDir() {
+			switch d.Name() {
+			case ".git", ".build", ".swiftpm":
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if filepath.Ext(path) != ".swift" {
 			return nil
 		}
 		rel, err := filepath.Rel(root, path)
@@ -153,6 +159,9 @@ func check(root string) error {
 			return err
 		}
 		text := string(textb)
+		if aliasRe.MatchString(text) {
+			return fmt.Errorf("%s: typealias", rel)
+		}
 		if strings.HasPrefix(rel, designAuth+"/") {
 			return nil
 		}
