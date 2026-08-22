@@ -74,7 +74,7 @@ func TestRunCanceledBeforeListen(t *testing.T) {
 	t.Setenv("SAI_ADDR", addr)
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	if err := New().Run(ctx); err != nil {
+	if err := New().Run(ctx); err != context.Canceled {
 		t.Fatal(err)
 	}
 	ln, err = net.Listen("tcp", addr)
