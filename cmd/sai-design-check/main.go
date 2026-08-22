@@ -25,7 +25,7 @@ type contract struct {
 }
 
 var (
-	swiftUIImport = regexp.MustCompile(`(?m)(?:^|;)\s*(?:@_exported\s+)?import\s+(?:(?:struct|class|enum|func|var|typealias)\s+)?SwiftUI\b`)
+	swiftUIImport = regexp.MustCompile(`(?m)(?:^|;)\s*(?:@[_\w]+(?:\([^)]*\))?\s+)*import\s+(?:(?:struct|class|enum|func|var|typealias)\s+)?SwiftUI\b`)
 	shellUI       = regexp.MustCompile(`\b(?:VStack|HStack|ZStack|LazyVStack|LazyHStack|LazyVGrid|LazyHGrid|List|Form|NavigationStack|NavigationView|NavigationSplitView|TabView|Text|Button|Image|Label|Picker|Toggle|Slider|Stepper|TextField|SecureField|TextEditor|ProgressView|Spacer|Divider|ScrollView|ForEach|Section|Menu|Grid|GeometryReader|View|Rectangle|Circle|Ellipse|Capsule|Path|Canvas|AnyView)\b`)
 	shellBody     = regexp.MustCompile(`WindowGroup\s*\{\s*SaiCanvas\s*\{\s*SaiText\s*\(\s*"[^"]*"\s*\)\s*\}\s*(?:\.task\s*\{\s*await\s+ping\(\)\s*\}\s*)?\}`)
 	forbidden     = []struct {
