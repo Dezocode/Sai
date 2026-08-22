@@ -90,25 +90,117 @@ func TestProductionContractSatisfiesSchema(t *testing.T) {
 	}
 }
 
+func TestEnforcementClosed(t *testing.T) {
+	rewrite := func(root, key, val string) {
+		cpath := filepath.Join(root, "design/sai-design-language.json")
+		b, err := os.ReadFile(cpath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var m map[string]interface{}
+		if err := json.Unmarshal(b, &m); err != nil {
+			t.Fatal(err)
+		}
+		m["codePolicy"].(map[string]interface{})[key] = val
+		out, err := json.Marshal(m)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(cpath, out, 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	root := fixture(t, true, "")
+	rewrite(root, "swiftDesignAuthorityPath", "apps/apple")
+	if err := check(root); err == nil {
+		t.Fatal("widen")
+	}
+	root = fixture(t, true, "")
+	rewrite(root, "featurePath", "apps/apple/nowhere")
+	if err := check(root); err == nil {
+		t.Fatal("move featurePath")
+	}
+	root = fixture(t, true, "")
+	if err := os.Remove(filepath.Join(root, designAuth, "SaiDesignLanguage.swift")); err != nil {
+		t.Fatal(err)
+	}
+	if err := check(root); err == nil {
+		t.Fatal("missing")
+	}
+	root = fixture(t, true, "")
+	cpath := filepath.Join(root, "design/sai-design-language.json")
+	b, err := os.ReadFile(cpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var m map[string]interface{}
+	if err := json.Unmarshal(b, &m); err != nil {
+		t.Fatal(err)
+	}
+	m["featureUIAllowed"] = false
+	out, err := json.Marshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cpath, out, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, designAuth, "SaiDesignLanguage.swift"), []byte(authoritySwift(false)), 0644); err != nil {
+		t.Fatal(err)
+	}
+	dir := filepath.Join(root, "apps/apple/Packages/SaiKit/Sources/SaiFoundation")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "Sneak.swift"), []byte("import SwiftUI\nstruct Sneak: View { var body: some View { Text(\"x\") } }\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := check(root); err == nil {
+		t.Fatal("lock")
+	}
+	if err := os.Remove(filepath.Join(dir, "Sneak.swift")); err != nil {
+		t.Fatal(err)
+	}
+	mac := filepath.Join(root, "apps/apple/SaiMac")
+	if err := os.MkdirAll(mac, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(mac, "SaiMacApp.swift"), []byte("import SwiftUI\n@main struct SaiMacApp: App { var body: some Scene { WindowGroup { Content() } } }\nstruct Content: View { var body: some View { Text(\"Sai\") } }\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := check(root); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func authoritySwift(allowed bool) string {
+	v := "false"
+	if allowed {
+		v = "true"
+	}
+	return "import SwiftUI\npublic enum SaiDesignLanguage {\npublic static let featureUIAllowed = " + v + "\npublic static let canvas = Color(red: 15.0 / 255.0, green: 17.0 / 255.0, blue: 21.0 / 255.0)\npublic static let textPrimary = Color(red: 244.0 / 255.0, green: 245.0 / 255.0, blue: 247.0 / 255.0)\npublic static let spacingLg: CGFloat = 24\npublic static let title2: CGFloat = 24\n}\n"
+}
+
 func fixture(t *testing.T, designAuthority bool, source string) string {
 	t.Helper()
 	root := t.TempDir()
-	for _, d := range []string{"design", "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage", "apps/apple/Packages/SaiKit/Sources/SaiFeatures"} {
+	for _, d := range []string{"design", designAuth, featureRoot} {
 		if err := os.MkdirAll(filepath.Join(root, d), 0755); err != nil {
 			t.Fatal(err)
 		}
 	}
 	c := map[string]interface{}{
 		"version": 1, "status": "approved", "featureUIAllowed": true,
-		"grid": map[string]int{"unit": 4, "spacing": 1}, "typography": map[string]int{"families": 1, "dynamicType": 1, "roles": 1},
-		"color": map[string]int{"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10},
+		"grid": map[string]interface{}{"unit": 4, "spacing": map[string]float64{"lg": 24}},
+		"typography": map[string]interface{}{"families": 1, "dynamicType": 1, "roles": map[string]interface{}{"title2": map[string]float64{"size": 24}}},
+		"color": map[string]interface{}{"canvas": "#0F1115", "textPrimary": "#F4F5F7", "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10},
 		"borders": map[string]int{"hairline": 1, "focus": 2, "radii": 1}, "elevation": map[string]int{"x": 1},
 		"controls": map[string]int{"macOS": 1, "iOS": 1, "states": 1, "buttonVariants": 1},
 		"layout": map[string]int{"adaptiveWidths": 1, "pagePadding": 1, "maxContentWidth": 1, "rules": 1},
 		"motion": map[string]int{"durationsMs": 1, "easing": 1, "reducedMotion": 1}, "accessibility": map[string]int{"x": 1},
 		"components": map[string]int{"required": 1, "localFeaturePrimitivesAllowed": 1}, "layers": map[string]int{"x": 1},
 		"dataVisualization": map[string]int{"x": 1}, "media": map[string]int{"x": 1},
-		"codePolicy": map[string]string{"swiftDesignAuthorityPath": "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage", "featurePath": "apps/apple/Packages/SaiKit/Sources/SaiFeatures"},
+		"codePolicy": map[string]string{"swiftDesignAuthorityPath": designAuth, "featurePath": featureRoot},
 	}
 	b, _ := json.Marshal(c)
 	if err := os.WriteFile(filepath.Join(root, "design/sai-design-language.json"), b, 0644); err != nil {
@@ -121,9 +213,12 @@ func fixture(t *testing.T, designAuthority bool, source string) string {
 	if err := os.WriteFile(filepath.Join(root, "design/sai-design-language.schema.json"), schema, 0644); err != nil {
 		t.Fatal(err)
 	}
-	path := "apps/apple/Packages/SaiKit/Sources/SaiFeatures/Test.swift"
+	if err := os.WriteFile(filepath.Join(root, designAuth, "SaiDesignLanguage.swift"), []byte(authoritySwift(true)), 0644); err != nil {
+		t.Fatal(err)
+	}
+	path := featureRoot + "/Test.swift"
 	if designAuthority {
-		path = "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage/Test.swift"
+		path = designAuth + "/Test.swift"
 	}
 	if err := os.WriteFile(filepath.Join(root, path), []byte(source), 0644); err != nil {
 		t.Fatal(err)

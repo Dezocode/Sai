@@ -10,6 +10,11 @@ import (
 	"strings"
 )
 
+const (
+	designAuth  = "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage"
+	featureRoot = "apps/apple/Packages/SaiKit/Sources/SaiFeatures"
+)
+
 type contract struct {
 	Status           string `json:"status"`
 	FeatureUIAllowed bool   `json:"featureUIAllowed"`
@@ -40,6 +45,10 @@ func main() {
 	fmt.Println("Sai Design Language: PASS")
 }
 
+func appleShell(rel string) bool {
+	return rel == "apps/apple/SaiMac/SaiMacApp.swift" || rel == "apps/apple/SaiIOS/SaiIOSApp.swift"
+}
+
 func nest(v interface{}, keys ...string) interface{} {
 	for _, k := range keys {
 		m, _ := v.(map[string]interface{})
@@ -53,9 +62,9 @@ func matchSwift(root string, c contract, body []byte) error {
 	if json.Unmarshal(body, &raw) != nil {
 		return fmt.Errorf("tokens: contract")
 	}
-	b, err := os.ReadFile(filepath.Join(root, c.CodePolicy.DesignPath, "SaiDesignLanguage.swift"))
+	b, err := os.ReadFile(filepath.Join(root, designAuth, "SaiDesignLanguage.swift"))
 	if err != nil {
-		return err
+		return fmt.Errorf("tokens: missing SaiDesignLanguage.swift")
 	}
 	s := string(b)
 	m := regexp.MustCompile(`featureUIAllowed\s*=\s*(true|false)`).FindStringSubmatch(s)
@@ -120,13 +129,11 @@ func check(root string) error {
 	if err := json.Unmarshal(body, &c); err != nil {
 		return fmt.Errorf("contract JSON: %w", err)
 	}
-	if c.CodePolicy.DesignPath == "" || c.CodePolicy.FeaturePath == "" {
-		return fmt.Errorf("contract metadata/codePolicy incomplete")
+	if filepath.ToSlash(c.CodePolicy.DesignPath) != designAuth || filepath.ToSlash(c.CodePolicy.FeaturePath) != featureRoot {
+		return fmt.Errorf("codePolicy: verifier-owned paths")
 	}
-	if _, err := os.Stat(filepath.Join(root, c.CodePolicy.DesignPath, "SaiDesignLanguage.swift")); err == nil {
-		if err := matchSwift(root, c, body); err != nil {
-			return err
-		}
+	if err := matchSwift(root, c, body); err != nil {
+		return err
 	}
 	apple := filepath.Join(root, "apps", "apple")
 	return filepath.WalkDir(apple, func(path string, d fs.DirEntry, walkErr error) error {
@@ -147,7 +154,7 @@ func check(root string) error {
 			return err
 		}
 		text := string(textb)
-		if strings.HasPrefix(rel, filepath.ToSlash(c.CodePolicy.DesignPath)+"/") {
+		if strings.HasPrefix(rel, designAuth+"/") {
 			return nil
 		}
 		for _, rule := range forbidden {
@@ -155,8 +162,7 @@ func check(root string) error {
 				return fmt.Errorf("%s: %s outside SaiDesignLanguage", rel, rule.name)
 			}
 		}
-		if !c.FeatureUIAllowed && strings.HasPrefix(rel, filepath.ToSlash(c.CodePolicy.FeaturePath)+"/") &&
-			(strings.Contains(text, ": View") || strings.Contains(text, "some View")) {
+		if !c.FeatureUIAllowed && !appleShell(rel) && (strings.Contains(text, ": View") || strings.Contains(text, "some View")) {
 			return fmt.Errorf("%s: feature UI is locked while design status=%s", rel, c.Status)
 		}
 		return nil

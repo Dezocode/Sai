@@ -14,4 +14,4 @@ Production app skeleton: native Apple clients, Go core, typed API, deployment bo
 - **Design check.** ::gotest ./cmd/sai-design-check/...
 - **Contracts.** ::exists api/openapi.yaml design/sai-design-language.json apps/apple/Packages/SaiKit/Package.swift
 ## Gotchas
-- `featureUIAllowed=false` intentionally blocks feature views until design approval. OpenClaw remains a prototype surface and is not the production app architecture. `sai-verify` remains a separate executable. Product roots are claimed with `/*` tree globs (`apps/apple/*`, `api/*`, `design/*`, `docs/architecture/*`, `internal/*`, `deploy/*`, `migrations/*`). Proofs use `::gotest ./cmd/...`; `::exec go` is not an allowBin.
+- `featureUIAllowed=false` locks product Views outside SaiDesignLanguage and the SaiMac/SaiIOS entry files. Enforcement paths are verifier-owned; missing SaiDesignLanguage.swift fails closed. OpenClaw is not the production app. `sai-verify` stays a separate executable. Product roots use `/*` globs. Proofs use `::gotest ./cmd/...`; `::exec go` is not an allowBin.

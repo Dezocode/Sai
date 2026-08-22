@@ -12,7 +12,7 @@ public struct SaiText: View {
     let text: String
     public init(_ text: String) { self.text = text }
     public var body: some View {
-        Text(text).font(.system(size: SaiDesignLanguage.title2)).foregroundStyle(SaiDesignLanguage.textPrimary)
+        Text(text).font(.system(size: SaiDesignLanguage.title2, relativeTo: .title2)).foregroundStyle(SaiDesignLanguage.textPrimary)
     }
 }
 
