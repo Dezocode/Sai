@@ -158,6 +158,9 @@ func TestEnforcementClosed(t *testing.T) {
 		"struct Sneak:View { var body: some SwiftUI.View { Text(\"x\") } }\n",
 		"struct Sneak: SwiftUI.View { var body: some SwiftUI.View { Text(\"x\") } }\n",
 		"struct Sneak {}\nextension Sneak: View { var body: some SwiftUI.View { Text(\"x\") } }\n",
+		"struct Sneak: FeatureView { var body: some SwiftUI.View { Text(\"x\") } }\n",
+		"typealias Surface = SwiftUI.View\nstruct Sneak {}\n",
+		"struct Sneak: UIViewControllerRepresentable {}\n",
 	} {
 		if err := os.WriteFile(sneak, []byte("import SwiftUI\n"+src), 0644); err != nil {
 			t.Fatal(err)

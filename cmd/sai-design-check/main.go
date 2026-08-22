@@ -25,7 +25,7 @@ type contract struct {
 }
 
 var (
-	viewType = regexp.MustCompile(`(?::\s*(?:SwiftUI\.)?View\b|\bsome\s+(?:SwiftUI\.)?View\b)`)
+	viewType = regexp.MustCompile(`(?::\s*(?:[\w.]+\.)?(?:\w*View|(?:UI|NS)View(?:Controller)?Representable)\b|\bsome\s+(?:[\w.]+\.)?\w*View\b|\b(?:(?:UI|NS)View(?:Controller)?Representable|typealias)\b)`)
 	forbidden = []struct {
 		name string
 		re   *regexp.Regexp
