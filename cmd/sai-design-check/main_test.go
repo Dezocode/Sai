@@ -163,22 +163,14 @@ func TestEnforcementClosed(t *testing.T) {
 		os.Remove(p)
 	}
 	base := "apps/apple/Packages/SaiKit/Sources/SaiFoundation/Sneak.swift"
-	for _, src := range []string{
-		"struct Sneak: View { var body: some View { Text(\"x\") } }\n",
-		"struct Sneak:View { var body: some SwiftUI.View { Text(\"x\") } }\n",
-		"struct Sneak: SwiftUI.View { var body: some SwiftUI.View { Text(\"x\") } }\n",
-		"struct Sneak {}\nextension Sneak: View { var body: some SwiftUI.View { Text(\"x\") } }\n",
-		"struct Sneak: FeatureView { var body: some SwiftUI.View { Text(\"x\") } }\n",
-		"typealias Surface = SwiftUI.View\nstruct Sneak {}\n",
-		"struct Sneak: UIViewControllerRepresentable {}\n",
-		"struct Sneak: UIHostingController<Text> {}\n",
-	} {
-		fail(base, "import SwiftUI\n"+src)
-	}
-	fail(designAuth+"/Alias.swift", "typealias Surface = SwiftUI.View\n")
-	fail("Extra.swift", "struct Sneak: View { var body: some View { Text(\"x\") } }\n")
+	fail(base, "import SwiftUI\nfunc dashboard() -> Text { Text(\"Dashboard\") }\n")
+	fail(featureRoot+"/Dash.swift", "import SwiftUI\n")
+	fail("Extra.swift", "import SwiftUI\n")
 	mac := "apps/apple/SaiMac/SaiMacApp.swift"
-	fail(mac, "struct Sneak: SwiftUI.View { var body: some SwiftUI.View { Text(\"x\") } }\n")
+	fail(mac, "import SwiftUI\n@main struct SaiMacApp: App { var body: some Scene { WindowGroup { VStack { Text(\"Child Dashboard\"); Button(\"Continue\") {} } } } }\n")
+	if err := os.WriteFile(filepath.Join(root, featureRoot, "IDs.swift"), []byte("import Foundation\ntypealias UserID = UUID\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.MkdirAll(filepath.Join(root, filepath.Dir(mac)), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -195,7 +187,7 @@ func authoritySwift(allowed bool) string {
 	if allowed {
 		v = "true"
 	}
-	return "import SwiftUI\npublic enum SaiDesignLanguage {\npublic static let featureUIAllowed = " + v + "\npublic static let canvas = Color(red: 15.0 / 255.0, green: 17.0 / 255.0, blue: 21.0 / 255.0)\npublic static let textPrimary = Color(red: 244.0 / 255.0, green: 245.0 / 255.0, blue: 247.0 / 255.0)\npublic static let spacingLg: CGFloat = 24\npublic static let title2: CGFloat = 24\n}\n"
+	return "import SwiftUI\npublic enum SaiDesignLanguage {\npublic static let featureUIAllowed = " + v + "\npublic static let canvas = Color(red: 15.0 / 255.0, green: 17.0 / 255.0, blue: 21.0 / 255.0)\npublic static let textPrimary = Color(red: 244.0 / 255.0, green: 245.0 / 255.0, blue: 247.0 / 255.0)\npublic static let spacingLg: CGFloat = 24\npublic static let title2: CGFloat = 24\npublic static let title2LineHeight: CGFloat = 29\n}\n.font(.system(size: 1, weight: .semibold))\n"
 }
 
 func fixture(t *testing.T, designAuthority bool, source string) string {
@@ -209,7 +201,7 @@ func fixture(t *testing.T, designAuthority bool, source string) string {
 	c := map[string]interface{}{
 		"version": 1, "status": "approved", "featureUIAllowed": true,
 		"grid": map[string]interface{}{"unit": 4, "spacing": map[string]float64{"lg": 24}},
-		"typography": map[string]interface{}{"families": 1, "dynamicType": 1, "roles": map[string]interface{}{"title2": map[string]float64{"size": 24}}},
+		"typography": map[string]interface{}{"families": 1, "dynamicType": 1, "roles": map[string]interface{}{"title2": map[string]float64{"size": 24, "lineHeight": 29}}},
 		"color": map[string]interface{}{"canvas": "#0F1115", "textPrimary": "#F4F5F7", "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10},
 		"borders": map[string]int{"hairline": 1, "focus": 2, "radii": 1}, "elevation": map[string]int{"x": 1},
 		"controls": map[string]int{"macOS": 1, "iOS": 1, "states": 1, "buttonVariants": 1},
