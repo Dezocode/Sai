@@ -26,8 +26,8 @@ type contract struct {
 
 var (
 	swiftUIImport = regexp.MustCompile(`(?m)^\s*(?:@_exported\s+)?import\s+(?:(?:struct|class|enum|func|var|typealias)\s+)?SwiftUI\b`)
-	shellUI       = regexp.MustCompile(`\b(?:VStack|HStack|ZStack|LazyVStack|LazyHStack|LazyVGrid|LazyHGrid|List|Form|NavigationStack|NavigationView|NavigationSplitView|TabView|Text|Button|Image|Label|Picker|Toggle|Slider|Stepper|TextField|SecureField|TextEditor|ProgressView|Spacer|Divider|ScrollView|ForEach|Section|Menu|Grid|GeometryReader)\b`)
-	shellBody     = regexp.MustCompile(`WindowGroup\s*\{\s*SaiCanvas\s*\{\s*SaiText\s*\(\s*"[^"]*"\s*\)\s*\}\s*(?:\.task\s*\{\s*await\s+ping\(\)\s*\}\s*)?\}`)
+	shellUI       = regexp.MustCompile(`\b(?:VStack|HStack|ZStack|LazyVStack|LazyHStack|LazyVGrid|LazyHGrid|List|Form|NavigationStack|NavigationView|NavigationSplitView|TabView|Text|Button|Image|Label|Picker|Toggle|Slider|Stepper|TextField|SecureField|TextEditor|ProgressView|Spacer|Divider|ScrollView|ForEach|Section|Menu|Grid|GeometryReader|View|Rectangle|Circle|Ellipse|Capsule|Path|Canvas|AnyView)\b`)
+	shellBody     = regexp.MustCompile(`WindowGroup\s*\{\s*SaiCanvas\s*\{\s*SaiText\s*\(\s*"[^"]*"\s*\)\s*\}\s*(?:\.task\s*\{\s*await\s*ping\(\)\s*\}\s*)?\}`)
 	forbidden     = []struct {
 		name string
 		re   *regexp.Regexp
@@ -72,7 +72,8 @@ func matchSwift(root string, c contract, body []byte) error {
 	if len(m) < 2 || (m[1] == "true") != c.FeatureUIAllowed {
 		return fmt.Errorf("tokens: featureUIAllowed")
 	}
-	eqRGB := func(field, hex string) error {
+
+eqRGB := func(field, hex string) error {
 		g := regexp.MustCompile(field + `\s*=\s*Color\(\s*red:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*,\s*green:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*,\s*blue:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*\)`).FindStringSubmatch(s)
 		var hr, hg, hb int
 		var r, gv, bv float64
@@ -86,7 +87,8 @@ func matchSwift(root string, c contract, body []byte) error {
 		}
 		return nil
 	}
-	eqN := func(field string, want float64) error {
+
+eqN := func(field string, want float64) error {
 		g := regexp.MustCompile(field + `:\s*CGFloat\s*=\s*([0-9.]+)`).FindStringSubmatch(s)
 		var n float64
 		if len(g) < 2 {

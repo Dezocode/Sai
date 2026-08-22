@@ -167,7 +167,7 @@ func TestEnforcementClosed(t *testing.T) {
 	fail(featureRoot+"/Dash.swift", "import SwiftUI\n")
 	fail("Extra.swift", "import SwiftUI\n")
 	mac := "apps/apple/SaiMac/SaiMacApp.swift"
-	fail(mac, "import SwiftUI\n@main struct SaiMacApp: App { var body: some Scene { WindowGroup { VStack { Text(\"Child Dashboard\"); Button(\"Continue\") {} } } } }\n")
+	fail(mac, "import SwiftUI\n@main struct SaiMacApp: App { var body: some Scene { WindowGroup { SaiCanvas { SaiText(\"Sai\") } } } }\nstruct Dashboard: View { var body: some View { Rectangle() } }\n")
 	if err := os.WriteFile(filepath.Join(root, featureRoot, "IDs.swift"), []byte("import Foundation\ntypealias UserID = UUID\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
