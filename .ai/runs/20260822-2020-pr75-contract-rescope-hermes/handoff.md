@@ -42,10 +42,17 @@ branch CI and PR 75 evidence comments, which name exact SHAs.
 
 ## Next safe action
 The rescope commits, PR-body alignment, and evidence pushes for this task are
-complete through head `069621c1a14342e8452c237c44af97be9eafcbc6` (branch CI
-green, Saul round 4 = SUCCESS with two non-blocking P2s on handoff wording,
-addressed by the commit carrying this file). Outstanding at the current head:
+complete through head
+`069621c1a14342e8452c237c44af97be9eafcbc6`. Outstanding at the current head:
 fresh exact-head Saul review and, per the contract's successor plan,
 implementation under `prototype/lane-enforcement` and
 `prototype/sai-author-shell`. Do not amend, force-push, merge, or mark the PR
 ready; those actions require explicit co-founder authorization.
+
+## External context (observed outside this repository; not evidenced in-tree)
+After pushing `069621c`, the agent observed via GitHub tooling that branch CI
+reported green there and that the Saul round-4 check returned disposition
+SUCCESS with two non-blocking P2 findings about handoff wording. Those
+results live in GitHub's check-runs API and PR 75 comments; this repository
+cannot contain transcripts of checks against its own SHA. The two P2s are
+addressed by the commit carrying this file.
