@@ -1,0 +1,15 @@
+{
+  "task_id": "20260822-1825-pr75-handoff-backfill-hermes",
+  "agent": "hermes-sai-agent",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "prototype/sai-plugin-lane",
+  "base_sha": "2a8f89f",
+  "purpose": "Repair icm-enforcement failure on PR 75 head a882bd0: backfill the missing handoff for task-id 20260822-1303-sai-plugin-lane-bootstrap with explicit provenance, then re-run the ICM verification suite",
+  "status": "in_progress",
+  "claimed_files": [
+    ".ai/runs/20260822-1303-sai-plugin-lane-bootstrap/",
+    ".ai/runs/20260822-1825-pr75-handoff-backfill-hermes/"
+  ],
+  "trigger": "Direct instruction from dezocode in Telegram DM (2026-08-22): act as the repo's .cursor-native agent and continue work without stopping"
+}
