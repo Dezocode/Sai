@@ -4,9 +4,13 @@
 Consumes `go run ./cmd/sai-verify maps` JSON. Does not parse README index
 or four-H2 Markdown. HTML is generated output, never the source of truth.
 
-Also emits pr-sessions.html: a scrollable PR wheel of live Hermes agent
-sessions, fetched client-side from the public sessions API. The renderer
-never receives or embeds tokens; missing session data renders as
+Also emits pr-sessions.html: a scrollable PR wheel joining two live data
+planes by PR number - authoritative GitHub PR state for Dezocode/Sai via
+the unauthenticated public REST API (CORS-enabled; ETag conditional GETs;
+never any token), and Hermes agent sessions from the public sessions API.
+PR cards are the union of both planes; open PRs with no session show an
+Agent NONE card; session HEAD is compared against authoritative PR HEAD.
+The renderer never receives or embeds tokens; missing data renders as
 unavailable, never fabricated.
 """
 from __future__ import annotations
@@ -36,6 +40,7 @@ KNOWN_CHECKS = (
     "Saul / Product Quality",
 )
 SESSIONS_API = "https://srv1840454.hstgr.cloud/api/hermes-sessions/sessions"
+GH_API = "https://api.github.com/repos/Dezocode/Sai"
 GH_WEB = "https://github.com/Dezocode/Sai"
 
 BASE_CSS = """<style>
@@ -70,90 +75,295 @@ h1{font-size:28px;margin:0 0 6px} .k{font-size:11px;letter-spacing:.08em;color:v
 SESSIONS_CSS = """<style>
 .wheelwrap{overflow-x:auto;padding-bottom:10px}
 .wheel{display:flex;gap:14px;align-items:stretch;width:max-content;min-width:100%}
-.pcard{flex:0 0 auto;width:340px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.pcard h2{margin:0;font-size:15px}
+.pcard{flex:0 0 auto;width:370px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.pcard h2{margin:0;font-size:15px} .pcard h2 a:hover{text-decoration:underline}
 .pcard .sub{color:var(--mute);font-size:12px;margin:2px 0 10px}
 .srow{border-top:1px solid var(--line);padding:10px 0}
 .srow:first-of-type{border-top:0}
 .sid{font-weight:650;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
-.fields{display:grid;grid-template-columns:92px 1fr;gap:3px 10px;font-size:12px}
+.fields{display:grid;grid-template-columns:120px 1fr;gap:3px 10px;font-size:12px}
 .k2{color:var(--mute)} .v2{word-break:break-word} .dim{color:var(--mute)}
 .psummary{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
 .psummary .lbl{font-size:11px;letter-spacing:.08em;color:var(--mute);font-weight:650;margin-right:4px}
-.hb-stale{color:var(--bad);font-weight:650}
+.hb-fresh{color:var(--ok);font-weight:650} .hb-stale{color:var(--bad);font-weight:650} .hb-missing{color:var(--bad);font-weight:650;border-bottom:2px dotted var(--bad)}
+.pcard.hb-stale-card{outline:2px solid var(--bad);outline-offset:-2px}
+.pcard.hb-missing-card{outline:2px dashed var(--bad);outline-offset:-2px}
+.noworker{color:var(--bad);font-weight:700}
+.mismatch{color:var(--bad);font-weight:650}
 </style>"""
 
 # Plain (non-f-string) on purpose: real JS braces. Inserted verbatim.
+# Deliberately backslash-free (literal UTF-8 punctuation, String.fromCharCode
+# for quote keys) so the JS-in-Python splice cannot lose an escape level.
 SESSIONS_JS = """
+const STALE_MIN=30;
+const GH_API="https://api.github.com/repos/Dezocode/Sai";
+const GH_WEB="https://github.com/Dezocode/Sai";
+const GH_PULL="https://github.com/Dezocode/Sai/pull/";
+const SESSIONS_URL="__API__";
 const FIELDS=["profile","status","phase","head","heartbeat","steer","monitors"];
 const WHEEL=document.getElementById("wheel");
 const NOTE=document.getElementById("note");
 const SUMMARY=document.getElementById("summary");
-const STALE_MIN=30;
-const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","'":"&#39;"}[c]));
-const dash=s=>(s==null||s===""?"\\u2014":s);
+const ETAGS={};
+const DETAIL={};
+const CHECKS={};
+let PULLS=null;
+let PULLS_ERR="";
+const ESCMAP={};
+ESCMAP["&"]="&amp;";ESCMAP["<"]="&lt;";ESCMAP[">"]="&gt;";ESCMAP[String.fromCharCode(34)]="&quot;";ESCMAP[String.fromCharCode(39)]="&#39;";
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESCMAP[c]);
+const dash=s=>(s==null||s===""?"—":s);
 const stCls=s=>({active:"ok",finished:"ok",done:"mute",failed:"bad"}[String(s||"").toLowerCase()]||"warn");
 function ageMin(iso){const t=Date.parse(iso);if(isNaN(t))return null;return Math.max(0,Math.round((Date.now()-t)/60000));}
 function age(iso){const m=ageMin(iso);if(m==null)return "";return m<60?m+"m ago":Math.round(m/60)+"h ago";}
-function isStale(s){const m=ageMin(s&&s.heartbeat_at);return m==null||m>=STALE_MIN;}
+function beatBucket(s){const m=ageMin(s&&s.heartbeat_at);return m==null?"missing":(m<STALE_MIN?"fresh":"stale");}
+function isStale(s){return beatBucket(s)==="stale";}
+function isMissing(s){return beatBucket(s)==="missing";}
+function shortSha(x){x=String(x||"");return x.length>=7?x.slice(0,7):x;}
+function ghJson(path,key){
+  const headers={"Accept":"application/vnd.github+json"};
+  if(ETAGS[key])headers["If-None-Match"]=ETAGS[key];
+  return fetch(GH_API+path,{cache:"no-store",headers:headers}).then(r=>{
+    if(r.status===304)return {notModified:true};
+    const et=r.headers.get("ETag");if(et)ETAGS[key]=et;
+    if(!r.ok)throw new Error("HTTP "+r.status+" for "+path);
+    return r.json().then(j=>({data:j}));
+  });
+}
+async function loadPulls(){
+  try{
+    const j=await ghJson("/pulls?state=all&per_page=100&sort=created&direction=desc","pulls");
+    if(j.notModified)return;
+    const arr=Array.isArray(j.data)?j.data:[];
+    const map=new Map();
+    for(const p of arr){if(p&&p.number!=null)map.set(String(p.number),p);}
+    PULLS=map;PULLS_ERR="";
+  }catch(err){PULLS_ERR=err&&err.message?err.message:String(err);}
+}
+async function refreshDetail(num){
+  try{
+    const j=await ghJson("/pulls/"+num,"pr:"+num);
+    if(j.notModified)return;
+    const d=j.data||{};
+    DETAIL[num]={title:d.title||"",mergeable:d.mergeable,mergeableState:d.mergeable_state||"",
+      headSha:d.head&&d.head.sha?d.head.sha:"",pushedAt:d.pushed_at||"",updatedAt:d.updated_at||""};
+  }catch(err){if(DETAIL[num]===undefined)DETAIL[num]=null;}
+}
+async function refreshChecks(num){
+  const det=DETAIL[num];
+  const sha=det&&det.headSha?det.headSha.toLowerCase():"";
+  if(!sha)return;
+  try{
+    const j=await ghJson("/commits/"+sha+"/check-runs?per_page=100","ck:"+sha);
+    if(j.notModified)return;
+    const runs=(j.data&&j.data.check_runs)||[];
+    let total=0,fails=0,pending=0,saul=null;
+    for(const c of runs){
+      if(!c||!c.name)continue;
+      total++;
+      if(c.status&&c.status!=="completed"){pending++;continue;}
+      const cc=String(c.conclusion||"").toLowerCase();
+      if(cc==="failure"||cc==="timed_out"||cc==="action_required")fails++;
+      if(/saul/i.test(String(c.name)))saul=c;
+    }
+    CHECKS[sha]={total:total,fails:fails,pending:pending,
+      saul:!saul?"":(String(saul.conclusion||"")==="success"?"P0=P1=P2=0":String(saul.conclusion||"unknown"))};
+  }catch(err){if(CHECKS[sha]===undefined)CHECKS[sha]=null;}
+}
+function normalize(k){
+  const raw=PULLS?PULLS.get(k):undefined;
+  const det=DETAIL[k];
+  if(!raw&&det===undefined)return null;
+  return {
+    title:(det&&det.title)||(raw&&raw.title)||"",
+    state:raw?String(raw.state):(det?"unknown":""),
+    draft:raw?!!raw.draft:false,
+    merged:raw?!!raw.merged_at:false,
+    headSha:(det&&det.headSha)||(raw&&raw.head&&raw.head.sha)||"",
+    pushedAt:(det&&det.pushedAt)||(raw&&raw.pushed_at)||"",
+    updatedAt:(det&&det.updatedAt)||(raw&&raw.updated_at)||"",
+    mergeable:det?det.mergeable:undefined,
+    mergeableState:det?det.mergeableState:""
+  };
+}
+function assemble(list){
+  const byPr=new Map();
+  for(const s of list){const k=s&&s.pr!=null?String(s.pr):"?";if(!byPr.has(k))byPr.set(k,[]);byPr.get(k).push(s);}
+  const keys=new Set(byPr.keys());
+  if(PULLS)for(const k of PULLS.keys())keys.add(k);
+  for(const k of Object.keys(DETAIL))keys.add(k);
+  const arr=Array.from(keys);
+  arr.sort((a,b)=>((b==="?"?-1:parseInt(b,10))-(a==="?"?-1:parseInt(a,10))));
+  return arr.map(k=>{
+    const ss=(byPr.get(k)||[]).slice().sort((x,y)=>String(x.id||"").localeCompare(String(y.id||"")));
+    const pr=normalize(k);
+    const mismatch=!!(pr&&pr.headSha&&ss.length&&ss.some(s=>{
+      const h=String(s&&s.head||"").toLowerCase();
+      return !!h&&!pr.headSha.toLowerCase().startsWith(h);
+    }));
+    const agentState=ss.length===0?"none":(ss.some(isMissing)?"missing":(ss.some(isStale)?"stale":"fresh"));
+    return {k:k,pr:pr,ss:ss,mismatch:mismatch,agentState:agentState};
+  });
+}
 function cell(f,s){
-  if(f==="status"){return '<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span>';}
+  if(f==="status")return '<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span>';
   if(f==="steer"){const n=s.note?String(s.note):"";return n?'<span class="st warn">'+esc(n)+'</span>':'<span class="st mute">none reported</span>';}
-  if(f==="heartbeat"){const a=age(s.heartbeat_at);return esc(dash(s.heartbeat_at))+(a?' <span class="dim">\\u00b7 '+esc(a)+'</span>':'');}
+  if(f==="heartbeat"){
+    const b=beatBucket(s);const a=age(s.heartbeat_at);
+    const cls=b==="fresh"?"hb-fresh":(b==="stale"?"hb-stale":"hb-missing");
+    const label=b==="fresh"?("fresh"+(a?" · "+a:"")):(b==="stale"?("stale · last beat "+(a||"of unknown age")):"missing · never reported");
+    return '<span class="'+cls+'" title="'+esc(s.heartbeat_at||"")+'">'+label+'</span>';
+  }
   if(f==="monitors"){const m=Array.isArray(s.monitors)?s.monitors.join(", "):s.monitors;return esc(dash(m));}
   return esc(dash(s[f]));
 }
 function srow(s){
-  const m=ageMin(s&&s.heartbeat_at);
-  const stale=(m==null||m>=STALE_MIN);
-  const staleLabel=m==null?'stale &middot; heartbeat missing':'stale &middot; no beat for '+STALE_MIN+'m+';
   return '<div class="srow"><div class="sid"><span>'+esc(dash(s.id))+'</span>'
     +'<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span></div>'
-    +'<div class="fields">'+FIELDS.map(f=>'<div class="k2">'+esc(f)+'</div><div class="v2">'+cell(f,s)+'</div>').join("")
-    +(stale?'<div class="k2">heartbeat</div><div class="v2 hb-stale">'+staleLabel+'</div>':'')+'</div></div>';
+    +'<div class="fields">'+FIELDS.map(f=>'<div class="k2">'+esc(f)+'</div><div class="v2">'+cell(f,s)+'</div>').join("")+'</div></div>';
 }
-function group(list){
-  const byPr=new Map();
-  for(const s of list){const k=s&&s.pr!=null?String(s.pr):"?";if(!byPr.has(k))byPr.set(k,[]);byPr.get(k).push(s);}
-  const keys=[...byPr.keys()].sort((a,b)=>{const na=a==="?"?Infinity:parseInt(a,10),nb=b==="?"?Infinity:parseInt(b,10);return na-nb;});
-  return keys.map(k=>{
-    const ss=(byPr.get(k)||[]).slice().sort((x,y)=>String(x.id||"").localeCompare(String(y.id||"")));
-    const stale=ss.some(isStale);
-    return '<article class="pcard"'+(stale?' style="outline:2px solid var(--bad);outline-offset:-2px"':'')+'><h2>PR '+(k==="?"?"?":"#"+esc(k))+'</h2>'
-      +'<p class="sub">'+ss.length+' session'+(ss.length===1?"":"s")+(stale?' &middot; <span class="hb-stale">stale heartbeat</span>':'')+'</p>'
-      +ss.map(srow).join("")+'</article>';
-  }).join("");
+function stateBadge(pr){
+  const label=pr.merged?"merged":(pr.state||"unknown");
+  const cls=pr.merged?"mute":(pr.state==="open"?"ok":"mute");
+  return '<span class="st '+cls+'">'+esc(label)+"</span>";
 }
-function summarize(list){
-  if(SUMMARY){SUMMARY.innerHTML=summaryHTML(list);}
+function reviewBadge(pr){
+  if(pr.merged||pr.state!=="open")return "—";
+  return '<span class="st '+(pr.draft?"warn":"ok")+'">'+esc(pr.draft?"draft":"ready")+"</span>";
 }
-function summaryHTML(list){
-  if(!Array.isArray(list)||!list.length)return "";
-  const byStatus=new Map(),fresh=[],stale=[];
-  for(const s of list){
-    const k=String(s&&s.status?s.status:"unknown").toLowerCase();
-    byStatus.set(k,(byStatus.get(k)||0)+1);
-    (isStale(s)?stale:fresh).push(s);
+function mergeView(pr){
+  if(pr.mergeable===true)return pr.mergeableState&&pr.mergeableState!=="clean"?("mergeable · "+esc(pr.mergeableState)):"mergeable";
+  if(pr.mergeable===false)return pr.mergeableState?("state: "+esc(pr.mergeableState)):"merge conflicts";
+  if(pr.mergeableState)return "state: "+esc(pr.mergeableState);
+  if(pr.state!=="open")return "—";
+  return "unavailable";
+}
+function pushView(pr){
+  const t=pr.pushedAt||pr.updatedAt;
+  if(!t)return "unavailable";
+  return esc(age(t)||String(t).slice(0,10));
+}
+function checksFor(pr){const sha=pr.headSha?pr.headSha.toLowerCase():"";return sha?CHECKS[sha]:undefined;}
+function ciView(pr){
+  const ck=checksFor(pr);
+  if(!pr.headSha)return "unavailable";
+  if(ck===undefined)return "loading…";
+  if(ck===null)return "unavailable";
+  if(!ck.total)return "no check runs";
+  return esc(ck.total+" checks"+(ck.fails?" · "+ck.fails+" failed":"")+(ck.pending?" · "+ck.pending+" running":""));
+}
+function saulView(pr){
+  const ck=checksFor(pr);
+  if(!pr.headSha)return "unavailable";
+  if(ck===undefined)return "loading…";
+  if(ck===null)return "unavailable";
+  if(!ck.total)return "absent";
+  return esc(ck.saul||"absent");
+}
+function ghBody(c){
+  const pr=c.pr;
+  if(!pr)return '<p class="empty">GitHub PR data unavailable.</p>';
+  const rows=[
+    ["title",esc(pr.title||"—")],
+    ["state",stateBadge(pr)],
+    ["review",reviewBadge(pr)],
+    ["PR head",esc(pr.headSha?shortSha(pr.headSha):"—")],
+    ["CI",ciView(pr)],
+    ["Saul / Product Quality",saulView(pr)],
+    ["mergeability",mergeView(pr)],
+    ["last push",pushView(pr)]
+  ];
+  if(c.mismatch)rows.push(["worker HEAD",'<span class="mismatch">session HEAD ≠ PR HEAD — worker may be behind or ahead</span>']);
+  return '<div class="fields">'+rows.map(r=>'<div class="k2">'+esc(r[0])+'</div><div class="v2">'+r[1]+'</div>').join("")+'</div>';
+}
+function prCard(c){
+  const link='<a href="'+GH_PULL+encodeURIComponent(c.k)+'">'+(c.k==="?"?"PR ?":"PR #"+esc(c.k))+"</a>";
+  const titleHtml=c.pr&&c.pr.title?" — "+esc(c.pr.title):"";
+  let sub;
+  if(c.agentState==="none"){
+    sub='<p class="sub"><span class="noworker">Agent: NONE — no worker attached</span></p>';
+  }else{
+    const b={fresh:0,stale:0,missing:0};
+    for(const s of c.ss)b[beatBucket(s)]++;
+    sub='<p class="sub">'+c.ss.length+" session"+(c.ss.length===1?"":"s")
+      +' · <span class="hb-fresh">'+b.fresh+" fresh</span>"
+      +' · <span class="hb-stale">'+b.stale+" stale</span>"
+      +' · <span class="hb-missing">'+b.missing+" missing</span>"
+      +(c.mismatch?' · <span class="mismatch">session HEAD ≠ PR HEAD</span>':"")+"</p>";
   }
-  const chips=[...byStatus.entries()].sort().map(kv=>'<span class="pill">'+esc(kv[0])+": "+kv[1]+'</span>').join(" ");
-  const prCount=new Set(list.map(s=>s&&s.pr!=null?String(s.pr):"?")).size;
-  return '<span class="lbl">PR GRAPH</span><span class="pill">prs: '+prCount+'</span><span class="pill">sessions: '+list.length+'</span>'
-    +chips+' <span class="pill">heartbeats fresh(&lt;'+STALE_MIN+'m): '+fresh.length+'</span>'
-    +'<span class="pill'+(stale.length?' hb-stale':'')+'">stale: '+stale.length+'</span>';
+  let cardCls="pcard";
+  if(c.agentState==="missing")cardCls+=" hb-missing-card";
+  else if(c.agentState==="stale")cardCls+=" hb-stale-card";
+  const ghSid='<div class="sid"><span>GitHub authority</span><span class="pill">Dezocode/Sai</span></div>';
+  return '<article class="'+cardCls+'"><h2>'+link+titleHtml+"</h2>"+sub
+    +c.ss.map(srow).join("")
+    +'<div class="srow">'+ghSid+ghBody(c)+"</div></article>";
+}
+function group(cards){return cards.map(prCard).join("");}
+function summaryHTML(cards,list){
+  let open=0,openDraft=0,mergedN=0,closedN=0,sessionOnly=0,unknownKey=0,noneWorker=0,mismatchN=0;
+  for(const c of cards){
+    if(c.k==="?"){unknownKey++;continue;}
+    if(!c.pr){sessionOnly++;continue;}
+    if(c.pr.merged)mergedN++;
+    else if(c.pr.state==="open"){open++;if(c.pr.draft)openDraft++;}
+    else closedN++;
+    if(c.agentState==="none")noneWorker++;
+    if(c.mismatch)mismatchN++;
+  }
+  const hb={fresh:0,stale:0,missing:0};
+  for(const s of list)hb[beatBucket(s)]++;
+  const chips=['<span class="lbl">PR GRAPH</span>',
+    '<span class="pill">cards: '+cards.length+'</span>',
+    '<span class="pill">sessions: '+list.length+'</span>',
+    '<span class="pill">open: '+open+(openDraft?" ("+openDraft+" draft)":"")+'</span>',
+    '<span class="pill">merged: '+mergedN+'</span>',
+    '<span class="pill">closed: '+closedN+'</span>',
+    '<span class="pill">agent NONE: '+noneWorker+'</span>'];
+  if(sessionOnly)chips.push('<span class="pill">session-only PRs: '+sessionOnly+'</span>');
+  if(unknownKey)chips.push('<span class="pill">unmapped PR keys: '+unknownKey+'</span>');
+  if(mismatchN)chips.push('<span class="pill hb-stale">HEAD mismatch: '+mismatchN+'</span>');
+  chips.push('<span class="pill">heartbeats fresh(&lt;'+STALE_MIN+'m): '+hb.fresh+'</span>',
+    '<span class="pill'+(hb.stale?" hb-stale":"")+'">stale: '+hb.stale+'</span>',
+    '<span class="pill'+(hb.missing?" hb-missing":"")+'">missing: '+hb.missing+'</span>');
+  return chips.join(" ");
+}
+function describeGh(){
+  if(PULLS_ERR&&!PULLS)return "unavailable ("+PULLS_ERR+")";
+  if(PULLS_ERR)return "partial ("+PULLS_ERR+")";
+  if(PULLS)return PULLS.size+" PRs via public REST";
+  return "unavailable";
+}
+function renderWheel(cards,list){
+  if(cards.length){WHEEL.innerHTML='<div class="wheel">'+group(cards)+"</div>";return;}
+  if(list.length){WHEEL.innerHTML='<p class="empty">No PR cards could be assembled; sessions exist but GitHub data is unavailable. Nothing shown is invented.</p>';return;}
+  WHEEL.innerHTML='<p class="empty">No PRs and no sessions reported right now.</p>';
 }
 async function load(){
   try{
-    const r=await fetch("__API__",{cache:"no-store"});
+    const r=await fetch(SESSIONS_URL,{cache:"no-store"});
     if(!r.ok)throw new Error("HTTP "+r.status);
     const d=await r.json();
     const list=Array.isArray(d&&d.sessions)?d.sessions:[];
-    WHEEL.innerHTML=list.length?('<div class="wheel">'+group(list)+'</div>'):'<p class="empty">No sessions reported right now.</p>';
-    summarize(list);
-    NOTE.textContent="count="+list.length+(d&&d.updated_at?" \u00b7 updated_at="+d.updated_at:"")+" \u00b7 live GET \u00b7 refreshes every 60s \u00b7 no secrets, nothing invented";
-  }catch(e){
-    WHEEL.innerHTML='<p class="empty">Sessions unavailable ('+esc(e&&e.message?e.message:String(e))+'). Nothing shown is invented.</p>';
-    summarize([]);
-    NOTE.textContent="unavailable";
+    await loadPulls();
+    let cards=assemble(list);
+    await Promise.all(cards.filter(c=>c.pr&&c.k!=="?").map(async c=>{
+      await refreshDetail(c.k);
+      if(DETAIL[c.k]&&DETAIL[c.k].headSha)await refreshChecks(c.k);
+    }));
+    cards=assemble(list);
+    renderWheel(cards,list);
+    SUMMARY.innerHTML=summaryHTML(cards,list);
+    NOTE.textContent="count="+list.length+(d&&d.updated_at?" · updated_at="+d.updated_at:"")
+      +" · github="+describeGh()+" · live GET · refreshes every 60s · no secrets, nothing invented";
+  }catch(err){
+    const msg=err&&err.message?err.message:String(err);
+    await loadPulls();
+    const cards=assemble([]);
+    renderWheel(cards,[]);
+    SUMMARY.innerHTML=summaryHTML(cards,[]);
+    NOTE.textContent="sessions unavailable ("+msg+") · github="+describeGh()+" · nothing shown is invented";
   }
 }
 load();
@@ -417,13 +627,13 @@ def render_sessions(branch: str, sha: str, when: str) -> str:
 </header>
 <main class="main">
   <h1 id="readme">PR sessions</h1>
-  <p class="cap">Hermes agent sessions driving Dezocode/Sai pull requests, one card per PR in a horizontally scrollable wheel. Live read-only GET from the sessions API below; every field comes straight from the response and stays blank or marked unavailable when missing. No secrets, no tokens, nothing invented.</p>
+  <p class="cap">One place per Dezocode/Sai pull request: authoritative GitHub PR state joined by PR number with live Hermes agent sessions, one horizontally scrollable card per PR. Two read-only GETs run below - the secret-free public GitHub REST API and the sessions API; every field comes straight from those responses and stays blank or marked unavailable when missing. No secrets, no tokens, nothing invented.</p>
   <div class="psummary" id="summary" aria-live="polite"></div>
   <div class="wheelwrap" id="wheelwrap">
     <div class="wheel" id="wheel"><noscript><p class="empty">JavaScript disabled — live sessions cannot load.</p></noscript></div>
   </div>
   <p class="note" id="note">loading…</p>
-  <p class="host">Source: <code>{e(SESSIONS_API)}</code>. Generated at exact HEAD; the wheel fills in live in your browser. Hostinger stays Saul-go.</p>
+  <p class="host">Sources: sessions <code>{e(SESSIONS_API)}</code> · GitHub authority <code>{e(GH_API)}</code> (public repo fields only). Generated at exact HEAD; the wheel fills in live in your browser. Hostinger stays Saul-go.</p>
 </main>
 <script>{SESSIONS_JS}</script>
 </body></html>
@@ -474,12 +684,23 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         problems.append("pr-sessions.html suspiciously small")
     sessions_needles = (
         SESSIONS_API,
+        GH_API,
+        GH_WEB,
         "overflow-x:auto",
         'id="wheel"',
         'id="summary"',
         "setInterval(load,60000)",
         'FIELDS=["profile","status","phase","head","heartbeat","steer","monitors"]',
+        "/pulls?state=all&per_page=100",
+        "If-None-Match",
+        "Agent: NONE",
+        'class="mismatch">session HEAD ≠ PR HEAD',
+        "github.com/Dezocode/Sai/pull/",
+        ".hb-fresh",
         ".hb-stale",
+        ".hb-missing",
+        "hb-missing-card",
+        "missing · never reported",
         "<noscript>",
         "Hostinger stays Saul-go",
     )
@@ -495,6 +716,13 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
     for banned in ("X-Sessions-Token", "GH_TOKEN", "GITHUB_TOKEN"):
         if banned in html_sessions:
             problems.append("pr-sessions.html contains forbidden " + banned)
+    for guard in ("Agent: NONE", '"missing"', '"stale"', "no worker attached"):
+        if guard not in html_sessions:
+            problems.append("pr-sessions.html missing heartbeat/agent guard " + guard)
+    if "api.github.com" not in html_sessions:
+        problems.append("pr-sessions.html missing GitHub authority plane")
+    if "Authorization" in html_sessions or "token " in html_sessions:
+        problems.append("pr-sessions.html must stay token-free")
     if problems:
         raise SystemExit("render-sai-feature-maps --check failed:\n- " + "\n- ".join(problems))
 
