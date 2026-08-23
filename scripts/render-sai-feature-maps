@@ -3,9 +3,8 @@
 pr-sessions.html: a PR wheel joining authoritative GitHub PR state for
 Dezocode/Sai (unauthenticated public REST, CORS, ETag, no token) with live
 Hermes sessions by PR number. Consumes `go run ./cmd/sai-verify maps` JSON;
-does not parse README/four-H2 Markdown. HTML is generated, never source.
-Open PRs with no session show Agent NONE; missing data renders unavailable,
-never fabricated. The renderer never embeds tokens.
+HTML is generated, never source; open PRs with no session show Agent NONE;
+missing data renders unavailable, never fabricated; renderer stays token-free.
 """
 from __future__ import annotations
 
@@ -314,21 +313,21 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("ghDue below floor resumes after reset",ghDue(2500000,0,3,2000000,300000,5),true);
 }
 {
-  // Round-14 (Saul 97215420702): per-step gate stops a batch at floor/budget.
-  check("ghStepDue blocks below floor",ghStepDue(1000000,4,2000000,5,0,60),false);
-  check("ghStepDue stops at window budget",ghStepDue(1000000,40,2000000,5,60,60),false);
-  check("ghStepDue resumes on window roll",ghStepDue(2500000,0,2000000,5,60,60),true);
-  let rem=7,used=0,ran=0;for(;ran<24;ran++){if(!ghStepDue(1000000,rem,2000000,5,used,60))break;rem--;used++;}
-  check("mid-batch stop at floor (not all 24)",ran,3);
+  // Round-14/15 (Saul 97215420702/97218921375): per-step gate stops a batch.
+  check("ghStepDue blocks below floor",ghStepDue(1000000,4,2000000,5,0,60,0,3600000),false);
+  check("ghStepDue budget holds w/o reset header",ghStepDue(1000000,40,0,5,60,60,900000,3600000),false);
+  check("ghStepDue budget holds w/o reset AND w/o remaining",ghStepDue(1000000,null,0,5,60,60,900000,3600000),false);
+  check("ghStepDue local roll resumes",ghStepDue(5000000,40,0,5,60,60,900000,3600000),true);
+  let rem=7,used=0,ran=0;for(;ran<24;ran++){if(!ghStepDue(1000000,rem,2000000,5,used,60,900000,3600000))break;rem--;used++;}
+  check("mid-batch floor stop (pre-fix 24)",ran,3);
+  let ub=58,rb=0;for(;rb<24;rb++){if(!ghStepDue(1000000,40,0,5,ub,60,900000,3600000))break;ub++;}
+  check("mid-batch budget stop w/o reset (pre-fix 24)",rb,2);
 }
 if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
 console.log("ALL PASS");
 """
-# ENRICH_JS: pure planning + done-marking for the per-refresh GitHub
-# enrichment budget (round-6b fan-out exhausted the anon 60/hr quota).
-# Rounds 8-14: pending-selection in planEnrich; session-only detail by number;
-# force-push replans; doneShas marks done; failed DETAIL probes after
-# DETAIL_RETRY_MS; ghStepDue gates each GitHub request at the rate floor.
+# Rounds 8-15: pending-selection in planEnrich; session-only detail by number;
+# force-push replans; doneShas marks done; ghStepDue gates each request.
 ENRICH_JS = """
 function enrichPrio(c){
   if(c.ss&&c.ss.length)return 0;
@@ -345,9 +344,8 @@ function planEnrich(cards,budget){
     const ls=pr&&pr.headSha?String(pr.headSha).toLowerCase():"";
     const cs=det&&det.headSha?String(det.headSha).toLowerCase():"";
     const sha=ls||cs;
-    // P1-1: session-only cards (absent from PULLS) have no listing head, so
-    // revalidate their detail on a TTL once it was ever fetched.
-    const inPulls=typeof PULLS!=="undefined"&&!!(PULLS&&PULLS.get(String(c.k)));
+    // P1-1: session-only cards revalidate detail on a TTL once ever fetched.
+    const inPulls=!!(PULLS&&PULLS.get(String(c.k)));
     const dts=DETAIL_TS[c.k];
     const stale=!inPulls&&det&&dts&&(now-dts)>REVALIDATE_MS;
     if(sha&&ENRICHED.has(sha)&&!stale)continue;
@@ -374,15 +372,13 @@ function doneShas(cards){
 }
 function ghDue(now,lastPoll,remain,resetAt,pollMs,minRem){
   // Round-13 (Saul 97206101278): cadence <=pollMs; hold until reset below floor.
-  if(remain!=null&&remain<=0&&now<resetAt)return false;
-  if(remain!=null&&remain<minRem&&now<resetAt)return false;
+  if(remain!=null&&now<resetAt&&(remain<=0||remain<minRem))return false;
   return now-lastPoll>=pollMs;
 }
-function ghStepDue(now,remain,resetAt,minRem,windowUsed,windowBudget){
-  // Round-14: stop a batch at the rate floor or the reset-window budget.
+function ghStepDue(now,remain,resetAt,minRem,windowUsed,windowBudget,windowAt,windowMs){
+  // Round-15: floor + per-window budget; windowAt anchors it without a reset header.
   if(remain!=null&&now<resetAt&&remain<minRem)return false;
-  if(resetAt>0&&now<resetAt&&windowUsed>=windowBudget)return false;
-  return true;
+  return !(windowUsed>=windowBudget&&!(resetAt>0&&now>=resetAt)&&!(windowAt>0&&now-windowAt>=windowMs));
 }
 """
 SESSIONS_JS = """
@@ -406,14 +402,16 @@ const REVALIDATE_MS=300000;
 const MAX_DETAIL_FAILS=3;
 const DETAIL_RETRY_MS=900000;
 const DETAIL_RETRY_AT={};
-// Round-13/14: GitHub cadence + rate-limit state + per-window request budget.
+// Round-13/15: GitHub cadence + rate-limit state + per-window request budget.
 const GH_POLL_MS=300000;
 const GH_MIN_REMAIN=5;
 const GH_WINDOW_BUDGET=60;
+const GH_WINDOW_MS=3600000;
 let GH_LAST_POLL=0;
 let GH_REMAIN=null;
 let GH_RESET_AT=0;
 let GH_WINDOW_USED=0;
+let GH_WINDOW_AT=0;
 let PULLS=null;
 let PULLS_ERR="";
 let SESSIONS_OK=false;
@@ -431,6 +429,8 @@ function ghJson(path,key){
   const headers={"Accept":"application/vnd.github+json"};
   if(ETAGS[key])headers["If-None-Match"]=ETAGS[key];
   const ghNow=Date.now();
+  if(GH_WINDOW_AT===0)GH_WINDOW_AT=ghNow;
+  if(ghNow-GH_WINDOW_AT>=GH_WINDOW_MS){GH_WINDOW_AT=ghNow;GH_WINDOW_USED=0;}
   if(GH_RESET_AT>0&&ghNow>=GH_RESET_AT)GH_WINDOW_USED=0;
   GH_WINDOW_USED++;
   return fetch(GH_API+path,{cache:"no-store",headers:headers}).then(r=>{
@@ -699,7 +699,7 @@ async function enrich(cards){
   // Budgeted, sequential (no Promise.all fan-out); per-step rate gate (round-14).
   const steps=planEnrich(cards,REQUEST_BUDGET);
   for(const s of steps){
-    if(!ghStepDue(Date.now(),GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET))break;
+    if(!ghStepDue(Date.now(),GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET,GH_WINDOW_AT,GH_WINDOW_MS))break;
     if(s.kind==="detail")await refreshDetail(s.k);
     else await refreshChecks(s.k);
   }
@@ -715,7 +715,7 @@ async function load(){
     SESSIONS_OK=true;
     // Round-13/14: GitHub plane gates on cadence + rate-limit + window budget.
     const now=Date.now();
-    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN)&&ghStepDue(now,GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET);
+    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN)&&ghStepDue(now,GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET,GH_WINDOW_AT,GH_WINDOW_MS);
     if(ghGo){GH_LAST_POLL=now;await loadPulls();}
     let cards=assemble(list);
     if(ghGo)await enrich(cards);
@@ -729,7 +729,7 @@ async function load(){
     const msg=err&&err.message?err.message:String(err);
     SESSIONS_OK=false;
     const now=Date.now();
-    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN)&&ghStepDue(now,GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET);
+    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN)&&ghStepDue(now,GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET,GH_WINDOW_AT,GH_WINDOW_MS);
     if(ghGo){GH_LAST_POLL=now;await loadPulls();}
     let cards=assemble([]);
     if(ghGo)await enrich(cards);
@@ -922,8 +922,7 @@ def render(root: Path, feats: list[dict], drift: list[str], cap: str, checks: li
     )
     sdl = (
         '<div class="sdl"><div class="sdl-k">app constitution (not Origin chrome)</div>'
-        "<div>canvas #0F1115</div><div>accent #5B8CFF</div>"
-        "<div>foundation-draft · featureUIAllowed=false</div>"
+        "<div>canvas #0F1115</div><div>accent #5B8CFF</div><div>foundation-draft · featureUIAllowed=false</div>"
         "<div>Sai Design Language check is PR 73-only until that merges.</div></div>"
     )
     return f"""<!DOCTYPE html>
@@ -1083,8 +1082,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
     for needle in sessions_needles:
         if needle not in html_sessions:
             problems.append("pr-sessions.html missing " + needle)
-    # Token names are legitimate prose inside the protected-ci feature map;
-    # the enforcement point is the workflow env, and the sessions page we
+    # Token names are legitimate prose in protected-ci; the sessions page we
     # author here must never reference tokens at all.
     if "X-Sessions-Token" in html_text:
         problems.append("feature-maps.html contains forbidden X-Sessions-Token")
