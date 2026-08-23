@@ -95,6 +95,97 @@ SESSIONS_CSS = """<style>
 # Plain (non-f-string) on purpose: real JS braces. Inserted verbatim.
 # Deliberately backslash-free (literal UTF-8 punctuation, String.fromCharCode
 # for quote keys) so the JS-in-Python splice cannot lose an escape level.
+# ROLLUP_JS is the single source for the check-run rollup: spliced into the
+# page AND into the --selftest node harness, so the test drives the exact
+# shipped function (adversarial fixture: superseded failed attempt followed by
+# a green rerun of the same check name must roll up to latest-wins).
+ROLLUP_JS = """
+function rollupChecks(runs){
+  // GitHub returns every historical attempt plus reruns for the same check
+  // name; keep only the newest attempt per check so a successful rerun
+  // clears an earlier failure instead of being double-counted.
+  const newest=new Map();
+  for(const c of runs){
+    if(!c||!c.name)continue;
+    const name=String(c.name);
+    const cur=newest.get(name);
+    const ts=x=>String((x&&x.started_at)||(x&&x.completed_at)||"");
+    if(!cur||ts(c)>=ts(cur))newest.set(name,c);
+  }
+  let total=0,fails=0,pending=0,saul=null;
+  for(const c of newest.values()){
+    total++;
+    if(c.status&&c.status!=="completed"){pending++;continue;}
+    const cc=String(c.conclusion||"").toLowerCase();
+    if(cc==="failure"||cc==="timed_out"||cc==="action_required")fails++;
+    if(/saul/i.test(String(c.name))){
+      const t=String(c.completed_at||"");
+      if(!saul||t>=String(saul.completed_at||""))saul=c;
+    }
+  }
+  return {total:total,fails:fails,pending:pending,saul:saul};
+}
+"""
+# Adversarial node harness for rollupChecks (P1 regression: a superseded
+# failed attempt must not keep CI failed after a green rerun of the same
+# check name). Backslash-free like SESSIONS_JS.
+SELFTEST_JS = """
+function check(name,got,want){
+  const ok=got===want;
+  console.log((ok?"PASS ":"FAIL ")+name+"  got="+got+" want="+want);
+  if(!ok)failures++;
+}
+let failures=0;
+{
+  // P1: same check name, superseded failure first, green rerun second.
+  const r=rollupChecks([
+    {name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
+    {name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"}
+  ]);
+  check("P1 latest-wins total by name",r.total,1);
+  check("P1 green rerun clears superseded failure",r.fails,0);
+  check("P1 pending count",r.pending,0);
+}
+{
+  // Out-of-order arrival: array lists green first, failing rerun last with
+  // a LATER started_at - latest-wins must use timestamps, not array order.
+  const r=rollupChecks([
+    {name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"},
+    {name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T02:00:00Z",completed_at:"2026-08-23T02:05:00Z"}
+  ]);
+  check("latest-wins timestamp not array order",r.fails,1);
+  check("latest-wins total still 1",r.total,1);
+}
+{
+  // Distinct failing checks are all counted.
+  const r=rollupChecks([
+    {name:"icm-enforcement",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
+    {name:"Anti-regression",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"}
+  ]);
+  check("distinct failures total",r.total,2);
+  check("distinct failures fails",r.fails,2);
+}
+{
+  // Pending run is pending, never a failure.
+  const r=rollupChecks([
+    {name:"ci-verify-sai",status:"in_progress",started_at:"2026-08-23T03:00:00Z"}
+  ]);
+  check("pending run total",r.total,1);
+  check("pending run pending",r.pending,1);
+  check("pending run fails",r.fails,0);
+}
+{
+  // Saul latest-wins: superseded action_required then success with counts.
+  const r=rollupChecks([
+    {name:"Saul / Product Quality",status:"completed",conclusion:"action_required",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
+    {name:"Saul / Product Quality",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"}
+  ]);
+  check("Saul latest-wins conclusion",r.saul&&r.saul.conclusion,"success");
+  check("Saul latest-wins clears action_required",r.fails,0);
+}
+if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
+console.log("ALL PASS");
+"""
 SESSIONS_JS = """
 const STALE_MIN=30;
 const GH_API="https://api.github.com/repos/Dezocode/Sai";
@@ -149,9 +240,12 @@ async function refreshDetail(num){
     const d=j.data||{};
     DETAIL[num]={title:d.title||"",state:d.state||"",draft:!!d.draft,mergedAt:d.merged_at||"",
       mergeable:d.mergeable,mergeableState:d.mergeable_state||"",
-      headSha:d.head&&d.head.sha?d.head.sha:"",pushedAt:d.pushed_at||"",updatedAt:d.updated_at||""};
+      headSha:d.head&&d.head.sha?d.head.sha:"",
+      pushedAt:d.head&&d.head.repo&&d.head.repo.pushed_at||"",
+      updatedAt:d.updated_at||""};
   }catch(err){if(DETAIL[num]===undefined)DETAIL[num]=null;}
 }
+__ROLLUP__
 async function refreshChecks(num){
   const det=DETAIL[num];
   const sha=det&&det.headSha?det.headSha.toLowerCase():"";
@@ -160,19 +254,8 @@ async function refreshChecks(num){
     const j=await ghJson("/commits/"+sha+"/check-runs?per_page=100","ck:"+sha);
     if(j.notModified)return;
     const runs=(j.data&&j.data.check_runs)||[];
-    let total=0,fails=0,pending=0,saul=null;
-    for(const c of runs){
-      if(!c||!c.name)continue;
-      total++;
-      if(c.status&&c.status!=="completed"){pending++;continue;}
-      const cc=String(c.conclusion||"").toLowerCase();
-      if(cc==="failure"||cc==="timed_out"||cc==="action_required")fails++;
-      if(/saul/i.test(String(c.name))){
-        const t=String(c.completed_at||"");
-        if(!saul||t>=String(saul.completed_at||""))saul=c;
-      }
-    }
-    CHECKS[sha]={total:total,fails:fails,pending:pending,saul:saulLabel(saul)};
+    const r=rollupChecks(runs);
+    CHECKS[sha]={total:r.total,fails:r.fails,pending:r.pending,saul:saulLabel(r.saul)};
   }catch(err){if(CHECKS[sha]===undefined)CHECKS[sha]=null;}
 }
 function pcounts(text){
@@ -203,7 +286,7 @@ function normalize(k){
     draft:raw?!!raw.draft:(det?!!det.draft:false),
     merged:raw?!!raw.merged_at:(det?!!det.mergedAt:false),
     headSha:(det&&det.headSha)||(raw&&raw.head&&raw.head.sha)||"",
-    pushedAt:(det&&det.pushedAt)||(raw&&raw.pushed_at)||"",
+    pushedAt:(det&&det.pushedAt)||(raw&&raw.head&&raw.head.repo&&raw.head.repo.pushed_at)||"",
     updatedAt:(det&&det.updatedAt)||(raw&&raw.updated_at)||"",
     mergeable:det?det.mergeable:undefined,
     mergeableState:det?det.mergeableState:""
@@ -214,7 +297,9 @@ function assemble(list){
   for(const s of list){const k=s&&s.pr!=null?String(s.pr):"?";if(!byPr.has(k))byPr.set(k,[]);byPr.get(k).push(s);}
   const keys=new Set(byPr.keys());
   if(PULLS)for(const k of PULLS.keys())keys.add(k);
-  for(const k of Object.keys(DETAIL))keys.add(k);
+  // DETAIL is enrichment-only: never add its keys to the union, or a PR
+  // discovered via a session would keep rendering (as Agent NONE) after the
+  // session disappears and it leaves both current data planes.
   const arr=Array.from(keys);
   arr.sort((a,b)=>((b==="?"?-1:parseInt(b,10))-(a==="?"?-1:parseInt(a,10))));
   return arr.map(k=>{
@@ -262,7 +347,12 @@ function mergeView(pr){
   return "unavailable";
 }
 function pushView(pr){
-  const t=pr.pushedAt||pr.updatedAt;
+  const t=pr.pushedAt;
+  if(!t)return "unavailable";
+  return esc(age(t)||String(t).slice(0,10));
+}
+function updateView(pr){
+  const t=pr.updatedAt;
   if(!t)return "unavailable";
   return esc(age(t)||String(t).slice(0,10));
 }
@@ -294,7 +384,8 @@ function ghBody(c){
     ["CI",ciView(pr)],
     ["Saul / Product Quality",saulView(pr)],
     ["mergeability",mergeView(pr)],
-    ["last push",pushView(pr)]
+    ["last push",pushView(pr)],
+    ["updated",updateView(pr)]
   ];
   if(c.mismatch)rows.push(["worker HEAD",'<span class="mismatch">session HEAD ≠ PR HEAD — worker may be behind or ahead</span>']);
   return '<div class="fields">'+rows.map(r=>'<div class="k2">'+esc(r[0])+'</div><div class="v2">'+r[1]+'</div>').join("")+'</div>';
@@ -402,7 +493,7 @@ async function load(){
 }
 load();
 setInterval(load,60000);
-""".replace("__API__", SESSIONS_API)
+""".replace("__API__", SESSIONS_API).replace("__ROLLUP__", ROLLUP_JS)
 
 
 def git(root: Path, *args: str) -> str:
@@ -763,15 +854,43 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         raise SystemExit("render-sai-feature-maps --check failed:\n- " + "\n- ".join(problems))
 
 
+def run_selftest() -> int:
+    """Run the adversarial rollupChecks harness in node (exact shipped JS).
+
+    Fail-loud if node is unavailable: the selftest is the regression net for
+    the latest-wins check-run rollup (Saul P1), so skipping is never silent.
+    """
+    harness = ROLLUP_JS + SELFTEST_JS
+    with tempfile.TemporaryDirectory(prefix="sai-rollup-selftest-") as tmp:
+        js = Path(tmp) / "rollup_selftest.js"
+        js.write_text(harness, encoding="utf-8")
+        try:
+            cp = subprocess.run(["node", str(js)], text=True, capture_output=True)
+        except FileNotFoundError:
+            raise SystemExit(
+                "render-sai-feature-maps --selftest: node is required "
+                "but not on PATH (cannot run adversarial rollup harness)"
+            )
+    sys.stdout.write(cp.stdout)
+    if cp.returncode != 0:
+        sys.stderr.write(cp.stderr or "")
+        raise SystemExit("render-sai-feature-maps --selftest: node harness FAILED")
+    print("OK render-sai-feature-maps --selftest: rollupChecks latest-wins harness ALL PASS")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", default=".")
     ap.add_argument("--out", default="")
     ap.add_argument("--checks", default="")
     ap.add_argument("--check", action="store_true")
+    ap.add_argument("--selftest", action="store_true")
     ap.add_argument("--branch", default="")
     ap.add_argument("--sha", default="")
     ns = ap.parse_args(argv)
+    if ns.selftest:
+        return run_selftest()
     root = Path(ns.root).resolve()
     os.chdir(root)
     feats, drift, cap = load_kernel_maps(root)
@@ -791,6 +910,7 @@ def main(argv: list[str]) -> int:
     html_text = render(root, feats, drift, cap, checks, branch, sha, when)
     html_sessions = render_sessions(branch, sha, when)
     if ns.check:
+        run_selftest()
         with tempfile.TemporaryDirectory(prefix="sai-feature-maps-") as tmp:
             out = Path(tmp)
             write_site(out, html_text, html_sessions)

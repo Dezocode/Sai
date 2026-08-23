@@ -32,6 +32,9 @@ jobs:
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.22"
+      - uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601866ffabccdb3 # v4.3.0
+        with:
+          node-version: "22"
       - name: Write empty check-run metadata
         run: |
           echo '[]' > "${RUNNER_TEMP}/feature-maps-checks.json"

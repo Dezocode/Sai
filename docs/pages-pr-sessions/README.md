@@ -15,7 +15,16 @@ Cards are the union of both planes; an open PR with no session renders an
 `Agent: NONE — no worker attached` warning; a session whose `head` differs
 from the authoritative PR HEAD gets a mismatch flag; heartbeat buckets
 fresh / stale / missing stay distinct (missing is never counted as stale).
-Missing data renders as unavailable, never fabricated.
+CI rollup keeps only the newest attempt per check name (a successful rerun
+clears an earlier failure) — guarded by an adversarial `--selftest` node
+harness whose fixtures include a superseded failed attempt followed by a
+green rerun of the same check name (this exact bug was Saul P1; the harness
+fails on the pre-fix rollup); "last push" is an authoritative head-repo push
+timestamp, with PR `updated_at` labeled separately as "updated"; a PR
+discovered only through a session disappears once that session and the
+listing both drop it (no ghost cards). Missing data renders as unavailable,
+never fabricated.
 
-Regenerate locally with `scripts/render-sai-feature-maps --check` (or
-`--out DIR`); CI deploys via `.github/workflows/feature-maps-pages.yml`.
+Regenerate locally with `scripts/render-sai-feature-maps --check` (runs the
+selftest then asserts the pages) or `--out DIR`; CI deploys via
+`.github/workflows/feature-maps-pages.yml`.
