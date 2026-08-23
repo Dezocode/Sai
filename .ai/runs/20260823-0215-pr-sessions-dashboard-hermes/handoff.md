@@ -60,3 +60,17 @@ Saul exact-head round on pushed HEAD (expect binding to the child of
 `055796c`); owner review on the draft PR. After P0=P1=P2=0 and owner
 approval, Pages main deploy publishes pr-sessions.html alongside
 feature-maps.html at dezocode.github.io/Sai.
+
+
+## Full-flight update (2026-08-23, owner steer applied)
+
+STEER archived (STEER.applied.2026-08-23T04:08:02Z.md). Product commit
+`56a2197` implements P1 (GitHub authority plane via unauthenticated public
+REST + ETag conditional GETs, union cards, Agent NONE cards, per-card CI/Saul/
+mergeability/HEAD fields, mismatch flags, github.com PR links) and P2
+(cursor-runtimes.md registration; heartbeat fresh/stale/missing distinct).
+Verification: --check features=11; node --check on emitted JS; DOM smokes
+live/synthetic/sessions-down all SMOKE-OK; verifiers OK; go clean; drive
+pass=63 fail=1 (single FAIL is the pre-existing linked-worktree fixture row,
+also on BASE). Next safe action: exact-head CI + Saul round on the pushed
+child head; owner review. Stay draft.
