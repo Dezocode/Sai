@@ -104,11 +104,13 @@ function cell(f,s){
   return esc(dash(s[f]));
 }
 function srow(s){
-  const stale=isStale(s);
+  const m=ageMin(s&&s.heartbeat_at);
+  const stale=(m==null||m>=STALE_MIN);
+  const staleLabel=m==null?'stale &middot; heartbeat missing':'stale &middot; no beat for '+STALE_MIN+'m+';
   return '<div class="srow"><div class="sid"><span>'+esc(dash(s.id))+'</span>'
     +'<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span></div>'
     +'<div class="fields">'+FIELDS.map(f=>'<div class="k2">'+esc(f)+'</div><div class="v2">'+cell(f,s)+'</div>').join("")
-    +(stale?'<div class="k2">heartbeat</div><div class="v2 hb-stale">stale &middot; no beat for '+STALE_MIN+'m+</div>':'')+'</div></div>';
+    +(stale?'<div class="k2">heartbeat</div><div class="v2 hb-stale">'+staleLabel+'</div>':'')+'</div></div>';
 }
 function group(list){
   const byPr=new Map();
