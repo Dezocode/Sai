@@ -152,3 +152,10 @@ protected-ci.md + docs/pages-pr-sessions/README.md claim both properties.
 Next safe action: push product+evidence, watch CI + Saul bind to the new head;
 owner review after exact-HEAD green + Saul P0=P1=0 with codex_invoked=true.
 Stay draft.
+
+Round-7c watch note: Saul runs on 946a0f2 and 232b867 both arrived instantly
+as infra-only neutrals (codex_invoked=false, reviewer_identity=
+grok-build-cli-fallback, SANDBOX_PROVISIONING_FAILED) - per STEER these do
+not count toward morning-ready. Required CI green on 232b867 except
+icm-enforcement still in_progress at watch start. Gate remains a real Codex
+review binding to exact HEAD 232b867 with SUCCESS P0=P1=0.
