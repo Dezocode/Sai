@@ -137,7 +137,6 @@ function check(name,got,want){
 }
 let failures=0;
 {
-  // P1: same check name, superseded failure first, green rerun second.
   const r=rollupChecks([
     {name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
     {name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"}
@@ -157,7 +156,6 @@ let failures=0;
   check("latest-wins total still 1",r.total,1);
 }
 {
-  // Distinct failing checks are all counted.
   const r=rollupChecks([
     {name:"icm-enforcement",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
     {name:"Anti-regression",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"}
@@ -166,7 +164,6 @@ let failures=0;
   check("distinct failures fails",r.fails,2);
 }
 {
-  // Pending run is pending, never a failure.
   const r=rollupChecks([
     {name:"ci-verify-sai",status:"in_progress",started_at:"2026-08-23T03:00:00Z"}
   ]);
@@ -175,7 +172,6 @@ let failures=0;
   check("pending run fails",r.fails,0);
 }
 {
-  // Saul latest-wins: superseded action_required then success with counts.
   const r=rollupChecks([
     {name:"Saul / Product Quality",status:"completed",conclusion:"action_required",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
     {name:"Saul / Product Quality",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"}
@@ -183,10 +179,12 @@ let failures=0;
   check("Saul latest-wins conclusion",r.saul&&r.saul.conclusion,"success");
   check("Saul latest-wins clears action_required",r.fails,0);
 }
+const DETAIL={};
+const ENRICHED=new Set();
+const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,ss:[{}]};
 {
   // Saul P1 round-6b: fan-out budget. 100 open PRs sharing 2 head SHAs must
-  // plan at most REQUEST_BUDGET steps (not ~200), deduped by head SHA, with
-  // open/visible cards first. This is what prevented the quota exhaustion.
+  // plan at most REQUEST_BUDGET steps (not ~200), deduped by head SHA.
   const cards=[];
   for(let i=1;i<=100;i++){
     cards.push({k:String(i),pr:{state:"open",merged:false,headSha:(i%2?"aa11":"bb22")},ss:[],agentState:"none"});
@@ -197,14 +195,12 @@ let failures=0;
   const kinds={};
   for(const s of steps)kinds[s.kind]=(kinds[s.kind]||0)+1;
   check("every step is detail or checks",(kinds.detail||0)+(kinds.checks||0),steps.length);
-  // dedupe: same head SHA must not re-request checks
   const checkedShas=new Set();
   let redup=0;
   for(const s of steps){if(s.kind==="checks"){if(checkedShas.has(s.k))redup++;checkedShas.add(s.k);}}
   check("check steps deduped by head SHA",redup,0);
 }
 {
-  // Priority: a PR with a session is enriched before a session-less open PR.
   const cards=[
     {k:"2",pr:{state:"open",merged:false,headSha:"cc33"},ss:[],agentState:"none"},
     {k:"1",pr:{state:"open",merged:false,headSha:"dd44"},ss:[{id:"s1"}],agentState:"fresh"}
@@ -215,7 +211,6 @@ let failures=0;
   check("open card planned second",details[1].k,"2");
 }
 {
-  // Closed/merged PRs are not enrichment targets at all.
   const cards=[
     {k:"9",pr:{state:"closed",merged:false,headSha:"ee55"},ss:[],agentState:"none"},
     {k:"10",pr:{state:"open",merged:true,headSha:"ff66"},ss:[],agentState:"none"}
@@ -224,27 +219,46 @@ let failures=0;
   check("closed+merged PRs skipped by planner",steps.length,0);
 }
 {
-  // Force-push: the enrichment done-cache is keyed by head SHA, not PR
-  // number, so a re-pushed PR is re-enriched at its new HEAD instead of
-  // freezing on "loading…" for CI/Saul forever.
-  const ENRICHED=new Set();
-  const cards=[{k:"5",pr:{state:"open",merged:false,headSha:"AA11"},ss:[],agentState:"fresh"}];
-  let pend=pendingCards(cards,ENRICHED);
-  check("un-enriched card is pending",pend.length,1);
+  // P1 round-8 #1: a session-linked PR with no known HEAD (absent from the
+  // pull list AND DETAIL) must still plan a detail BY NUMBER, then checks
+  // once any HEAD is known, then stop via the shipped done-marker - so a
+  // session-only card can never leak an eternal re-plan (quota burn).
+  const cards=[OC("77")];
+  let steps=planEnrich(cards,4);
+  check("session-only card plans a detail by number",steps.some(s=>s.kind==="detail"&&s.k==="77"),true);
+  check("no checks before a HEAD is known",steps.some(s=>s.kind==="checks"),false);
+  DETAIL["77"]={headSha:"CAFE12"};
+  steps=planEnrich(cards,4);
+  check("known-detail card does not refetch detail",steps.some(s=>s.kind==="detail"),false);
+  check("cached-HEAD card now plans checks",steps.some(s=>s.kind==="checks"),true);
+  for(const sha of doneShas(cards))ENRICHED.add(sha);
+  check("done-cache holds session-only HEAD via shipped marker",ENRICHED.has("cafe12"),true);
+  check("done HEAD stops replanning",planEnrich(cards,4).length,0);
+}
+{
+  // P1 round-8 #2: a force-push (listing HEAD != cached DETAIL head) replans
+  // detail + checks so CI/Saul re-bind; once done, mixed shapes replan none.
+  DETAIL["5"]={headSha:"AA11"};
   ENRICHED.add("aa11");
-  pend=pendingCards(cards,ENRICHED);
-  check("same-HEAD card is not re-planned",pend.length,0);
-  cards[0].pr.headSha="BB22";
-  pend=pendingCards(cards,ENRICHED);
-  check("force-pushed card becomes pending again",pend.length,1);
+  check("stale-masked card stays done pre-detection",planEnrich([OC("5","aa11")],4).length,0);
+  const steps=planEnrich([OC("5","BB22")],4);
+  check("divergent listing HEAD replans detail",steps.some(s=>s.kind==="detail"&&s.k==="5"),true);
+  check("divergent listing HEAD replans checks",steps.some(s=>s.kind==="checks"),true);
+  const mixed=[OC("77"),OC("5","bb22"),{k:"9",pr:{state:"closed",headSha:"ee55"},ss:[]}];
+  DETAIL["5"]={headSha:"BB22"};
+  for(const sha of doneShas(mixed))ENRICHED.add(sha);
+  check("steady-state replans nothing after 100 cycles",(function(){for(let i=0;i<100;i++){if(planEnrich(mixed,24).length)return 1;}return 0;})(),0);
 }
 if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
 console.log("ALL PASS");
 """
-# ENRICH_JS: pure planning for the per-refresh GitHub enrichment budget (Saul
-# P1 round-6b: unauthenticated fan-out exhausted the 60/hr quota). Spliced into
-# the page AND into the --selftest harness, so the test drives the exact
-# shipped planner. Backslash-free like the other blocks.
+# ENRICH_JS: pure planning + done-marking for the per-refresh GitHub
+# enrichment budget (round-6b: fan-out exhausted the anonymous 60/hr quota;
+# spliced into page AND --selftest so tests drive the exact shipped code).
+# Round-8 (Saul P1x2): pending-selection lives inside planEnrich - session-
+# only cards schedule a detail by number, a force-push (listing head !=
+# cached head) replans, and doneShas() marks done with the same SHA
+# resolution planning used (single source, no eternal re-plan / quota burn).
 ENRICH_JS = """
 function enrichPrio(c){
   if(c.ss&&c.ss.length)return 0;
@@ -252,34 +266,33 @@ function enrichPrio(c){
   return 2;
 }
 function planEnrich(cards,budget){
-  const order=cards.filter(c=>c.k!=="?").sort((a,b)=>enrichPrio(a)-enrichPrio(b));
-  const steps=[];
-  let b=budget;
-  const checked=new Set();
-  for(const c of order){
+  const steps=[];const checked=new Set();let b=budget;
+  for(const c of cards.filter(c=>c.k!=="?").sort((a,b)=>enrichPrio(a)-enrichPrio(b))){
     if(b<=0)break;
     const pr=c.pr;
-    const relevant=!!(c.ss&&c.ss.length)||(pr&&pr.state==="open"&&!pr.merged);
-    if(!relevant)continue;
-    b--;
-    steps.push({kind:"detail",k:c.k});
-    const sha=pr&&pr.headSha?pr.headSha.toLowerCase():"";
-    if(sha&&!checked.has(sha)){
-      checked.add(sha);
-      if(b>0){b--;steps.push({kind:"checks",k:c.k});}
+    if(!(c.ss&&c.ss.length)&&!(pr&&pr.state==="open"&&!pr.merged))continue;
+    const det=DETAIL[c.k];
+    const ls=pr&&pr.headSha?String(pr.headSha).toLowerCase():"";
+    const cs=det&&det.headSha?String(det.headSha).toLowerCase():"";
+    const sha=ls||cs;
+    if(sha&&ENRICHED.has(sha))continue;
+    if(!det||det===null||(ls&&cs&&ls!==cs)){
+      b--;steps.push({kind:"detail",k:c.k});
+      if(b<=0)break;
     }
+    if(sha&&!checked.has(sha)){checked.add(sha);if(b>0){b--;steps.push({kind:"checks",k:c.k});}}
   }
   return steps;
 }
-function pendingCards(cards,done){
-  // A card is pending while its PR HEAD still needs detail+CI. Keyed by head
-  // SHA (not PR number): a force-push changes the sha, so the new HEAD is
-  // enriched again and CI/Saul never freeze on "loading…" after a re-push.
+function doneShas(cards){
+  // Same SHA resolution as planEnrich (listing, else cached DETAIL): only
+  // landed details mark done; failed details stay pending and retry.
   const out=[];
   for(const c of cards){
-    if(!c.pr||!c.pr.headSha)continue;
-    const sha=String(c.pr.headSha).toLowerCase();
-    if(!done.has(sha))out.push(c);
+    const det=DETAIL[c.k];if(!det||det===null)continue;
+    const ls=c.pr&&c.pr.headSha?String(c.pr.headSha).toLowerCase():"";
+    const cs=det.headSha?String(det.headSha).toLowerCase():"";
+    const sha=ls||cs;if(sha)out.push(sha);
   }
   return out;
 }
@@ -348,8 +361,10 @@ async function refreshDetail(num){
 }
 __ROLLUP__
 async function refreshChecks(num){
-  const det=DETAIL[num];
-  const sha=det&&det.headSha?det.headSha.toLowerCase():"";
+  // Round-8: listing HEAD wins over cached detail so force-pushes re-bind.
+  const pr=PULLS?PULLS.get(String(num)):undefined;
+  let sha=pr&&pr.head&&pr.head.sha?String(pr.head.sha).toLowerCase():"";
+  if(!sha){const det=DETAIL[num];sha=det&&det.headSha?String(det.headSha).toLowerCase():"";}
   if(!sha)return;
   try{
     const j=await ghJson("/commits/"+sha+"/check-runs?per_page=100","ck:"+sha);
@@ -382,11 +397,13 @@ function normalize(k){
   const det=DETAIL[k];
   if(!raw&&det===undefined)return null;
   return {
+    number:k,
     title:(det&&det.title)||(raw&&raw.title)||"",
     state:raw?String(raw.state):(det&&det.state?det.state:"unknown"),
     draft:raw?!!raw.draft:(det?!!det.draft:false),
     merged:raw?!!raw.merged_at:(det?!!det.mergedAt:false),
-    headSha:(det&&det.headSha)||(raw&&raw.head&&raw.head.sha)||"",
+    // Round-8: listing HEAD wins over cached detail so force-pushes surface.
+    headSha:(raw&&raw.head&&raw.head.sha)||(det&&det.headSha)||"",
     pushedAt:(det&&det.pushedAt)||(raw&&raw.head&&raw.head.repo&&raw.head.repo.pushed_at)||"",
     updatedAt:(det&&det.updatedAt)||(raw&&raw.updated_at)||"",
     mergeable:det?det.mergeable:undefined,
@@ -457,19 +474,26 @@ function updateView(pr){
   if(!t)return "unavailable";
   return esc(age(t)||String(t).slice(0,10));
 }
-function checksFor(pr){const sha=pr.headSha?pr.headSha.toLowerCase():"";return sha?CHECKS[sha]:undefined;}
-function ciView(pr){
+function checksFor(pr){
+  // Round-8: normalize() prefers listing HEAD, so force-pushes re-bind CHECKS.
+  if(!pr||!pr.headSha)return undefined;
+  return CHECKS[String(pr.headSha).toLowerCase()];
+}
+function ciView(pr,c){
+  // Round-8 honesty: out-of-scope cards read unavailable, never "loading…".
   const ck=checksFor(pr);
+  const live=(c&&c.ss&&c.ss.length)>0||(pr.state==="open"&&!pr.merged);
   if(!pr.headSha)return "unavailable";
-  if(ck===undefined)return "loading…";
+  if(ck===undefined)return live?"loading…":"unavailable";
   if(ck===null)return "unavailable";
   if(!ck.total)return "no check runs";
   return esc(ck.total+" checks"+(ck.fails?" · "+ck.fails+" failed":"")+(ck.pending?" · "+ck.pending+" running":""));
 }
-function saulView(pr){
+function saulView(pr,c){
   const ck=checksFor(pr);
+  const live=(c&&c.ss&&c.ss.length)>0||(pr.state==="open"&&!pr.merged);
   if(!pr.headSha)return "unavailable";
-  if(ck===undefined)return "loading…";
+  if(ck===undefined)return live?"loading…":"unavailable";
   if(ck===null)return "unavailable";
   if(!ck.total)return "absent";
   return esc(ck.saul||"absent");
@@ -482,8 +506,8 @@ function ghBody(c){
     ["state",stateBadge(pr)],
     ["review",reviewBadge(pr)],
     ["PR head",esc(pr.headSha?shortSha(pr.headSha):"—")],
-    ["CI",ciView(pr)],
-    ["Saul / Product Quality",saulView(pr)],
+    ["CI",ciView(pr,c)],
+    ["Saul / Product Quality",saulView(pr,c)],
     ["mergeability",mergeView(pr)],
     ["last push",pushView(pr)],
     ["updated",updateView(pr)]
@@ -561,21 +585,16 @@ function renderWheel(cards,list){
 __ENRICH__
 const ENRICHED=new Set();
 async function enrich(cards){
-  // Budgeted, sequential (no Promise.all fan-out): the unauthenticated GitHub
-  // quota is 60/hr, so per-refresh we plan at most REQUEST_BUDGET enrichment
-  // requests, prioritized to open/visible cards, deduping check fetches by
-  // head SHA. The done-cache is keyed by head SHA (not PR number) so a
-  // force-pushed PR is enriched again at its new HEAD instead of freezing on
-  // "loading…". Cards the budget cannot reach stay on listing-level data with
-  // those fields honestly unavailable - never fabricated, never a quota burn.
-  const pending=pendingCards(cards,ENRICHED);
-  const steps=planEnrich(pending,REQUEST_BUDGET);
+  // Budgeted, sequential (no Promise.all fan-out): at most REQUEST_BUDGET
+  // requests per refresh, session-linked cards first, deduped by head SHA.
+  // Pending-selection lives in planEnrich; doneShas() marks completion with
+  // planning's own SHA resolution, so no card shape leaks an eternal re-plan.
+  const steps=planEnrich(cards,REQUEST_BUDGET);
   for(const s of steps){
     if(s.kind==="detail")await refreshDetail(s.k);
     else await refreshChecks(s.k);
   }
-  const doneCards=new Set(pending.filter(c=>DETAIL[c.k]&&DETAIL[c.k]!==null).map(c=>c.k));
-  for(const c of pending){if(doneCards.has(c.k))ENRICHED.add(String(c.pr.headSha).toLowerCase());}
+  for(const sha of doneShas(cards))ENRICHED.add(sha);
 }
 async function load(){
   try{

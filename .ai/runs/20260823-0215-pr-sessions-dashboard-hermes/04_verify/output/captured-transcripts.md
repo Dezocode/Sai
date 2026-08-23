@@ -189,3 +189,32 @@ PASS cached check-rollup data survives and still renders
 Result: RUNTIME PROOF ALL PASS (15/15). The budgeted planner bounds
 first-load GitHub calls to 25 requests worst-case, degrades honestly when
 the quota is hit mid-load, and steady-state refreshes stay at ~1 request.
+## Round-8 (Saul P1x2 exact-HEAD @ ee45cec, STEER 2026-08-23T10:22:53Z)
+
+Real Codex on exact HEAD ee45cec: P0=0 P1=2 P2=0. P1-1: session-only PRs
+never enriched (assemble leaves pr=null; old pendingCards dropped cards
+without headSha, so refreshDetail never ran). P1-2: force-pushed PRs stayed
+pinned to stale detail (normalize preferred cached DETAIL headSha over the
+refreshed listing head, so ENRICHED never invalidated).
+
+Fix: pending-selection moved into planEnrich (single source) - a session-only
+card plans a detail BY PR NUMBER before any HEAD is known, then checks once a
+HEAD lands; doneShas() marks done with the same SHA resolution (listing head
+wins, else cached DETAIL head) so no card shape leaks an eternal re-plan;
+listing head wins over cached DETAIL head in normalize/refreshChecks/checksFor,
+so a force-push re-binds CI/Saul to the true current HEAD.
+
+```
+$ ./scripts/render-sai-feature-maps --selftest   (29 assertions, excerpt)
+PASS session-only card plans a detail by number    got=true want=true
+PASS done HEAD stops replanning                    got=0 want=0
+PASS divergent listing HEAD replans detail         got=true want=true
+PASS steady-state replans nothing after 100 cycles got=0 want=0
+ALL PASS
+$ ./scripts/render-sai-feature-maps --check   (runs selftest)  features=11 OK
+$ node --check emitted pr-sessions.html inline JS   NODE_CHECK_OK, 0 banned tokens
+```
+
+Line budget projected: 1194/1200 added lines vs base 759d017. Negative-proof:
+the pre-fix harness FAILs the divergent-head fixture (old pendingCards only
+re-enriched same-SHA cards) - the round-8 fixtures catch both P1s.

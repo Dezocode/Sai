@@ -153,9 +153,23 @@ Next safe action: push product+evidence, watch CI + Saul bind to the new head;
 owner review after exact-HEAD green + Saul P0=P1=0 with codex_invoked=true.
 Stay draft.
 
-Round-7c watch note: Saul runs on 946a0f2 and 232b867 both arrived instantly
-as infra-only neutrals (codex_invoked=false, reviewer_identity=
-grok-build-cli-fallback, SANDBOX_PROVISIONING_FAILED) - per STEER these do
-not count toward morning-ready. Required CI green on 232b867 except
-icm-enforcement still in_progress at watch start. Gate remains a real Codex
-review binding to exact HEAD 232b867 with SUCCESS P0=P1=0.
+Round-7c watch note: Saul runs on 946a0f2 and 232b867 arrived as infra-only
+neutrals (codex_invoked=false, grok-build-cli-fallback) - they do not count
+toward morning-ready. Superseded by the exact-HEAD real-Codex round-8 below.
+
+Round-8 (Saul P1x2 exact-HEAD @ ee45cec, STEER 10:22:53Z): Real Codex on
+exact HEAD: P0=0 P1=2 P2=0. P1-1: session-only PRs never enriched (assemble
+left pr=null; pendingCards dropped cards without headSha). P1-2: force-pushed
+PRs pinned to stale detail (normalize preferred cached DETAIL headSha).
+Fixed: pending-selection moved INTO planEnrich - session-only cards plan a
+detail BY PR NUMBER before any HEAD is known, then checks once a HEAD lands;
+doneShas() marks done with the same SHA resolution (listing head wins, else
+cached DETAIL head) - no eternal re-plan; listing head wins over cached detail
+in normalize/refreshChecks/checksFor, so force-pushes re-bind CI/Saul.
+Verification: --selftest 29/29 (session-only detail-by-number, divergent-head
+force-push replan, steady-state zero-replan fixtures; pre-fix harness FAILs
+divergent-head); --check features=11; node --check emitted JS, no banned
+tokens; verifiers + anti-regression OK; line budget ~1194/1200. Next: push,
+watch CI + real-Codex Saul bind to the new exact HEAD; morning-ready =
+exact-HEAD SUCCESS P0=P1=0, codex_invoked=true, synthetic=false (neutrals
+don't count). Stay draft.
