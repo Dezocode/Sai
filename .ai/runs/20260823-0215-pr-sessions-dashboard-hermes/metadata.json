@@ -6,5 +6,6 @@
  "branch": "hermes/pr-sessions-dashboard",
  "base_sha": "759d017a6c6cec3960c158bb5f1e8906c200d740",
  "purpose": "Pages PR sessions dashboard: extend render-sai-feature-maps with pr-sessions.html tab, scrollable PR wheel, live sessions API cards.",
- "status": "in_progress"
+ "status": "awaiting-review",
+ "note": "product complete @055796c; Saul round-1 P1s were provenance-only, fixed by ancestor-capture evidence rewrite (child commit of 055796c); awaiting exact-head Saul round + owner review"
 }
