@@ -74,3 +74,14 @@ live/synthetic/sessions-down all SMOKE-OK; verifiers OK; go clean; drive
 pass=63 fail=1 (single FAIL is the pre-existing linked-worktree fixture row,
 also on BASE). Next safe action: exact-head CI + Saul round on the pushed
 child head; owner review. Stay draft.
+
+
+## Saul round-4 fix (2026-08-23)
+
+Check-run 97144393640 @ 42c36c0 returned action_required with two P1s
+(CODEX-UNIT-0009-0001 Agent-NONE-during-outage; CODEX-UNIT-0009-0002
+invented P0=P1=P2=0 labels) plus a standing P2 (silent empty on malformed
+payloads). All three fixed at `fde6b56`: Agent UNKNOWN state,
+count parsing from check-run output summaries with latest-run-wins,
+malformed-payload degradation. Next safe action: CI + Saul exact-head round
+on the pushed child of this commit; owner review after P0=P1=0. Stay draft.
