@@ -14,7 +14,7 @@ Task-ID `20260823-0215-pr-sessions-dashboard-hermes`.
   HTML-escaped; noscript fallback; no tokens anywhere.
 - GitHub authority plane: unauthenticated public REST + ETag conditional
   GETs, polled at most once per GH_POLL_MS=300000 with
-  X-RateLimit-Remaining/Reset backoff (ghDue, round 13).
+  X-RateLimit-Remaining/Reset backoff (ghDue/ghStepDue, rounds 13-14).
 - `--check` asserts both pages, tab link, wheel CSS/mount, summary mount,
   refresh interval, FIELDS array, `.hb-stale` hook, Hostinger boundary,
   and rejects session-token strings in generated output.
@@ -65,19 +65,18 @@ No secrets committed. Heartbeats via sai-pr-heartbeat.sh per phase.
   probe again after DETAIL_RETRY_MS (backoff, not lockout); doneShas
   resolves a listing-backed head when DETAIL is null; "head repo push"
   relabel; checks re-bind on HEAD change.
-- R13 (this commit): GitHub plane cadence + rate-limit honor — ghDue
-  gates loadPulls/enrich behind GH_POLL_MS=300000 (at most one GitHub
-  poll per 5 min, well under the anonymous 60/hr; first load always
-  fetches) and captures X-RateLimit-Remaining/X-RateLimit-Reset per
-  response, backing off until reset once remaining is 0 or below
-  GH_MIN_REMAIN=5; NOTE renders "sessions 60s · github 5m" plus an
-  honest throttled marker; protected-ci.md and docs README corrected
-  (ETag revalidation only saves re-transfer, never the quota dodge).
-  Fixtures: first-load poll, window hold/resume, exhausted/floor block
-  until reset, resume after reset.
+- R13-14 (b4d3206, this commit): GitHub plane cadence + rate-limit honor —
+  ghDue gates loadPulls/enrich behind GH_POLL_MS=300000 and backs off until
+  reset below GH_MIN_REMAIN=5 (missing Reset degrades to cadence-only); R14
+  (Saul 97215420702 P1) adds ghStepDue, a per-step gate that stops a batch
+  at the rate floor or the GH_WINDOW_BUDGET=60 reset-window budget (listing +
+  enrichment counted, rolled on X-RateLimit-Reset), and gates ghGo too, so
+  enrichment can never run all 24 planned requests into 403s; protected-ci.md
+  + README now state the true worst case and the dynamic stop. Fixtures:
+  floor block, window-budget block, window-roll resume, mid-batch stop 3/24.
 
 ## Next safe action
 
-Watch exact-HEAD real-Codex Saul bind to the pushed head (codex_invoked=
-true, synthetic=false); morning-ready = SUCCESS P0=P1=0; close any real
-Codex P1s. Owner review on the draft PR. Stay draft.
+Round-14 pushes the real-Codex Saul P1 fix (b4d3206 ACTION_REQUIRED: batch
+ran through the rate floor). Watch a real-Codex Saul bind to the new head
+(codex_invoked=true, synthetic=false) P0=P1=0, then owner review. Stay draft.

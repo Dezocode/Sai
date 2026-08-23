@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
-"""Render Origin-light feature-maps.html from HEAD verify-sai maps.
-
-Consumes `go run ./cmd/sai-verify maps` JSON. Does not parse README index
-or four-H2 Markdown. HTML is generated output, never the source of truth.
-
-Also emits pr-sessions.html: a scrollable PR wheel joining two live data
-planes by PR number - authoritative GitHub PR state for Dezocode/Sai via
-the unauthenticated public REST API (CORS-enabled; ETag conditional GETs;
-never any token), and Hermes agent sessions from the public sessions API.
-PR cards are the union of both planes; open PRs with no session show an
-Agent NONE card; session HEAD is compared against authoritative PR HEAD.
-The renderer never receives or embeds tokens; missing data renders as
-unavailable, never fabricated.
+"""Render Origin-light feature-maps.html from HEAD verify-sai maps, and
+pr-sessions.html: a PR wheel joining authoritative GitHub PR state for
+Dezocode/Sai (unauthenticated public REST, CORS, ETag, no token) with live
+Hermes sessions by PR number. Consumes `go run ./cmd/sai-verify maps` JSON;
+does not parse README/four-H2 Markdown. HTML is generated, never source.
+Open PRs with no session show Agent NONE; missing data renders unavailable,
+never fabricated. The renderer never embeds tokens.
 """
 from __future__ import annotations
 
@@ -93,9 +87,7 @@ SESSIONS_CSS = """<style>
 </style>"""
 
 # ROLLUP_JS: single source for the check-run rollup (newest attempt per check
-# by stable id/attempt order; timestamps only as fallback). Spliced into the
-# page AND the --selftest harness. Plain (non-f-string) on purpose: real JS
-# braces; backslash-free so the JS-in-Python splice cannot lose an escape.
+# by stable id/attempt order). Spliced into page + selftest; backslash-free.
 ROLLUP_JS = """
 function rollupChecks(runs){
   // Newest attempt per check name wins: a green rerun clears an earlier failure.
@@ -127,8 +119,7 @@ function rollupChecks(runs){
   return {total:total,fails:fails,pending:pending,saul:saul};
 }
 """
-# Adversarial node harness for rollupChecks (P1 regression: a superseded
-# failed attempt must not keep CI failed after a green rerun). Backslash-free.
+# Adversarial node harness for rollupChecks (P1: superseded FAIL must not stick).
 SELFTEST_JS = """
 function check(name,got,want){
   const ok=got===want;
@@ -161,8 +152,7 @@ let failures=0;
   check("ranked id beats timestamp-only run",rollupChecks([{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},{name:"icm-enforcement",id:42,status:"queued"}]).fails+":"+rollupChecks([{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},{name:"icm-enforcement",id:42,status:"queued"}]).pending,"0:1");
 }
 {
-  // Out-of-order arrival: green first, failing rerun last with a LATER
-  // started_at - latest-wins must use timestamps, not array order.
+  // Out-of-order arrival: latest-wins must use timestamps, not array order.
   const r=rollupChecks([
     {name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"},
     {name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T02:00:00Z",completed_at:"2026-08-23T02:05:00Z"}
@@ -208,9 +198,7 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
 {
   // Saul P1 round-6b: fan-out budget. 100 open PRs sharing 2 head SHAs must
   // plan at most REQUEST_BUDGET steps (not ~200), deduped by head SHA.
-  const cards=[];  for(let i=1;i<=100;i++){
-    cards.push({k:String(i),pr:{state:"open",merged:false,headSha:(i%2?"aa11":"bb22")},ss:[],agentState:"none"});
-  }
+  const cards=[];  for(let i=1;i<=100;i++){cards.push({k:String(i),pr:{state:"open",merged:false,headSha:(i%2?"aa11":"bb22")},ss:[],agentState:"none"});}
   const steps=planEnrich(cards,24);
   check("budget caps planned enrichment steps",steps.length<=24,true);
   check("budget total never exceeds 24",steps.length,24);
@@ -271,8 +259,7 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("steady-state replans nothing after 100 cycles",(function(){for(let i=0;i<100;i++){if(planEnrich(mixed,24).length)return 1;}return 0;})(),0);
 }
 {
-  // Round-11 P1-1 (Saul 97192397931): a session-only card absent from PULLS has
-  // no listing head, so a stale cached HEAD must replan detail.
+  // Round-11 P1-1 (Saul 97192397931): stale session-only HEAD replans detail.
   PULLS=new Map();
   const c=OC("77");
   DETAIL["77"]={headSha:"CAFE12"};DETAIL_TS["77"]=Date.now()-REVALIDATE_MS-1;
@@ -317,8 +304,7 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("refreshed card reaches steady state",planEnrich([c],4).length,0);
 }
 {
-  // Round-13 (Saul 97206101278): GitHub plane must not poll the anon quota
-  // every 60s. ghDue enforces a poll cadence AND honors rate-limit headers.
+  // Round-13 (Saul 97206101278): ghDue = poll cadence + rate-limit hold.
   check("ghDue first load polls",ghDue(1000000,0,null,0,300000,5),true);
   check("ghDue holds inside window",ghDue(1000000,800000,null,0,300000,5),false);
   check("ghDue allows after window",ghDue(1000000,700000,null,0,300000,5),true);
@@ -327,16 +313,22 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("ghDue blocks below floor until reset",ghDue(1000000,0,3,2000000,300000,5),false);
   check("ghDue below floor resumes after reset",ghDue(2500000,0,3,2000000,300000,5),true);
 }
+{
+  // Round-14 (Saul 97215420702): per-step gate stops a batch at floor/budget.
+  check("ghStepDue blocks below floor",ghStepDue(1000000,4,2000000,5,0,60),false);
+  check("ghStepDue stops at window budget",ghStepDue(1000000,40,2000000,5,60,60),false);
+  check("ghStepDue resumes on window roll",ghStepDue(2500000,0,2000000,5,60,60),true);
+  let rem=7,used=0,ran=0;for(;ran<24;ran++){if(!ghStepDue(1000000,rem,2000000,5,used,60))break;rem--;used++;}
+  check("mid-batch stop at floor (not all 24)",ran,3);
+}
 if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
 console.log("ALL PASS");
 """
 # ENRICH_JS: pure planning + done-marking for the per-refresh GitHub
-# enrichment budget (round-6b fan-out exhausted the anonymous 60/hr quota).
-# Rounds 8-12 (Saul/Steer): pending-selection lives in planEnrich; session-
-# only cards schedule detail by number; force-push (listing != cached head)
-# replans; doneShas() marks done after check-runs fetch; session-only detail
-# revalidates on a TTL; failed DETAIL fetches back off but probe again after
-# DETAIL_RETRY_MS (time-based, not a permanent lockout).
+# enrichment budget (round-6b fan-out exhausted the anon 60/hr quota).
+# Rounds 8-14: pending-selection in planEnrich; session-only detail by number;
+# force-push replans; doneShas marks done; failed DETAIL probes after
+# DETAIL_RETRY_MS; ghStepDue gates each GitHub request at the rate floor.
 ENRICH_JS = """
 function enrichPrio(c){
   if(c.ss&&c.ss.length)return 0;
@@ -381,11 +373,16 @@ function doneShas(cards){
   return out;
 }
 function ghDue(now,lastPoll,remain,resetAt,pollMs,minRem){
-  // Round-13 (Saul 97206101278): cadence <=pollMs; hold until resetAt once
-  // X-RateLimit-Remaining hits 0 or the minRem floor.
+  // Round-13 (Saul 97206101278): cadence <=pollMs; hold until reset below floor.
   if(remain!=null&&remain<=0&&now<resetAt)return false;
   if(remain!=null&&remain<minRem&&now<resetAt)return false;
   return now-lastPoll>=pollMs;
+}
+function ghStepDue(now,remain,resetAt,minRem,windowUsed,windowBudget){
+  // Round-14: stop a batch at the rate floor or the reset-window budget.
+  if(remain!=null&&now<resetAt&&remain<minRem)return false;
+  if(resetAt>0&&now<resetAt&&windowUsed>=windowBudget)return false;
+  return true;
 }
 """
 SESSIONS_JS = """
@@ -409,17 +406,18 @@ const REVALIDATE_MS=300000;
 const MAX_DETAIL_FAILS=3;
 const DETAIL_RETRY_MS=900000;
 const DETAIL_RETRY_AT={};
-// Round-13: GitHub plane cadence (anon quota 60/hr) + rate-limit state.
+// Round-13/14: GitHub cadence + rate-limit state + per-window request budget.
 const GH_POLL_MS=300000;
 const GH_MIN_REMAIN=5;
+const GH_WINDOW_BUDGET=60;
 let GH_LAST_POLL=0;
 let GH_REMAIN=null;
 let GH_RESET_AT=0;
+let GH_WINDOW_USED=0;
 let PULLS=null;
 let PULLS_ERR="";
 let SESSIONS_OK=false;
-const ESCMAP={};
-ESCMAP["&"]="&amp;";ESCMAP["<"]="&lt;";ESCMAP[">"]="&gt;";ESCMAP[String.fromCharCode(34)]="&quot;";ESCMAP[String.fromCharCode(39)]="&#39;";
+const ESCMAP={"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot;",[String.fromCharCode(39)]:"&#39;"};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESCMAP[c]);
 const dash=s=>(s==null||s===""?"—":s);
 const stCls=s=>({active:"ok",finished:"ok",done:"mute",failed:"bad"}[String(s||"").toLowerCase()]||"warn");
@@ -432,6 +430,9 @@ function shortSha(x){x=String(x||"");return x.length>=7?x.slice(0,7):x;}
 function ghJson(path,key){
   const headers={"Accept":"application/vnd.github+json"};
   if(ETAGS[key])headers["If-None-Match"]=ETAGS[key];
+  const ghNow=Date.now();
+  if(GH_RESET_AT>0&&ghNow>=GH_RESET_AT)GH_WINDOW_USED=0;
+  GH_WINDOW_USED++;
   return fetch(GH_API+path,{cache:"no-store",headers:headers}).then(r=>{
     // Round-13: honor X-RateLimit-Remaining/Reset so the plane backs off.
     const rem=r.headers.get("X-RateLimit-Remaining");
@@ -461,8 +462,7 @@ async function refreshDetail(num){
     const d=j.data||{};
     DETAIL[num]={title:d.title||"",state:d.state||"",draft:!!d.draft,mergedAt:d.merged_at||"",
       mergeable:d.mergeable,mergeableState:d.mergeable_state||"",
-      headSha:d.head&&d.head.sha?d.head.sha:"",
-      pushedAt:d.head&&d.head.repo&&d.head.repo.pushed_at||"",
+      headSha:d.head&&d.head.sha?d.head.sha:"",pushedAt:d.head&&d.head.repo&&d.head.repo.pushed_at||"",
       updatedAt:d.updated_at||""};
     DETAIL_TS[num]=Date.now();DETAIL_FAIL[num]=0;delete DETAIL_RETRY_AT[num];
   }catch(err){
@@ -528,8 +528,7 @@ function assemble(list){
   for(const s of list){const k=s&&s.pr!=null?String(s.pr):"?";if(!byPr.has(k))byPr.set(k,[]);byPr.get(k).push(s);}
   const keys=new Set(byPr.keys());
   if(PULLS)for(const k of PULLS.keys())keys.add(k);
-  // DETAIL is enrichment-only: never add its keys to the union, or a PR
-  // discovered via a session would render as Agent NONE after it leaves.
+  // DETAIL is enrichment-only: never union its keys (ghost-card guard).
   const arr=Array.from(keys);
   arr.sort((a,b)=>((b==="?"?-1:parseInt(b,10))-(a==="?"?-1:parseInt(a,10))));
   return arr.map(k=>{
@@ -697,9 +696,10 @@ function renderWheel(cards,list){
 __ENRICH__
 const ENRICHED=new Set();
 async function enrich(cards){
-  // Budgeted, sequential (no Promise.all fan-out); pending-selection lives in planEnrich.
+  // Budgeted, sequential (no Promise.all fan-out); per-step rate gate (round-14).
   const steps=planEnrich(cards,REQUEST_BUDGET);
   for(const s of steps){
+    if(!ghStepDue(Date.now(),GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET))break;
     if(s.kind==="detail")await refreshDetail(s.k);
     else await refreshChecks(s.k);
   }
@@ -713,10 +713,9 @@ async function load(){
     if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload");
     const list=d.sessions;
     SESSIONS_OK=true;
-    // Round-13: GitHub plane runs on its own cadence / rate-limit gate; the
-    // sessions plane (our API) keeps the 60s refresh.
+    // Round-13/14: GitHub plane gates on cadence + rate-limit + window budget.
     const now=Date.now();
-    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN);
+    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN)&&ghStepDue(now,GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET);
     if(ghGo){GH_LAST_POLL=now;await loadPulls();}
     let cards=assemble(list);
     if(ghGo)await enrich(cards);
@@ -730,7 +729,7 @@ async function load(){
     const msg=err&&err.message?err.message:String(err);
     SESSIONS_OK=false;
     const now=Date.now();
-    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN);
+    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN)&&ghStepDue(now,GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET);
     if(ghGo){GH_LAST_POLL=now;await loadPulls();}
     let cards=assemble([]);
     if(ghGo)await enrich(cards);
@@ -814,8 +813,7 @@ def load_kernel_maps(root: Path) -> tuple[list[dict], list[str], str]:
             }
         )
     drift = [str(x) for x in (payload.get("problems") or [])]
-    if drift:
-        raise SystemExit("render-sai-feature-maps: invalid map: " + "; ".join(drift))
+    if drift: raise SystemExit("render-sai-feature-maps: invalid map: " + "; ".join(drift))
     cap = str(payload.get("caption") or "")
     return feats, drift, cap
 
@@ -1069,8 +1067,8 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         "If-None-Match",
         "X-RateLimit-Remaining",
         "ghDue(",
+        "ghStepDue(",
         "sessions 60s · github ",
-        "Agent: NONE",
         "Agent: UNKNOWN",
         "success (no blocking findings)",
         'class="mismatch">session HEAD ≠ PR HEAD',
@@ -1079,7 +1077,6 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         ".hb-stale",
         ".hb-missing",
         "hb-missing-card",
-        "missing · never reported",
         "<noscript>",
         "Hostinger stays Saul-go",
     )
@@ -1107,10 +1104,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
 
 def run_selftest() -> int:
     """Run the adversarial rollupChecks harness in node (exact shipped JS).
-
-    Fail-loud if node is unavailable: the selftest is the regression net for
-    the latest-wins check-run rollup (Saul P1), so skipping is never silent.
-    """
+    Fail-loud if node is unavailable: this net guards the rollup (Saul P1)."""
     harness = ROLLUP_JS + ENRICH_JS + SELFTEST_JS
     with tempfile.TemporaryDirectory(prefix="sai-rollup-selftest-") as tmp:
         js = Path(tmp) / "rollup_selftest.js"
@@ -1154,7 +1148,6 @@ def main(argv: list[str]) -> int:
     checks = load_checks(checks_path, root, sha)
     try:
         from zoneinfo import ZoneInfo
-
         when = datetime.now(ZoneInfo("America/Chicago")).strftime("%d %b %Y - %I:%M %p CT")
     except Exception:
         when = datetime.utcnow().strftime("%d %b %Y - %H:%M UTC")

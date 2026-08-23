@@ -7,11 +7,11 @@ number:
 - GitHub authority: unauthenticated public REST (`api.github.com`,
   CORS-enabled) for the Dezocode/Sai PR list, per-PR details, and per-HEAD
   check-run rollups (including the Saul / Product Quality check). No token
-  ever reaches the page. The GitHub plane is polled at most once per 5
-  minutes (well under the anonymous 60/hr quota) and backs off until the
-  next reset whenever GitHub's `X-RateLimit-Remaining` header reports the
-  allowance is exhausted or below a small floor; ETag conditional GETs only
-  save re-transfer cost, they are not relied on to dodge the primary quota.
+  ever reaches the page. The GitHub plane polls at most once per 5 minutes;
+  a poll may issue 1 listing + up to 24 budgeted enrichment requests, each
+  re-checking the rate-limit state so the batch stops at a small remaining
+  floor or a 60-request reset-window budget (listing plus enrichment
+  counted), then backs off until reset. ETag GETs only save re-transfer.
 - Sessions: public Hostinger sessions API for live Hermes agent sessions.
 
 Cards are the union of both planes; an open PR with no session renders an
@@ -24,8 +24,9 @@ harness whose fixtures include a superseded failed attempt followed by a
 green rerun of the same check name (this exact bug was Saul P1; the harness
 fails on the pre-fix rollup); GitHub enrichment runs through a budgeted,
 sequential planner (at most 24 requests per refresh — session-linked cards
-then open cards first, check fetches deduped per head SHA) so first load can
-never exhaust the anonymous 60/hr quota; pending-selection lives inside the
+then open cards first, check fetches deduped per head SHA; each request re-checks
+the rate-limit state so a batch stops at the floor or a 60-request reset-window
+budget, never exhausting the anon quota); pending-selection lives inside the
 planner so a session-only PR absent from the listing still gets its per-PR
 detail by number then checks once any HEAD is known, the listing HEAD always
 wins over cached detail HEAD for change detection (a force-push re-binds

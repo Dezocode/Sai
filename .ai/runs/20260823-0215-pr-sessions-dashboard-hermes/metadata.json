@@ -7,5 +7,5 @@
  "base_sha": "759d017a6c6cec3960c158bb5f1e8906c200d740",
  "purpose": "Pages PR sessions dashboard: extend render-sai-feature-maps with pr-sessions.html tab, scrollable PR wheel, live sessions API cards.",
  "status": "awaiting-review",
- "note": "full-flight product @56a2197 + rounds 4-12 (Saul-fix remediation incl. latest-wins rollup, budgeted GitHub enrichment, round-8 session-only/force-push P1s, round-9 session-only check-run P1 @48ec687, round-10 queued-rerun rollup P1 @97189176103, round-11 session-only-stale + failed-detail-backoff P1s @97192397931 + last-push P2, round-12 DETAIL_FAIL lockout P1 @97194598684); evidence staged; awaiting exact-HEAD CI+real-Codex Saul rebind and owner review"
+ "note": "full-flight product @56a2197 + rounds 4-14 (Saul-fix remediation incl. latest-wins rollup, budgeted GitHub enrichment, round-8 session-only/force-push P1s, round-9 session-only check-run P1 @48ec687, round-10 queued-rerun rollup P1 @97189176103, round-11 session-only-stale + failed-detail-backoff P1s @97192397931 + last-push P2, round-12 DETAIL_FAIL lockout P1 @97194598684, round-13 GitHub cadence/rate-limit P1+P2x2 @97206101278, round-14 per-step rate-gate + reset-window budget P1+P2x2 @97215420702); evidence staged; awaiting exact-HEAD CI+real-Codex Saul rebind and owner review"
 }
