@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-"""Render Origin-light feature-maps.html from HEAD verify-sai maps, and
-pr-sessions.html: a PR wheel joining authoritative GitHub PR state for
-Dezocode/Sai (unauthenticated public REST, CORS, ETag, no token) with live
-Hermes sessions by PR number. Consumes `go run ./cmd/sai-verify maps` JSON;
-HTML is generated, never source; open PRs with no session show Agent NONE;
-missing data renders unavailable, never fabricated; renderer stays token-free.
+"""Render Origin-light feature-maps.html + pr-sessions.html (PR wheel: GitHub
+public REST + live Hermes sessions). HTML is generated, never source; missing
+data renders unavailable, never fabricated; renderer stays token-free.
 """
 from __future__ import annotations
 
@@ -33,6 +30,7 @@ KNOWN_CHECKS = (
     "Saul / Product Quality",
 )
 SESSIONS_API = "https://srv1840454.hstgr.cloud/api/hermes-sessions/sessions"
+PRS_API = "https://srv1840454.hstgr.cloud/api/hermes-sessions/prs"
 GH_API = "https://api.github.com/repos/Dezocode/Sai"
 GH_WEB = "https://github.com/Dezocode/Sai"
 
@@ -82,11 +80,11 @@ SESSIONS_CSS = """<style>
 .pcard.hb-stale-card{outline:2px solid var(--bad);outline-offset:-2px}
 .pcard.hb-missing-card{outline:2px dashed var(--bad);outline-offset:-2px}
 .noworker{color:var(--bad);font-weight:700}
-.mismatch{color:var(--bad);font-weight:650}
-</style>"""
+.tag{display:inline-block;background:#ececec;border-radius:999px;padding:1px 8px;font:11px/1.5 ui-monospace,monospace;color:#333;margin:0 4px 2px 0}
+.saul{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;font-size:12px;border-top:1px dashed var(--line);margin-top:8px;padding-top:8px;color:#333}
+.atags{margin:6px 0 2px}
+.mismatch{color:var(--bad);font-weight:650}</style>"""
 
-# ROLLUP_JS: single source for the check-run rollup (newest attempt per check
-# by stable id/attempt order). Spliced into page + selftest; backslash-free.
 ROLLUP_JS = """
 function rollupChecks(runs){
   // Newest attempt per check name wins: a green rerun clears an earlier failure.
@@ -118,7 +116,6 @@ function rollupChecks(runs){
   return {total:total,fails:fails,pending:pending,saul:saul};
 }
 """
-# Adversarial node harness for rollupChecks (P1: superseded FAIL must not stick).
 SELFTEST_JS = """
 function check(name,got,want){
   const ok=got===want;
@@ -126,110 +123,51 @@ function check(name,got,want){
   if(!ok)failures++;
 }
 let failures=0;
-{
-  const r=rollupChecks([
-    {name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
-    {name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"}
-  ]);
-  check("P1 latest-wins total by name",r.total,1);
-  check("P1 green rerun clears superseded failure",r.fails,0);
-  check("P1 pending count",r.pending,0);
-}
-{
-  // Saul P1 round-10: a newly QUEUED rerun reads pending, never superseded FAIL.
-  const f={name:"build",id:97188392852,status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"};
-  const q={name:"build",id:97199999999,status:"queued"};
-  check("queued rerun supersedes failure (total)",rollupChecks([f,q]).total,1);
-  check("queued rerun supersedes failure (fails)",rollupChecks([f,q]).fails,0);
-  check("queued rerun reads as pending",rollupChecks([f,q]).pending,1);
-  check("supersession independent of array order",rollupChecks([q,f]).fails+":"+rollupChecks([q,f]).pending,"0:1");
-}
-{
-  // Attempt breaks ties when no ids ship; a ranked id beats timestamp-only.
-  const idless=[{name:"deploy",attempt:1,status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},{name:"deploy",attempt:2,status:"in_progress"}];
-  check("attempt orders id-less reruns",rollupChecks(idless).fails+":"+rollupChecks(idless).pending,"0:1");
-  check("ranked id beats timestamp-only run",rollupChecks([{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},{name:"icm-enforcement",id:42,status:"queued"}]).fails+":"+rollupChecks([{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},{name:"icm-enforcement",id:42,status:"queued"}]).pending,"0:1");
-}
-{
-  // Out-of-order arrival: latest-wins must use timestamps, not array order.
-  const r=rollupChecks([
-    {name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"},
-    {name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T02:00:00Z",completed_at:"2026-08-23T02:05:00Z"}
-  ]);
-  check("latest-wins timestamp not array order",r.fails,1);
-  check("latest-wins total still 1",r.total,1);
-}
-{
-  const r=rollupChecks([
-    {name:"icm-enforcement",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
-    {name:"Anti-regression",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"}
-  ]);
-  check("distinct failures total",r.total,2);
-  check("distinct failures fails",r.fails,2);
-}
-{
-  const r=rollupChecks([
-    {name:"ci-verify-sai",status:"in_progress",started_at:"2026-08-23T03:00:00Z"}
-  ]);
-  check("pending run total",r.total,1);
-  check("pending run pending",r.pending,1);
-  check("pending run fails",r.fails,0);
-}
-{
-  const r=rollupChecks([
-    {name:"Saul / Product Quality",status:"completed",conclusion:"action_required",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
-    {name:"Saul / Product Quality",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"}
-  ]);
-  check("Saul latest-wins conclusion",r.saul&&r.saul.conclusion,"success");
-  check("Saul latest-wins clears action_required",r.fails,0);
-}
-const DETAIL={};
-const CHECKS={};
-const DETAIL_TS={};
-const DETAIL_FAIL={};
-const REVALIDATE_MS=300000;
-const MAX_DETAIL_FAILS=3;
-const DETAIL_RETRY_MS=900000;
-const DETAIL_RETRY_AT={};
+{const r=rollupChecks([{name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
+  {name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"}]);
+ check("P1 latest-wins total by name",r.total,1);check("P1 green rerun clears superseded failure",r.fails,0);check("P1 pending count",r.pending,0);}
+{const q={name:"build",id:97199999999,status:"queued"};
+ const f={name:"build",id:97188392852,status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"};
+ check("queued rerun supersedes failure (total)",rollupChecks([f,q]).total,1);check("queued rerun supersedes failure (fails)",rollupChecks([f,q]).fails,0);
+ check("queued rerun reads as pending",rollupChecks([f,q]).pending,1);check("supersession independent of array order",rollupChecks([q,f]).fails+":"+rollupChecks([q,f]).pending,"0:1");}
+{const idless=[{name:"deploy",attempt:1,status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},{name:"deploy",attempt:2,status:"in_progress"}];
+ const ranked=[{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},{name:"icm-enforcement",id:42,status:"queued"}];
+ check("attempt orders id-less reruns",rollupChecks(idless).fails+":"+rollupChecks(idless).pending,"0:1");
+ check("ranked id beats timestamp-only run",rollupChecks(ranked).fails+":"+rollupChecks(ranked).pending,"0:1");}
+{const r=rollupChecks([{name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"},
+  {name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T02:00:00Z",completed_at:"2026-08-23T02:05:00Z"}]);
+ check("latest-wins timestamp not array order",r.fails,1);check("latest-wins total still 1",r.total,1);}
+{const r=rollupChecks([{name:"icm-enforcement",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
+  {name:"Anti-regression",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"}]);
+ check("distinct failures total",r.total,2);check("distinct failures fails",r.fails,2);}
+{const r=rollupChecks([{name:"ci-verify-sai",status:"in_progress",started_at:"2026-08-23T03:00:00Z"}]);
+ check("pending run total",r.total,1);check("pending run pending",r.pending,1);check("pending run fails",r.fails,0);}
+{const r=rollupChecks([{name:"Saul / Product Quality",status:"completed",conclusion:"action_required",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
+  {name:"Saul / Product Quality",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"}]);
+ check("Saul latest-wins conclusion",r.saul&&r.saul.conclusion,"success");check("Saul latest-wins clears action_required",r.fails,0);}
+const DETAIL={},CHECKS={},DETAIL_TS={},DETAIL_FAIL={},DETAIL_RETRY_AT={};
+const REVALIDATE_MS=300000,MAX_DETAIL_FAILS=3,DETAIL_RETRY_MS=900000;
 let PULLS=null;
 const ENRICHED=new Set();
 const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,ss:[{}]};
-{
-  // Saul P1 round-6b: fan-out budget. 100 open PRs sharing 2 head SHAs must
-  // plan at most REQUEST_BUDGET steps (not ~200), deduped by head SHA.
-  const cards=[];  for(let i=1;i<=100;i++){cards.push({k:String(i),pr:{state:"open",merged:false,headSha:(i%2?"aa11":"bb22")},ss:[],agentState:"none"});}
+{ // Saul P1 round-6b: fan-out budget; 100 PRs / 2 SHAs plan <=24 deduped steps.
+  const cards=[];for(let i=1;i<=100;i++)cards.push({k:String(i),pr:{state:"open",merged:false,headSha:(i%2?"aa11":"bb22")},ss:[],agentState:"none"});
   const steps=planEnrich(cards,24);
-  check("budget caps planned enrichment steps",steps.length<=24,true);
-  check("budget total never exceeds 24",steps.length,24);
-  const kinds={};
-  for(const s of steps)kinds[s.kind]=(kinds[s.kind]||0)+1;
+  check("budget caps planned enrichment steps",steps.length<=24,true);check("budget total never exceeds 24",steps.length,24);
+  const kinds={};for(const s of steps)kinds[s.kind]=(kinds[s.kind]||0)+1;
   check("every step is detail or checks",(kinds.detail||0)+(kinds.checks||0),steps.length);
-  const checkedShas=new Set();
-  let redup=0;
+  const checkedShas=new Set();let redup=0;
   for(const s of steps){if(s.kind==="checks"){if(checkedShas.has(s.k))redup++;checkedShas.add(s.k);}}
-  check("check steps deduped by head SHA",redup,0);
-}
-{
-  const cards=[
-    {k:"2",pr:{state:"open",merged:false,headSha:"cc33"},ss:[],agentState:"none"},
-    {k:"1",pr:{state:"open",merged:false,headSha:"dd44"},ss:[{id:"s1"}],agentState:"fresh"}
-  ];
-  const steps=planEnrich(cards,4);
-  const details=steps.filter(s=>s.kind==="detail");
-  check("session card planned first",details[0].k,"1");
-  check("open card planned second",details[1].k,"2");
-}
-{
-  const cards=[
-    {k:"9",pr:{state:"closed",merged:false,headSha:"ee55"},ss:[],agentState:"none"},
-    {k:"10",pr:{state:"open",merged:true,headSha:"ff66"},ss:[],agentState:"none"}
-  ];
-  const steps=planEnrich(cards,4);
-  check("closed+merged PRs skipped by planner",steps.length,0);
-}
-{
-  // Round-9 (Steer 11:26): doneShas must not mark a pass-1 detail-only HEAD.
-  const cards=[OC("77")];  let steps=planEnrich(cards,4);
+  check("check steps deduped by head SHA",redup,0);}
+{const cards=[{k:"2",pr:{state:"open",merged:false,headSha:"cc33"},ss:[],agentState:"none"},
+    {k:"1",pr:{state:"open",merged:false,headSha:"dd44"},ss:[{id:"s1"}],agentState:"fresh"}];
+  const details=planEnrich(cards,4).filter(s=>s.kind==="detail");
+  check("session card planned first",details[0].k,"1");check("open card planned second",details[1].k,"2");}
+{const cards=[{k:"9",pr:{state:"closed",merged:false,headSha:"ee55"},ss:[],agentState:"none"},
+    {k:"10",pr:{state:"open",merged:true,headSha:"ff66"},ss:[],agentState:"none"}];
+  check("closed+merged PRs skipped by planner",planEnrich(cards,4).length,0);}
+{ // Round-9 (Steer 11:26): doneShas must not mark a pass-1 detail-only HEAD.
+  const cards=[OC("77")];let steps=planEnrich(cards,4);
   check("session-only card plans a detail by number",steps.some(s=>s.kind==="detail"&&s.k==="77"),true);
   check("no checks before a HEAD is known",steps.some(s=>s.kind==="checks"),false);
   DETAIL["77"]={headSha:"CAFE12"};
@@ -241,37 +179,28 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   CHECKS["cafe12"]={total:1,fails:0,pending:0,saul:"success (no blocking findings)"};
   for(const sha of doneShas(cards))ENRICHED.add(sha);
   check("card done once check-runs fetched",ENRICHED.has("cafe12"),true);
-  check("done HEAD stops replanning",planEnrich(cards,4).length,0);
-}
-{
-  // Round-8 #2: force-push replans detail + checks (shipped order).
-  DETAIL["5"]={headSha:"AA11"};
-  ENRICHED.add("aa11");
+  check("done HEAD stops replanning",planEnrich(cards,4).length,0);}
+{ // Round-8 #2: force-push replans detail + checks (shipped order).
+  DETAIL["5"]={headSha:"AA11"};ENRICHED.add("aa11");
   check("stale-masked card stays done pre-detection",planEnrich([OC("5","aa11")],4).length,0);
   const steps=planEnrich([OC("5","BB22")],4);
   check("divergent listing HEAD replans detail",steps.some(s=>s.kind==="detail"&&s.k==="5"),true);
   check("divergent listing HEAD replans checks",steps.some(s=>s.kind==="checks"),true);
-  DETAIL["5"]={headSha:"BB22"};
-  CHECKS["bb22"]={total:1,fails:0,pending:0};
+  DETAIL["5"]={headSha:"BB22"};CHECKS["bb22"]={total:1,fails:0,pending:0};
   const mixed=[OC("77"),OC("5","bb22"),{k:"9",pr:{state:"closed",headSha:"ee55"},ss:[]}];
   for(const sha of doneShas(mixed))ENRICHED.add(sha);
-  check("steady-state replans nothing after 100 cycles",(function(){for(let i=0;i<100;i++){if(planEnrich(mixed,24).length)return 1;}return 0;})(),0);
-}
-{
-  // Round-11 P1-1 (Saul 97192397931): stale session-only HEAD replans detail.
-  PULLS=new Map();
-  const c=OC("77");
+  check("steady-state replans nothing after 100 cycles",(function(){for(let i=0;i<100;i++){if(planEnrich(mixed,24).length)return 1;}return 0;})(),0);}
+{ // Round-11 P1-1 (Saul 97192397931): stale session-only HEAD replans detail.
+  PULLS=new Map();const c=OC("77");
   DETAIL["77"]={headSha:"CAFE12"};DETAIL_TS["77"]=Date.now()-REVALIDATE_MS-1;
   ENRICHED.add("cafe12");CHECKS["cafe12"]={total:1,fails:0,pending:0};
   let st=planEnrich([c],4);
   check("stale session-only replans detail",st.some(s=>s.kind==="detail"&&s.k==="77"),true);
   check("stale session-only replans checks",st.some(s=>s.kind==="checks"),true);
   DETAIL_TS["77"]=Date.now();
-  check("fresh session-only stays done",planEnrich([c],4).length,0);
-}
-{
-  // Round-11 P1-2 (Saul 97192397931): a failed DETAIL fetch backs off, not replan.
-  PULLS=new Map([["42",{}]]);  const c=OC("42","CC33");
+  check("fresh session-only stays done",planEnrich([c],4).length,0);}
+{ // Round-11 P1-2: a failed DETAIL fetch backs off, not replan-loop.
+  PULLS=new Map([["42",{}]]);const c=OC("42","CC33");
   DETAIL["42"]=null;DETAIL_FAIL["42"]=MAX_DETAIL_FAILS;
   const st=planEnrich([c],4);
   check("failed-detail card backs off detail",st.some(s=>s.kind==="detail"&&s.k==="42"),false);
@@ -282,38 +211,30 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   for(const s of done)ENRICHED.add(s);
   check("null-detail card reaches steady state",planEnrich([c],4).length,0);
   const c2=OC("43","DD44");DETAIL["43"]=null;DETAIL_FAIL["43"]=1;
-  check("below-cap failure still retries detail",planEnrich([c2],4).some(s=>s.kind==="detail"),true);
-}
-{
-  // Round-12 (Saul 97194598684): cap = backoff - capped stale card probes after DETAIL_RETRY_MS.
-  PULLS=new Map();
-  const c=OC("77");
+  check("below-cap failure still retries detail",planEnrich([c2],4).some(s=>s.kind==="detail"),true);}
+{ // Round-12 (Saul 97194598684): cap = backoff - capped stale card probes after DETAIL_RETRY_MS.
+  PULLS=new Map();const c=OC("77");
   DETAIL["77"]={headSha:"CAFE12"};DETAIL_TS["77"]=Date.now()-REVALIDATE_MS-1;
   ENRICHED.add("cafe12");CHECKS["cafe12"]={total:1,fails:0,pending:0};
-  DETAIL_FAIL["77"]=MAX_DETAIL_FAILS;
-  DETAIL_RETRY_AT["77"]=Date.now()+DETAIL_RETRY_MS+1000;
+  DETAIL_FAIL["77"]=MAX_DETAIL_FAILS;DETAIL_RETRY_AT["77"]=Date.now()+DETAIL_RETRY_MS+1000;
   check("capped card backs off before probe window",planEnrich([c],4).some(s=>s.kind==="detail"&&s.k==="77"),false);
   DETAIL_RETRY_AT["77"]=Date.now()-1;
   check("capped card probes once window elapses",planEnrich([c],4).some(s=>s.kind==="detail"&&s.k==="77"),true);
   DETAIL["77"]={headSha:"BEEF00"};DETAIL_TS["77"]=Date.now();DETAIL_FAIL["77"]=0;delete DETAIL_RETRY_AT["77"];
-  let st=planEnrich([c],4);
+  const st=planEnrich([c],4);
   check("refreshed card replans checks on new HEAD",st.some(s=>s.kind==="checks"&&s.k==="77"),true);
   CHECKS["beef00"]={total:1,fails:0,pending:0};
-  for(const s of doneShas([c]))ENRICHED.add(s);
-  check("refreshed card reaches steady state",planEnrich([c],4).length,0);
-}
-{
-  // Round-13 (Saul 97206101278): ghDue = poll cadence + rate-limit hold.
+  for(const sha of doneShas([c]))ENRICHED.add(sha);
+  check("refreshed card reaches steady state",planEnrich([c],4).length,0);}
+{ // Round-13 (Saul 97206101278): ghDue = poll cadence + rate-limit hold.
   check("ghDue first load polls",ghDue(1000000,0,null,0,300000,5),true);
   check("ghDue holds inside window",ghDue(1000000,800000,null,0,300000,5),false);
   check("ghDue allows after window",ghDue(1000000,700000,null,0,300000,5),true);
   check("ghDue blocks when exhausted until reset",ghDue(1000000,0,0,2000000,300000,5),false);
   check("ghDue resumes after reset",ghDue(2500000,0,0,2000000,300000,5),true);
   check("ghDue blocks below floor until reset",ghDue(1000000,0,3,2000000,300000,5),false);
-  check("ghDue below floor resumes after reset",ghDue(2500000,0,3,2000000,300000,5),true);
-}
-{
-  // Round-14/15 (Saul 97215420702/97218921375): per-step gate stops a batch.
+  check("ghDue below floor resumes after reset",ghDue(2500000,0,3,2000000,300000,5),true);}
+{ // Round-14/15 (Saul 97215420702/97218921375): per-step gate stops a batch.
   check("ghStepDue blocks below floor",ghStepDue(1000000,4,2000000,5,0,60,0,3600000),false);
   check("ghStepDue budget holds w/o reset header",ghStepDue(1000000,40,0,5,60,60,900000,3600000),false);
   check("ghStepDue budget holds w/o reset AND w/o remaining",ghStepDue(1000000,null,0,5,60,60,900000,3600000),false);
@@ -321,10 +242,8 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   let rem=7,used=0,ran=0;for(;ran<24;ran++){if(!ghStepDue(1000000,rem,2000000,5,used,60,900000,3600000))break;rem--;used++;}
   check("mid-batch floor stop (pre-fix 24)",ran,3);
   let ub=58,rb=0;for(;rb<24;rb++){if(!ghStepDue(1000000,40,0,5,ub,60,900000,3600000))break;ub++;}
-  check("mid-batch budget stop w/o reset (pre-fix 24)",rb,2);
-}
-{
-  // Round-16 (Saul 97231269873): expired reset consumed ONCE; headerless responses never re-zero.
+  check("mid-batch budget stop w/o reset (pre-fix 24)",rb,2);}
+{ // Round-16 (Saul 97231269873): expired reset consumed ONCE; headerless never re-zero.
   const realFetch=fetch;
   const ok={status:200,ok:true,json:()=>({then:g=>g({})}),
     headers:{get:h=>h==="X-RateLimit-Remaining"?"40":null}};
@@ -337,10 +256,8 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("headerless responses keep local budget (pre-fix 1)",GH_WINDOW_USED,71);
   check("budget blocks after consumption sans headers",
     ghStepDue(1001000,GH_REMAIN,0,5,GH_WINDOW_USED,60,GH_WINDOW_AT,3600000),false);
-  fetch=realFetch;
-}
-{
-  // Round-16 (STEER 2026-08-23T17:07:12Z): live usage + diff card fields.
+  fetch=realFetch;}
+{ // Round-16 (STEER 2026-08-23T17:07:12Z): live usage + diff card fields.
   check("usage totals win over in/out",usageStats({input_tokens:91891,output_tokens:10382,total_tokens:102273}),"102.3k tok");
   check("usage falls back to in/out",usageStats({input_tokens:1500,output_tokens:500}),"1.5k in / 500 out");
   check("usage counts calls",usageStats({total_tokens:42,api_call_count:20}).indexOf("20 calls")>=0,true);
@@ -354,13 +271,10 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("diff file list",dv.files.length===1&&dv.files[0]==="scripts/render-sai-feature-maps",true);
   check("diff null degrades",diffStats(null),null);
   check("diff empty degrades",diffStats({}),null);
-  check("diff without file_count shows ?",diffStats({insertions:1}).stat.indexOf("? files")===0,true);
-}
+  check("diff without file_count shows ?",diffStats({insertions:1}).stat.indexOf("? files")===0,true);}
 if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
 console.log("ALL PASS");
 """
-# Rounds 8-15: pending-selection in planEnrich; session-only detail by number;
-# force-push replans; doneShas marks done; ghStepDue gates each request.
 ENRICH_JS = """
 function enrichPrio(c){
   if(c.ss&&c.ss.length)return 0;
@@ -475,6 +389,8 @@ const GH_API="https://api.github.com/repos/Dezocode/Sai";
 const GH_WEB="https://github.com/Dezocode/Sai";
 const GH_PULL="https://github.com/Dezocode/Sai/pull/";
 const SESSIONS_URL="__API__";
+// STEER 18:57Z: multi-agent /prs feed is PREFERRED; flat /sessions is fallback.
+const PRS_URL="__PRS_API__";
 const FIELDS=["profile","status","phase","head","heartbeat","steer","monitors","usage","diff"];
 const WHEEL=document.getElementById("wheel");
 const NOTE=document.getElementById("note");
@@ -501,6 +417,45 @@ const ESCMAP={"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESCMAP[c]);
 const dash=s=>(s==null||s===""?"—":s);
 const stCls=s=>({active:"ok",finished:"ok",done:"mute",failed:"bad"}[String(s||"").toLowerCase()]||"warn");
+// STEER 18:57Z: which sessions feed produced the rendered wheel (honesty note).
+let SRC="sessions";
+async function loadSessions(){
+  const r=await fetch(SESSIONS_URL,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);
+  const d=await r.json();if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload");
+  return d.sessions;
+}
+async function loadPrs(){
+  // Preferred multi-agent feed; falls back to flat /sessions when unavailable.
+  try{
+    const r=await fetch(PRS_URL,{cache:"no-store"});const d=r.ok?await r.json():null;
+    if(d&&Array.isArray(d.prs)){
+      const out=[];
+      for(const p of d.prs){if(p&&p.pr!=null&&Array.isArray(p.agents))for(const a of p.agents)out.push(a);}
+      SRC="prs";return {list:out,multi:true};
+    }
+  }catch(err){}
+  SRC="sessions";return {list:await loadSessions(),multi:false};
+}
+function tagsView(a){
+  // harness+model tags straight from tags[]; nothing synthesized.
+  let h="",m="";const tg=Array.isArray(a.tags)?a.tags:[];
+  for(const t of tg){if(h===""&&/^harness:/.test(t))h=String(t).slice(8);if(m===""&&/^model:/.test(t))m=String(t).slice(6);}
+  if(h==="")h=a.harness?String(a.harness):"";if(m==="")m=a.model?String(a.model):"";
+  const bits=[];
+  if(h)bits.push('<span class="tag">⚙ '+esc(h)+"</span>");if(m)bits.push('<span class="tag">◆ '+esc(m)+"</span>");
+  return bits.join(" ");
+}
+function reviewView(a){
+  // Saul P0/P1/P2 review block from the /prs agents[] payload only.
+  const rv=a.review;if(!rv||typeof rv!=="object")return "";
+  const head=rv.head_sha?shortSha(rv.head_sha):"";
+  const pc=pcounts("P0="+rv.P0+" P1="+rv.P1+" P2="+rv.P2);
+  const cls=String(rv.conclusion)==="success"?"ok":"warn";
+  return '<div class="saul"><span>Saul review'+(head?" @ "+esc(head):"")+'</span>'
+    +'<span><span class="st '+cls+'">'+esc(rv.conclusion||"unknown conclusion")
+    +"</span> · "+esc(pc?("P0="+pc.p0+" P1="+pc.p1+" P2="+pc.p2):"counts unavailable")+"</span></div>";
+}
+
 function ageMin(iso){const t=Date.parse(iso);if(isNaN(t))return null;return Math.max(0,Math.round((Date.now()-t)/60000));}
 function age(iso){const m=ageMin(iso);if(m==null)return "";return m<60?m+"m ago":Math.round(m/60)+"h ago";}
 function beatBucket(s){const m=ageMin(s&&s.heartbeat_at);return m==null?"missing":(m<STALE_MIN?"fresh":"stale");}
@@ -634,8 +589,10 @@ function diffView(d){
   return "<span>"+esc(st.stat)+badge+"</span>"+list;
 }
 function srow(s){
+  const extra=(tagsView(s)+reviewView(s));
   return '<div class="srow"><div class="sid"><span>'+esc(dash(s.id))+'</span>'
     +'<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span></div>'
+    +(extra?'<div class="atags">'+extra+"</div>":"")
     +'<div class="fields">'+FIELDS.map(f=>'<div class="k2">'+esc(f)+'</div><div class="v2">'+cell(f,s)+'</div>').join("")+'</div></div>';
 }
 function stateBadge(pr){
@@ -785,12 +742,15 @@ async function enrich(cards){
   for(const sha of doneShas(cards))ENRICHED.add(sha);
 }
 async function load(){
+  let list,multi;
   try{
-    const r=await fetch(SESSIONS_URL,{cache:"no-store"});
-    if(!r.ok)throw new Error("HTTP "+r.status);
-    const d=await r.json();
-    if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload");
-    const list=d.sessions;
+    const fed=await loadPrs();
+    list=fed.list;multi=fed.multi;
+  }catch(err){
+    list=null;multi=false;
+    loadErr=err&&err.message?err.message:String(err);
+  }
+  if(list!=null){
     SESSIONS_OK=true;
     // Round-13/14: GitHub plane gates on cadence + rate-limit + window budget.
     const now=Date.now();
@@ -799,13 +759,12 @@ async function load(){
     let cards=assemble(list);
     if(ghGo)await enrich(cards);
     cards=assemble(list);
-    renderWheel(cards,list);
-    SUMMARY.innerHTML=summaryHTML(cards,list);
-    NOTE.textContent="count="+list.length+(d&&d.updated_at?" · updated_at="+d.updated_at:"")
+    renderWheel(cards,list);SUMMARY.innerHTML=summaryHTML(cards,list);
+    NOTE.textContent="count="+list.length+" · src="+(multi?"prs (multi-agent)":"sessions (fallback)")
+      +(SRC==="prs"?"":" · prs feed unavailable")
       +" · github="+describeGh()+" · live GET · sessions 60s · github "+Math.round(GH_POLL_MS/60000)+"m"
       +(ghGo?"":" · github poll throttled")+" · no secrets, nothing invented";
-  }catch(err){
-    const msg=err&&err.message?err.message:String(err);
+  }else{
     SESSIONS_OK=false;
     const now=Date.now();
     const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN)&&ghStepDue(now,GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET,GH_WINDOW_AT,GH_WINDOW_MS);
@@ -815,7 +774,7 @@ async function load(){
     cards=assemble([]);
     renderWheel(cards,[]);
     SUMMARY.innerHTML=summaryHTML(cards,[]);
-    NOTE.textContent="sessions unavailable ("+msg+") · github="+describeGh()+" · nothing shown is invented";
+    NOTE.textContent="sessions unavailable ("+loadErr+") · github="+describeGh()+" · nothing shown is invented";
   }
 }
 load();
@@ -1056,6 +1015,8 @@ document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>{{
 
 def render_sessions(branch: str, sha: str, when: str) -> str:
     short = sha[:7] if sha else "unknown"
+    # Substitute both feed URLs into the shipped JS; e() keeps HTML-safe text.
+    html = SESSIONS_JS.replace("__API__", e(SESSIONS_API)).replace("__PRS_API__", e(PRS_API))
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1083,9 +1044,9 @@ def render_sessions(branch: str, sha: str, when: str) -> str:
     <div class="wheel" id="wheel"><noscript><p class="empty">JavaScript disabled — live sessions cannot load.</p></noscript></div>
   </div>
   <p class="note" id="note">loading…</p>
-  <p class="host">Sources: sessions <code>{e(SESSIONS_API)}</code> · GitHub authority <code>{e(GH_API)}</code> (public repo fields only). Generated at exact HEAD; the wheel fills in live in your browser. Hostinger stays Saul-go.</p>
+  <p class="host">Sources: multi-agent prs <code>{e(PRS_API)}</code> (preferred; flat sessions fallback) · GitHub authority <code>{e(GH_API)}</code> (public repo fields only). Generated at exact HEAD; the wheel fills in live in your browser. Hostinger stays Saul-go.</p>
 </main>
-<script>{SESSIONS_JS}</script>
+<script>{html}</script>
 </body></html>
 """
 
@@ -1133,35 +1094,19 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
     if len(html_sessions) < 200:
         problems.append("pr-sessions.html suspiciously small")
     sessions_needles = (
-        SESSIONS_API,
-        GH_API,
-        GH_WEB,
-        "overflow-x:auto",
-        'id="wheel"',
-        'id="summary"',
+        SESSIONS_API, GH_API, GH_WEB, "overflow-x:auto", 'id="wheel"', 'id="summary"',
         "setInterval(load,60000)",
         'FIELDS=["profile","status","phase","head","heartbeat","steer","monitors","usage","diff"]',
-        "/pulls?state=all&per_page=100",
-        "If-None-Match",
-        "X-RateLimit-Remaining",
-        "ghDue(",
-        "ghStepDue(",
-        "sessions 60s · github ",
-        "Agent: UNKNOWN",
-        "success (no blocking findings)",
-        'class="mismatch">session HEAD ≠ PR HEAD',
-        "github.com/Dezocode/Sai/pull/",
-        ".hb-fresh",
-        ".hb-stale",
-        ".hb-missing",
-        "hb-missing-card",
-        "<noscript>",
-        "Hostinger stays Saul-go",
-        '"monitors","usage","diff"',
-        'if(f==="usage")return usageView(s)',
-        'if(f==="diff")return diffView(s&&s.diff)',
-        "<details><summary>files</summary>",
-        '"st warn">dirty',
+        "/pulls?state=all&per_page=100", "If-None-Match", "X-RateLimit-Remaining",
+        "ghDue(", "ghStepDue(", "sessions 60s · github ", "Agent: UNKNOWN",
+        "success (no blocking findings)", 'class="mismatch">session HEAD ≠ PR HEAD',
+        "github.com/Dezocode/Sai/pull/", ".hb-fresh", ".hb-stale", ".hb-missing",
+        "hb-missing-card", "<noscript>", "Hostinger stays Saul-go",
+        '"monitors","usage","diff"', 'if(f==="usage")return usageView(s)',
+        'if(f==="diff")return diffView(s&&s.diff)', "<details><summary>files</summary>",
+        '"st warn">dirty', "hermes-sessions/prs", "const PRS_URL=", ".tag{", ".saul{",
+        "tagsView(s)+reviewView(s)", 'src="+(multi?"prs (multi-agent)":"sessions (fallback)")',
+        "prs feed unavailable",
     )
     for needle in sessions_needles:
         if needle not in html_sessions:
@@ -1176,8 +1121,55 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
     for guard in ("Agent: NONE", '"missing"', '"stale"', "no worker attached"):
         if guard not in html_sessions:
             problems.append("pr-sessions.html missing heartbeat/agent guard " + guard)
+    # STEER 18:57Z: /prs preference must degrade to /sessions; tags + Saul
+    # review must render from agents[]. Payloads use json.dumps so nesting can
+    # never unbalance the JS; the probe drives the exact shipped SESSIONS_JS.
+    prs_payload = {"count": 1, "schema": "test", "updated_at": "2026-08-23T18:00:00Z", "prs": [
+        {"pr": 77, "agent_count": 1, "heads": ["769e2f0"], "updated_at": "2026-08-23T18:00:00Z",
+         "agents": [{"id": "w1", "status": "active", "tags": ["harness:hermes-cli", "model:test-model"],
+                     "review": {"conclusion": "success", "head_sha": "769e2f00d703a0a832a7b2731d0478d58216cb9c",
+                                "P0": "1", "P1": "2", "P2": "3"},
+                     "heartbeat_at": "2026-08-23T17:59:00Z", "diff": None, "usage": None}]}]}
+    fb_payload = {"sessions": [{"id": "w2", "status": "active", "heartbeat_at": "2026-08-23T17:59:00Z"}]}
+    js_probe = (
+        "const __E={};const document={getElementById:(i)=>(__E[i]=__E[i]||{innerHTML:'',textContent:''})};\n"
+        + SESSIONS_JS.replace("__API__", SESSIONS_API).replace("__PRS_API__", PRS_API)
+        + "globalThis.__PROBE__=(async()=>{const J=(x)=>({ok:true,status:200,json:async()=>x});"
+        + "global.fetch=async(u)=>String(u).indexOf('hermes-sessions/prs')>=0?J(" + json.dumps(prs_payload)
+        + "):J(" + json.dumps(fb_payload) + ");"
+        + "const W=document.getElementById('wheel'),N=document.getElementById('note');W.innerHTML='';await load();"
+        + "const html=W.innerHTML;const fail=(m)=>{console.log('FAIL '+m);process.exitCode=1;};"
+        + "if(N.textContent.indexOf('src=prs (multi-agent)')<0)fail('prefer prs note');"
+        + "if(html.indexOf('harness:hermes-cli'.slice(8))<0)fail('tag harness');"
+        + "if(html.indexOf('model:test-model'.slice(6))<0)fail('tag model');"
+        + "if(html.indexOf('Saul review')<0)fail('saul label');"
+        + "if(html.indexOf('P0=1 P1=2 P2=3')<0)fail('saul counts');"
+        + "global.fetch=async(u)=>String(u).indexOf('hermes-sessions/prs')>=0?{ok:false,status:503}:J("
+        + json.dumps(fb_payload) + ");W.innerHTML='';await load();"
+        + "if(N.textContent.indexOf('src=sessions (fallback)')<0)fail('fallback note');"
+        + "if(N.textContent.indexOf('count=1')<0)fail('fallback count');"
+        + "})().catch(e=>{console.log('FAIL async '+(e&&e.message||e));process.exit(1);});"
+        + "setTimeout(()=>{console.log(process.exitCode?'probe failed':'OK prs-probe:"
+        + " prefer/degrade/tags/Saul assertions passed');process.exit(process.exitCode?1:0);},2000);"
+    )
+    with tempfile.TemporaryDirectory(prefix="sai-prs-probe-") as tmp:
+        probe = Path(tmp) / "probe.js"
+        probe.write_text(js_probe, encoding="utf-8")
+        try:
+            cp = subprocess.run(["node", str(probe)], text=True, capture_output=True, timeout=30)
+        except FileNotFoundError:
+            raise SystemExit(
+                "render-sai-feature-maps --check: node is required for the "
+                "/prs fallback probe (same as --selftest)")
+    if cp.returncode != 0 or "FAIL" in (cp.stdout + cp.stderr):
+        sys.stderr.write(cp.stdout + cp.stderr)
+        problems.append("pr-sessions /prs fallback+tags+Saul probe failed")
+    elif cp.stdout.strip():
+        print(cp.stdout.strip().splitlines()[0])
     if "api.github.com" not in html_sessions:
         problems.append("pr-sessions.html missing GitHub authority plane")
+    # Line budget (1200 added cap): probe is runtime-assertive, not a needle
+    # wall — keep it compact when extending /prs coverage.
     if "Authorization" in html_sessions or "token " in html_sessions:
         problems.append("pr-sessions.html must stay token-free")
     if problems:

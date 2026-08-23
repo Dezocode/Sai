@@ -63,7 +63,7 @@ No secrets committed. Heartbeats via sai-pr-heartbeat.sh per phase.
 - R13-15 (b4d3206..103153c): ghDue cadence GH_POLL_MS=300000 + backoff
   below GH_MIN_REMAIN=5; R14/R15 ghStepDue per-step gate + locally anchored
   GH_WINDOW_BUDGET=60 reset-window budget enforced even with no headers.
-- R16 (this commit, Saul P1 @ 103153c): an EXPIRED X-RateLimit-Reset was
+- R16 (769e2f0, Saul P1 @ 103153c): an EXPIRED X-RateLimit-Reset was
   re-zeroing GH_WINDOW_USED on every request while staying expired forever
   once responses stopped carrying that header — the round-14/15 budget was
   fully bypassed. ghWindowRoll now consumes an expired server reset ONCE
@@ -78,9 +78,21 @@ No secrets committed. Heartbeats via sai-pr-heartbeat.sh per phase.
   usageStats renders real token totals/in-out/calls (missing or negative
   pieces drop, never invented) and diffStats renders file count, +/- lines,
   dirty flag, expandable changed-file list; both degrade to unavailable.
+- R17 (STEER 18:57Z keep-alive): page PREFERS multi-agent GET
+  https://srv1840454.hstgr.cloud/api/hermes-sessions/prs ({count,
+  prs[]{pr,agents[]}} verified live), flattens prs[].agents[] into cards;
+  flat /sessions stays the fallback when /prs is non-ok/malformed/
+  unreachable. Rows render harness+model tags (tags[] prefixes, fallback
+  top-level fields) + Saul review block (conclusion, @head SHA, P0/P1/P2)
+  sourced ONLY from agents[].review — absent review renders nothing; the
+  note reports src=prs vs src=sessions honestly. --check adds needles PLUS
+  a runtime node probe driving shipped SESSIONS_JS with json.dumps
+  payloads: load 1 asserts preference + tags + Saul; load 2 stubs /prs as
+  HTTP 503 and asserts honest /sessions degradation.
 
 ## Next safe action
 
-Round-16 pushes the exact-HEAD Saul P1 fix. Watch a real-Codex Saul run
-bind to the new head (codex_invoked=true, synthetic=false) with P0=P1=0,
-then owner review on the draft PR. Stay draft.
+Round-17 pushes the /prs consumer. Watch CI bind to the new head; a fresh
+real-Codex Saul run must bind to it (codex_invoked=true, synthetic=false,
+P0=P1=0). Then owner human verification of the /prs consumer on exact HEAD;
+KEEP_ALIVE holds until then. Stay draft.
