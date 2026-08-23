@@ -92,18 +92,13 @@ SESSIONS_CSS = """<style>
 .mismatch{color:var(--bad);font-weight:650}
 </style>"""
 
-# Plain (non-f-string) on purpose: real JS braces. Inserted verbatim.
-# Deliberately backslash-free (literal UTF-8 punctuation, String.fromCharCode
-# for quote keys) so the JS-in-Python splice cannot lose an escape level.
-# ROLLUP_JS is the single source for the check-run rollup: spliced into the
-# page AND into the --selftest node harness, so the test drives the exact
-# shipped function (newest attempt per check name by stable id/attempt
-# order; timestamps only as fallback - a queued rerun must supersede).
+# ROLLUP_JS: single source for the check-run rollup (newest attempt per check
+# by stable id/attempt order; timestamps only as fallback). Spliced into the
+# page AND the --selftest harness. Plain (non-f-string) on purpose: real JS
+# braces; backslash-free so the JS-in-Python splice cannot lose an escape.
 ROLLUP_JS = """
 function rollupChecks(runs){
-  // GitHub returns every historical attempt plus reruns for the same check
-  // name; keep only the newest attempt per check so a successful rerun
-  // clears an earlier failure instead of being double-counted.
+  // Newest attempt per check name wins: a green rerun clears an earlier failure.
   const newest=new Map();
   const rank=x=>{if(!x)return null;
     const id=Number(x.id);if(Number.isFinite(id)&&id>0)return [2,id];
@@ -115,9 +110,7 @@ function rollupChecks(runs){
     if(!c||!c.name)continue;
     const name=String(c.name);
     const cur=newest.get(name);
-    // Newest by stable monotone order, never timestamps alone (Saul P1): a
-    // queued rerun can carry neither started_at nor completed_at, so an
-    // empty timestamp must not lose to a superseded completed run.
+    // Newest by stable monotone order, never timestamps alone (Saul P1).
     if(!cur||cmp(rank(c),rank(cur))>0)newest.set(name,c);
   }
   let total=0,fails=0,pending=0,saul=null;
@@ -135,8 +128,7 @@ function rollupChecks(runs){
 }
 """
 # Adversarial node harness for rollupChecks (P1 regression: a superseded
-# failed attempt must not keep CI failed after a green rerun of the same
-# check name). Backslash-free like SESSIONS_JS.
+# failed attempt must not keep CI failed after a green rerun). Backslash-free.
 SELFTEST_JS = """
 function check(name,got,want){
   const ok=got===want;
@@ -154,9 +146,7 @@ let failures=0;
   check("P1 pending count",r.pending,0);
 }
 {
-  // Saul P1 round-10: a newly QUEUED rerun carries neither started_at nor
-  // completed_at, so its empty timestamp key must not lose to the older
-  // superseded FAILURE - CI must read pending, never stuck on failed.
+  // Saul P1 round-10: a newly QUEUED rerun reads pending, never superseded FAIL.
   const f={name:"build",id:97188392852,status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"};
   const q={name:"build",id:97199999999,status:"queued"};
   check("queued rerun supersedes failure (total)",rollupChecks([f,q]).total,1);
@@ -165,15 +155,14 @@ let failures=0;
   check("supersession independent of array order",rollupChecks([q,f]).fails+":"+rollupChecks([q,f]).pending,"0:1");
 }
 {
-  // Attempt breaks ties when a payload ships no check-run ids; a ranked
-  // id-bearing run also beats any timestamp-only run regardless of times.
+  // Attempt breaks ties when no ids ship; a ranked id beats timestamp-only.
   const idless=[{name:"deploy",attempt:1,status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},{name:"deploy",attempt:2,status:"in_progress"}];
   check("attempt orders id-less reruns",rollupChecks(idless).fails+":"+rollupChecks(idless).pending,"0:1");
   check("ranked id beats timestamp-only run",rollupChecks([{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},{name:"icm-enforcement",id:42,status:"queued"}]).fails+":"+rollupChecks([{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},{name:"icm-enforcement",id:42,status:"queued"}]).pending,"0:1");
 }
 {
-  // Out-of-order arrival: array lists green first, failing rerun last with
-  // a LATER started_at - latest-wins must use timestamps, not array order.
+  // Out-of-order arrival: green first, failing rerun last with a LATER
+  // started_at - latest-wins must use timestamps, not array order.
   const r=rollupChecks([
     {name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"},
     {name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T02:00:00Z",completed_at:"2026-08-23T02:05:00Z"}
@@ -211,14 +200,15 @@ const DETAIL_TS={};
 const DETAIL_FAIL={};
 const REVALIDATE_MS=300000;
 const MAX_DETAIL_FAILS=3;
+const DETAIL_RETRY_MS=900000;
+const DETAIL_RETRY_AT={};
 let PULLS=null;
 const ENRICHED=new Set();
 const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,ss:[{}]};
 {
   // Saul P1 round-6b: fan-out budget. 100 open PRs sharing 2 head SHAs must
   // plan at most REQUEST_BUDGET steps (not ~200), deduped by head SHA.
-  const cards=[];
-  for(let i=1;i<=100;i++){
+  const cards=[];  for(let i=1;i<=100;i++){
     cards.push({k:String(i),pr:{state:"open",merged:false,headSha:(i%2?"aa11":"bb22")},ss:[],agentState:"none"});
   }
   const steps=planEnrich(cards,24);
@@ -251,10 +241,8 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("closed+merged PRs skipped by planner",steps.length,0);
 }
 {
-  // Round-9 (Steer 11:26): enrich() runs plan -> execute -> doneShas in one
-  // refresh; doneShas must not mark a pass-1 detail-only HEAD ENRICHED.
-  const cards=[OC("77")];
-  let steps=planEnrich(cards,4);
+  // Round-9 (Steer 11:26): doneShas must not mark a pass-1 detail-only HEAD.
+  const cards=[OC("77")];  let steps=planEnrich(cards,4);
   check("session-only card plans a detail by number",steps.some(s=>s.kind==="detail"&&s.k==="77"),true);
   check("no checks before a HEAD is known",steps.some(s=>s.kind==="checks"),false);
   DETAIL["77"]={headSha:"CAFE12"};
@@ -269,7 +257,7 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("done HEAD stops replanning",planEnrich(cards,4).length,0);
 }
 {
-  // Round-8 #2 kept: force-push replans detail + checks (shipped order).
+  // Round-8 #2: force-push replans detail + checks (shipped order).
   DETAIL["5"]={headSha:"AA11"};
   ENRICHED.add("aa11");
   check("stale-masked card stays done pre-detection",planEnrich([OC("5","aa11")],4).length,0);
@@ -283,9 +271,8 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("steady-state replans nothing after 100 cycles",(function(){for(let i=0;i<100;i++){if(planEnrich(mixed,24).length)return 1;}return 0;})(),0);
 }
 {
-  // Round-11 P1-1 (Saul 97192397931): a session-only card (absent from
-  // PULLS) has no listing head to diverge; a stale cached HEAD must replan
-  // detail instead of being skipped forever via ENRICHED.
+  // Round-11 P1-1 (Saul 97192397931): a session-only card absent from PULLS has
+  // no listing head, so a stale cached HEAD must replan detail.
   PULLS=new Map();
   const c=OC("77");
   DETAIL["77"]={headSha:"CAFE12"};DETAIL_TS["77"]=Date.now()-REVALIDATE_MS-1;
@@ -297,10 +284,8 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("fresh session-only stays done",planEnrich([c],4).length,0);
 }
 {
-  // Round-11 P1-2 (Saul 97192397931): a failed DETAIL fetch must back off,
-  // not replan forever and burn the anon quota each 60s refresh.
-  PULLS=new Map([["42",{}]]);
-  const c=OC("42","CC33");
+  // Round-11 P1-2 (Saul 97192397931): a failed DETAIL fetch backs off, not replan.
+  PULLS=new Map([["42",{}]]);  const c=OC("42","CC33");
   DETAIL["42"]=null;DETAIL_FAIL["42"]=MAX_DETAIL_FAILS;
   const st=planEnrich([c],4);
   check("failed-detail card backs off detail",st.some(s=>s.kind==="detail"&&s.k==="42"),false);
@@ -313,20 +298,34 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   const c2=OC("43","DD44");DETAIL["43"]=null;DETAIL_FAIL["43"]=1;
   check("below-cap failure still retries detail",planEnrich([c2],4).some(s=>s.kind==="detail"),true);
 }
+{
+  // Round-12 (Saul 97194598684): cap = backoff - capped stale card probes after DETAIL_RETRY_MS.
+  PULLS=new Map();
+  const c=OC("77");
+  DETAIL["77"]={headSha:"CAFE12"};DETAIL_TS["77"]=Date.now()-REVALIDATE_MS-1;
+  ENRICHED.add("cafe12");CHECKS["cafe12"]={total:1,fails:0,pending:0};
+  DETAIL_FAIL["77"]=MAX_DETAIL_FAILS;
+  DETAIL_RETRY_AT["77"]=Date.now()+DETAIL_RETRY_MS+1000;
+  check("capped card backs off before probe window",planEnrich([c],4).some(s=>s.kind==="detail"&&s.k==="77"),false);
+  DETAIL_RETRY_AT["77"]=Date.now()-1;
+  check("capped card probes once window elapses",planEnrich([c],4).some(s=>s.kind==="detail"&&s.k==="77"),true);
+  DETAIL["77"]={headSha:"BEEF00"};DETAIL_TS["77"]=Date.now();DETAIL_FAIL["77"]=0;delete DETAIL_RETRY_AT["77"];
+  let st=planEnrich([c],4);
+  check("refreshed card replans checks on new HEAD",st.some(s=>s.kind==="checks"&&s.k==="77"),true);
+  CHECKS["beef00"]={total:1,fails:0,pending:0};
+  for(const s of doneShas([c]))ENRICHED.add(s);
+  check("refreshed card reaches steady state",planEnrich([c],4).length,0);
+}
 if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
 console.log("ALL PASS");
 """
 # ENRICH_JS: pure planning + done-marking for the per-refresh GitHub
-# enrichment budget (round-6b: fan-out exhausted the anonymous 60/hr quota;
-# spliced into page AND --selftest so tests drive the exact shipped code).
-# Round-8 (Saul P1x2): pending-selection lives inside planEnrich - session-
-# only cards schedule a detail by number, a force-push (listing head !=
-# cached head) replans, and doneShas() marks done with the same SHA
-# resolution planning used (single source, no eternal re-plan / quota burn).
-# Round-9 (Steer 11:26): doneShas() marks done only after check-runs fetch.
-# Round-11 (Saul P1x2): session-only cards revalidate detail on a TTL (no
-# listing head to diverge); failed DETAIL fetches back off (DETAIL_FAIL cap)
-# so a listing-backed card is not replanned forever.
+# enrichment budget (round-6b fan-out exhausted the anonymous 60/hr quota).
+# Rounds 8-12 (Saul/Steer): pending-selection lives in planEnrich; session-
+# only cards schedule detail by number; force-push (listing != cached head)
+# replans; doneShas() marks done after check-runs fetch; session-only detail
+# revalidates on a TTL; failed DETAIL fetches back off but probe again after
+# DETAIL_RETRY_MS (time-based, not a permanent lockout).
 ENRICH_JS = """
 function enrichPrio(c){
   if(c.ss&&c.ss.length)return 0;
@@ -343,26 +342,24 @@ function planEnrich(cards,budget){
     const ls=pr&&pr.headSha?String(pr.headSha).toLowerCase():"";
     const cs=det&&det.headSha?String(det.headSha).toLowerCase():"";
     const sha=ls||cs;
-    // P1-1: session-only cards (absent from PULLS) have no listing head to
-    // diverge, so revalidate their detail on a TTL once it was ever fetched.
+    // P1-1: session-only cards (absent from PULLS) have no listing head, so
+    // revalidate their detail on a TTL once it was ever fetched.
     const inPulls=typeof PULLS!=="undefined"&&!!(PULLS&&PULLS.get(String(c.k)));
     const dts=DETAIL_TS[c.k];
     const stale=!inPulls&&det&&dts&&(now-dts)>REVALIDATE_MS;
     if(sha&&ENRICHED.has(sha)&&!stale)continue;
     const failed=(DETAIL_FAIL[c.k]||0)>=MAX_DETAIL_FAILS;
+    // Round-12: cap = backoff, not lockout - probe after DETAIL_RETRY_MS (Saul 97194598684).
+    const probe=!!DETAIL_RETRY_AT[c.k]&&now>=DETAIL_RETRY_AT[c.k];
     if(!det||det===null||(ls&&cs&&ls!==cs)||stale){
-      if(!failed){b--;steps.push({kind:"detail",k:c.k});if(b<=0)break;}
+      if(!failed||probe){b--;steps.push({kind:"detail",k:c.k});if(b<=0)break;}
     }
     if(sha&&!checked.has(sha)){checked.add(sha);if(b>0){b--;steps.push({kind:"checks",k:c.k});}}
   }
   return steps;
 }
 function doneShas(cards){
-  // Same SHA resolution as planEnrich (listing, else cached DETAIL). DONE
-  // means check-runs were fetched for that HEAD (round-9 Steer 11:26); a
-  // failed checks attempt (null) counts as attempted - no eternal retry.
-  // Round-11: a listing-backed card resolves its listing head even when
-  // DETAIL failed, so it reaches done once checks land (P1-2 bounded).
+  // Same SHA resolution as planEnrich; DONE = check-runs fetched for that HEAD.
   const out=[];
   for(const c of cards){
     const det=DETAIL[c.k];
@@ -375,8 +372,7 @@ function doneShas(cards){
 """
 SESSIONS_JS = """
 const STALE_MIN=30;
-// Per-refresh budget for GitHub enrichment requests (unauthenticated quota is
-// 60/hr; we stay well under so a full initial render can never exhaust it).
+// Per-refresh GitHub enrichment budget (anon quota 60/hr; stay well under).
 const REQUEST_BUDGET=24;
 const GH_API="https://api.github.com/repos/Dezocode/Sai";
 const GH_WEB="https://github.com/Dezocode/Sai";
@@ -393,6 +389,8 @@ const DETAIL_TS={};
 const DETAIL_FAIL={};
 const REVALIDATE_MS=300000;
 const MAX_DETAIL_FAILS=3;
+const DETAIL_RETRY_MS=900000;
+const DETAIL_RETRY_AT={};
 let PULLS=null;
 let PULLS_ERR="";
 let SESSIONS_OK=false;
@@ -437,9 +435,11 @@ async function refreshDetail(num){
       headSha:d.head&&d.head.sha?d.head.sha:"",
       pushedAt:d.head&&d.head.repo&&d.head.repo.pushed_at||"",
       updatedAt:d.updated_at||""};
-    DETAIL_TS[num]=Date.now();DETAIL_FAIL[num]=0;
+    DETAIL_TS[num]=Date.now();DETAIL_FAIL[num]=0;delete DETAIL_RETRY_AT[num];
   }catch(err){
     DETAIL_FAIL[num]=(DETAIL_FAIL[num]||0)+1;
+    // Round-12: re-arm probe window so a capped card retries after DETAIL_RETRY_MS.
+    DETAIL_RETRY_AT[num]=Date.now()+DETAIL_RETRY_MS;
     if(DETAIL[num]===undefined)DETAIL[num]=null;
   }
 }
@@ -500,8 +500,7 @@ function assemble(list){
   const keys=new Set(byPr.keys());
   if(PULLS)for(const k of PULLS.keys())keys.add(k);
   // DETAIL is enrichment-only: never add its keys to the union, or a PR
-  // discovered via a session would keep rendering (as Agent NONE) after the
-  // session disappears and it leaves both current data planes.
+  // discovered via a session would render as Agent NONE after it leaves.
   const arr=Array.from(keys);
   arr.sort((a,b)=>((b==="?"?-1:parseInt(b,10))-(a==="?"?-1:parseInt(a,10))));
   return arr.map(k=>{
@@ -669,10 +668,7 @@ function renderWheel(cards,list){
 __ENRICH__
 const ENRICHED=new Set();
 async function enrich(cards){
-  // Budgeted, sequential (no Promise.all fan-out): at most REQUEST_BUDGET
-  // requests per refresh, session-linked cards first, deduped by head SHA.
-  // Pending-selection lives in planEnrich; doneShas() marks completion with
-  // planning's own SHA resolution, so no card shape leaks an eternal re-plan.
+  // Budgeted, sequential (no Promise.all fan-out); pending-selection lives in planEnrich.
   const steps=planEnrich(cards,REQUEST_BUDGET);
   for(const s of steps){
     if(s.kind==="detail")await refreshDetail(s.k);
@@ -1052,9 +1048,8 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         if needle not in html_sessions:
             problems.append("pr-sessions.html missing " + needle)
     # Token names are legitimate prose inside the protected-ci feature map;
-    # the enforcement point is the workflow env (renderer runs with tokens
-    # unset), not output text. The sessions page we author here must never
-    # reference tokens at all.
+    # the enforcement point is the workflow env, and the sessions page we
+    # author here must never reference tokens at all.
     if "X-Sessions-Token" in html_text:
         problems.append("feature-maps.html contains forbidden X-Sessions-Token")
     for banned in ("X-Sessions-Token", "GH_TOKEN", "GITHUB_TOKEN"):

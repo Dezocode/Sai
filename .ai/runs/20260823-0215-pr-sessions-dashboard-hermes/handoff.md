@@ -74,14 +74,21 @@ No secrets committed. Heartbeats via sai-pr-heartbeat.sh per phase.
   with no timestamps supersedes an older completed FAILURE (CI reads
   pending, not stuck failed); adversarial queued-rerun fixtures added;
   `--selftest` 36/36 ALL PASS.
-- R11 (round-11 P1x2+P2, this commit): session-only PRs (absent from
-  PULLS) revalidate detail on a TTL (REVALIDATE_MS) so force-push/state
-  changes are rediscovered without a page reload; failed DETAIL fetches
-  back off after MAX_DETAIL_FAILS (bounded, no eternal anon-quota burn),
-  and doneShas() resolves a listing-backed head even when DETAIL is null;
-  the repo-wide `head.repo.pushed_at` is relabeled "head repo push" (was
+- R11 (round-11 P1x2+P2, bc21a7d): session-only PRs (absent from PULLS)
+  revalidate detail on a TTL (REVALIDATE_MS) so force-push/state changes
+  are rediscovered without a page reload; failed DETAIL fetches back off
+  after MAX_DETAIL_FAILS (bounded, no eternal anon-quota burn), and
+  doneShas() resolves a listing-backed head even when DETAIL is null; the
+  repo-wide `head.repo.pushed_at` is relabeled "head repo push" (was
   mislabeled "last push"). `--selftest` 46/46 ALL PASS; pre-fix code FAILs
   6 of the new assertions (proven negative).
+- R12 (round-12 P1, this commit): DETAIL_FAIL cap is a backoff, not a
+  lockout — each failed DETAIL fetch re-arms a probe window
+  (DETAIL_RETRY_MS=900000 in DETAIL_RETRY_AT), so an at-cap session-only
+  card plans a detail request again once the window elapses, and a later
+  success resets DETAIL_FAIL and refreshes (checks then re-bind the new
+  HEAD). `--selftest` 50/50 ALL PASS; pre-fix logic FAILs exactly the
+  "capped card probes once window elapses" assertion (proven negative).
 
 ## Next safe action
 
