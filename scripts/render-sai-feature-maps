@@ -238,6 +238,7 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("diff without file_count shows ?",diffStats({insertions:1}).stat.indexOf("? files")===0,true);}
 (async()=>{ // Saul P1 (Codex 97255357944): adversarial multi-page check-run fetch.
   const realFetch=fetch;
+  GH_WINDOW_USED=0;GH_REMAIN=null;GH_RESET_AT=0;GH_WINDOW_AT=0; // deterministic rate state for pagination fixtures.
   const mk=(total,batch)=>({status:200,ok:true,headers:{get:()=>null},json:()=>({then:g=>g({total_count:total,check_runs:batch})})});
   let calls=[];
   { // Pages honored until total_count; newest attempt across pages wins.
@@ -259,10 +260,27 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
     const f=await fetchAllChecks("be55");
     check("130-run fetch spans pages for total_count",f.runs.length,130);
     check("page-two Saul failure gates rollup",rollupChecks(f.runs).fails,1);}
-  { // 304 keeps prior semantics: no runs stored, nothing marked partial.
-    fetch=p=>({then:f=>f({status:304,ok:false,headers:{get:()=>null}})});
-    const f=await fetchAllChecks("aa00");
-    check("304 returns no runs",f.runs,null);check("304 not partial",f.partial,false);}
+  { // Round-17b (Saul 97267214495): page-level 304 reuses cached pages; aggregate rebuilt.
+    PAGE_CACHE["ck:cc11:1"]={list:[R("p1",1,"failure",0)],total:2};PAGE_CACHE["ck:cc11:2"]={list:[R("p1x",9,"success",0)],total:2};
+    calls=[];const p304={status:304,ok:false,headers:{get:()=>null}};
+    fetch=p=>{calls.push(p);return {then:f=>f(calls.length===1?mk(2,[R("ci-y",7,"success",0)]):Object.assign({},p304))};};
+    const f=await fetchAllChecks("cc11");
+    check("mixed 200/304 rebuilds full aggregate",f.runs.length,2);check("page-two 304 reuses cached contents",f.runs[1]&&f.runs[1].name,"p1x");check("mixed 200/304 not partial",f.partial,false);
+    check("mixed 200/304 still requested page two",calls.length===2&&String(calls[1]).indexOf("page=2")>=0,true);
+    const g=await fetchAllChecks("dd22");check("all-304 without cache returns no runs",g.runs,null);check("all-304 without cache not partial",g.partial,false); // all-304, no cache: honest aggregate not-modified
+    PAGE_CACHE["ck:cc13:3"]={list:[R("sZ",51,"failure",0)],total:4};calls=[];fetch=p=>{calls.push(p);return {then:f=>f(calls.length===3?Object.assign({},p304):mk(6,[R("x"+calls.length,calls.length,"success",0)]))};};
+    const m=await fetchAllChecks("cc13");check("stale smaller cache total cannot fabricate complete",m.partial,true);check("mixed-stale read keeps all fetched runs",m.runs.length,3);
+    for(const k in PAGE_CACHE)delete PAGE_CACHE[k];}
+  { // Round-17b: pagination obeys the per-request gate; gate-stop is partial, never fabricated complete.
+    GH_WINDOW_USED=59;GH_REMAIN=null;GH_RESET_AT=0;GH_WINDOW_AT=0;
+    calls=[];fetch=p=>{calls.push(p);return {then:f=>f(mk(500,Array.from({length:100},(_,i)=>R("big"+i,i+1,"success",0))))};};
+    const e=await fetchAllChecks("ee33");check("pagination budget exhaustion bounds requests",calls.length,1);check("budget-stopped read flagged partial",e.partial,true);
+    GH_WINDOW_USED=58;
+    calls=[];fetch=p=>{calls.push(p);return {then:f=>f(mk(500,Array.from({length:100},(_,i)=>R("mid"+i,i+1,"success",0))))};};
+    const f=await fetchAllChecks("ff44");
+    check("gate stops between pages",calls.length,2);check("gate-stopped read flagged partial",f.partial,true);
+    check("gate-stopped read keeps fetched runs",f.runs.length,200);
+    GH_WINDOW_USED=0;}
   fetch=realFetch;
   if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
   console.log("ALL PASS");
@@ -358,18 +376,21 @@ function ghJson(path,key){
     return r.json().then(j=>({data:j}));
   });
 }
-const CHECK_PAGES_MAX=3;
-async function fetchAllChecks(sha){
-  // Saul P1 (Codex 97255357944): one page hides runs past #100; cap at CHECK_PAGES_MAX budgeted requests.
-  const runs=[];let partial=false;
+const CHECK_PAGES_MAX=3,PAGE_CACHE={}; // Round-17b: last-known {list,total} per (sha,page); a page 304 rebuilds the aggregate from these.
+async function fetchAllChecks(sha){ // Round-17b (Saul 97267214495): page 304 reuses its cached page; every request re-passes ghStepDue.
+  const runs=[];let maxTot=NaN;
   for(let p=1;p<=CHECK_PAGES_MAX;p++){
-    const j=await ghJson("/commits/"+sha+"/check-runs?per_page=100&page="+p,"ck:"+sha+":"+p);
-    if(j.notModified)return {runs:null,partial:false};
-    runs.push(...((j.data&&j.data.check_runs)||[]));const tot=j.data?Number(j.data.total_count):NaN;
-    if(Number.isFinite(tot)&&runs.length>=tot)return {runs:runs,partial:false};
-    partial=true;
+    if(p>1&&!ghStepDue(Date.now(),GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET,GH_WINDOW_AT,GH_WINDOW_MS))break; // P1: pagination obeys the per-request gate.
+    const key="ck:"+sha+":"+p,j=await ghJson("/commits/"+sha+"/check-runs?per_page=100&page="+p,key);let tot;
+    if(j.notModified){const c=PAGE_CACHE[key];if(!c)return {runs:null,partial:false};runs.push(...c.list);tot=c.total;} // no cache: honest aggregate-level not-modified
+    else{
+      const batch=(j.data&&j.data.check_runs)||[];tot=j.data?Number(j.data.total_count):NaN;
+      PAGE_CACHE[key]={list:batch,total:tot};runs.push(...batch);
+    }
+    if(Number.isFinite(tot)&&!(maxTot>=tot))maxTot=tot; // largest total seen governs completeness; a stale smaller cache total can never fabricate it.
+    if(runs.length>=maxTot)return {runs:runs,partial:false};
   }
-  return {runs:runs,partial:partial};
+  return {runs:runs,partial:true};
 }
 """
 SESSIONS_JS = """
@@ -953,6 +974,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         "const PRS_STALE_MIN=", "function agentOk(", "function reviewView(a){", "Saul review @ ",
         'cell("codex_invoked"', "agentOk(a)", '=="saul")return ""',
         "const CHECK_PAGES_MAX=", "/check-runs?per_page=100&page=", '" · partial"',
+        "PAGE_CACHE", "if(p>1&&!ghStepDue(",
     )
     for needle in sessions_needles:
         if needle not in html_sessions:problems.append("pr-sessions.html missing " + needle)
@@ -1039,7 +1061,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
 def run_selftest() -> int:
     """Adversarial rollupChecks harness in node (exact shipped JS); fail-loud without node (Saul P1)."""
     # Harness drives the exact shipped ghJson/ghWindowRoll; GH_API/ETAGS/GH_WINDOW_MS live in SESSIONS_JS.
-    harness = ('const GH_API="https://api.github.com/repos/Dezocode/Sai";\nconst GH_WINDOW_MS=3600000;\nconst ETAGS={};\n'
+    harness = ('const GH_API="https://api.github.com/repos/Dezocode/Sai";\nconst GH_WINDOW_MS=3600000;\nconst GH_MIN_REMAIN=5,GH_WINDOW_BUDGET=60;\nconst ETAGS={};\n'
                + ROLLUP_JS + ENRICH_JS + GH_PLANE_JS + SELFTEST_JS)
     with tempfile.TemporaryDirectory(prefix="sai-rollup-selftest-") as tmp:
         js = Path(tmp) / "rollup_selftest.js"
