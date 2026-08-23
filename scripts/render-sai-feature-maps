@@ -323,6 +323,39 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   let ub=58,rb=0;for(;rb<24;rb++){if(!ghStepDue(1000000,40,0,5,ub,60,900000,3600000))break;ub++;}
   check("mid-batch budget stop w/o reset (pre-fix 24)",rb,2);
 }
+{
+  // Round-16 (Saul 97231269873): expired reset consumed ONCE; headerless responses never re-zero.
+  const realFetch=fetch;
+  const ok={status:200,ok:true,json:()=>({then:g=>g({})}),
+    headers:{get:h=>h==="X-RateLimit-Remaining"?"40":null}};
+  fetch=(path,opt)=>({then:f=>f(ok)});
+  GH_RESET_AT=1000000;GH_WINDOW_USED=0;GH_WINDOW_AT=0;GH_REMAIN=null;
+  ghJson("/pulls","pulls");
+  check("expired reset consumed once",GH_WINDOW_USED,1);
+  check("expired reset header cleared after consumption",GH_RESET_AT,0);
+  for(let i=0;i<70;i++)ghJson("/pulls","pulls");
+  check("headerless responses keep local budget (pre-fix 1)",GH_WINDOW_USED,71);
+  check("budget blocks after consumption sans headers",
+    ghStepDue(1001000,GH_REMAIN,0,5,GH_WINDOW_USED,60,GH_WINDOW_AT,3600000),false);
+  fetch=realFetch;
+}
+{
+  // Round-16 (STEER 2026-08-23T17:07:12Z): live usage + diff card fields.
+  check("usage totals win over in/out",usageStats({input_tokens:91891,output_tokens:10382,total_tokens:102273}),"102.3k tok");
+  check("usage falls back to in/out",usageStats({input_tokens:1500,output_tokens:500}),"1.5k in / 500 out");
+  check("usage counts calls",usageStats({total_tokens:42,api_call_count:20}).indexOf("20 calls")>=0,true);
+  check("usage null object degrades",usageStats(null),null);
+  check("usage garbage degrades",usageStats({input_tokens:-5,total_tokens:"NaN"}),null);
+  check("usage empty pieces degrade",usageStats({}),null);
+  const dv=diffStats({file_count:6,insertions:64,deletions:66,dirty:true,
+    files:["scripts/render-sai-feature-maps"]});
+  check("diff stat line",dv.stat,"6 files · +64 / -66");
+  check("diff dirty flag",dv.dirty,true);
+  check("diff file list",dv.files.length===1&&dv.files[0]==="scripts/render-sai-feature-maps",true);
+  check("diff null degrades",diffStats(null),null);
+  check("diff empty degrades",diffStats({}),null);
+  check("diff without file_count shows ?",diffStats({insertions:1}).stat.indexOf("? files")===0,true);
+}
 if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
 console.log("ALL PASS");
 """
@@ -380,6 +413,59 @@ function ghStepDue(now,remain,resetAt,minRem,windowUsed,windowBudget,windowAt,wi
   if(remain!=null&&now<resetAt&&remain<minRem)return false;
   return !(windowUsed>=windowBudget&&!(resetAt>0&&now>=resetAt)&&!(windowAt>0&&now-windowAt>=windowMs));
 }
+function posNum(x){const v=Number(x);return Number.isFinite(v)&&v>=0?v:null;}
+function fmtTok(v){return v>=1000000?(Math.round(v/100000)/10)+"M":(v>=1000?(Math.round(v/100)/10)+"k":String(v));}
+function usageStats(u){
+  // Round-16: live usage; any missing/negative piece drops, never invented.
+  if(!u||typeof u!=="object")return null;
+  const i=posNum(u.input_tokens),o=posNum(u.output_tokens),t=posNum(u.total_tokens);
+  const bits=[];
+  if(t!=null)bits.push(fmtTok(t)+" tok");
+  else if(i!=null&&o!=null)bits.push(fmtTok(i)+" in / "+fmtTok(o)+" out");
+  else if(i!=null)bits.push(fmtTok(i)+" in");
+  else if(o!=null)bits.push(fmtTok(o)+" out");
+  const c=posNum(u.api_call_count);
+  if(c!=null&&c>0)bits.push(c+" calls");
+  return bits.length?bits.join(" · "):null;
+}
+function diffStats(d){
+  // Round-16: live worktree diff; null/empty degrades to unavailable upstream.
+  if(!d||typeof d!=="object")return null;
+  const f=posNum(d.file_count),ins=posNum(d.insertions),del=posNum(d.deletions);
+  const files=Array.isArray(d.files)?d.files.map(x=>String(x)):[];
+  if(f==null&&ins==null&&del==null&&!files.length)return null;
+  return {stat:(f==null?"?":f)+" files"+(ins!=null&&del!=null?" · +"+ins+" / -"+del:""),
+    files:files,dirty:typeof d.dirty==="boolean"?d.dirty:null};
+}
+"""
+GH_PLANE_JS = """
+let GH_LAST_POLL=0,GH_REMAIN=null,GH_RESET_AT=0,GH_WINDOW_USED=0,GH_WINDOW_AT=0;
+// Round-16 (Saul 97231269873): an expired X-RateLimit-Reset is CONSUMED ONCE -
+// rolled once, anchor re-based, header cleared - so later HEADERLESS responses
+// can never re-zero the local window; only a NEW future server reset may roll.
+function ghWindowRoll(ghNow){
+  if(GH_WINDOW_AT===0)GH_WINDOW_AT=ghNow;
+  if(GH_RESET_AT>0&&ghNow>=GH_RESET_AT){GH_RESET_AT=0;GH_WINDOW_USED=0;GH_WINDOW_AT=ghNow;}
+  else if(ghNow-GH_WINDOW_AT>=GH_WINDOW_MS){GH_WINDOW_AT=ghNow;GH_WINDOW_USED=0;}
+}
+function ghJson(path,key){
+  const headers={"Accept":"application/vnd.github+json"};
+  if(ETAGS[key])headers["If-None-Match"]=ETAGS[key];
+  const ghNow=Date.now();
+  ghWindowRoll(ghNow);
+  GH_WINDOW_USED++;
+  return fetch(GH_API+path,{cache:"no-store",headers:headers}).then(r=>{
+    // Round-13: honor X-RateLimit-Remaining/Reset so the plane backs off.
+    const rem=r.headers.get("X-RateLimit-Remaining");
+    if(rem!=null)GH_REMAIN=Number(rem);
+    const rs=r.headers.get("X-RateLimit-Reset");
+    if(rs!=null)GH_RESET_AT=Number(rs)*1000;
+    if(r.status===304)return {notModified:true};
+    const et=r.headers.get("ETag");if(et)ETAGS[key]=et;
+    if(!r.ok)throw new Error("HTTP "+r.status+" for "+path);
+    return r.json().then(j=>({data:j}));
+  });
+}
 """
 SESSIONS_JS = """
 const STALE_MIN=30;
@@ -389,7 +475,7 @@ const GH_API="https://api.github.com/repos/Dezocode/Sai";
 const GH_WEB="https://github.com/Dezocode/Sai";
 const GH_PULL="https://github.com/Dezocode/Sai/pull/";
 const SESSIONS_URL="__API__";
-const FIELDS=["profile","status","phase","head","heartbeat","steer","monitors"];
+const FIELDS=["profile","status","phase","head","heartbeat","steer","monitors","usage","diff"];
 const WHEEL=document.getElementById("wheel");
 const NOTE=document.getElementById("note");
 const SUMMARY=document.getElementById("summary");
@@ -407,14 +493,10 @@ const GH_POLL_MS=300000;
 const GH_MIN_REMAIN=5;
 const GH_WINDOW_BUDGET=60;
 const GH_WINDOW_MS=3600000;
-let GH_LAST_POLL=0;
-let GH_REMAIN=null;
-let GH_RESET_AT=0;
-let GH_WINDOW_USED=0;
-let GH_WINDOW_AT=0;
 let PULLS=null;
 let PULLS_ERR="";
 let SESSIONS_OK=false;
+__GH_PLANE__
 const ESCMAP={"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot;",[String.fromCharCode(39)]:"&#39;"};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESCMAP[c]);
 const dash=s=>(s==null||s===""?"—":s);
@@ -425,26 +507,6 @@ function beatBucket(s){const m=ageMin(s&&s.heartbeat_at);return m==null?"missing
 function isStale(s){return beatBucket(s)==="stale";}
 function isMissing(s){return beatBucket(s)==="missing";}
 function shortSha(x){x=String(x||"");return x.length>=7?x.slice(0,7):x;}
-function ghJson(path,key){
-  const headers={"Accept":"application/vnd.github+json"};
-  if(ETAGS[key])headers["If-None-Match"]=ETAGS[key];
-  const ghNow=Date.now();
-  if(GH_WINDOW_AT===0)GH_WINDOW_AT=ghNow;
-  if(ghNow-GH_WINDOW_AT>=GH_WINDOW_MS){GH_WINDOW_AT=ghNow;GH_WINDOW_USED=0;}
-  if(GH_RESET_AT>0&&ghNow>=GH_RESET_AT)GH_WINDOW_USED=0;
-  GH_WINDOW_USED++;
-  return fetch(GH_API+path,{cache:"no-store",headers:headers}).then(r=>{
-    // Round-13: honor X-RateLimit-Remaining/Reset so the plane backs off.
-    const rem=r.headers.get("X-RateLimit-Remaining");
-    if(rem!=null)GH_REMAIN=Number(rem);
-    const rs=r.headers.get("X-RateLimit-Reset");
-    if(rs!=null)GH_RESET_AT=Number(rs)*1000;
-    if(r.status===304)return {notModified:true};
-    const et=r.headers.get("ETag");if(et)ETAGS[key]=et;
-    if(!r.ok)throw new Error("HTTP "+r.status+" for "+path);
-    return r.json().then(j=>({data:j}));
-  });
-}
 async function loadPulls(){
   try{
     const j=await ghJson("/pulls?state=all&per_page=100&sort=created&direction=desc","pulls");
@@ -552,7 +614,24 @@ function cell(f,s){
     return '<span class="'+cls+'" title="'+esc(s.heartbeat_at||"")+'">'+label+'</span>';
   }
   if(f==="monitors"){const m=Array.isArray(s.monitors)?s.monitors.join(", "):s.monitors;return esc(dash(m));}
+  if(f==="usage")return usageView(s);
+  if(f==="diff")return diffView(s&&s.diff);
   return esc(dash(s[f]));
+}
+function usageView(s){
+  // Round-16 (STEER 17:07Z): live usage stats; null degrades honestly.
+  const txt=usageStats(s&&s.usage);
+  if(!txt)return '<span class="st mute">unavailable</span>';
+  const la=age(s.usage.last_activity);
+  return '<span title="'+esc(s.usage.last_activity||"")+'">'+esc(txt)+(la?" · active "+esc(la):"")+'</span>';
+}
+function diffView(d){
+  // Round-16: live worktree diff summary; expandable when file list exists.
+  const st=diffStats(d);
+  if(!st)return '<span class="st mute">unavailable</span>';
+  const badge=(st.dirty===null?"":(st.dirty?' <span class="st warn">dirty</span>':' <span class="st ok">clean</span>'));
+  const list=st.files.length?"<details><summary>files</summary><ul>"+st.files.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul></details>":"";
+  return "<span>"+esc(st.stat)+badge+"</span>"+list;
 }
 function srow(s){
   return '<div class="srow"><div class="sid"><span>'+esc(dash(s.id))+'</span>'
@@ -741,7 +820,7 @@ async function load(){
 }
 load();
 setInterval(load,60000);
-""".replace("__API__", SESSIONS_API).replace("__ROLLUP__", ROLLUP_JS).replace("__ENRICH__", ENRICH_JS)
+""".replace("__ROLLUP__", ROLLUP_JS).replace("__ENRICH__", ENRICH_JS).replace("__GH_PLANE__", GH_PLANE_JS)
 
 
 def git(root: Path, *args: str) -> str:
@@ -1061,7 +1140,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         'id="wheel"',
         'id="summary"',
         "setInterval(load,60000)",
-        'FIELDS=["profile","status","phase","head","heartbeat","steer","monitors"]',
+        'FIELDS=["profile","status","phase","head","heartbeat","steer","monitors","usage","diff"]',
         "/pulls?state=all&per_page=100",
         "If-None-Match",
         "X-RateLimit-Remaining",
@@ -1078,6 +1157,11 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         "hb-missing-card",
         "<noscript>",
         "Hostinger stays Saul-go",
+        '"monitors","usage","diff"',
+        'if(f==="usage")return usageView(s)',
+        'if(f==="diff")return diffView(s&&s.diff)',
+        "<details><summary>files</summary>",
+        '"st warn">dirty',
     )
     for needle in sessions_needles:
         if needle not in html_sessions:
@@ -1103,7 +1187,11 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
 def run_selftest() -> int:
     """Run the adversarial rollupChecks harness in node (exact shipped JS).
     Fail-loud if node is unavailable: this net guards the rollup (Saul P1)."""
-    harness = ROLLUP_JS + ENRICH_JS + SELFTEST_JS
+    # Harness drives the exact shipped ghJson/ghWindowRoll (GH_PLANE_JS, which
+    # owns the rate-plane state); GH_API/ETAGS/GH_WINDOW_MS live in SESSIONS_JS.
+    harness = ('const GH_API="https://api.github.com/repos/Dezocode/Sai";\n'
+               "const GH_WINDOW_MS=3600000;\nconst ETAGS={};\n"
+               + ROLLUP_JS + ENRICH_JS + GH_PLANE_JS + SELFTEST_JS)
     with tempfile.TemporaryDirectory(prefix="sai-rollup-selftest-") as tmp:
         js = Path(tmp) / "rollup_selftest.js"
         js.write_text(harness, encoding="utf-8")

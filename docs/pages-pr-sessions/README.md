@@ -11,8 +11,10 @@ number:
   a poll may issue 1 listing + up to 24 budgeted enrichment requests, each
   re-checking the rate-limit state so the batch stops at a small remaining
   floor or a 60-request per-window budget (listing plus enrichment counted,
-  anchored locally when no reset header), then backs off until reset. ETag
-  GETs only save re-transfer.
+  anchored locally when no reset header), then backs off until reset. An
+  expired reset header is consumed once (budget rolled, header cleared), so
+  later headerless responses cannot re-zero the local window. ETag GETs
+  only save re-transfer.
 - Sessions: public Hostinger sessions API for live Hermes agent sessions.
 
 Cards are the union of both planes; an open PR with no session renders an
