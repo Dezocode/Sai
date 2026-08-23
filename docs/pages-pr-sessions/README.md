@@ -6,9 +6,12 @@ number:
 
 - GitHub authority: unauthenticated public REST (`api.github.com`,
   CORS-enabled) for the Dezocode/Sai PR list, per-PR details, and per-HEAD
-  check-run rollups (including the Saul / Product Quality check). ETag
-  conditional GETs keep anonymous rate limits manageable; no token ever
-  reaches the page.
+  check-run rollups (including the Saul / Product Quality check). No token
+  ever reaches the page. The GitHub plane is polled at most once per 5
+  minutes (well under the anonymous 60/hr quota) and backs off until the
+  next reset whenever GitHub's `X-RateLimit-Remaining` header reports the
+  allowance is exhausted or below a small floor; ETag conditional GETs only
+  save re-transfer cost, they are not relied on to dodge the primary quota.
 - Sessions: public Hostinger sessions API for live Hermes agent sessions.
 
 Cards are the union of both planes; an open PR with no session renders an

@@ -6,15 +6,15 @@ Task-ID `20260823-0215-pr-sessions-dashboard-hermes`.
 ## What landed
 
 - `scripts/render-sai-feature-maps`: emits `pr-sessions.html` plus the
-  feature-maps site (tab + back-link; horizontally scrollable PR wheel;
-  summary/graph row; stale-heartbeat styling).
-  - Client-side read-only GET of
-    `https://srv1840454.hstgr.cloud/api/hermes-sessions/sessions`
-    (`cache:"no-store"`), refreshed every 60s via `setInterval(load,60000)`.
-  - Cards show profile, status, phase, head, heartbeat (+relative age),
-    steer, monitors. Failure/empty states render "unavailable"/"no
-    sessions" — nothing invented. All API text HTML-escaped; noscript
-    fallback; no tokens anywhere.
+  feature-maps site (tab + back-link; scrollable PR wheel; summary/graph
+  row; stale-heartbeat styling). Client-side read-only GET of the public
+  Hostinger sessions API (`cache:"no-store"`, 60s refresh), cards show
+  profile/status/phase/head/heartbeat(+age)/steer/monitors; failure and
+  empty states render unavailable — nothing invented; all API text
+  HTML-escaped; noscript fallback; no tokens anywhere.
+- GitHub authority plane: unauthenticated public REST + ETag conditional
+  GETs, polled at most once per GH_POLL_MS=300000 with
+  X-RateLimit-Remaining/Reset backoff (ghDue, round 13).
 - `--check` asserts both pages, tab link, wheel CSS/mount, summary mount,
   refresh interval, FIELDS array, `.hb-stale` hook, Hostinger boundary,
   and rejects session-token strings in generated output.
@@ -25,18 +25,16 @@ Task-ID `20260823-0215-pr-sessions-dashboard-hermes`.
 
 ## Verification
 
-See `04_verify/output/captured-transcripts.md`. All captures verbatim at an
-ancestor of the evidence commit (per repo convention in-tree statements never
-assert results for their own SHA — branch CI and the Saul check-binding bind
-outcomes to the pushed head after each push):
+All captures verbatim in `04_verify/output/captured-transcripts.md` at an
+ancestor of the evidence commit (in-tree statements never assert results
+for their own SHA — branch CI and the Saul check-binding bind outcomes to
+the pushed head after each push):
 
-- renderer `--check` features=11 (with new assertions)
-- `--selftest` drives the exact shipped ROLLUP_JS/ENRICH_JS (see Rounds)
-- node DOM smoke vs live API: SMOKE-OK
+- renderer `--check` features=11; `--selftest` drives the exact shipped
+  ROLLUP_JS/ENRICH_JS harness (see Rounds); node DOM smoke: SMOKE-OK
 - hierarchy / agent-audit / merge-handoff / anti-regression: OK
-- go test ./... + go vet: clean
-- drive pass=63 fail=1 — single FAIL is the pre-existing linked-worktree
-  fixture row (reproduced identically on BASE)
+- go test ./... + go vet: clean; drive pass=63 fail=1 (pre-existing
+  linked-worktree fixture row, reproduced identically on BASE)
 
 ## Constraints honored
 
@@ -45,50 +43,38 @@ No secrets committed. Heartbeats via sai-pr-heartbeat.sh per phase.
 
 ## Rounds
 
-- R1-2 (56a2197/8e1afff): GitHub authority plane (unauthenticated public
-  REST + ETag conditional GETs), union cards, Agent NONE/UNKNOWN cards,
-  per-card CI/Saul/mergeability/HEAD fields, mismatch flags, github.com PR
-  links; cursor-runtimes.md registration; heartbeat fresh/stale/missing
-  distinct; outage degrades to Agent UNKNOWN.
-- R3 (6844fc5): missing heartbeat_at renders "stale - heartbeat missing",
-  never an asserted elapsed duration.
-- R4 (fde6b56): Saul counts parsed from check-run output summary
-  (latest-run-wins), bare conclusion otherwise; malformed-payload
-  degradation.
-- R5: malformed pull-list plane degrades as unavailable; session PRs
-  outside the first listing page enriched per-PR by number.
-- R6: latest-wins check-run rollup (superseded failure cleared by green
-  rerun) as single-source ROLLUP_JS + adversarial `--selftest`; pushed_at
-  from authoritative `head.repo.pushed_at`.
-- R7: enrichment budget REQUEST_BUDGET=24 via single-source ENRICH_JS
-  planner (fan-out cannot exhaust anon quota); done-cache keyed by head
-  SHA re-enriches force-pushes.
-- R8 (ee45cec P1x2): session-only PRs plan detail BY NUMBER before any
-  HEAD, then checks once a HEAD lands; listing head wins over cached
-  DETAIL (force-push re-binds CI/Saul); doneShas uses same SHA resolution.
-- R9 (e41f4e3 P1): doneShas() marks a HEAD done only after check-runs
-  were fetched for it (failed attempt counts as attempted - no eternal
-  retry); selftest follows shipped plan->execute->doneShas order.
-- R10 (round-10 P1, b7a9d38): rollupChecks orders by stable numeric
-  check-run id / attempt, timestamps only as fallback — a queued rerun
-  with no timestamps supersedes an older completed FAILURE (CI reads
-  pending, not stuck failed); adversarial queued-rerun fixtures added;
-  `--selftest` 36/36 ALL PASS.
-- R11 (round-11 P1x2+P2, bc21a7d): session-only PRs (absent from PULLS)
-  revalidate detail on a TTL (REVALIDATE_MS) so force-push/state changes
-  are rediscovered without a page reload; failed DETAIL fetches back off
-  after MAX_DETAIL_FAILS (bounded, no eternal anon-quota burn), and
-  doneShas() resolves a listing-backed head even when DETAIL is null; the
-  repo-wide `head.repo.pushed_at` is relabeled "head repo push" (was
-  mislabeled "last push"). `--selftest` 46/46 ALL PASS; pre-fix code FAILs
-  6 of the new assertions (proven negative).
-- R12 (round-12 P1, this commit): DETAIL_FAIL cap is a backoff, not a
-  lockout — each failed DETAIL fetch re-arms a probe window
-  (DETAIL_RETRY_MS=900000 in DETAIL_RETRY_AT), so an at-cap session-only
-  card plans a detail request again once the window elapses, and a later
-  success resets DETAIL_FAIL and refreshes (checks then re-bind the new
-  HEAD). `--selftest` 50/50 ALL PASS; pre-fix logic FAILs exactly the
-  "capped card probes once window elapses" assertion (proven negative).
+- R1-5 (56a2197..fde6b56): GitHub authority plane, union cards, Agent
+  NONE/UNKNOWN + mismatch flags, cursor-runtimes registration, heartbeat
+  fresh/stale/missing distinct (missing never an asserted duration),
+  Saul counts from the run's own published summary (latest-run-wins) or
+  bare conclusion, malformed payloads degrade as unavailable, off-listing
+  session PRs enriched per-PR by number.
+- R6-7: latest-wins check-run rollup via single-source ROLLUP_JS +
+  adversarial `--selftest` (green rerun clears superseded failure);
+  pushed_at from authoritative head-repo push; enrichment budget
+  REQUEST_BUDGET=24 via ENRICH_JS planner; done-cache keyed by head SHA.
+- R8-9 (ee45cec, e41f4e3): session-only detail planned BY NUMBER before
+  any HEAD; listing head wins over cached DETAIL (force-push re-binds);
+  doneShas marks done only after check-runs were fetched for that HEAD;
+  selftest follows shipped plan->execute->doneShas order.
+- R10 (b7a9d38): rollupChecks orders by stable numeric id / attempt,
+  timestamps only as fallback — a queued rerun supersedes an older
+  completed FAILURE.
+- R11-12 (bc21a7d, 91c933e): session-only cards revalidate detail on TTL
+  REVALIDATE_MS; failed DETAIL fetches back off at MAX_DETAIL_FAILS and
+  probe again after DETAIL_RETRY_MS (backoff, not lockout); doneShas
+  resolves a listing-backed head when DETAIL is null; "head repo push"
+  relabel; checks re-bind on HEAD change.
+- R13 (this commit): GitHub plane cadence + rate-limit honor — ghDue
+  gates loadPulls/enrich behind GH_POLL_MS=300000 (at most one GitHub
+  poll per 5 min, well under the anonymous 60/hr; first load always
+  fetches) and captures X-RateLimit-Remaining/X-RateLimit-Reset per
+  response, backing off until reset once remaining is 0 or below
+  GH_MIN_REMAIN=5; NOTE renders "sessions 60s · github 5m" plus an
+  honest throttled marker; protected-ci.md and docs README corrected
+  (ETag revalidation only saves re-transfer, never the quota dodge).
+  Fixtures: first-load poll, window hold/resume, exhausted/floor block
+  until reset, resume after reset.
 
 ## Next safe action
 

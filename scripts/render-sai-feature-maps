@@ -316,6 +316,17 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   for(const s of doneShas([c]))ENRICHED.add(s);
   check("refreshed card reaches steady state",planEnrich([c],4).length,0);
 }
+{
+  // Round-13 (Saul 97206101278): GitHub plane must not poll the anon quota
+  // every 60s. ghDue enforces a poll cadence AND honors rate-limit headers.
+  check("ghDue first load polls",ghDue(1000000,0,null,0,300000,5),true);
+  check("ghDue holds inside window",ghDue(1000000,800000,null,0,300000,5),false);
+  check("ghDue allows after window",ghDue(1000000,700000,null,0,300000,5),true);
+  check("ghDue blocks when exhausted until reset",ghDue(1000000,0,0,2000000,300000,5),false);
+  check("ghDue resumes after reset",ghDue(2500000,0,0,2000000,300000,5),true);
+  check("ghDue blocks below floor until reset",ghDue(1000000,0,3,2000000,300000,5),false);
+  check("ghDue below floor resumes after reset",ghDue(2500000,0,3,2000000,300000,5),true);
+}
 if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
 console.log("ALL PASS");
 """
@@ -369,6 +380,13 @@ function doneShas(cards){
   }
   return out;
 }
+function ghDue(now,lastPoll,remain,resetAt,pollMs,minRem){
+  // Round-13 (Saul 97206101278): cadence <=pollMs; hold until resetAt once
+  // X-RateLimit-Remaining hits 0 or the minRem floor.
+  if(remain!=null&&remain<=0&&now<resetAt)return false;
+  if(remain!=null&&remain<minRem&&now<resetAt)return false;
+  return now-lastPoll>=pollMs;
+}
 """
 SESSIONS_JS = """
 const STALE_MIN=30;
@@ -391,6 +409,12 @@ const REVALIDATE_MS=300000;
 const MAX_DETAIL_FAILS=3;
 const DETAIL_RETRY_MS=900000;
 const DETAIL_RETRY_AT={};
+// Round-13: GitHub plane cadence (anon quota 60/hr) + rate-limit state.
+const GH_POLL_MS=300000;
+const GH_MIN_REMAIN=5;
+let GH_LAST_POLL=0;
+let GH_REMAIN=null;
+let GH_RESET_AT=0;
 let PULLS=null;
 let PULLS_ERR="";
 let SESSIONS_OK=false;
@@ -409,6 +433,11 @@ function ghJson(path,key){
   const headers={"Accept":"application/vnd.github+json"};
   if(ETAGS[key])headers["If-None-Match"]=ETAGS[key];
   return fetch(GH_API+path,{cache:"no-store",headers:headers}).then(r=>{
+    // Round-13: honor X-RateLimit-Remaining/Reset so the plane backs off.
+    const rem=r.headers.get("X-RateLimit-Remaining");
+    if(rem!=null)GH_REMAIN=Number(rem);
+    const rs=r.headers.get("X-RateLimit-Reset");
+    if(rs!=null)GH_RESET_AT=Number(rs)*1000;
     if(r.status===304)return {notModified:true};
     const et=r.headers.get("ETag");if(et)ETAGS[key]=et;
     if(!r.ok)throw new Error("HTTP "+r.status+" for "+path);
@@ -684,20 +713,27 @@ async function load(){
     if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload");
     const list=d.sessions;
     SESSIONS_OK=true;
-    await loadPulls();
+    // Round-13: GitHub plane runs on its own cadence / rate-limit gate; the
+    // sessions plane (our API) keeps the 60s refresh.
+    const now=Date.now();
+    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN);
+    if(ghGo){GH_LAST_POLL=now;await loadPulls();}
     let cards=assemble(list);
-    await enrich(cards);
+    if(ghGo)await enrich(cards);
     cards=assemble(list);
     renderWheel(cards,list);
     SUMMARY.innerHTML=summaryHTML(cards,list);
     NOTE.textContent="count="+list.length+(d&&d.updated_at?" · updated_at="+d.updated_at:"")
-      +" · github="+describeGh()+" · live GET · refreshes every 60s · no secrets, nothing invented";
+      +" · github="+describeGh()+" · live GET · sessions 60s · github "+Math.round(GH_POLL_MS/60000)+"m"
+      +(ghGo?"":" · github poll throttled")+" · no secrets, nothing invented";
   }catch(err){
     const msg=err&&err.message?err.message:String(err);
     SESSIONS_OK=false;
-    await loadPulls();
+    const now=Date.now();
+    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN);
+    if(ghGo){GH_LAST_POLL=now;await loadPulls();}
     let cards=assemble([]);
-    await enrich(cards);
+    if(ghGo)await enrich(cards);
     cards=assemble([]);
     renderWheel(cards,[]);
     SUMMARY.innerHTML=summaryHTML(cards,[]);
@@ -1031,6 +1067,9 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         'FIELDS=["profile","status","phase","head","heartbeat","steer","monitors"]',
         "/pulls?state=all&per_page=100",
         "If-None-Match",
+        "X-RateLimit-Remaining",
+        "ghDue(",
+        "sessions 60s · github ",
         "Agent: NONE",
         "Agent: UNKNOWN",
         "success (no blocking findings)",

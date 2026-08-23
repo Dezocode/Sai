@@ -1,26 +1,64 @@
-# Captured verification transcripts — PR 77 round-5: GitHub-plane robustness
+# Captured verification transcripts — PR 77
 
-Captured verbatim on the worktree whose content equals the product commit that
-stages the round-5 fix (protected-ci doc + renderer GitHub-plane hardening;
-staged by the child evidence commit; branch CI + Saul bind the pushed head).
+Rounds 5-8. Captures are verbatim on worktrees whose content equals the
+product commit staging that round (branch CI + Saul bind outcomes to the
+pushed head after each push — in-tree statements never assert results for
+their own SHA). The identical verifier shell was re-run green each round;
+its output is shown once below.
 
-Round-5 scope: GitHub pull-list plane now fails honest — a malformed pull-list
-payload degrades as unavailable instead of silent empty; session-linked PRs
-outside the first GitHub listing page are still enriched via their per-PR
-endpoint (title, state, draft, merged, head, pushed/updated, mergeability).
+Round scope:
+- R5: malformed pull-list payload degrades as unavailable instead of
+  silent empty; session-linked PRs outside the first GitHub listing page
+  still enrich via their per-PR endpoint.
+- R6: latest-wins check-run rollup (Saul P1) lives in single-source
+  ROLLUP_JS spliced into the page AND the selftest harness, so the test
+  drives the exact shipped function; "last push" comes only from
+  authoritative head.repo.pushed_at ("updated" labeled separately);
+  DETAIL stays enrichment-only (no ghost cards).
+- R7/R7b: enrichment budget REQUEST_BUDGET=24 via single-source
+  ENRICH_JS planner shared with the selftest; runtime proof executes the
+  exact shipped page JS.
+- R8 (real Codex P1x2 @ ee45cec): session-only cards plan a detail BY PR
+  NUMBER before any HEAD; listing head wins over cached DETAIL so a
+  force-push re-binds CI/Saul; doneShas uses the same SHA resolution.
 
-## Renderer check
+## Verifier shell (renderer, node syntax, repo verifiers, go, drive)
+
 ```
 $ python3 scripts/render-sai-feature-maps --check
+ALL PASS
 exit=0
+OK render-sai-feature-maps --selftest: rollupChecks latest-wins harness ALL PASS
 OK render-sai-feature-maps --check features=11
-```
-## Emitted inline JS syntax (node --check)
-```
 $ node --check /tmp/emitted_sessions.js
 exit=0
-NODE_CHECK_OK```
-## DOM smokes (6 scenarios; live repeated 4x for 403-flakiness stability)
+NODE_CHECK_OK
+$ bash scripts/verify-semantic-hierarchy
+exit=0
+verify-semantic-hierarchy: OK
+$ bash scripts/verify-agent-audit -n 25 HEAD
+exit=0
+verify-agent-audit: OK (-n 25 HEAD)
+$ bash scripts/verify-merge-handoff origin/main..HEAD
+exit=0
+verify-merge-handoff: OK (1 task-id(s) checked)
+$ /usr/local/go/bin/go test ./...
+exit=0
+?   github.com/Dezocode/Sai/cmd/sai	[no test files]
+ok  	github.com/Dezocode/Sai/cmd/sai-design-check	0.060s
+ok  	github.com/Dezocode/Sai/cmd/sai-verify	6.179s
+ok  	github.com/Dezocode/Sai/internal/app	(cached)
+$ /usr/local/go/bin/go vet ./...
+exit=0
+$ sai-verify drive (captured pre-commit at content-identical tree)
+pass=63 fail=1 skip=0
+FAIL proof-artifacts  (only passes when CI supplies --evidence; same single
+pre-existing linked-worktree fixture FAIL reproduced identically on BASE
+origin/main 759d017 pass=61 fail=1 skip=0)
+```
+
+## DOM smokes (R5; live repeated 4x for 403-flakiness stability)
+
 ```
 $ for s in synthetic sessions-down malformed-pulls old-pr-session malformed-sessions live; do node /tmp/smoke_pr77.mjs /tmp/evid-site3/pr-sessions.html $s | tail -1; done
 --- synthetic: exit=0 SMOKE-OK
@@ -30,59 +68,9 @@ $ for s in synthetic sessions-down malformed-pulls old-pr-session malformed-sess
 --- malformed-sessions: exit=0 SMOKE-OK
 --- live: exit=0 SMOKE-OK (x4 stable; GitHub anon API 403 from VM degrades honestly as github=unavailable)
 ```
-## Repo verifiers
-```
-$ bash scripts/verify-semantic-hierarchy
-exit=0
-verify-semantic-hierarchy: OK
-$ bash scripts/verify-agent-audit -n 20 HEAD
-exit=0
-verify-agent-audit: OK (-n 20 HEAD)
-$ bash scripts/verify-merge-handoff origin/main..HEAD
-exit=0
-verify-merge-handoff: OK (1 task-id(s) checked)
-```
-## Go core
-```
-$ /usr/local/go/bin/go test ./...
-exit=0
-?  	github.com/Dezocode/Sai/cmd/sai	[no test files]
-ok  	github.com/Dezocode/Sai/cmd/sai-design-check	0.060s
-ok  	github.com/Dezocode/Sai/cmd/sai-verify	6.179s
-ok  	github.com/Dezocode/Sai/internal/app	(cached)
-$ /usr/local/go/bin/go vet ./...
-exit=0
 
-```
-## sai-verify drive (captured pre-commit at content-identical tree)
-```
-pass=63 fail=1 skip=0
-FAIL proof-artifacts  (only passes when CI supplies --evidence; same single
-pre-existing linked-worktree fixture FAIL reproduced identically on BASE
-origin/main 759d017 pass=61 fail=1 skip=0)
-```
-## Line budget projection vs origin/main
-```
-.cursor/skills/verify-sai/features/protected-ci.md   |   2 +-
-scripts/render-sai-feature-maps                      | 512 ++++++++++++++++--
-9 files changed, 678 insertions(+), 39 deletions(-)
-(1200 added-line budget; deletions free.)
-```
+# Round-6 selftest + negative proof (latest-wins rollup)
 
-# Round-6 evidence — latest-wins check-run rollup (Saul P1 remediation)
-
-Captured verbatim on the worktree whose content equals the product commit
-staging the round-6 fix (branch CI + Saul bind the pushed head).
-
-Round-6 scope: refreshChecks dedupes GitHub check-runs by stable check name
-keeping the newest attempt, so a superseded failed run no longer keeps CI
-marked failed after a green rerun. The rollup lives in single-source
-ROLLUP_JS (spliced into the page AND into the --selftest node harness, so the
-test drives the exact shipped function). PR "last push" now comes only from
-authoritative head.repo.pushed_at; PR updated_at is labeled separately as
-"updated"; DETAIL stays enrichment-only (no ghost cards).
-
-## Rollup selftest (adversarial; fails on the pre-fix rollup)
 ```
 $ python3 scripts/render-sai-feature-maps --selftest
 PASS P1 latest-wins total by name  got=1 want=1
@@ -111,60 +99,11 @@ FAIL Saul latest-wins clears action_required  got=1 want=0
 exit=1  (4 selftest failure(s))   # would have caught the P1
 ```
 
-## Renderer check (now runs the selftest first)
-```
-$ python3 scripts/render-sai-feature-maps --check
-ALL PASS
-exit=0
-OK render-sai-feature-maps --selftest: rollupChecks latest-wins harness ALL PASS
-OK render-sai-feature-maps --check features=11
-```
-## Emitted inline JS syntax (node --check)
-```
-$ node --check /tmp/emitted_sessions.js
-exit=0
-NODE_CHECK_OK
-```
-## Repo verifiers
-```
-$ scripts/verify-semantic-hierarchy
-exit=0
-verify-semantic-hierarchy: OK
-$ scripts/verify-agent-audit -n 25 HEAD
-exit=0
-verify-agent-audit: OK (-n 25 HEAD)
-$ scripts/verify-merge-handoff origin/main..HEAD
-exit=0
-verify-merge-handoff: OK (1 task-id(s) checked)
-```
-## Go core
-```
-$ go test ./...
-ok  github.com/Dezocode/Sai/cmd/sai-verify  5.969s
-$ go vet ./...
-exit=0
-```
-## sai-verify drive (captured pre-commit at content-identical tree)
-```
-pass=63 fail=1 skip=0
-FAIL proof-artifacts  (only passes when CI supplies --evidence; same single
-pre-existing linked-worktree fixture FAIL reproduced identically on BASE
-origin/main 759d017 pass=61 fail=1 skip=0)
-```
-## Line budget projection vs origin/main
-```
-.cursor/skills/verify-sai/features/protected-ci.md   |   2 +-
-.github/workflows/feature-maps-pages.yml             |   3 +
-docs/pages-pr-sessions/README.md                     |  15 +-
-scripts/render-sai-feature-maps                      | 158 ++++++--
-4 files changed, 155 insertions(+), 23 deletions(-)
-(1200 added-line budget; deletions free.)
-```
+# Round-7b runtime proof (STEER 09:03:17Z) — exact shipped page JS
 
-## Round-7b runtime proof (STEER 09:03:17Z) — exact shipped page JS
-
-Harness: /tmp/verify_runtime_budget.mjs (node; stubbed fetch/document/setInterval;
-executes the literal <script> block emitted into pr-sessions.html at HEAD).
+Harness: /tmp/verify_runtime_budget.mjs (node; stubbed fetch/document/
+setInterval; executes the literal <script> block emitted into
+pr-sessions.html at HEAD).
 
 Scenario A (healthy first load, 100 GitHub PRs + 2 sessions):
 PASS first-load GitHub requests bounded got=25 (1 listing + 24 budgeted)
@@ -189,20 +128,14 @@ PASS cached check-rollup data survives and still renders
 Result: RUNTIME PROOF ALL PASS (15/15). The budgeted planner bounds
 first-load GitHub calls to 25 requests worst-case, degrades honestly when
 the quota is hit mid-load, and steady-state refreshes stay at ~1 request.
-## Round-8 (Saul P1x2 exact-HEAD @ ee45cec, STEER 2026-08-23T10:22:53Z)
 
-Real Codex on exact HEAD ee45cec: P0=0 P1=2 P2=0. P1-1: session-only PRs
-never enriched (assemble leaves pr=null; old pendingCards dropped cards
-without headSha, so refreshDetail never ran). P1-2: force-pushed PRs stayed
-pinned to stale detail (normalize preferred cached DETAIL headSha over the
-refreshed listing head, so ENRICHED never invalidated).
+# Round-8 (real Codex P1x2 exact-HEAD @ ee45cec, STEER 2026-08-23T10:22:53Z)
 
-Fix: pending-selection moved into planEnrich (single source) - a session-only
-card plans a detail BY PR NUMBER before any HEAD is known, then checks once a
-HEAD lands; doneShas() marks done with the same SHA resolution (listing head
-wins, else cached DETAIL head) so no card shape leaks an eternal re-plan;
-listing head wins over cached DETAIL head in normalize/refreshChecks/checksFor,
-so a force-push re-binds CI/Saul to the true current HEAD.
+P1-1: session-only PRs never enriched (assemble leaves pr=null; old
+pendingCards dropped cards without headSha, so refreshDetail never ran).
+P1-2: force-pushed PRs stayed pinned to stale detail (normalize preferred
+cached DETAIL headSha over the refreshed listing head, so ENRICHED never
+invalidated).
 
 ```
 $ ./scripts/render-sai-feature-maps --selftest   (29 assertions, excerpt)
@@ -217,4 +150,42 @@ $ node --check emitted pr-sessions.html inline JS   NODE_CHECK_OK, 0 banned toke
 
 Line budget projected: 1194/1200 added lines vs base 759d017. Negative-proof:
 the pre-fix harness FAILs the divergent-head fixture (old pendingCards only
-re-enriched same-SHA cards) - the round-8 fixtures catch both P1s.
+planned cards that already had a headSha, so a session-only or force-pushed
+card could never re-plan).
+
+# Round-13 (real Codex P1+P2x2 exact-HEAD @ 91c933e, check-run 97206101278)
+
+P1: every open dashboard listed GitHub once per minute (setInterval(load,
+60000) -> loadPulls), so the listing poll alone consumed the anonymous
+60/hr allowance; unauthenticated 304 revalidation is not reliably quota-
+free. P2s: protected-ci.md + docs README claimed ETag conditional GETs
+keep anon limits manageable.
+
+Fix: ghDue(now,lastPoll,remain,resetAt,pollMs,minRem) gates loadPulls +
+enrich behind GH_POLL_MS=300000 (first load always fetches); ghJson
+captures X-RateLimit-Remaining/X-RateLimit-Reset per response and the
+plane backs off until reset once remaining is 0 or below GH_MIN_REMAIN=5.
+NOTE renders "sessions 60s · github 5m" plus an honest throttled marker.
+
+```
+$ python3 scripts/render-sai-feature-maps --selftest   (55 assertions; new fixtures excerpt)
+PASS ghDue first load polls                got=true want=true
+PASS ghDue holds inside window             got=false want=false
+PASS ghDue blocks when exhausted until reset got=false want=false
+PASS ghDue resumes after reset             got=true want=true
+ALL PASS
+$ ./scripts/render-sai-feature-maps --check   features=11 OK
+$ node --check emitted pr-sessions.html inline JS   exit=0 NODE_CHECK_OK
+
+A/B runtime proof (node harness /tmp/r13_negative_proof.cjs; stubbed fetch/
+document/clock driving the exact emitted <script> payload of OLD=91c933e vs
+NEW=round-13; cumulative GitHub calls after each 60s tick):
+OLD healthy     first-load 3 | 4,5,6,7,8,9,10,11,12,13   (+1 listing every tick)
+NEW healthy     first-load 3 | 3,3,3,3,4,4,4,4,4,5       (poll only on 5m boundaries)
+OLD exhausted   first-load 3 | 4,5,6,7,8,9,10,11,12,13   (headers ignored)
+NEW exhausted   first-load 3 | 3,3,3,3,3,3,3,3,3,3       (backs off until reset)
+NEW no-reset    first-load 3 | 3,3,3,3,4,4,4,4,4,5       (degrades to cadence-only,
+                                                          never eternal lockout)
+NEGATIVE PROOF ALL PASS — pre-fix code reproduces the flagged 60s polling;
+post-fix holds quota headroom.
+```
