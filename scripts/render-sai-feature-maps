@@ -207,6 +207,11 @@ let failures=0;
 }
 const DETAIL={};
 const CHECKS={};
+const DETAIL_TS={};
+const DETAIL_FAIL={};
+const REVALIDATE_MS=300000;
+const MAX_DETAIL_FAILS=3;
+let PULLS=null;
 const ENRICHED=new Set();
 const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,ss:[{}]};
 {
@@ -277,6 +282,37 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   for(const sha of doneShas(mixed))ENRICHED.add(sha);
   check("steady-state replans nothing after 100 cycles",(function(){for(let i=0;i<100;i++){if(planEnrich(mixed,24).length)return 1;}return 0;})(),0);
 }
+{
+  // Round-11 P1-1 (Saul 97192397931): a session-only card (absent from
+  // PULLS) has no listing head to diverge; a stale cached HEAD must replan
+  // detail instead of being skipped forever via ENRICHED.
+  PULLS=new Map();
+  const c=OC("77");
+  DETAIL["77"]={headSha:"CAFE12"};DETAIL_TS["77"]=Date.now()-REVALIDATE_MS-1;
+  ENRICHED.add("cafe12");CHECKS["cafe12"]={total:1,fails:0,pending:0};
+  let st=planEnrich([c],4);
+  check("stale session-only replans detail",st.some(s=>s.kind==="detail"&&s.k==="77"),true);
+  check("stale session-only replans checks",st.some(s=>s.kind==="checks"),true);
+  DETAIL_TS["77"]=Date.now();
+  check("fresh session-only stays done",planEnrich([c],4).length,0);
+}
+{
+  // Round-11 P1-2 (Saul 97192397931): a failed DETAIL fetch must back off,
+  // not replan forever and burn the anon quota each 60s refresh.
+  PULLS=new Map([["42",{}]]);
+  const c=OC("42","CC33");
+  DETAIL["42"]=null;DETAIL_FAIL["42"]=MAX_DETAIL_FAILS;
+  const st=planEnrich([c],4);
+  check("failed-detail card backs off detail",st.some(s=>s.kind==="detail"&&s.k==="42"),false);
+  check("failed-detail card still plans checks",st.some(s=>s.kind==="checks"),true);
+  CHECKS["cc33"]={total:1,fails:0,pending:0};
+  const done=doneShas([c]);
+  check("null-detail card done via listing head",done.indexOf("cc33")>=0,true);
+  for(const s of done)ENRICHED.add(s);
+  check("null-detail card reaches steady state",planEnrich([c],4).length,0);
+  const c2=OC("43","DD44");DETAIL["43"]=null;DETAIL_FAIL["43"]=1;
+  check("below-cap failure still retries detail",planEnrich([c2],4).some(s=>s.kind==="detail"),true);
+}
 if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
 console.log("ALL PASS");
 """
@@ -288,6 +324,9 @@ console.log("ALL PASS");
 # cached head) replans, and doneShas() marks done with the same SHA
 # resolution planning used (single source, no eternal re-plan / quota burn).
 # Round-9 (Steer 11:26): doneShas() marks done only after check-runs fetch.
+# Round-11 (Saul P1x2): session-only cards revalidate detail on a TTL (no
+# listing head to diverge); failed DETAIL fetches back off (DETAIL_FAIL cap)
+# so a listing-backed card is not replanned forever.
 ENRICH_JS = """
 function enrichPrio(c){
   if(c.ss&&c.ss.length)return 0;
@@ -295,7 +334,7 @@ function enrichPrio(c){
   return 2;
 }
 function planEnrich(cards,budget){
-  const steps=[];const checked=new Set();let b=budget;
+  const steps=[];const checked=new Set();let b=budget;const now=Date.now();
   for(const c of cards.filter(c=>c.k!=="?").sort((a,b)=>enrichPrio(a)-enrichPrio(b))){
     if(b<=0)break;
     const pr=c.pr;
@@ -304,10 +343,15 @@ function planEnrich(cards,budget){
     const ls=pr&&pr.headSha?String(pr.headSha).toLowerCase():"";
     const cs=det&&det.headSha?String(det.headSha).toLowerCase():"";
     const sha=ls||cs;
-    if(sha&&ENRICHED.has(sha))continue;
-    if(!det||det===null||(ls&&cs&&ls!==cs)){
-      b--;steps.push({kind:"detail",k:c.k});
-      if(b<=0)break;
+    // P1-1: session-only cards (absent from PULLS) have no listing head to
+    // diverge, so revalidate their detail on a TTL once it was ever fetched.
+    const inPulls=typeof PULLS!=="undefined"&&!!(PULLS&&PULLS.get(String(c.k)));
+    const dts=DETAIL_TS[c.k];
+    const stale=!inPulls&&det&&dts&&(now-dts)>REVALIDATE_MS;
+    if(sha&&ENRICHED.has(sha)&&!stale)continue;
+    const failed=(DETAIL_FAIL[c.k]||0)>=MAX_DETAIL_FAILS;
+    if(!det||det===null||(ls&&cs&&ls!==cs)||stale){
+      if(!failed){b--;steps.push({kind:"detail",k:c.k});if(b<=0)break;}
     }
     if(sha&&!checked.has(sha)){checked.add(sha);if(b>0){b--;steps.push({kind:"checks",k:c.k});}}
   }
@@ -317,11 +361,13 @@ function doneShas(cards){
   // Same SHA resolution as planEnrich (listing, else cached DETAIL). DONE
   // means check-runs were fetched for that HEAD (round-9 Steer 11:26); a
   // failed checks attempt (null) counts as attempted - no eternal retry.
+  // Round-11: a listing-backed card resolves its listing head even when
+  // DETAIL failed, so it reaches done once checks land (P1-2 bounded).
   const out=[];
   for(const c of cards){
-    const det=DETAIL[c.k];if(!det||det===null)continue;
+    const det=DETAIL[c.k];
     const ls=c.pr&&c.pr.headSha?String(c.pr.headSha).toLowerCase():"";
-    const cs=det.headSha?String(det.headSha).toLowerCase():"";
+    const cs=det&&det.headSha?String(det.headSha).toLowerCase():"";
     const sha=ls||cs;if(sha&&CHECKS[sha]!==undefined)out.push(sha);
   }
   return out;
@@ -343,6 +389,10 @@ const SUMMARY=document.getElementById("summary");
 const ETAGS={};
 const DETAIL={};
 const CHECKS={};
+const DETAIL_TS={};
+const DETAIL_FAIL={};
+const REVALIDATE_MS=300000;
+const MAX_DETAIL_FAILS=3;
 let PULLS=null;
 let PULLS_ERR="";
 let SESSIONS_OK=false;
@@ -380,14 +430,18 @@ async function loadPulls(){
 async function refreshDetail(num){
   try{
     const j=await ghJson("/pulls/"+num,"pr:"+num);
-    if(j.notModified)return;
+    if(j.notModified){DETAIL_TS[num]=Date.now();return;}
     const d=j.data||{};
     DETAIL[num]={title:d.title||"",state:d.state||"",draft:!!d.draft,mergedAt:d.merged_at||"",
       mergeable:d.mergeable,mergeableState:d.mergeable_state||"",
       headSha:d.head&&d.head.sha?d.head.sha:"",
       pushedAt:d.head&&d.head.repo&&d.head.repo.pushed_at||"",
       updatedAt:d.updated_at||""};
-  }catch(err){if(DETAIL[num]===undefined)DETAIL[num]=null;}
+    DETAIL_TS[num]=Date.now();DETAIL_FAIL[num]=0;
+  }catch(err){
+    DETAIL_FAIL[num]=(DETAIL_FAIL[num]||0)+1;
+    if(DETAIL[num]===undefined)DETAIL[num]=null;
+  }
 }
 __ROLLUP__
 async function refreshChecks(num){
@@ -497,7 +551,7 @@ function mergeView(pr){
 function pushView(pr){
   const t=pr.pushedAt;
   if(!t)return "unavailable";
-  return esc(age(t)||String(t).slice(0,10));
+  return '<span title="activity on the head repo, not the PR head commit">'+esc(age(t)||String(t).slice(0,10))+'</span>';
 }
 function updateView(pr){
   const t=pr.updatedAt;
@@ -539,7 +593,7 @@ function ghBody(c){
     ["CI",ciView(pr,c)],
     ["Saul / Product Quality",saulView(pr,c)],
     ["mergeability",mergeView(pr)],
-    ["last push",pushView(pr)],
+    ["head repo push",pushView(pr)],
     ["updated",updateView(pr)]
   ];
   if(c.mismatch)rows.push(["worker HEAD",'<span class="mismatch">session HEAD ≠ PR HEAD — worker may be behind or ahead</span>']);

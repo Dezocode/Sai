@@ -6,23 +6,13 @@ Task-ID `20260823-0215-pr-sessions-dashboard-hermes`.
 ## What landed
 
 - `scripts/render-sai-feature-maps`: emits `pr-sessions.html` plus the
-  feature-maps site.
-  - Header tab "PR sessions" on feature-maps.html; back-link on sessions page.
-  - Horizontally scrollable PR wheel (`overflow-x:auto`, flex cards): one
-    `<article class="pcard">` per PR, session rows grouped under their PR
-    (never a flat list), sorted by session id.
-  - Summary/graph row above the wheel (`#summary`, `PR GRAPH` label):
-    counts by PR, session, status, heartbeat freshness (fresh <30m vs
-    stale). Rendered from the live response only; empty when unavailable.
-  - Stale-heartbeat styling: red `hb-stale` marker row per stale session,
-    red card outline + sub badge when any session under a PR is stale
-    (heartbeat missing or ≥30 minutes old).
+  feature-maps site (tab + back-link; horizontally scrollable PR wheel;
+  summary/graph row; stale-heartbeat styling).
   - Client-side read-only GET of
     `https://srv1840454.hstgr.cloud/api/hermes-sessions/sessions`
     (`cache:"no-store"`), refreshed every 60s via `setInterval(load,60000)`.
-  - Cards show profile, status (color-coded active/finished/done/failed),
-    phase, head, heartbeat (+relative age), steer (note pill or "none
-    reported"), monitors. Failure/empty states render "unavailable"/"no
+  - Cards show profile, status, phase, head, heartbeat (+relative age),
+    steer, monitors. Failure/empty states render "unavailable"/"no
     sessions" — nothing invented. All API text HTML-escaped; noscript
     fallback; no tokens anywhere.
 - `--check` asserts both pages, tab link, wheel CSS/mount, summary mount,
@@ -79,11 +69,19 @@ No secrets committed. Heartbeats via sai-pr-heartbeat.sh per phase.
 - R9 (e41f4e3 P1): doneShas() marks a HEAD done only after check-runs
   were fetched for it (failed attempt counts as attempted - no eternal
   retry); selftest follows shipped plan->execute->doneShas order.
-- R10 (round-10 P1, this commit): rollupChecks orders by stable numeric
+- R10 (round-10 P1, b7a9d38): rollupChecks orders by stable numeric
   check-run id / attempt, timestamps only as fallback — a queued rerun
   with no timestamps supersedes an older completed FAILURE (CI reads
   pending, not stuck failed); adversarial queued-rerun fixtures added;
   `--selftest` 36/36 ALL PASS.
+- R11 (round-11 P1x2+P2, this commit): session-only PRs (absent from
+  PULLS) revalidate detail on a TTL (REVALIDATE_MS) so force-push/state
+  changes are rediscovered without a page reload; failed DETAIL fetches
+  back off after MAX_DETAIL_FAILS (bounded, no eternal anon-quota burn),
+  and doneShas() resolves a listing-backed head even when DETAIL is null;
+  the repo-wide `head.repo.pushed_at` is relabeled "head repo push" (was
+  mislabeled "last push"). `--selftest` 46/46 ALL PASS; pre-fix code FAILs
+  6 of the new assertions (proven negative).
 
 ## Next safe action
 
