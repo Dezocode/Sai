@@ -70,7 +70,9 @@ SESSIONS_CSS = """<style>
 .pcard.hb-stale-card{outline:2px solid var(--bad);outline-offset:-2px}.pcard.hb-missing-card{outline:2px dashed var(--bad);outline-offset:-2px}
 .noworker{color:var(--bad);font-weight:700}.tag{display:inline-block;background:#ececec;border-radius:999px;padding:1px 8px;font:11px/1.5 ui-monospace,monospace;color:#333;margin:0 4px 2px 0}
 .saul{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;font-size:12px;border-top:1px dashed var(--line);margin-top:8px;padding-top:8px;color:#333}
-.atags{margin:6px 0 2px}.mismatch{color:var(--bad);font-weight:650}</style>"""
+.atags{margin:6px 0 2px}.mismatch{color:var(--bad);font-weight:650}
+.fbar{display:flex;align-items:center;gap:8px;font-size:12px;margin:4px 0}.flbl{flex:0 0 auto;width:112px;font-weight:650;color:#333}.fpct{flex:0 0 auto;text-align:right;font-weight:650}.ftrack{flex:1 1 auto;height:10px;background:#ececec;border-radius:999px;overflow:hidden;display:block}.ffill{display:block;height:100%;background:var(--accent)}.ffill.none{background:#d9d9d9}.fbrk{margin-top:6px;font-size:12px;color:#333}
+@media(max-width:480px){.fbar{flex-wrap:wrap}.flbl{width:auto}.fpct{margin-left:auto}}</style>"""
 
 ROLLUP_JS = """
 function rollupChecks(runs){ // Newest attempt per check name wins: a green rerun clears an earlier failure.
@@ -236,6 +238,26 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("diff file list",dv.files.length===1&&dv.files[0]==="scripts/render-sai-feature-maps",true);
   check("diff null degrades",diffStats(null),null);check("diff empty degrades",diffStats({}),null);
   check("diff without file_count shows ?",diffStats({insertions:1}).stat.indexOf("? files")===0,true);}
+{ // FLIGHT-BOARD (goal comment 5388822402): honest unavailable, bounds, SHA-bound staleness, rubric determinism.
+  check("missing flight renders both rows unavailable",flightBars(null,"").split("unavailable").length-1,4);
+  check("missing flight fabricates no percentage",flightBars(null,"").indexOf("%</span>")<0,true);
+  check("status=unavailable gates both rows",flightBars({status:"unavailable"},"").split("unavailable").length-1,4);
+  const good=flightBars({implementation_pct:85,merge_readiness_pct:60},"");
+  check("valid percentages render",good.indexOf("85%")>=0&&good.indexOf("60%")>=0,true);
+  check("aria labels expose percent",good.indexOf("Implementation: 85 percent")>=0&&good.indexOf("Merge readiness: 60 percent")>=0,true);
+  check("pct above 100 unavailable",flightBars({implementation_pct:120,merge_readiness_pct:60},"").indexOf("120%")<0,true);
+  check("pct below 0 unavailable",flightBars({implementation_pct:-5,merge_readiness_pct:60},"").indexOf("-5%")<0,true);
+  check("string pct not coerced to number",flightBars({implementation_pct:"85",merge_readiness_pct:"60"},"").indexOf(">85%")<0&&flightBars({implementation_pct:"85",merge_readiness_pct:"60"},"").indexOf(">60%")<0,true);
+  const cur=flightBars({implementation_pct:85,merge_readiness_pct:60,head_sha:"106cc4270b2856eed91b776cf9b3a58f655d0254"},"106cc4270b2856eed91b776cf9b3a58f655d0254");
+  check("bound sha marks current (no stale)",cur.indexOf("stale")<0,true);
+  const old=flightBars({implementation_pct:85,merge_readiness_pct:60,head_sha:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"106cc4270b2856eed91b776cf9b3a58f655d0254");
+  check("mismatched sha marks stale @sha",old.indexOf("stale")>=0&&old.indexOf("@aaaaaaa")>=0,true);
+  check("breakdown exact 45/20/20/10/5 rubric",flightBreakdown({merge_components:{goals:39,ci:20,saul:0,preservation:10,hygiene:5}}),"Goals 39/45 · CI 20/20 · Saul 0/20 · Preservation 10/10 · Hygiene 5/5");
+  check("partial component set renders unavailable",flightBreakdown({merge_components:{goals:39}}),"unavailable");
+  check("requirements appended when present",flightBreakdown({merge_components:{goals:45,ci:20,saul:20,preservation:10,hygiene:5},requirements:{met:17,partial:2,unmet:3}}).indexOf("met 17 · partial 2 · unmet 3 · blocked unavailable")>=0,true);
+  check("verifierGated rejects agent-sourced progress",verifierGated({source:"hermes-agent"}),false);
+  check("verifierGated accepts aggregator identities",verifierGated({source:"pr-aggregator"})&&verifierGated({source:"PR_AGGREGATOR"})&&verifierGated({source:"sai-verify-live"}),true);
+  check("verifierGated rejects substring spoof + non-object",!verifierGated({source:"not-a-verifier"})&&!verifierGated({source:"fake-aggregator-lol"})&&!verifierGated({source:"totally an aggregator"})&&!verifierGated(null),true);}
 (async()=>{ // Saul P1 (Codex 97255357944): adversarial multi-page check-run fetch.
   const realFetch=fetch;
   GH_WINDOW_USED=0;GH_REMAIN=null;GH_RESET_AT=0;GH_WINDOW_AT=0; // deterministic rate state for pagination fixtures.
@@ -393,6 +415,47 @@ async function fetchAllChecks(sha){ // Round-17b (Saul 97267214495): page 304 re
   return {runs:runs,partial:true};
 }
 """
+FLIGHT_JS = """
+const FESC_MAP={"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot;",[String.fromCharCode(39)]:"&#39;"};
+const fEsc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>FESC_MAP[c]); // FLIGHT-BOARD is self-contained: no SESSIONS_JS esc dependency.
+function pctOf(x){ // FLIGHT-BOARD: strict numeric 0..100; anything else renders unavailable, never coerced to 0.
+  return (typeof x==="number"&&isFinite(x)&&x>=0&&x<=100)?Math.round(x):null;
+}
+function verifierGated(p){ // flat /sessions progress counts only when its source names a known verifier/aggregator identity (no agent self-award).
+  const s=p&&typeof p==="object"?String(p.source||"").toLowerCase():"";
+  return /^(pr[-_])?aggregator$|^sai-verify/.test(s);
+}
+function flightBreakdown(f){ // "Goals X/45 · CI X/20 · Saul X/20 · Preservation X/10 · Hygiene X/5" (+ requirement states when present).
+  if(!f||typeof f!=="object")return "unavailable";
+  const mc=f.merge_components&&typeof f.merge_components==="object"?f.merge_components:null;
+  if(!mc)return "unavailable";
+  const n=(o,k)=>o&&Number.isFinite(Number(o[k]))?Number(o[k]):null;
+  const g=n(mc,"goals"),ci=n(mc,"ci"),sl=n(mc,"saul"),pr=n(mc,"preservation"),hy=n(mc,"hygiene");
+  if(g==null||ci==null||sl==null||pr==null||hy==null)return "unavailable"; // partial component sets are not invented into totals.
+  let t="Goals "+g+"/45 · CI "+ci+"/20 · Saul "+sl+"/20 · Preservation "+pr+"/10 · Hygiene "+hy+"/5";
+  const rq=f.requirements&&typeof f.requirements==="object"?f.requirements:null;
+  if(rq){
+    const r=["met","partial","unmet","blocked"].map(k=>k+" "+(Number.isFinite(Number(rq[k]))?Number(rq[k]):"unavailable"));
+    t+=" — requirements: "+r.join(" · ");
+  }
+  return t;
+}
+function shortShaF(x){x=String(x||"");return x.length>=7?x.slice(0,7):x;}
+function flightBars(f,headSha){ // Two rows: visible label + track + numeric % OUTSIDE the bar so narrow layouts never truncate either.
+  const bad=!f||typeof f!=="object"||f.status==="unavailable";
+  const head=String(headSha||"");
+  const bound=(!bad&&f.head_sha)?String(f.head_sha):"";
+  const cur=bound&&head&&head.toLowerCase().startsWith(bound.toLowerCase()); // SHA-bound freshness: mismatch renders stale, never current.
+  const st=(bound&&!cur)?" <span class='mismatch' title='bound "+fEsc(bound.slice(0,12))+" @ "+fEsc(f.computed_at||"unknown time")+"'>@"+fEsc(shortShaF(bound))+" stale</span>":"";
+  const imp=bad?null:pctOf(f.implementation_pct);
+  const mr=bad?null:pctOf(f.merge_readiness_pct);
+  const row=(label,pct)=>"<div class='fbar'><span class='flbl'>"+label+"</span>"
+    +"<span class='ftrack' role='img' aria-label='"+label+(pct==null?" unavailable":": "+pct+" percent")+"'>"
+    +"<span class='ffill"+(pct==null?" none":"")+"' style='"+(pct==null?"width:0":"width:"+pct+"%")+"'></span></span>"
+    +"<span class='fpct'>"+(pct==null?"<span class='dim'>unavailable</span>":pct+"%")+st+"</span></div>";
+  return row("Implementation",imp)+row("Merge readiness",mr);
+}
+"""
 SESSIONS_JS = """
 const STALE_MIN=30;
 const REQUEST_BUDGET=24;
@@ -405,10 +468,12 @@ const FIELDS=["profile","status","phase","head","heartbeat","steer","monitors","
 const WHEEL=document.getElementById("wheel"),NOTE=document.getElementById("note"),SUMMARY=document.getElementById("summary");
 const ETAGS={},DETAIL={},CHECKS={},DETAIL_TS={},DETAIL_FAIL={},DETAIL_RETRY_AT={};
 const REVALIDATE_MS=300000,MAX_DETAIL_FAILS=3,DETAIL_RETRY_MS=900000;
+const FLIGHT={}; // FLIGHT-BOARD: per-PR authoritative telemetry from /prs cards; verifier-gated fallback only.
 // Round-13/15: GitHub cadence + rate-limit state + per-window request budget.
 const GH_POLL_MS=300000,GH_MIN_REMAIN=5,GH_WINDOW_BUDGET=60,GH_WINDOW_MS=3600000;
 let PULLS=null,PULLS_ERR="",SESSIONS_OK=false;
 __GH_PLANE__
+__FLIGHT__
 const ESCMAP={"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot;",[String.fromCharCode(39)]:"&#39;"};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESCMAP[c]);
 const dash=s=>(s==null||s===""?"—":s);
@@ -424,20 +489,27 @@ function agentOk(a){ // sai-sessions-v2 required fields for any flattened agent 
   return !!(a&&typeof a==="object"&&a.id!=null&&a.id!==""&&a.status!=null&&a.status!==""&&a.heartbeat_at!=null&&a.heartbeat_at!=="");
 }
 async function loadPrs(){ // falls back to /sessions when /prs is unreachable, empty, stale, or malformed (STEER 20:18Z).
+  for(const k of Object.keys(FLIGHT))delete FLIGHT[k]; // FLIGHT-BOARD: rebuilt per poll so removed cards never render stale authority.
   try{
     const r=await fetch(PRS_URL,{cache:"no-store"});const d=r.ok?await r.json():null;
     const age=d&&d.updated_at?ageMin(d.updated_at):null;
     if(d&&Array.isArray(d.prs)&&d.prs.length>0&&age!=null&&age<=PRS_STALE_MIN){
-      const out=[];let ok=true;
+      const out=[],fbc={};let ok=true;
       for(const p of d.prs){
         if(!p||p.pr==null||!Array.isArray(p.agents)||p.agents.length===0){ok=false;break;}
+        if((p.flightboard||p.flight)&&typeof (p.flightboard||p.flight)==="object")fbc[p.pr]=p.flightboard||p.flight;
         for(const a of p.agents){if(!agentOk(a)){ok=false;break;}out.push({pr:p.pr,...a});}
         if(!ok)break;
       }
-      if(ok){SRC="prs";return {list:out,multi:true};}
+      if(ok){SRC="prs";for(const k in fbc)FLIGHT[k]=fbc[k];return {list:out,multi:true};} // telemetry commits ONLY when the whole feed validated
     }
   }catch(err){}
-  SRC="sessions";return {list:await loadSessions(),multi:false};
+  // FLIGHT-BOARD fallback: flat feed has no PR-level authority; accept ONLY verifier/aggregator-sourced progress (no agent self-award).
+  SRC="sessions";const fb=await loadSessions();
+  for(const s of fb){
+    if(s&&s.pr!=null&&verifierGated(s.progress))FLIGHT[s.pr]=s.progress;
+  }
+  return {list:fb,multi:false};
 }
 function tagsView(a){ // harness+model tags straight from tags[]; nothing synthesized.
   let h="",m="";const tg=Array.isArray(a.tags)?a.tags:[];
@@ -458,6 +530,14 @@ function reviewView(a){ // STEER 20:18Z: identity-gated on agent==="saul"; absen
     +cell("phase",val(rv.phase))+cell("progress",val(rv.progress))+cell("review status",val(rv.status))
     +cell("codex_invoked",val(rv.codex_invoked))+cell("synthetic",val(rv.synthetic))
     +cell("P0/P1/P2",pc?("P0="+pc.p0+" P1="+pc.p1+" P2="+pc.p2):"unavailable")+"</div></div>";
+}
+
+function flightBlock(c){ // FLIGHT-BOARD: always-rendered section; honest unavailable when the API carries no authority.
+  const f=(FLIGHT[c.k]&&typeof FLIGHT[c.k]==="object")?FLIGHT[c.k]:{};
+  const head=c.pr&&c.pr.headSha?c.pr.headSha:"";
+  const src=(f&&typeof f.source==="string"&&f.source)?f.source:"unavailable";
+  return '<div class="srow"><div class="sid"><span>Flight board</span><span class="pill">'+esc(src)+"</span></div>"
+    +flightBars(f,head)+'<details class="fbrk"><summary>merge components</summary><div class="v2">'+esc(flightBreakdown(f))+"</div></details></div>";
 }
 
 function ageMin(iso){const t=Date.parse(iso);if(isNaN(t))return null;return Math.max(0,Math.round((Date.now()-t)/60000));}
@@ -660,7 +740,7 @@ function prCard(c){
   let cardCls="pcard";
   if(c.agentState==="missing")cardCls+=" hb-missing-card";else if(c.agentState==="stale")cardCls+=" hb-stale-card";
   const ghSid='<div class="sid"><span>GitHub authority</span><span class="pill">Dezocode/Sai</span></div>';
-  return '<article class="'+cardCls+'"><h2>'+link+titleHtml+"</h2>"+sub+c.ss.map(srow).join("")
+  return '<article class="'+cardCls+'"><h2>'+link+titleHtml+"</h2>"+sub+flightBlock(c)+c.ss.map(srow).join("")
     +'<div class="srow">'+ghSid+ghBody(c)+"</div></article>";
 }
 function group(cards){return cards.map(prCard).join("");}
@@ -748,7 +828,7 @@ async function load(){
 }
 load();
 setInterval(load,60000);
-""".replace("__ROLLUP__", ROLLUP_JS).replace("__ENRICH__", ENRICH_JS).replace("__GH_PLANE__", GH_PLANE_JS)
+""".replace("__ROLLUP__", ROLLUP_JS).replace("__ENRICH__", ENRICH_JS).replace("__GH_PLANE__", GH_PLANE_JS).replace("__FLIGHT__", FLIGHT_JS)
 
 def git(root: Path, *args: str) -> str:
     cp = subprocess.run(["git", *args], cwd=root, text=True, capture_output=True)
@@ -1052,6 +1132,10 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         print(cp.stdout.strip().splitlines()[0])
     if "api.github.com" not in html_sessions:
         problems.append("pr-sessions.html missing GitHub authority plane")
+    if "Merge readiness" not in html_sessions or "Implementation" not in html_sessions:
+        problems.append("pr-sessions.html missing flight-board bar labels")
+    if ".ftrack" not in html_sessions or "max-width:480px" not in html_sessions:
+        problems.append("pr-sessions.html missing flight-board bar styles/narrow-screen stacking")
     # Line budget cap: probes are runtime-assertive, not a needle wall; keep compact when extending coverage.
     if "Authorization" in html_sessions or "token " in html_sessions:
         problems.append("pr-sessions.html must stay token-free")
@@ -1062,7 +1146,7 @@ def run_selftest() -> int:
     """Adversarial rollupChecks harness in node (exact shipped JS); fail-loud without node (Saul P1)."""
     # Harness drives the exact shipped ghJson/ghWindowRoll; GH_API/ETAGS/GH_WINDOW_MS live in SESSIONS_JS.
     harness = ('const GH_API="https://api.github.com/repos/Dezocode/Sai";\nconst GH_WINDOW_MS=3600000;\nconst GH_MIN_REMAIN=5,GH_WINDOW_BUDGET=60;\nconst ETAGS={};\n'
-               + ROLLUP_JS + ENRICH_JS + GH_PLANE_JS + SELFTEST_JS)
+               + ROLLUP_JS + ENRICH_JS + GH_PLANE_JS + FLIGHT_JS + SELFTEST_JS)
     with tempfile.TemporaryDirectory(prefix="sai-rollup-selftest-") as tmp:
         js = Path(tmp) / "rollup_selftest.js"
         js.write_text(harness, encoding="utf-8")
