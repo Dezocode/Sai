@@ -7,14 +7,12 @@ number:
 - GitHub authority: unauthenticated public REST (`api.github.com`,
   CORS-enabled) for the Dezocode/Sai PR list, per-PR details, and per-HEAD
   check-run rollups (including the Saul / Product Quality check). No token
-  ever reaches the page. The GitHub plane polls at most once per 5 minutes;
-  a poll may issue 1 listing + up to 24 budgeted enrichment requests, each
-  re-checking the rate-limit state so the batch stops at a small remaining
-  floor or a 60-request per-window budget (listing plus enrichment counted,
-  anchored locally when no reset header), then backs off until reset. An
-  expired reset header is consumed once (budget rolled, header cleared), so
-  later headerless responses cannot re-zero the local window. ETag GETs
-  only save re-transfer.
+  ever reaches the page. The plane polls at most once per 5 minutes with 1
+  listing + up to 24 budgeted enrichment requests, each re-checking rate-limit
+  state so a batch stops at a small remaining floor or a 60-request per-window
+  budget (anchored locally when no reset header) then backs off until reset;
+  an expired reset is consumed once so headerless responses never re-zero the
+  window; ETags only save re-transfer.
 - Sessions: public Hostinger sessions API for live Hermes agent sessions.
 
 Cards are the union of both planes; an open PR with no session renders an
@@ -22,25 +20,23 @@ Cards are the union of both planes; an open PR with no session renders an
 from the authoritative PR HEAD gets a mismatch flag; heartbeat buckets
 fresh / stale / missing stay distinct (missing is never counted as stale).
 CI rollup keeps only the newest attempt per check name (a successful rerun
-clears an earlier failure) — guarded by an adversarial `--selftest` node
-harness whose fixtures include a superseded failed attempt followed by a
-green rerun of the same check name (this exact bug was Saul P1; the harness
-fails on the pre-fix rollup); GitHub enrichment runs through a budgeted,
-sequential planner (at most 24 requests per refresh — session-linked cards
-then open cards first, check fetches deduped per head SHA; each request re-checks
-the rate-limit state so a batch stops at the floor or a 60-request per-window
-budget (locally anchored), never exhausting the anon quota); pending-selection lives inside the
-planner so a session-only PR absent from the listing still gets its per-PR
-detail by number then checks once any HEAD is known, the listing HEAD always
-wins over cached detail HEAD for change detection (a force-push re-binds
-CI/Saul), and completion is marked by the same SHA resolution (never an
-eternal re-plan) - all adversarial `--selftest` fixtures failing on their
-pre-fix implementations; "last push" is an authoritative head-repo push
-timestamp, with PR `updated_at` labeled separately as "updated"; a PR
-discovered only through a session disappears once that session and the
-listing both drop it (no ghost cards). Missing data renders as unavailable,
-never fabricated.
+clears an earlier failure); check-run fetches paginate to `total_count`, capped
+at `CHECK_PAGES_MAX = 3` budgeted requests, past which the rollup is labeled
+partial instead of silently dropping runs beyond the first page. Enrichment is
+planned (≤24 sequential requests, session-linked then open cards, deduped per
+head SHA) so force-pushes re-bind CI/Saul and no PR becomes a ghost card;
+"last push" is an authoritative head-repo timestamp, labeled apart from PR
+`updated_at`. Missing data renders as unavailable, never fabricated.
 
-Regenerate locally with `scripts/render-sai-feature-maps --check` (runs the
-selftest then asserts the pages) or `--out DIR`; CI deploys via
-`.github/workflows/feature-maps-pages.yml`.
+Regenerate with `scripts/render-sai-feature-maps --check` or `--out DIR`; CI deploys via `.github/workflows/feature-maps-pages.yml`.
+
+## Multi-agent /prs feed contract (STEER 20:18Z)
+
+`pr-sessions.html` prefers the multi-agent `/prs` feed over flat `/sessions`;
+it is accepted only when it parses, `prs` is non-empty, every group has `pr`
+plus valid `agents[]` (id/status/heartbeat_at), and `updated_at` is ≤10 minutes
+old — otherwise it falls back to `/sessions` without claiming the `/prs` source. Agent rows flatten as `{pr: <parent>, ...agent}`. The Saul
+block is identity-gated on `agent==="saul"` and renders payload fields verbatim
+(absent → "unavailable", never invented). The adversarial `--check` probe
+drives the shipped JS with fresh/empty/stale/malformed/bare-Saul/non-Saul/503
+fixtures proving preference, fallback, gating, and honest degradation.

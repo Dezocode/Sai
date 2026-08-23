@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Render Origin-light feature-maps.html + pr-sessions.html (PR wheel: GitHub
-public REST + live Hermes sessions). HTML is generated, never source; missing
-data renders unavailable, never fabricated; renderer stays token-free.
-"""
+public REST + live Hermes sessions). Generated HTML, never source; missing data renders unavailable, never fabricated; token-free."""
 from __future__ import annotations
 
 import argparse
@@ -13,7 +11,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 CONSTITUTION = (
@@ -37,28 +35,23 @@ GH_WEB = "https://github.com/Dezocode/Sai"
 BASE_CSS = """<style>
 :root{--bg:#f8f8f8;--side:#f3f3f3;--ink:#141414;--mute:#6b6b6b;--line:#e6e6e6;--card:#fff;--accent:#34785c;--warn:#c9a227;--bad:#c45c4a;--ok:#3d8f6b;--sdl:#0F1115;--sdla:#5B8CFF}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
-a{color:inherit;text-decoration:none}
+a{color:inherit;text-decoration:none}.when{margin-left:auto;color:var(--mute);font-size:12px}
 .top{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--bg)}
-.crumb{font-weight:700} .crumb span{opacity:.55;font-weight:500}
+.crumb{font-weight:700} .crumb span{opacity:.55;font-weight:500} .meta{display:flex;gap:6px;margin-left:8px}
 .tabs{display:flex;gap:4px} .tabs a{padding:6px 12px;border-radius:8px;color:var(--mute)} .tabs a.on{background:#ececec;color:var(--ink);font-weight:600}
-.meta{display:flex;gap:6px;margin-left:8px} .pill{background:#ececec;border-radius:999px;padding:3px 8px;font:12px/1.2 ui-monospace,monospace;color:#333}
-.when{margin-left:auto;color:var(--mute);font-size:12px}
+.pill{background:#ececec;border-radius:999px;padding:3px 8px;font:12px/1.2 ui-monospace,monospace;color:#333}
 .btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:7px 14px;font-weight:650}
-.shell{display:grid;grid-template-columns:220px 1fr 260px;min-height:calc(100vh - 48px)}
-.side{background:var(--side);padding:18px 14px;border-right:1px solid var(--line)}
-.right{background:var(--side);padding:18px 14px;border-left:1px solid var(--line)}
+.shell{display:grid;grid-template-columns:220px 1fr 260px;min-height:calc(100vh - 48px)}.side{background:var(--side);padding:18px 14px;border-right:1px solid var(--line)}.right{background:var(--side);padding:18px 14px;border-left:1px solid var(--line)}
 h1{font-size:28px;margin:0 0 6px} .k{font-size:11px;letter-spacing:.08em;color:var(--mute);font-weight:650;margin:16px 0 8px}
-.nav a,.nav span{display:block;padding:6px 8px;border-radius:6px;color:#333} .nav a.on{background:#e7e7e7;font-weight:600}
-.main{padding:28px 32px 48px} .cap{color:var(--mute);margin:0 0 16px;max-width:52rem}
+.nav a,.nav span{display:block;padding:6px 8px;border-radius:6px;color:#333} .nav a.on{background:#e7e7e7;font-weight:600}.main{padding:28px 32px 48px} .cap{color:var(--mute);margin:0 0 16px;max-width:52rem} .note{color:var(--mute);font-size:12px;margin:10px 0 18px}
 .drift{background:#fff8e5;border:1px solid #ead79a;border-radius:10px;padding:12px 14px;margin:0 0 18px;color:#6b4e12}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 12px}.card h2.feat{margin:0 0 6px;font-size:16px} .desc{margin:0 0 10px;color:#333}
 .card h2.feat{margin:0 0 6px;font-size:16px} .desc{margin:0 0 10px;color:#333}
 .sec{margin:12px 0 0} .sec h2{margin:0 0 6px;font-size:12px;letter-spacing:.04em;color:var(--mute);font-weight:650}
 .sec ul{margin:0;padding:0 0 0 1.2rem} .sec li{margin:0 0 4px} .empty{margin:0;color:var(--mute)}
 .id{background:#ececec;border-radius:999px;padding:2px 8px;font:12px/1.3 ui-monospace,monospace}
-.checks{list-style:none;margin:0;padding:0} .checks li{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.checks li{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
 .st{border-radius:999px;padding:1px 8px;font-size:12px} .st.ok{background:#e7f3ec;color:#215a3d} .st.bad{background:#f8e8e5;color:#8a3228} .st.warn{background:#f7f0d8;color:#7a5d12} .st.mute{color:var(--mute);background:#ececec}
-.note{color:var(--mute);font-size:12px;margin:10px 0 18px}
 .sdl{background:var(--sdl);color:#e8e8e8;border-radius:10px;padding:12px 14px;font-size:12px} .sdl-k{color:var(--sdla);font-weight:700;margin-bottom:6px}
 .host{color:var(--mute);font-size:12px;margin-top:18px}
 </style>"""
@@ -66,33 +59,26 @@ h1{font-size:28px;margin:0 0 6px} .k{font-size:11px;letter-spacing:.08em;color:v
 SESSIONS_CSS = """<style>
 .wheelwrap{overflow-x:auto;padding-bottom:10px}
 .wheel{display:flex;gap:14px;align-items:stretch;width:max-content;min-width:100%}
-.pcard{flex:0 0 auto;width:370px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.pcard h2{margin:0;font-size:15px} .pcard h2 a:hover{text-decoration:underline}
-.pcard .sub{color:var(--mute);font-size:12px;margin:2px 0 10px}
-.srow{border-top:1px solid var(--line);padding:10px 0}
-.srow:first-of-type{border-top:0}
-.sid{font-weight:650;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
 .fields{display:grid;grid-template-columns:120px 1fr;gap:3px 10px;font-size:12px}
+.pcard{flex:0 0 auto;width:370px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.pcard h2{margin:0;font-size:15px} .pcard h2 a:hover{text-decoration:underline} .pcard .sub{color:var(--mute);font-size:12px;margin:2px 0 10px}
+.srow{border-top:1px solid var(--line);padding:10px 0} .srow:first-of-type{border-top:0}
+.sid{font-weight:650;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
 .k2{color:var(--mute)} .v2{word-break:break-word} .dim{color:var(--mute)}
-.psummary{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
-.psummary .lbl{font-size:11px;letter-spacing:.08em;color:var(--mute);font-weight:650;margin-right:4px}
+.psummary{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}.psummary .lbl{font-size:11px;letter-spacing:.08em;color:var(--mute);font-weight:650;margin-right:4px}
 .hb-fresh{color:var(--ok);font-weight:650} .hb-stale{color:var(--bad);font-weight:650} .hb-missing{color:var(--bad);font-weight:650;border-bottom:2px dotted var(--bad)}
-.pcard.hb-stale-card{outline:2px solid var(--bad);outline-offset:-2px}
-.pcard.hb-missing-card{outline:2px dashed var(--bad);outline-offset:-2px}
-.noworker{color:var(--bad);font-weight:700}
-.tag{display:inline-block;background:#ececec;border-radius:999px;padding:1px 8px;font:11px/1.5 ui-monospace,monospace;color:#333;margin:0 4px 2px 0}
+.pcard.hb-stale-card{outline:2px solid var(--bad);outline-offset:-2px}.pcard.hb-missing-card{outline:2px dashed var(--bad);outline-offset:-2px}
+.noworker{color:var(--bad);font-weight:700}.tag{display:inline-block;background:#ececec;border-radius:999px;padding:1px 8px;font:11px/1.5 ui-monospace,monospace;color:#333;margin:0 4px 2px 0}
 .saul{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;font-size:12px;border-top:1px dashed var(--line);margin-top:8px;padding-top:8px;color:#333}
-.atags{margin:6px 0 2px}
-.mismatch{color:var(--bad);font-weight:650}</style>"""
+.atags{margin:6px 0 2px}.mismatch{color:var(--bad);font-weight:650}</style>"""
 
 ROLLUP_JS = """
-function rollupChecks(runs){
-  // Newest attempt per check name wins: a green rerun clears an earlier failure.
+function rollupChecks(runs){ // Newest attempt per check name wins: a green rerun clears an earlier failure.
   const newest=new Map();
   const rank=x=>{if(!x)return null;
     const id=Number(x.id);if(Number.isFinite(id)&&id>0)return [2,id];
     const at=Number(x.attempt);if(Number.isFinite(at)&&at>0)return [1,at];
-    const t=String(x.started_at||x.completed_at||"");return t?[0,t]:null;};
+    return String(x.started_at||x.completed_at||"")?[0,String(x.started_at||x.completed_at||"")]:null;};
   const cmp=(a,b)=>{if(a===null)return b===null?0:-1;if(b===null)return 1;
     for(let i=0;i<2;i++){if(a[i]!==b[i])return a[i]<b[i]?-1:1;}return 0;};
   for(const c of runs){
@@ -118,32 +104,30 @@ function rollupChecks(runs){
 """
 SELFTEST_JS = """
 function check(name,got,want){
-  const ok=got===want;
-  console.log((ok?"PASS ":"FAIL ")+name+"  got="+got+" want="+want);
-  if(!ok)failures++;
+  console.log((got===want?"PASS ":"FAIL ")+name+"  got="+got+" want="+want);
+  if(got!==want)failures++;
 }
 let failures=0;
-{const r=rollupChecks([{name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
-  {name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"}]);
- check("P1 latest-wins total by name",r.total,1);check("P1 green rerun clears superseded failure",r.fails,0);check("P1 pending count",r.pending,0);}
-{const q={name:"build",id:97199999999,status:"queued"};
- const f={name:"build",id:97188392852,status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"};
- check("queued rerun supersedes failure (total)",rollupChecks([f,q]).total,1);check("queued rerun supersedes failure (fails)",rollupChecks([f,q]).fails,0);
- check("queued rerun reads as pending",rollupChecks([f,q]).pending,1);check("supersession independent of array order",rollupChecks([q,f]).fails+":"+rollupChecks([q,f]).pending,"0:1");}
-{const idless=[{name:"deploy",attempt:1,status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},{name:"deploy",attempt:2,status:"in_progress"}];
- const ranked=[{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},{name:"icm-enforcement",id:42,status:"queued"}];
- check("attempt orders id-less reruns",rollupChecks(idless).fails+":"+rollupChecks(idless).pending,"0:1");
- check("ranked id beats timestamp-only run",rollupChecks(ranked).fails+":"+rollupChecks(ranked).pending,"0:1");}
-{const r=rollupChecks([{name:"ci-verify-sai",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"},
-  {name:"ci-verify-sai",status:"completed",conclusion:"failure",started_at:"2026-08-23T02:00:00Z",completed_at:"2026-08-23T02:05:00Z"}]);
+// Fixture helpers: T = timestamp, R = completed check run, Q = queued rerun.
+const T=(h,m)=>"2026-08-23T0"+h+":0"+(m||0)+":00Z";
+const R=(name,id,cc,h)=>({name:name,id:id,status:"completed",conclusion:cc,started_at:T(h),completed_at:T(h,5)});
+const Q=(name,id)=>({name:name,id:id,status:"queued"});
+{ // P1 latest-wins by name; green rerun clears a superseded failure.
+  const r=rollupChecks([R("ci-verify-sai",1,"failure",0),R("ci-verify-sai",2,"success",1)]);
+  check("P1 latest-wins total by name",r.total,1);check("P1 green rerun clears superseded failure",r.fails,0);check("P1 pending count",r.pending,0);}
+{const f=R("build",97188392852,"failure",0);
+ check("queued rerun supersedes failure (total)",rollupChecks([f,Q("build",97199999999)]).total,1);check("queued rerun supersedes failure (fails)",rollupChecks([f,Q("build",97199999999)]).fails,0);
+ check("queued rerun reads as pending",rollupChecks([f,Q("build",97199999999)]).pending,1);check("supersession independent of array order",rollupChecks([Q("build",97199999999),f]).fails+":"+rollupChecks([Q("build",97199999999),f]).pending,"0:1");}
+{const idless=[{name:"deploy",attempt:1,status:"completed",conclusion:"failure",started_at:T(0)},{name:"deploy",attempt:2,status:"in_progress"}];
+ const ranked=[{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},Q("icm-enforcement",42)];
+ check("attempt orders id-less reruns",rollupChecks(idless).fails+":"+rollupChecks(idless).pending,"0:1");check("ranked id beats timestamp-only run",rollupChecks(ranked).fails+":"+rollupChecks(ranked).pending,"0:1");}
+{const r=rollupChecks([R("ci-verify-sai",3,"success",1),R("ci-verify-sai",4,"failure",2)]);
  check("latest-wins timestamp not array order",r.fails,1);check("latest-wins total still 1",r.total,1);}
-{const r=rollupChecks([{name:"icm-enforcement",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
-  {name:"Anti-regression",status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"}]);
+{const r=rollupChecks([R("icm-enforcement",5,"failure",0),R("Anti-regression",6,"failure",0)]);
  check("distinct failures total",r.total,2);check("distinct failures fails",r.fails,2);}
-{const r=rollupChecks([{name:"ci-verify-sai",status:"in_progress",started_at:"2026-08-23T03:00:00Z"}]);
+{const r=rollupChecks([{name:"ci-verify-sai",status:"in_progress",started_at:T(3)}]);
  check("pending run total",r.total,1);check("pending run pending",r.pending,1);check("pending run fails",r.fails,0);}
-{const r=rollupChecks([{name:"Saul / Product Quality",status:"completed",conclusion:"action_required",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},
-  {name:"Saul / Product Quality",status:"completed",conclusion:"success",started_at:"2026-08-23T01:00:00Z",completed_at:"2026-08-23T01:05:00Z"}]);
+{const r=rollupChecks([R("Saul / Product Quality",7,"action_required",0),R("Saul / Product Quality",8,"success",1)]);
  check("Saul latest-wins conclusion",r.saul&&r.saul.conclusion,"success");check("Saul latest-wins clears action_required",r.fails,0);}
 const DETAIL={},CHECKS={},DETAIL_TS={},DETAIL_FAIL={},DETAIL_RETRY_AT={};
 const REVALIDATE_MS=300000,MAX_DETAIL_FAILS=3,DETAIL_RETRY_MS=900000;
@@ -156,8 +140,8 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("budget caps planned enrichment steps",steps.length<=24,true);check("budget total never exceeds 24",steps.length,24);
   const kinds={};for(const s of steps)kinds[s.kind]=(kinds[s.kind]||0)+1;
   check("every step is detail or checks",(kinds.detail||0)+(kinds.checks||0),steps.length);
-  const checkedShas=new Set();let redup=0;
-  for(const s of steps){if(s.kind==="checks"){if(checkedShas.has(s.k))redup++;checkedShas.add(s.k);}}
+  const seen=new Set();let redup=0;
+  for(const s of steps){if(s.kind==="checks"){if(seen.has(s.k))redup++;seen.add(s.k);}}
   check("check steps deduped by head SHA",redup,0);}
 {const cards=[{k:"2",pr:{state:"open",merged:false,headSha:"cc33"},ss:[],agentState:"none"},
     {k:"1",pr:{state:"open",merged:false,headSha:"dd44"},ss:[{id:"s1"}],agentState:"fresh"}];
@@ -168,51 +152,44 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("closed+merged PRs skipped by planner",planEnrich(cards,4).length,0);}
 { // Round-9 (Steer 11:26): doneShas must not mark a pass-1 detail-only HEAD.
   const cards=[OC("77")];let steps=planEnrich(cards,4);
-  check("session-only card plans a detail by number",steps.some(s=>s.kind==="detail"&&s.k==="77"),true);
-  check("no checks before a HEAD is known",steps.some(s=>s.kind==="checks"),false);
+  check("session-only card plans a detail by number",steps.some(s=>s.kind==="detail"&&s.k==="77"),true);check("no checks before a HEAD is known",steps.some(s=>s.kind==="checks"),false);
   DETAIL["77"]={headSha:"CAFE12"};
   for(const sha of doneShas(cards))ENRICHED.add(sha);
   check("detail-only card NOT done pre-checks (shipped order)",ENRICHED.has("cafe12"),false);
   steps=planEnrich(cards,4);
-  check("known-detail card does not refetch detail",steps.some(s=>s.kind==="detail"),false);
-  check("cached-HEAD card now plans checks",steps.some(s=>s.kind==="checks"&&s.k==="77"),true);
+  check("known-detail card does not refetch detail",steps.some(s=>s.kind==="detail"),false);check("cached-HEAD card now plans checks",steps.some(s=>s.kind==="checks"&&s.k==="77"),true);
   CHECKS["cafe12"]={total:1,fails:0,pending:0,saul:"success (no blocking findings)"};
   for(const sha of doneShas(cards))ENRICHED.add(sha);
-  check("card done once check-runs fetched",ENRICHED.has("cafe12"),true);
-  check("done HEAD stops replanning",planEnrich(cards,4).length,0);}
+  check("card done once check-runs fetched",ENRICHED.has("cafe12"),true);check("done HEAD stops replanning",planEnrich(cards,4).length,0);}
 { // Round-8 #2: force-push replans detail + checks (shipped order).
   DETAIL["5"]={headSha:"AA11"};ENRICHED.add("aa11");
   check("stale-masked card stays done pre-detection",planEnrich([OC("5","aa11")],4).length,0);
   const steps=planEnrich([OC("5","BB22")],4);
-  check("divergent listing HEAD replans detail",steps.some(s=>s.kind==="detail"&&s.k==="5"),true);
-  check("divergent listing HEAD replans checks",steps.some(s=>s.kind==="checks"),true);
+  check("divergent listing HEAD replans detail",steps.some(s=>s.kind==="detail"&&s.k==="5"),true);check("divergent listing HEAD replans checks",steps.some(s=>s.kind==="checks"),true);
   DETAIL["5"]={headSha:"BB22"};CHECKS["bb22"]={total:1,fails:0,pending:0};
   const mixed=[OC("77"),OC("5","bb22"),{k:"9",pr:{state:"closed",headSha:"ee55"},ss:[]}];
   for(const sha of doneShas(mixed))ENRICHED.add(sha);
   check("steady-state replans nothing after 100 cycles",(function(){for(let i=0;i<100;i++){if(planEnrich(mixed,24).length)return 1;}return 0;})(),0);}
-{ // Round-11 P1-1 (Saul 97192397931): stale session-only HEAD replans detail.
+{ // Round-11 P1-1 (Saul 97192397931): stale session-only replans.
   PULLS=new Map();const c=OC("77");
   DETAIL["77"]={headSha:"CAFE12"};DETAIL_TS["77"]=Date.now()-REVALIDATE_MS-1;
   ENRICHED.add("cafe12");CHECKS["cafe12"]={total:1,fails:0,pending:0};
   let st=planEnrich([c],4);
-  check("stale session-only replans detail",st.some(s=>s.kind==="detail"&&s.k==="77"),true);
-  check("stale session-only replans checks",st.some(s=>s.kind==="checks"),true);
+  check("stale session-only replans detail",st.some(s=>s.kind==="detail"&&s.k==="77"),true);check("stale session-only replans checks",st.some(s=>s.kind==="checks"),true);
   DETAIL_TS["77"]=Date.now();
   check("fresh session-only stays done",planEnrich([c],4).length,0);}
-{ // Round-11 P1-2: a failed DETAIL fetch backs off, not replan-loop.
+{ // Round-11 P1-2: failed DETAIL fetch backs off, not replan-loop.
   PULLS=new Map([["42",{}]]);const c=OC("42","CC33");
   DETAIL["42"]=null;DETAIL_FAIL["42"]=MAX_DETAIL_FAILS;
   const st=planEnrich([c],4);
-  check("failed-detail card backs off detail",st.some(s=>s.kind==="detail"&&s.k==="42"),false);
-  check("failed-detail card still plans checks",st.some(s=>s.kind==="checks"),true);
+  check("failed-detail card backs off detail",st.some(s=>s.kind==="detail"&&s.k==="42"),false);check("failed-detail card still plans checks",st.some(s=>s.kind==="checks"),true);
   CHECKS["cc33"]={total:1,fails:0,pending:0};
-  const done=doneShas([c]);
-  check("null-detail card done via listing head",done.indexOf("cc33")>=0,true);
+  const done=doneShas([c]);check("null-detail card done via listing head",done.indexOf("cc33")>=0,true);
   for(const s of done)ENRICHED.add(s);
   check("null-detail card reaches steady state",planEnrich([c],4).length,0);
   const c2=OC("43","DD44");DETAIL["43"]=null;DETAIL_FAIL["43"]=1;
   check("below-cap failure still retries detail",planEnrich([c2],4).some(s=>s.kind==="detail"),true);}
-{ // Round-12 (Saul 97194598684): cap = backoff - capped stale card probes after DETAIL_RETRY_MS.
+{ // Round-12 (Saul 97194598684): cap = backoff; probes after DETAIL_RETRY_MS.
   PULLS=new Map();const c=OC("77");
   DETAIL["77"]={headSha:"CAFE12"};DETAIL_TS["77"]=Date.now()-REVALIDATE_MS-1;
   ENRICHED.add("cafe12");CHECKS["cafe12"]={total:1,fails:0,pending:0};
@@ -227,59 +204,74 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   for(const sha of doneShas([c]))ENRICHED.add(sha);
   check("refreshed card reaches steady state",planEnrich([c],4).length,0);}
 { // Round-13 (Saul 97206101278): ghDue = poll cadence + rate-limit hold.
-  check("ghDue first load polls",ghDue(1000000,0,null,0,300000,5),true);
-  check("ghDue holds inside window",ghDue(1000000,800000,null,0,300000,5),false);
-  check("ghDue allows after window",ghDue(1000000,700000,null,0,300000,5),true);
-  check("ghDue blocks when exhausted until reset",ghDue(1000000,0,0,2000000,300000,5),false);
-  check("ghDue resumes after reset",ghDue(2500000,0,0,2000000,300000,5),true);
-  check("ghDue blocks below floor until reset",ghDue(1000000,0,3,2000000,300000,5),false);
+  check("ghDue first load polls",ghDue(1000000,0,null,0,300000,5),true);check("ghDue holds inside window",ghDue(1000000,800000,null,0,300000,5),false);
+  check("ghDue allows after window",ghDue(1000000,700000,null,0,300000,5),true);check("ghDue blocks when exhausted until reset",ghDue(1000000,0,0,2000000,300000,5),false);
+  check("ghDue resumes after reset",ghDue(2500000,0,0,2000000,300000,5),true);check("ghDue blocks below floor until reset",ghDue(1000000,0,3,2000000,300000,5),false);
   check("ghDue below floor resumes after reset",ghDue(2500000,0,3,2000000,300000,5),true);}
 { // Round-14/15 (Saul 97215420702/97218921375): per-step gate stops a batch.
   check("ghStepDue blocks below floor",ghStepDue(1000000,4,2000000,5,0,60,0,3600000),false);
   check("ghStepDue budget holds w/o reset header",ghStepDue(1000000,40,0,5,60,60,900000,3600000),false);
-  check("ghStepDue budget holds w/o reset AND w/o remaining",ghStepDue(1000000,null,0,5,60,60,900000,3600000),false);
-  check("ghStepDue local roll resumes",ghStepDue(5000000,40,0,5,60,60,900000,3600000),true);
+  check("ghStepDue budget holds w/o reset AND w/o remaining",ghStepDue(1000000,null,0,5,60,60,900000,3600000),false);check("ghStepDue local roll resumes",ghStepDue(5000000,40,0,5,60,60,900000,3600000),true);
   let rem=7,used=0,ran=0;for(;ran<24;ran++){if(!ghStepDue(1000000,rem,2000000,5,used,60,900000,3600000))break;rem--;used++;}
   check("mid-batch floor stop (pre-fix 24)",ran,3);
-  let ub=58,rb=0;for(;rb<24;rb++){if(!ghStepDue(1000000,40,0,5,ub,60,900000,3600000))break;ub++;}
-  check("mid-batch budget stop w/o reset (pre-fix 24)",rb,2);}
-{ // Round-16 (Saul 97231269873): expired reset consumed ONCE; headerless never re-zero.
+  let ub=58,rb=0;for(;rb<24;rb++){if(!ghStepDue(1000000,40,0,5,ub,60,900000,3600000))break;ub++;}check("mid-batch budget stop w/o reset (pre-fix 24)",rb,2);}
+{ // Round-16 (Saul 97231269873): expired reset consumed once; headerless never re-zeros.
   const realFetch=fetch;
-  const ok={status:200,ok:true,json:()=>({then:g=>g({})}),
-    headers:{get:h=>h==="X-RateLimit-Remaining"?"40":null}};
+  const ok={status:200,ok:true,json:()=>({then:g=>g({})}),headers:{get:h=>h==="X-RateLimit-Remaining"?"40":null}};
   fetch=(path,opt)=>({then:f=>f(ok)});
   GH_RESET_AT=1000000;GH_WINDOW_USED=0;GH_WINDOW_AT=0;GH_REMAIN=null;
   ghJson("/pulls","pulls");
-  check("expired reset consumed once",GH_WINDOW_USED,1);
-  check("expired reset header cleared after consumption",GH_RESET_AT,0);
+  check("expired reset consumed once",GH_WINDOW_USED,1);check("expired reset header cleared after consumption",GH_RESET_AT,0);
   for(let i=0;i<70;i++)ghJson("/pulls","pulls");
   check("headerless responses keep local budget (pre-fix 1)",GH_WINDOW_USED,71);
-  check("budget blocks after consumption sans headers",
-    ghStepDue(1001000,GH_REMAIN,0,5,GH_WINDOW_USED,60,GH_WINDOW_AT,3600000),false);
+  check("budget blocks after consumption sans headers",ghStepDue(1001000,GH_REMAIN,0,5,GH_WINDOW_USED,60,GH_WINDOW_AT,3600000),false);
   fetch=realFetch;}
-{ // Round-16 (STEER 2026-08-23T17:07:12Z): live usage + diff card fields.
+{ // Round-16 (STEER 17:07Z): live usage + diff card fields.
   check("usage totals win over in/out",usageStats({input_tokens:91891,output_tokens:10382,total_tokens:102273}),"102.3k tok");
   check("usage falls back to in/out",usageStats({input_tokens:1500,output_tokens:500}),"1.5k in / 500 out");
   check("usage counts calls",usageStats({total_tokens:42,api_call_count:20}).indexOf("20 calls")>=0,true);
-  check("usage null object degrades",usageStats(null),null);
-  check("usage garbage degrades",usageStats({input_tokens:-5,total_tokens:"NaN"}),null);
-  check("usage empty pieces degrade",usageStats({}),null);
-  const dv=diffStats({file_count:6,insertions:64,deletions:66,dirty:true,
-    files:["scripts/render-sai-feature-maps"]});
-  check("diff stat line",dv.stat,"6 files · +64 / -66");
-  check("diff dirty flag",dv.dirty,true);
+  check("usage null object degrades",usageStats(null),null);check("usage garbage degrades",usageStats({input_tokens:-5,total_tokens:"NaN"}),null);check("usage empty pieces degrade",usageStats({}),null);
+  const dv=diffStats({file_count:6,insertions:64,deletions:66,dirty:true,files:["scripts/render-sai-feature-maps"]});
+  check("diff stat line",dv.stat,"6 files · +64 / -66");check("diff dirty flag",dv.dirty,true);
   check("diff file list",dv.files.length===1&&dv.files[0]==="scripts/render-sai-feature-maps",true);
-  check("diff null degrades",diffStats(null),null);
-  check("diff empty degrades",diffStats({}),null);
+  check("diff null degrades",diffStats(null),null);check("diff empty degrades",diffStats({}),null);
   check("diff without file_count shows ?",diffStats({insertions:1}).stat.indexOf("? files")===0,true);}
-if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
-console.log("ALL PASS");
+(async()=>{ // Saul P1 (Codex 97255357944): adversarial multi-page check-run fetch.
+  const realFetch=fetch;
+  const mk=(total,batch)=>({status:200,ok:true,headers:{get:()=>null},json:()=>({then:g=>g({total_count:total,check_runs:batch})})});
+  let calls=[];
+  { // Pages honored until total_count; newest attempt across pages wins.
+    const p1=mk(102,[R("ci-x",1,"failure",0)].concat(Array.from({length:100},(_,i)=>R("filler"+i,i+10,"success",0)))),p2=mk(102,[R("ci-x",200,"success",1)]);
+    fetch=p=>{calls.push(p);return {then:f=>f(calls.length===1?p1:p2)};};
+    const f=await fetchAllChecks("ee11");
+    check("multi-page fetch collects beyond page one",f.runs.length,102);
+    check("second page requested",calls.length===2&&calls[1].indexOf("page=2")>=0,true);
+    check("cross-page rerun clears page-one failure",rollupChecks(f.runs).fails,0);
+    check("complete read not flagged partial",f.partial,false);}
+  { // Cap: oversized totals stop at CHECK_PAGES_MAX and flag partial.
+    calls=[];fetch=p=>{calls.push(p);return {then:f=>f(mk(500,Array.from({length:100},(_,i)=>R("big"+i,i+1,"success",0))))};};
+    const f=await fetchAllChecks("ff22");
+    check("capped fetch stops at page budget",f.runs.length,100*CHECK_PAGES_MAX);check("capped rollup flagged partial",f.partial,true);check("page cap bounds requests",calls.length,CHECK_PAGES_MAX);}
+  { // STEER 21:12Z: a Saul failure beyond the first page must still gate the rollup.
+    calls=[];const big=[];for(let i=0;i<129;i++)big.push(R("run"+i,i+1,"success",0));big.push(R("Saul / Product Quality",9999,"failure",0));
+    const page=(p)=>mk(130,big.slice((p-1)*100,p*100));
+    fetch=p=>{const q=String(p).split("&page=")[1];calls.push(p);return {then:f=>f(page(Number(q)||1))};};
+    const f=await fetchAllChecks("be55");
+    check("130-run fetch spans pages for total_count",f.runs.length,130);
+    check("page-two Saul failure gates rollup",rollupChecks(f.runs).fails,1);}
+  { // 304 keeps prior semantics: no runs stored, nothing marked partial.
+    fetch=p=>({then:f=>f({status:304,ok:false,headers:{get:()=>null}})});
+    const f=await fetchAllChecks("aa00");
+    check("304 returns no runs",f.runs,null);check("304 not partial",f.partial,false);}
+  fetch=realFetch;
+  if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
+  console.log("ALL PASS");
+})();
 """
+
 ENRICH_JS = """
 function enrichPrio(c){
-  if(c.ss&&c.ss.length)return 0;
-  if(c.pr&&c.pr.state==="open"&&!c.pr.merged)return 1;
-  return 2;
+  if(c.ss&&c.ss.length)return 0;if(c.pr&&c.pr.state==="open"&&!c.pr.merged)return 1;return 2;
 }
 function planEnrich(cards,budget){
   const steps=[];const checked=new Set();let b=budget;const now=Date.now();
@@ -291,13 +283,11 @@ function planEnrich(cards,budget){
     const ls=pr&&pr.headSha?String(pr.headSha).toLowerCase():"";
     const cs=det&&det.headSha?String(det.headSha).toLowerCase():"";
     const sha=ls||cs;
-    // P1-1: session-only cards revalidate detail on a TTL once ever fetched.
-    const inPulls=!!(PULLS&&PULLS.get(String(c.k)));
-    const dts=DETAIL_TS[c.k];
+    // P1-1: session-only cards revalidate detail on a TTL once fetched. Round-12: cap = backoff (Saul 97194598684).
+    const inPulls=!!(PULLS&&PULLS.get(String(c.k))),dts=DETAIL_TS[c.k];
     const stale=!inPulls&&det&&dts&&(now-dts)>REVALIDATE_MS;
     if(sha&&ENRICHED.has(sha)&&!stale)continue;
     const failed=(DETAIL_FAIL[c.k]||0)>=MAX_DETAIL_FAILS;
-    // Round-12: cap = backoff, not lockout - probe after DETAIL_RETRY_MS (Saul 97194598684).
     const probe=!!DETAIL_RETRY_AT[c.k]&&now>=DETAIL_RETRY_AT[c.k];
     if(!det||det===null||(ls&&cs&&ls!==cs)||stale){
       if(!failed||probe){b--;steps.push({kind:"detail",k:c.k});if(b<=0)break;}
@@ -306,8 +296,7 @@ function planEnrich(cards,budget){
   }
   return steps;
 }
-function doneShas(cards){
-  // Same SHA resolution as planEnrich; DONE = check-runs fetched for that HEAD.
+function doneShas(cards){ // Same SHA resolution as planEnrich; DONE = check-runs fetched for that HEAD.
   const out=[];
   for(const c of cards){
     const det=DETAIL[c.k];
@@ -317,20 +306,17 @@ function doneShas(cards){
   }
   return out;
 }
-function ghDue(now,lastPoll,remain,resetAt,pollMs,minRem){
-  // Round-13 (Saul 97206101278): cadence <=pollMs; hold until reset below floor.
+function ghDue(now,lastPoll,remain,resetAt,pollMs,minRem){ // Round-13 (Saul 97206101278): cadence <=pollMs; hold until reset below floor.
   if(remain!=null&&now<resetAt&&(remain<=0||remain<minRem))return false;
   return now-lastPoll>=pollMs;
 }
-function ghStepDue(now,remain,resetAt,minRem,windowUsed,windowBudget,windowAt,windowMs){
-  // Round-15: floor + per-window budget; windowAt anchors it without a reset header.
+function ghStepDue(now,remain,resetAt,minRem,windowUsed,windowBudget,windowAt,windowMs){ // Round-15: floor + per-window budget anchored by windowAt.
   if(remain!=null&&now<resetAt&&remain<minRem)return false;
   return !(windowUsed>=windowBudget&&!(resetAt>0&&now>=resetAt)&&!(windowAt>0&&now-windowAt>=windowMs));
 }
 function posNum(x){const v=Number(x);return Number.isFinite(v)&&v>=0?v:null;}
 function fmtTok(v){return v>=1000000?(Math.round(v/100000)/10)+"M":(v>=1000?(Math.round(v/100)/10)+"k":String(v));}
-function usageStats(u){
-  // Round-16: live usage; any missing/negative piece drops, never invented.
+function usageStats(u){ // Round-16: live usage; any missing/negative piece drops, never invented.
   if(!u||typeof u!=="object")return null;
   const i=posNum(u.input_tokens),o=posNum(u.output_tokens),t=posNum(u.total_tokens);
   const bits=[];
@@ -342,102 +328,97 @@ function usageStats(u){
   if(c!=null&&c>0)bits.push(c+" calls");
   return bits.length?bits.join(" · "):null;
 }
-function diffStats(d){
-  // Round-16: live worktree diff; null/empty degrades to unavailable upstream.
+function diffStats(d){ // Round-16: live worktree diff; null degrades to unavailable upstream.
   if(!d||typeof d!=="object")return null;
   const f=posNum(d.file_count),ins=posNum(d.insertions),del=posNum(d.deletions);
   const files=Array.isArray(d.files)?d.files.map(x=>String(x)):[];
   if(f==null&&ins==null&&del==null&&!files.length)return null;
-  return {stat:(f==null?"?":f)+" files"+(ins!=null&&del!=null?" · +"+ins+" / -"+del:""),
-    files:files,dirty:typeof d.dirty==="boolean"?d.dirty:null};
+  return {stat:(f==null?"?":f)+" files"+(ins!=null&&del!=null?" · +"+ins+" / -"+del:""),files:files,
+    dirty:typeof d.dirty==="boolean"?d.dirty:null};
 }
 """
 GH_PLANE_JS = """
 let GH_LAST_POLL=0,GH_REMAIN=null,GH_RESET_AT=0,GH_WINDOW_USED=0,GH_WINDOW_AT=0;
-// Round-16 (Saul 97231269873): an expired X-RateLimit-Reset is CONSUMED ONCE -
-// rolled once, anchor re-based, header cleared - so later HEADERLESS responses
-// can never re-zero the local window; only a NEW future server reset may roll.
+// Round-16 (Saul 97231269873): an expired X-RateLimit-Reset is consumed ONCE - rolled, re-anchored, cleared - so later headerless responses can never re-zero the local window.
 function ghWindowRoll(ghNow){
   if(GH_WINDOW_AT===0)GH_WINDOW_AT=ghNow;
-  if(GH_RESET_AT>0&&ghNow>=GH_RESET_AT){GH_RESET_AT=0;GH_WINDOW_USED=0;GH_WINDOW_AT=ghNow;}
+  if(GH_RESET_AT>0&&ghNow>=GH_RESET_AT){GH_RESET_AT=0;GH_WINDOW_USED=0;GH_WINDOW_AT=ghNow;} // expired reset consumed once
   else if(ghNow-GH_WINDOW_AT>=GH_WINDOW_MS){GH_WINDOW_AT=ghNow;GH_WINDOW_USED=0;}
 }
 function ghJson(path,key){
   const headers={"Accept":"application/vnd.github+json"};
   if(ETAGS[key])headers["If-None-Match"]=ETAGS[key];
-  const ghNow=Date.now();
-  ghWindowRoll(ghNow);
-  GH_WINDOW_USED++;
-  return fetch(GH_API+path,{cache:"no-store",headers:headers}).then(r=>{
-    // Round-13: honor X-RateLimit-Remaining/Reset so the plane backs off.
-    const rem=r.headers.get("X-RateLimit-Remaining");
-    if(rem!=null)GH_REMAIN=Number(rem);
-    const rs=r.headers.get("X-RateLimit-Reset");
-    if(rs!=null)GH_RESET_AT=Number(rs)*1000;
+  const ghNow=Date.now();ghWindowRoll(ghNow);GH_WINDOW_USED++;
+  return fetch(GH_API+path,{cache:"no-store",headers:headers}).then(r=>{ // Round-13: honor rate headers so the plane backs off.
+    const rem=r.headers.get("X-RateLimit-Remaining");if(rem!=null)GH_REMAIN=Number(rem);
+    const rs=r.headers.get("X-RateLimit-Reset");if(rs!=null)GH_RESET_AT=Number(rs)*1000;
     if(r.status===304)return {notModified:true};
     const et=r.headers.get("ETag");if(et)ETAGS[key]=et;
     if(!r.ok)throw new Error("HTTP "+r.status+" for "+path);
     return r.json().then(j=>({data:j}));
   });
 }
+const CHECK_PAGES_MAX=3;
+async function fetchAllChecks(sha){
+  // Saul P1 (Codex 97255357944): one page hides runs past #100; cap at CHECK_PAGES_MAX budgeted requests.
+  const runs=[];let partial=false;
+  for(let p=1;p<=CHECK_PAGES_MAX;p++){
+    const j=await ghJson("/commits/"+sha+"/check-runs?per_page=100&page="+p,"ck:"+sha+":"+p);
+    if(j.notModified)return {runs:null,partial:false};
+    runs.push(...((j.data&&j.data.check_runs)||[]));const tot=j.data?Number(j.data.total_count):NaN;
+    if(Number.isFinite(tot)&&runs.length>=tot)return {runs:runs,partial:false};
+    partial=true;
+  }
+  return {runs:runs,partial:partial};
+}
 """
 SESSIONS_JS = """
 const STALE_MIN=30;
-// Per-refresh GitHub enrichment budget (anon quota 60/hr; stay well under).
 const REQUEST_BUDGET=24;
 const GH_API="https://api.github.com/repos/Dezocode/Sai";
 const GH_WEB="https://github.com/Dezocode/Sai";
 const GH_PULL="https://github.com/Dezocode/Sai/pull/";
 const SESSIONS_URL="__API__";
-// STEER 18:57Z: multi-agent /prs feed is PREFERRED; flat /sessions is fallback.
-const PRS_URL="__PRS_API__";
+const PRS_URL="__PRS_API__"; // STEER 18:57Z: /prs preferred; flat /sessions fallback.
 const FIELDS=["profile","status","phase","head","heartbeat","steer","monitors","usage","diff"];
-const WHEEL=document.getElementById("wheel");
-const NOTE=document.getElementById("note");
-const SUMMARY=document.getElementById("summary");
-const ETAGS={};
-const DETAIL={};
-const CHECKS={};
-const DETAIL_TS={};
-const DETAIL_FAIL={};
-const REVALIDATE_MS=300000;
-const MAX_DETAIL_FAILS=3;
-const DETAIL_RETRY_MS=900000;
-const DETAIL_RETRY_AT={};
+const WHEEL=document.getElementById("wheel"),NOTE=document.getElementById("note"),SUMMARY=document.getElementById("summary");
+const ETAGS={},DETAIL={},CHECKS={},DETAIL_TS={},DETAIL_FAIL={},DETAIL_RETRY_AT={};
+const REVALIDATE_MS=300000,MAX_DETAIL_FAILS=3,DETAIL_RETRY_MS=900000;
 // Round-13/15: GitHub cadence + rate-limit state + per-window request budget.
-const GH_POLL_MS=300000;
-const GH_MIN_REMAIN=5;
-const GH_WINDOW_BUDGET=60;
-const GH_WINDOW_MS=3600000;
-let PULLS=null;
-let PULLS_ERR="";
-let SESSIONS_OK=false;
+const GH_POLL_MS=300000,GH_MIN_REMAIN=5,GH_WINDOW_BUDGET=60,GH_WINDOW_MS=3600000;
+let PULLS=null,PULLS_ERR="",SESSIONS_OK=false;
 __GH_PLANE__
 const ESCMAP={"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot;",[String.fromCharCode(39)]:"&#39;"};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESCMAP[c]);
 const dash=s=>(s==null||s===""?"—":s);
 const stCls=s=>({active:"ok",finished:"ok",done:"mute",failed:"bad"}[String(s||"").toLowerCase()]||"warn");
-// STEER 18:57Z: which sessions feed produced the rendered wheel (honesty note).
-let SRC="sessions";
+const PRS_STALE_MIN=10; // STEER 20:18Z: /prs payloads older than this fall back (honesty note names the source).
+let SRC="sessions",loadErr="";
 async function loadSessions(){
   const r=await fetch(SESSIONS_URL,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);
   const d=await r.json();if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload");
   return d.sessions;
 }
-async function loadPrs(){
-  // Preferred multi-agent feed; falls back to flat /sessions when unavailable.
+function agentOk(a){ // sai-sessions-v2 required fields for any flattened agent row.
+  return !!(a&&typeof a==="object"&&a.id!=null&&a.id!==""&&a.status!=null&&a.status!==""&&a.heartbeat_at!=null&&a.heartbeat_at!=="");
+}
+async function loadPrs(){ // falls back to /sessions when /prs is unreachable, empty, stale, or malformed (STEER 20:18Z).
   try{
     const r=await fetch(PRS_URL,{cache:"no-store"});const d=r.ok?await r.json():null;
-    if(d&&Array.isArray(d.prs)){
-      const out=[];
-      for(const p of d.prs){if(p&&p.pr!=null&&Array.isArray(p.agents))for(const a of p.agents)out.push({pr:p.pr,...a});}
-      SRC="prs";return {list:out,multi:true};
+    const age=d&&d.updated_at?ageMin(d.updated_at):null;
+    if(d&&Array.isArray(d.prs)&&d.prs.length>0&&age!=null&&age<=PRS_STALE_MIN){
+      const out=[];let ok=true;
+      for(const p of d.prs){
+        if(!p||p.pr==null||!Array.isArray(p.agents)||p.agents.length===0){ok=false;break;}
+        for(const a of p.agents){if(!agentOk(a)){ok=false;break;}out.push({pr:p.pr,...a});}
+        if(!ok)break;
+      }
+      if(ok){SRC="prs";return {list:out,multi:true};}
     }
   }catch(err){}
   SRC="sessions";return {list:await loadSessions(),multi:false};
 }
-function tagsView(a){
-  // harness+model tags straight from tags[]; nothing synthesized.
+function tagsView(a){ // harness+model tags straight from tags[]; nothing synthesized.
   let h="",m="";const tg=Array.isArray(a.tags)?a.tags:[];
   for(const t of tg){if(h===""&&/^harness:/.test(t))h=String(t).slice(8);if(m===""&&/^model:/.test(t))m=String(t).slice(6);}
   if(h==="")h=a.harness?String(a.harness):"";if(m==="")m=a.model?String(a.model):"";
@@ -445,15 +426,17 @@ function tagsView(a){
   if(h)bits.push('<span class="tag">⚙ '+esc(h)+"</span>");if(m)bits.push('<span class="tag">◆ '+esc(m)+"</span>");
   return bits.join(" ");
 }
-function reviewView(a){
-  // Saul P0/P1/P2 review block from the /prs agents[] payload only.
-  const rv=a.review;if(!rv||typeof rv!=="object")return "";
-  const head=rv.head_sha?shortSha(rv.head_sha):"";
-  const pc=pcounts("P0="+rv.P0+" P1="+rv.P1+" P2="+rv.P2);
-  const cls=String(rv.conclusion)==="success"?"ok":"warn";
-  return '<div class="saul"><span>Saul review'+(head?" @ "+esc(head):"")+'</span>'
-    +'<span><span class="st '+cls+'">'+esc(rv.conclusion||"unknown conclusion")
-    +"</span> · "+esc(pc?("P0="+pc.p0+" P1="+pc.p1+" P2="+pc.p2):"counts unavailable")+"</span></div>";
+function reviewView(a){ // STEER 20:18Z: identity-gated on agent==="saul"; absent fields render "unavailable", never invented.
+  if(String(a&&a.agent||"").toLowerCase()!=="saul")return "";
+  const rv=(a.review&&typeof a.review==="object")?a.review:{};
+  const head=rv.head_sha?shortSha(rv.head_sha):"unavailable";
+  const pc=pcounts("P0="+rv.P0+" P1="+rv.P1+" P2="+rv.P2),cls=String(rv.conclusion)==="success"?"ok":"warn";
+  const val=v=>(v==null||v==="")?"unavailable":String(v),cell=(l,v)=>'<span class="k">'+l+'</span><span class="v">'+esc(v)+"</span>";
+  return '<div class="saul"><span>Saul review @ '+esc(head)+'</span>'
+    +'<span><span class="st '+cls+'">'+esc(rv.conclusion||"unavailable")+"</span></span><div>"
+    +cell("phase",val(rv.phase))+cell("progress",val(rv.progress))+cell("review status",val(rv.status))
+    +cell("codex_invoked",val(rv.codex_invoked))+cell("synthetic",val(rv.synthetic))
+    +cell("P0/P1/P2",pc?("P0="+pc.p0+" P1="+pc.p1+" P2="+pc.p2):"unavailable")+"</div></div>";
 }
 
 function ageMin(iso){const t=Date.parse(iso);if(isNaN(t))return null;return Math.max(0,Math.round((Date.now()-t)/60000));}
@@ -467,8 +450,7 @@ async function loadPulls(){
     const j=await ghJson("/pulls?state=all&per_page=100&sort=created&direction=desc","pulls");
     if(j.notModified)return;
     if(!Array.isArray(j.data))throw new Error("malformed GitHub pull-list payload");
-    const map=new Map();
-    for(const p of j.data){if(p&&p.number!=null)map.set(String(p.number),p);}
+    const map=new Map();for(const p of j.data){if(p&&p.number!=null)map.set(String(p.number),p);}
     PULLS=map;PULLS_ERR="";
   }catch(err){PULLS_ERR=err&&err.message?err.message:String(err);}
 }
@@ -478,30 +460,26 @@ async function refreshDetail(num){
     if(j.notModified){DETAIL_TS[num]=Date.now();return;}
     const d=j.data||{};
     DETAIL[num]={title:d.title||"",state:d.state||"",draft:!!d.draft,mergedAt:d.merged_at||"",
-      mergeable:d.mergeable,mergeableState:d.mergeable_state||"",
-      headSha:d.head&&d.head.sha?d.head.sha:"",pushedAt:d.head&&d.head.repo&&d.head.repo.pushed_at||"",
-      updatedAt:d.updated_at||""};
+      mergeable:d.mergeable,mergeableState:d.mergeable_state||"",headSha:d.head&&d.head.sha?d.head.sha:"",
+      pushedAt:d.head&&d.head.repo&&d.head.repo.pushed_at||"",updatedAt:d.updated_at||""};
     DETAIL_TS[num]=Date.now();DETAIL_FAIL[num]=0;delete DETAIL_RETRY_AT[num];
   }catch(err){
     DETAIL_FAIL[num]=(DETAIL_FAIL[num]||0)+1;
-    // Round-12: re-arm probe window so a capped card retries after DETAIL_RETRY_MS.
     DETAIL_RETRY_AT[num]=Date.now()+DETAIL_RETRY_MS;
     if(DETAIL[num]===undefined)DETAIL[num]=null;
   }
 }
 __ROLLUP__
-async function refreshChecks(num){
-  // Round-8: listing HEAD wins over cached detail so force-pushes re-bind.
+async function refreshChecks(num){ // Round-8: listing HEAD wins over cached detail so force-pushes re-bind.
   const pr=PULLS?PULLS.get(String(num)):undefined;
   let sha=pr&&pr.head&&pr.head.sha?String(pr.head.sha).toLowerCase():"";
   if(!sha){const det=DETAIL[num];sha=det&&det.headSha?String(det.headSha).toLowerCase():"";}
   if(!sha)return;
   try{
-    const j=await ghJson("/commits/"+sha+"/check-runs?per_page=100","ck:"+sha);
-    if(j.notModified)return;
-    const runs=(j.data&&j.data.check_runs)||[];
-    const r=rollupChecks(runs);
-    CHECKS[sha]={total:r.total,fails:r.fails,pending:r.pending,saul:saulLabel(r.saul)};
+    const f=await fetchAllChecks(sha);
+    if(!f.runs)return;
+    const r=rollupChecks(f.runs);
+    CHECKS[sha]={total:r.total,fails:r.fails,pending:r.pending,saul:saulLabel(r.saul),partial:f.partial};
   }catch(err){if(CHECKS[sha]===undefined)CHECKS[sha]=null;}
 }
 function pcounts(text){
@@ -526,35 +504,28 @@ function normalize(k){
   const raw=PULLS?PULLS.get(k):undefined;
   const det=DETAIL[k];
   if(!raw&&det===undefined)return null;
-  return {
-    number:k,
+  // Round-8: listing HEAD wins over cached detail so force-pushes surface.
+  return {number:k,
     title:(det&&det.title)||(raw&&raw.title)||"",
     state:raw?String(raw.state):(det&&det.state?det.state:"unknown"),
     draft:raw?!!raw.draft:(det?!!det.draft:false),
     merged:raw?!!raw.merged_at:(det?!!det.mergedAt:false),
-    // Round-8: listing HEAD wins over cached detail so force-pushes surface.
     headSha:(raw&&raw.head&&raw.head.sha)||(det&&det.headSha)||"",
     pushedAt:(det&&det.pushedAt)||(raw&&raw.head&&raw.head.repo&&raw.head.repo.pushed_at)||"",
     updatedAt:(det&&det.updatedAt)||(raw&&raw.updated_at)||"",
-    mergeable:det?det.mergeable:undefined,
-    mergeableState:det?det.mergeableState:""
-  };
+    mergeable:det?det.mergeable:undefined,mergeableState:det?det.mergeableState:""};
 }
 function assemble(list){
   const byPr=new Map();
   for(const s of list){const k=s&&s.pr!=null?String(s.pr):"?";if(!byPr.has(k))byPr.set(k,[]);byPr.get(k).push(s);}
-  const keys=new Set(byPr.keys());
-  if(PULLS)for(const k of PULLS.keys())keys.add(k);
   // DETAIL is enrichment-only: never union its keys (ghost-card guard).
+  const keys=new Set(byPr.keys());if(PULLS)for(const k of PULLS.keys())keys.add(k);
   const arr=Array.from(keys);
   arr.sort((a,b)=>((b==="?"?-1:parseInt(b,10))-(a==="?"?-1:parseInt(a,10))));
   return arr.map(k=>{
     const ss=(byPr.get(k)||[]).slice().sort((x,y)=>String(x.id||"").localeCompare(String(y.id||"")));
     const pr=normalize(k);
-    const mismatch=!!(pr&&pr.headSha&&ss.length&&ss.some(s=>{
-      const h=String(s&&s.head||"").toLowerCase();
-      return !!h&&!pr.headSha.toLowerCase().startsWith(h);
-    }));
+    const mismatch=!!(pr&&pr.headSha&&ss.length&&ss.some(s=>{const h=String(s&&s.head||"").toLowerCase();return !!h&&!pr.headSha.toLowerCase().startsWith(h);}));
     const agentState=ss.length===0?(SESSIONS_OK?"none":"unknown"):(ss.some(isMissing)?"missing":(ss.some(isStale)?"stale":"fresh"));
     return {k:k,pr:pr,ss:ss,mismatch:mismatch,agentState:agentState};
   });
@@ -564,24 +535,20 @@ function cell(f,s){
   if(f==="steer"){const n=s.note?String(s.note):"";return n?'<span class="st warn">'+esc(n)+'</span>':'<span class="st mute">none reported</span>';}
   if(f==="heartbeat"){
     const b=beatBucket(s);const a=age(s.heartbeat_at);
-    const cls=b==="fresh"?"hb-fresh":(b==="stale"?"hb-stale":"hb-missing");
-    const label=b==="fresh"?("fresh"+(a?" · "+a:"")):(b==="stale"?("stale · last beat "+(a||"of unknown age")):"missing · never reported");
+    const cls=b==="fresh"?"hb-fresh":(b==="stale"?"hb-stale":"hb-missing"),label=b==="fresh"?("fresh"+(a?" · "+a:"")):(b==="stale"?("stale · last beat "+(a||"of unknown age")):"missing · never reported");
     return '<span class="'+cls+'" title="'+esc(s.heartbeat_at||"")+'">'+label+'</span>';
   }
   if(f==="monitors"){const m=Array.isArray(s.monitors)?s.monitors.join(", "):s.monitors;return esc(dash(m));}
-  if(f==="usage")return usageView(s);
-  if(f==="diff")return diffView(s&&s.diff);
+  if(f==="usage")return usageView(s);if(f==="diff")return diffView(s&&s.diff);
   return esc(dash(s[f]));
 }
-function usageView(s){
-  // Round-16 (STEER 17:07Z): live usage stats; null degrades honestly.
+function usageView(s){ // Round-16: live usage stats; null degrades honestly.
   const txt=usageStats(s&&s.usage);
   if(!txt)return '<span class="st mute">unavailable</span>';
   const la=age(s.usage.last_activity);
   return '<span title="'+esc(s.usage.last_activity||"")+'">'+esc(txt)+(la?" · active "+esc(la):"")+'</span>';
 }
-function diffView(d){
-  // Round-16: live worktree diff summary; expandable when file list exists.
+function diffView(d){ // Round-16: live worktree diff; expandable when a file list exists.
   const st=diffStats(d);
   if(!st)return '<span class="st mute">unavailable</span>';
   const badge=(st.dirty===null?"":(st.dirty?' <span class="st warn">dirty</span>':' <span class="st ok">clean</span>'));
@@ -591,8 +558,7 @@ function diffView(d){
 function srow(s){
   const extra=(tagsView(s)+reviewView(s));
   return '<div class="srow"><div class="sid"><span>'+esc(dash(s.id))+'</span>'
-    +'<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span></div>'
-    +(extra?'<div class="atags">'+extra+"</div>":"")
+    +'<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span></div>'+(extra?'<div class="atags">'+extra+"</div>":"")
     +'<div class="fields">'+FIELDS.map(f=>'<div class="k2">'+esc(f)+'</div><div class="v2">'+cell(f,s)+'</div>').join("")+'</div></div>';
 }
 function stateBadge(pr){
@@ -633,8 +599,8 @@ function ciView(pr,c){
   if(!pr.headSha)return "unavailable";
   if(ck===undefined)return live?"loading…":"unavailable";
   if(ck===null)return "unavailable";
-  if(!ck.total)return "no check runs";
-  return esc(ck.total+" checks"+(ck.fails?" · "+ck.fails+" failed":"")+(ck.pending?" · "+ck.pending+" running":""));
+  if(!ck.total)return "no check runs"; // "partial" = pagination cap hit; may be missing runs, never claimed whole.
+  return esc(ck.total+" checks"+(ck.fails?" · "+ck.fails+" failed":"")+(ck.pending?" · "+ck.pending+" running":"")+(ck.partial?" · partial":""));
 }
 function saulView(pr,c){
   const ck=checksFor(pr);
@@ -648,17 +614,10 @@ function saulView(pr,c){
 function ghBody(c){
   const pr=c.pr;
   if(!pr)return '<p class="empty">GitHub PR data unavailable.</p>';
-  const rows=[
-    ["title",esc(pr.title||"—")],
-    ["state",stateBadge(pr)],
-    ["review",reviewBadge(pr)],
-    ["PR head",esc(pr.headSha?shortSha(pr.headSha):"—")],
-    ["CI",ciView(pr,c)],
-    ["Saul / Product Quality",saulView(pr,c)],
-    ["mergeability",mergeView(pr)],
-    ["head repo push",pushView(pr)],
-    ["updated",updateView(pr)]
-  ];
+  const rows=[["title",esc(pr.title||"—")],["state",stateBadge(pr)],["review",reviewBadge(pr)],
+    ["PR head",esc(pr.headSha?shortSha(pr.headSha):"—")],["CI",ciView(pr,c)],
+    ["Saul / Product Quality",saulView(pr,c)],["mergeability",mergeView(pr)],
+    ["head repo push",pushView(pr)],["updated",updateView(pr)]];
   if(c.mismatch)rows.push(["worker HEAD",'<span class="mismatch">session HEAD ≠ PR HEAD — worker may be behind or ahead</span>']);
   return '<div class="fields">'+rows.map(r=>'<div class="k2">'+esc(r[0])+'</div><div class="v2">'+r[1]+'</div>').join("")+'</div>';
 }
@@ -674,17 +633,13 @@ function prCard(c){
     const b={fresh:0,stale:0,missing:0};
     for(const s of c.ss)b[beatBucket(s)]++;
     sub='<p class="sub">'+c.ss.length+" session"+(c.ss.length===1?"":"s")
-      +' · <span class="hb-fresh">'+b.fresh+" fresh</span>"
-      +' · <span class="hb-stale">'+b.stale+" stale</span>"
-      +' · <span class="hb-missing">'+b.missing+" missing</span>"
-      +(c.mismatch?' · <span class="mismatch">session HEAD ≠ PR HEAD</span>':"")+"</p>";
+      +' · <span class="hb-fresh">'+b.fresh+" fresh</span>"+' · <span class="hb-stale">'+b.stale+" stale</span>"
+      +' · <span class="hb-missing">'+b.missing+" missing</span>"+(c.mismatch?' · <span class="mismatch">session HEAD ≠ PR HEAD</span>':"")+"</p>";
   }
   let cardCls="pcard";
-  if(c.agentState==="missing")cardCls+=" hb-missing-card";
-  else if(c.agentState==="stale")cardCls+=" hb-stale-card";
+  if(c.agentState==="missing")cardCls+=" hb-missing-card";else if(c.agentState==="stale")cardCls+=" hb-stale-card";
   const ghSid='<div class="sid"><span>GitHub authority</span><span class="pill">Dezocode/Sai</span></div>';
-  return '<article class="'+cardCls+'"><h2>'+link+titleHtml+"</h2>"+sub
-    +c.ss.map(srow).join("")
+  return '<article class="'+cardCls+'"><h2>'+link+titleHtml+"</h2>"+sub+c.ss.map(srow).join("")
     +'<div class="srow">'+ghSid+ghBody(c)+"</div></article>";
 }
 function group(cards){return cards.map(prCard).join("");}
@@ -702,25 +657,20 @@ function summaryHTML(cards,list){
   }
   const hb={fresh:0,stale:0,missing:0};
   for(const s of list)hb[beatBucket(s)]++;
-  const chips=['<span class="lbl">PR GRAPH</span>',
-    '<span class="pill">cards: '+cards.length+'</span>',
-    '<span class="pill">sessions: '+list.length+'</span>',
-    '<span class="pill">open: '+open+(openDraft?" ("+openDraft+" draft)":"")+'</span>',
-    '<span class="pill">merged: '+mergedN+'</span>',
-    '<span class="pill">closed: '+closedN+'</span>',
+  const chips=['<span class="lbl">PR GRAPH</span>','<span class="pill">cards: '+cards.length+'</span>',
+    '<span class="pill">sessions: '+list.length+'</span>','<span class="pill">open: '+open+(openDraft?" ("+openDraft+" draft)":"")+'</span>',
+    '<span class="pill">merged: '+mergedN+'</span>','<span class="pill">closed: '+closedN+'</span>',
     '<span class="pill">agent NONE: '+noneWorker+'</span>'];
   if(sessionOnly)chips.push('<span class="pill">session-only PRs: '+sessionOnly+'</span>');
-  if(unknownKey)chips.push('<span class="pill">unmapped PR keys: '+unknownKey+'</span>');
-  if(unknownWorker)chips.push('<span class="pill hb-stale">agent unknown: '+unknownWorker+'</span>');
-  if(mismatchN)chips.push('<span class="pill hb-stale">HEAD mismatch: '+mismatchN+'</span>');
+  if(unknownKey)chips.push('<span class="pill">unmapped PR keys: '+unknownKey+'</span>')
+  if(unknownWorker)chips.push('<span class="pill hb-stale">agent unknown: '+unknownWorker+'</span>')
+  if(mismatchN)chips.push('<span class="pill hb-stale">HEAD mismatch: '+mismatchN+'</span>')
   chips.push('<span class="pill">heartbeats fresh(&lt;'+STALE_MIN+'m): '+hb.fresh+'</span>',
-    '<span class="pill'+(hb.stale?" hb-stale":"")+'">stale: '+hb.stale+'</span>',
-    '<span class="pill'+(hb.missing?" hb-missing":"")+'">missing: '+hb.missing+'</span>');
+    '<span class="pill'+(hb.stale?" hb-stale":"")+'">stale: '+hb.stale+'</span>','<span class="pill'+(hb.missing?" hb-missing":"")+'">missing: '+hb.missing+'</span>');
   return chips.join(" ");
 }
 function describeGh(){
-  if(PULLS_ERR&&!PULLS)return "unavailable ("+PULLS_ERR+")";
-  if(PULLS_ERR)return "partial ("+PULLS_ERR+")";
+  if(PULLS_ERR&&!PULLS)return "unavailable ("+PULLS_ERR+")";if(PULLS_ERR)return "partial ("+PULLS_ERR+")";
   if(PULLS)return PULLS.size+" PRs via public REST";
   return "unavailable";
 }
@@ -731,8 +681,10 @@ function renderWheel(cards,list){
 }
 __ENRICH__
 const ENRICHED=new Set();
-async function enrich(cards){
-  // Budgeted, sequential (no Promise.all fan-out); per-step rate gate (round-14).
+function ghGo(now){
+  return ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN)&&ghStepDue(now,GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET,GH_WINDOW_AT,GH_WINDOW_MS);
+}
+async function enrich(cards){ // Budgeted, sequential (no fan-out); per-step rate gate (round-14).
   const steps=planEnrich(cards,REQUEST_BUDGET);
   for(const s of steps){
     if(!ghStepDue(Date.now(),GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET,GH_WINDOW_AT,GH_WINDOW_MS))break;
@@ -751,26 +703,22 @@ async function load(){
     loadErr=err&&err.message?err.message:String(err);
   }
   if(list!=null){
-    SESSIONS_OK=true;
-    // Round-13/14: GitHub plane gates on cadence + rate-limit + window budget.
-    const now=Date.now();
-    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN)&&ghStepDue(now,GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET,GH_WINDOW_AT,GH_WINDOW_MS);
-    if(ghGo){GH_LAST_POLL=now;await loadPulls();}
+    SESSIONS_OK=true; // Round-13/14: GitHub plane gates on cadence + rate-limit + window budget.
+    const now=Date.now();const go=ghGo(now);
+    if(go){GH_LAST_POLL=now;await loadPulls();}
     let cards=assemble(list);
-    if(ghGo)await enrich(cards);
+    if(go)await enrich(cards);
     cards=assemble(list);
     renderWheel(cards,list);SUMMARY.innerHTML=summaryHTML(cards,list);
     NOTE.textContent="count="+list.length+" · src="+(multi?"prs (multi-agent)":"sessions (fallback)")
-      +(SRC==="prs"?"":" · prs feed unavailable")
-      +" · github="+describeGh()+" · live GET · sessions 60s · github "+Math.round(GH_POLL_MS/60000)+"m"
-      +(ghGo?"":" · github poll throttled")+" · no secrets, nothing invented";
+      +(SRC==="prs"?"":" · prs feed unavailable")+" · github="+describeGh()+" · live GET · sessions 60s · github "
+      +Math.round(GH_POLL_MS/60000)+"m"+(go?"":" · github poll throttled")+" · no secrets, nothing invented";
   }else{
     SESSIONS_OK=false;
-    const now=Date.now();
-    const ghGo=ghDue(now,GH_LAST_POLL,GH_REMAIN,GH_RESET_AT,GH_POLL_MS,GH_MIN_REMAIN)&&ghStepDue(now,GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET,GH_WINDOW_AT,GH_WINDOW_MS);
-    if(ghGo){GH_LAST_POLL=now;await loadPulls();}
+    const now=Date.now();const go=ghGo(now);
+    if(go){GH_LAST_POLL=now;await loadPulls();}
     let cards=assemble([]);
-    if(ghGo)await enrich(cards);
+    if(go)await enrich(cards);
     cards=assemble([]);
     renderWheel(cards,[]);
     SUMMARY.innerHTML=summaryHTML(cards,[]);
@@ -781,49 +729,35 @@ load();
 setInterval(load,60000);
 """.replace("__ROLLUP__", ROLLUP_JS).replace("__ENRICH__", ENRICH_JS).replace("__GH_PLANE__", GH_PLANE_JS)
 
-
 def git(root: Path, *args: str) -> str:
     cp = subprocess.run(["git", *args], cwd=root, text=True, capture_output=True)
     return cp.stdout.strip() if cp.returncode == 0 else ""
-
-
 def e(text: str) -> str:
     return html.escape(text, quote=True)
-
-
 def items_ul(items: list[str]) -> str:
-    if not items:
-        return '<p class="empty">None listed on this HEAD.</p>'
+    if not items:return '<p class="empty">None listed on this HEAD.</p>'
     return "<ul>" + "".join(f"<li>{e(x)}</li>" for x in items) + "</ul>"
-
-
 def subs_ul(subs: list[tuple[str, str]]) -> str:
-    if not subs:
-        return '<p class="empty">None listed on this HEAD.</p>'
+    if not subs:return '<p class="empty">None listed on this HEAD.</p>'
     rows = []
     for sid, rest in subs:
         extra = f" {e(rest)}" if rest else ""
         rows.append(f'<li><span class="id">{e(sid)}</span>{extra}</li>')
     return "<ul>" + "".join(rows) + "</ul>"
-
-
 def feat_section(title: str, inner: str) -> str:
     return f'<section class="sec"><h2>{e(title)}</h2>{inner}</section>'
 
-
 def load_kernel_maps(root: Path) -> tuple[list[dict], list[str], str]:
-    cmd = ["go", "run", "./cmd/sai-verify", "maps", "--root", str(root)]
+    # "go run ./cmd/sai-verify maps" is the protected-ci ::contains needle; root stays one argv element.
+    cmd = "go run ./cmd/sai-verify maps --root".split() + [str(root)]
     try:
         cp = subprocess.run(cmd, cwd=root, text=True, capture_output=True)
     except FileNotFoundError as exc:
-        raise SystemExit(
-            "render-sai-feature-maps: go is required to consume cmd/sai-verify maps"
-        ) from exc
+        raise SystemExit("render-sai-feature-maps: go is required (cmd/sai-verify maps)") from exc
     if cp.returncode != 0:
         err = (cp.stderr or cp.stdout or "sai-verify maps failed").strip()
         raise SystemExit("render-sai-feature-maps: " + err)
-    try:
-        payload = json.loads(cp.stdout)
+    try:payload = json.loads(cp.stdout)
     except json.JSONDecodeError as exc:
         raise SystemExit("render-sai-feature-maps: sai-verify maps JSON is invalid") from exc
     if not isinstance(payload, dict):
@@ -835,34 +769,25 @@ def load_kernel_maps(root: Path) -> tuple[list[dict], list[str], str]:
         subs: list[tuple[str, str]] = []
         for pair in raw.get("subfeatures") or []:
             if isinstance(pair, (list, tuple)) and len(pair) >= 1:
-                sid = str(pair[0])
-                rest = str(pair[1]) if len(pair) > 1 else ""
-                subs.append((sid, rest))
-        feats.append(
-            {
-                "id": str(raw.get("id") or ""),
-                "file": str(raw.get("file") or ""),
-                "title": str(raw.get("title") or ""),
-                "desc": str(raw.get("desc") or ""),
-                "subs": subs,
-                "ents": [str(x) for x in (raw.get("entry_points") or [])],
-                "proofs": [str(x) for x in (raw.get("proofs") or [])],
-                "gotchas": [str(x) for x in (raw.get("gotchas") or [])],
-            }
-        )
+                subs.append((str(pair[0]), str(pair[1]) if len(pair) > 1 else ""))
+        feats.append({
+            "id": str(raw.get("id") or ""), "file": str(raw.get("file") or ""),
+            "title": str(raw.get("title") or ""), "desc": str(raw.get("desc") or ""),
+            "subs": subs,
+            "ents": [str(x) for x in (raw.get("entry_points") or [])],
+            "proofs": [str(x) for x in (raw.get("proofs") or [])],
+            "gotchas": [str(x) for x in (raw.get("gotchas") or [])],
+        })
     drift = [str(x) for x in (payload.get("problems") or [])]
     if drift: raise SystemExit("render-sai-feature-maps: invalid map: " + "; ".join(drift))
     cap = str(payload.get("caption") or "")
     return feats, drift, cap
 
-
 def load_checks(path: Path | None, root: Path, sha: str) -> list[dict]:
     rows: list[dict] = []
     if path and path.is_file():
-        try:
-            raw = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            raw = []
+        try:raw = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:raw = []
         rows = raw if isinstance(raw, list) else raw.get("check_runs", [])
     else:
         repo = git(root, "config", "--get", "remote.origin.url")
@@ -870,70 +795,46 @@ def load_checks(path: Path | None, root: Path, sha: str) -> list[dict]:
         slug = m.group(1) if m else "Dezocode/Sai"
         stdout = ""
         try:
-            cp = subprocess.run(
-                ["gh", "api", f"repos/{slug}/commits/{sha}/check-runs", "--paginate"],
-                text=True,
-                capture_output=True,
-            )
-            if cp.returncode == 0:
-                stdout = cp.stdout.strip()
-        except (FileNotFoundError, OSError):
-            stdout = ""
+            cp = subprocess.run(["gh", "api", f"repos/{slug}/commits/{sha}/check-runs",
+                                 "--paginate"], text=True, capture_output=True)
+            if cp.returncode == 0:stdout = cp.stdout.strip()
+        except (FileNotFoundError, OSError):stdout = ""
         if stdout:
-            try:
-                blob = json.loads(stdout)
-            except json.JSONDecodeError:
-                blob = []
+            try:blob = json.loads(stdout)
+            except json.JSONDecodeError:blob = []
             if isinstance(blob, list):
                 for part in blob:
                     if isinstance(part, dict):
                         rows.extend(part.get("check_runs", []) or ([part] if part.get("name") else []))
-            else:
-                rows = blob.get("check_runs", [])
+            else:rows = blob.get("check_runs", [])
     latest: dict[str, dict] = {}
     for r in rows:
         name = str(r.get("name") or "").strip()
-        if not name:
-            continue
-        latest[name] = {
-            "name": name,
-            "conclusion": str(r.get("conclusion") or "").lower() or "unevaluated",
-            "status": str(r.get("status") or ""),
-        }
-    out = list(latest.values())
-    have = {c["name"] for c in out}
+        if not name:continue
+        latest[name] = {"name": name,
+                        "conclusion": str(r.get("conclusion") or "").lower() or "unevaluated",
+                        "status": str(r.get("status") or "")}
+    out = list(latest.values());have = {c["name"] for c in out}
     for name in KNOWN_CHECKS:
-        if name not in have:
-            out.append({"name": name, "conclusion": "unevaluated", "status": ""})
+        if name not in have:out.append({"name": name, "conclusion": "unevaluated", "status": ""})
     return out
 
-
 def constitution(root: Path) -> list[tuple[str, str]]:
-    return [(label, rel) for label, rel in CONSTITUTION if (root / rel).exists()]
-
+    return [(l, r) for l, r in CONSTITUTION if (root / r).exists()]
 
 def pill_class(conclusion: str) -> str:
-    if conclusion in ("failure", "failed", "timed_out", "cancelled"):
-        return "bad"
-    if conclusion in ("action_required", "neutral", "stale"):
-        return "warn"
-    if conclusion in ("success", "passed"):
-        return "ok"
-    return "mute"
-
+    if conclusion in ("failure", "failed", "timed_out", "cancelled"):return "bad"
+    if conclusion in ("action_required", "neutral", "stale"):return "warn"
+    return "ok" if conclusion in ("success", "passed") else "mute"
 
 def render(root: Path, feats: list[dict], drift: list[str], cap: str, checks: list[dict], branch: str, sha: str, when: str) -> str:
     short = sha[:7] if sha else "unknown"
-    nav_feat = ['<a class="on" data-id="readme" href="#readme">README.md</a>']
-    nav_feat += [f'<a data-id="{e(f["id"])}" href="#{e(f["id"])}">{e(f["file"])}</a>' for f in feats]
-    cons = constitution(root)
-    nav_con = [f"<span>{e(label)}</span>" for label, _ in cons]
-    cards = []
+    nav_feat = ['<a class="on" data-id="readme" href="#readme">README.md</a>'] + [f'<a data-id="{e(f["id"])}" href="#{e(f["id"])}">{e(f["file"])}</a>' for f in feats]
+    cons = constitution(root);nav_con = [f"<span>{e(label)}</span>" for label, _ in cons];cards = []
     for f in feats:
         cards.append(
             f'<article class="card" id="{e(f["id"])}">'
-            f'<h2 class="feat">{e(f["title"])}</h2>'
-            f'<p class="desc">{e(f["desc"])}</p>'
+            f'<h2 class="feat">{e(f["title"])}</h2><p class="desc">{e(f["desc"])}</p>'
             f'{feat_section("Sub-features", subs_ul(f["subs"]))}'
             f'{feat_section("How to get to it", items_ul(f["ents"]))}'
             f'{feat_section("Driving it", items_ul(f["proofs"]))}'
@@ -943,45 +844,24 @@ def render(root: Path, feats: list[dict], drift: list[str], cap: str, checks: li
     banner = ""
     if drift:
         items = "".join(f"<li>{e(x)}</li>" for x in drift)
-        banner = (
-            '<div class="drift"><strong>Docs drift.</strong> '
-            f"Map index vs siblings on this HEAD:<ul>{items}</ul></div>"
-        )
+        banner = '<div class="drift"><strong>Docs drift.</strong> ' + f"Map index vs siblings:<ul>{items}</ul></div>"
+    check_note = "Check names from GitHub when a token is present. No secrets. Missing conclusions stay unevaluated, never success."
     check_rows = []
     for c in checks:
         conc = c["conclusion"] or "unevaluated"
-        check_rows.append(
-            f'<li><span>{e(c["name"])}</span>'
-            f'<span class="st {pill_class(conc)}">{e(conc)}</span></li>'
-        )
-    check_note = (
-        "Check names from GitHub when a token is present. No secrets. "
-        "Missing conclusions stay unevaluated, never success."
-    )
-    sdl = (
-        '<div class="sdl"><div class="sdl-k">app constitution (not Origin chrome)</div>'
-        "<div>canvas #0F1115</div><div>accent #5B8CFF</div><div>foundation-draft · featureUIAllowed=false</div>"
-        "<div>Sai Design Language check is PR 73-only until that merges.</div></div>"
-    )
+        check_rows.append(f'<li><span>{e(c["name"])}</span><span class="st {pill_class(conc)}">{e(conc)}</span></li>')
+    sdl = ('<div class="sdl"><div class="sdl-k">app constitution (not Origin chrome)</div>'
+           "<div>canvas #0F1115</div><div>accent #5B8CFF</div><div>foundation-draft · featureUIAllowed=false</div>"
+           "<div>Sai Design Language check is PR 73-only until that merges.</div></div>")
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sai feature maps</title>
-{BASE_CSS}</head>
-<body>
-<header class="top">
-  <div class="crumb">Dezocode <span>/</span> Sai</div>
-  <nav class="tabs">
-    <a class="on" href="{GH_WEB}">Code</a>
-    <a href="{GH_WEB}/pulls">Pull Requests</a>
-    <a href="{GH_WEB}/settings">Settings</a>
-    <a href="#readme">Preview</a>
-    <a href="pr-sessions.html">PR sessions</a>
-  </nav>
-  <div class="meta"><span class="pill">{e(branch)}</span><span class="pill">{e(short)}</span></div>
-  <div class="when">{e(when)}</div>
-  <a class="btn" href="{GH_WEB}">Code</a>
-</header>
+{BASE_CSS}</head><body>
+<header class="top"><div class="crumb">Dezocode <span>/</span> Sai</div>
+  <nav class="tabs"><a class="on" href="{GH_WEB}">Code</a><a href="{GH_WEB}/pulls">Pull Requests</a><a href="{GH_WEB}/settings">Settings</a><a href="#readme">Preview</a><a href="pr-sessions.html">PR sessions</a></nav>
+  <div class="meta"><span class="pill">{e(branch)}</span><span class="pill">{e(short)}</span></div><div class="when">{e(when)}</div>
+  <a class="btn" href="{GH_WEB}">Code</a></header>
 <div class="shell">
   <aside class="side">
     <div class="k">VERIFY-SAI / FEATURES</div>
@@ -1004,14 +884,9 @@ def render(root: Path, feats: list[dict], drift: list[str], cap: str, checks: li
     <p class="host">GitHub Pages on Dezocode/Sai (site is public). Hostinger stays Saul-go. Drive HTML is recovery only.</p>
   </aside>
 </div>
-<script>
-document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>{{
-  document.querySelectorAll('.nav a').forEach(x=>x.classList.toggle('on',x===a));
-}}));
-</script>
+<script>document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>{{document.querySelectorAll('.nav a').forEach(x=>x.classList.toggle('on',x===a));}}));</script>
 </body></html>
 """
-
 
 def render_sessions(branch: str, sha: str, when: str) -> str:
     short = sha[:7] if sha else "unknown"
@@ -1021,28 +896,16 @@ def render_sessions(branch: str, sha: str, when: str) -> str:
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sai PR sessions</title>
-{BASE_CSS}
-{SESSIONS_CSS}</head>
-<body>
-<header class="top">
-  <div class="crumb">Dezocode <span>/</span> Sai</div>
-  <nav class="tabs">
-    <a href="{GH_WEB}">Code</a>
-    <a href="index.html">Feature maps</a>
-    <a class="on" href="pr-sessions.html">PR sessions</a>
-    <a href="{GH_WEB}/pulls">Pull Requests</a>
-  </nav>
-  <div class="meta"><span class="pill">{e(branch)}</span><span class="pill">{e(short)}</span></div>
-  <div class="when">{e(when)}</div>
-  <a class="btn" href="{GH_WEB}">Code</a>
-</header>
+{BASE_CSS}{SESSIONS_CSS}</head><body>
+<header class="top"><div class="crumb">Dezocode <span>/</span> Sai</div>
+  <nav class="tabs"><a href="{GH_WEB}">Code</a><a href="index.html">Feature maps</a><a class="on" href="pr-sessions.html">PR sessions</a><a href="{GH_WEB}/pulls">Pull Requests</a></nav>
+  <div class="meta"><span class="pill">{e(branch)}</span><span class="pill">{e(short)}</span></div><div class="when">{e(when)}</div>
+  <a class="btn" href="{GH_WEB}">Code</a></header>
 <main class="main">
   <h1 id="readme">PR sessions</h1>
   <p class="cap">One place per Dezocode/Sai pull request: authoritative GitHub PR state joined by PR number with live Hermes agent sessions, one horizontally scrollable card per PR. Two read-only GETs run below - the secret-free public GitHub REST API and the sessions API; every field comes straight from those responses and stays blank or marked unavailable when missing. No secrets, no tokens, nothing invented.</p>
   <div class="psummary" id="summary" aria-live="polite"></div>
-  <div class="wheelwrap" id="wheelwrap">
-    <div class="wheel" id="wheel"><noscript><p class="empty">JavaScript disabled — live sessions cannot load.</p></noscript></div>
-  </div>
+  <div class="wheelwrap" id="wheelwrap"><div class="wheel" id="wheel"><noscript><p class="empty">JavaScript disabled — live sessions cannot load.</p></noscript></div></div>
   <p class="note" id="note">loading…</p>
   <p class="host">Sources: multi-agent prs <code>{e(PRS_API)}</code> (preferred; flat sessions fallback) · GitHub authority <code>{e(GH_API)}</code> (public repo fields only). Generated at exact HEAD; the wheel fills in live in your browser. Hostinger stays Saul-go.</p>
 </main>
@@ -1050,108 +913,108 @@ def render_sessions(branch: str, sha: str, when: str) -> str:
 </body></html>
 """
 
-
 def write_site(out: Path, html_text: str, html_sessions: str) -> None:
     out.mkdir(parents=True, exist_ok=True)
-    (out / "feature-maps.html").write_text(html_text, encoding="utf-8")
-    (out / "index.html").write_text(html_text, encoding="utf-8")
-    (out / "pr-sessions.html").write_text(html_sessions, encoding="utf-8")
-    (out / ".nojekyll").write_text("", encoding="utf-8")
-
+    for name, txt in (("feature-maps.html", html_text), ("index.html", html_text),
+                      ("pr-sessions.html", html_sessions), (".nojekyll", "")):
+        (out / name).write_text(txt, encoding="utf-8")
 
 def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> None:
     problems: list[str] = []
-    if not (out / ".nojekyll").is_file():
-        problems.append("missing .nojekyll")
-    if "#f8f8f8" not in html_text or "#34785c" not in html_text:
-        problems.append("missing Origin chrome tokens")
-    if "body{margin:0;background:var(--bg)" not in html_text:
-        problems.append("body is not Origin canvas")
-    if "Hostinger stays Saul-go" not in html_text:
-        problems.append("missing Hostinger boundary")
+    if not (out / ".nojekyll").is_file():problems.append("missing .nojekyll")
+    if "#f8f8f8" not in html_text or "#34785c" not in html_text:problems.append("missing Origin chrome tokens")
+    if "body{margin:0;background:var(--bg)" not in html_text:problems.append("body is not Origin canvas")
+    if "Hostinger stays Saul-go" not in html_text:problems.append("missing Hostinger boundary")
     for heading in ("Sub-features", "How to get to it", "Driving it", "Gotchas"):
-        if f"<h2>{heading}</h2>" not in html_text:
-            problems.append("missing four-H2 heading " + heading)
+        if f"<h2>{heading}</h2>" not in html_text:problems.append("missing four-H2 heading " + heading)
     for f in feats:
-        if f["title"] not in html_text:
-            problems.append("missing title " + f["title"])
-        if not f["subs"]:
-            problems.append(f["id"] + " has no sub-features")
+        if f["title"] not in html_text:problems.append("missing title " + f["title"])
+        if not f["subs"]:problems.append(f["id"] + " has no sub-features")
         for sid, rest in f["subs"]:
-            if sid not in html_text:
-                problems.append("missing sub-id " + sid)
-            if rest and e(rest) not in html_text:
-                problems.append("missing sub-rest " + sid)
+            if sid not in html_text:problems.append("missing sub-id " + sid)
+            if rest and e(rest) not in html_text:problems.append("missing sub-rest " + sid)
         for kind, rows in (("ents", f["ents"]), ("proofs", f["proofs"]), ("gotchas", f["gotchas"])):
             for row in rows:
-                if e(row) not in html_text:
-                    problems.append("missing " + kind + " text in " + f["id"])
-                    break
-    if 'href="pr-sessions.html"' not in html_text:
-        problems.append("feature-maps.html missing PR sessions tab link")
-    if not (out / "pr-sessions.html").is_file():
-        problems.append("missing pr-sessions.html")
-    if len(html_sessions) < 200:
-        problems.append("pr-sessions.html suspiciously small")
+                if e(row) not in html_text:problems.append("missing " + kind + " text in " + f["id"]);break
+    if 'href="pr-sessions.html"' not in html_text:problems.append("feature-maps.html missing PR sessions tab link")
+    if not (out / "pr-sessions.html").is_file():problems.append("missing pr-sessions.html")
+    if len(html_sessions) < 200:problems.append("pr-sessions.html suspiciously small")
     sessions_needles = (
-        SESSIONS_API, GH_API, GH_WEB, "overflow-x:auto", 'id="wheel"', 'id="summary"',
-        "setInterval(load,60000)",
+        SESSIONS_API, GH_API, GH_WEB, "overflow-x:auto", 'id="wheel"', 'id="summary"', "setInterval(load,60000)",
         'FIELDS=["profile","status","phase","head","heartbeat","steer","monitors","usage","diff"]',
-        "/pulls?state=all&per_page=100", "If-None-Match", "X-RateLimit-Remaining",
-        "ghDue(", "ghStepDue(", "sessions 60s · github ", "Agent: UNKNOWN",
-        "success (no blocking findings)", 'class="mismatch">session HEAD ≠ PR HEAD',
-        "github.com/Dezocode/Sai/pull/", ".hb-fresh", ".hb-stale", ".hb-missing",
-        "hb-missing-card", "<noscript>", "Hostinger stays Saul-go",
-        '"monitors","usage","diff"', 'if(f==="usage")return usageView(s)',
-        'if(f==="diff")return diffView(s&&s.diff)', "<details><summary>files</summary>",
-        '"st warn">dirty', "hermes-sessions/prs", "const PRS_URL=", ".tag{", ".saul{",
-        "tagsView(s)+reviewView(s)", 'src="+(multi?"prs (multi-agent)":"sessions (fallback)")',
+        "/pulls?state=all&per_page=100", "If-None-Match", "X-RateLimit-Remaining", "ghDue(", "ghStepDue(",
+        "sessions 60s · github ", "Agent: UNKNOWN", "success (no blocking findings)",
+        'class="mismatch">session HEAD ≠ PR HEAD', "github.com/Dezocode/Sai/pull/", ".hb-fresh",
+        ".hb-stale", ".hb-missing", "hb-missing-card", "<noscript>", "Hostinger stays Saul-go",
+        '"monitors","usage","diff"', 'if(f==="usage")return usageView(s)', 'if(f==="diff")return diffView(s&&s.diff)',
+        "<details><summary>files</summary>", '"st warn">dirty', "hermes-sessions/prs", "const PRS_URL=",
+        ".tag{", ".saul{", "tagsView(s)+reviewView(s)", 'src="+(multi?"prs (multi-agent)":"sessions (fallback)")',
         "prs feed unavailable", "mergeability", "for(const k of PULLS.keys())keys.add(k)", "out.push({pr:p.pr,...a})",
+        "const PRS_STALE_MIN=", "function agentOk(", "function reviewView(a){", "Saul review @ ",
+        'cell("codex_invoked"', "agentOk(a)", '=="saul")return ""',
+        "const CHECK_PAGES_MAX=", "/check-runs?per_page=100&page=", '" · partial"',
     )
     for needle in sessions_needles:
-        if needle not in html_sessions:
-            problems.append("pr-sessions.html missing " + needle)
-    # Token names are legitimate prose in protected-ci; the sessions page we
-    # author here must never reference tokens at all.
-    if "X-Sessions-Token" in html_text:
-        problems.append("feature-maps.html contains forbidden X-Sessions-Token")
+        if needle not in html_sessions:problems.append("pr-sessions.html missing " + needle)
+    # Token names are legitimate prose in protected-ci; the pages we author here must never reference tokens.
+    if "X-Sessions-Token" in html_text:problems.append("feature-maps.html contains forbidden X-Sessions-Token")
     for banned in ("X-Sessions-Token", "GH_TOKEN", "GITHUB_TOKEN"):
-        if banned in html_sessions:
-            problems.append("pr-sessions.html contains forbidden " + banned)
+        if banned in html_sessions:problems.append("pr-sessions.html contains forbidden " + banned)
     for guard in ("Agent: NONE", '"missing"', '"stale"', "no worker attached"):
-        if guard not in html_sessions:
-            problems.append("pr-sessions.html missing heartbeat/agent guard " + guard)
-    # STEER 18:57Z: /prs preference must degrade to /sessions; tags + Saul
-    # review must render from agents[]. Payloads use json.dumps so nesting can
-    # never unbalance the JS; the probe drives the exact shipped SESSIONS_JS.
-    prs_payload = {"count": 1, "schema": "test", "updated_at": "2026-08-23T18:00:00Z", "prs": [
-        {"pr": 77, "agent_count": 1, "heads": ["769e2f0"], "updated_at": "2026-08-23T18:00:00Z",
+        if guard not in html_sessions:problems.append("pr-sessions.html missing heartbeat/agent guard " + guard)
+    # STEER 20:18Z /prs acceptance probes drive the exact shipped SESSIONS_JS:
+    # prefer (fresh valid rows incl. identity-gated Saul), empty prs, stale
+    # updated_at, malformed row -> all fall back to /sessions; completed Saul
+    # renders every review field. Payloads use json.dumps so nesting can never
+    # unbalance the JS. Timestamps are UTC-derived relative to now so the
+    # staleness gate is live; fetch is parked before SESSIONS_JS embed so its
+    # eval-time self-load cannot hit the network (reviewer finding 5).
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    stale_iso = (datetime.now(timezone.utc) - timedelta(minutes=45)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    park_fetch = "globalThis.__net=[];global.fetch=(u)=>{__net.push(String(u));return new Promise(()=>{});};\n"
+    saul_agent = {"id": "rv1", "status": "finished", "agent": "Saul", "heartbeat_at": now_iso,
+                  "review": {"conclusion": "success", "head_sha": "769e2f00d703a0a832a7b2731d0478d58216cb9c", "phase": "complete",
+                             "progress": "done", "status": "success", "codex_invoked": True, "synthetic": False, "P0": "1", "P1": "2", "P2": "3"}}
+    prs_payload = {"count": 1, "schema": "test", "updated_at": now_iso, "prs": [
+        {"pr": 77, "agent_count": 2, "heads": ["769e2f0"], "updated_at": now_iso,
          "agents": [{"id": "w1", "status": "active", "tags": ["harness:hermes-cli", "model:test-model"],
-                     "review": {"conclusion": "success", "head_sha": "769e2f00d703a0a832a7b2731d0478d58216cb9c",
-                                "P0": "1", "P1": "2", "P2": "3"},
-                     "heartbeat_at": "2026-08-23T17:59:00Z", "diff": None, "usage": None}]}]}
-    fb_payload = {"sessions": [{"id": "w2", "status": "active", "heartbeat_at": "2026-08-23T17:59:00Z"}]}
+                     "heartbeat_at": now_iso, "diff": None, "usage": None}, saul_agent]}]}
+    bad_row = dict(prs_payload, prs=[{"pr": 77, "updated_at": now_iso, "agents": [{"id": "x", "status": "active"}]}])
+    bare_saul = dict(prs_payload, prs=[{"pr": 77, "updated_at": now_iso, "agents": [{"id": "rv9", "status": "finished", "agent": "saul", "heartbeat_at": now_iso, "review": {}}]}])
+    fb_payload = {"sessions": [{"id": "w2", "status": "active", "heartbeat_at": now_iso}]}
+    def prs_body(payload):
+        return ("global.fetch=async(u)=>String(u).indexOf('hermes-sessions/prs')>=0?J("
+                + json.dumps(payload) + "):J(" + json.dumps(fb_payload) + ");")
+    fallback_cases = "".join(
+        prs_body(pay) + "W.innerHTML='';await load();if(N.textContent.indexOf('src=sessions (fallback)')<0)fail('" + lbl + " fallback');"
+        for lbl, pay in (("empty", {"schema": "sai-sessions-v2", "updated_at": now_iso, "prs": []}),
+                         ("stale", dict(prs_payload, updated_at=stale_iso)), ("badrow", bad_row)))
     js_probe = (
         "const __E={};const document={getElementById:(i)=>(__E[i]=__E[i]||{innerHTML:'',textContent:''})};\n"
+        + park_fetch
         + SESSIONS_JS.replace("__API__", SESSIONS_API).replace("__PRS_API__", PRS_API)
         + "globalThis.__PROBE__=(async()=>{const J=(x)=>({ok:true,status:200,json:async()=>x});"
-        + "global.fetch=async(u)=>String(u).indexOf('hermes-sessions/prs')>=0?J(" + json.dumps(prs_payload)
-        + "):J(" + json.dumps(fb_payload) + ");"
-        + "const W=document.getElementById('wheel'),N=document.getElementById('note');W.innerHTML='';await load();"
-        + "const html=W.innerHTML;const fail=(m)=>{console.log('FAIL '+m);process.exitCode=1;};"
+        + "const W=document.getElementById('wheel'),N=document.getElementById('note');const html=()=>W.innerHTML;const fail=(m)=>{console.log('FAIL '+m);process.exitCode=1;};"
+        + "const setP=(p)=>{global.fetch=async(u)=>String(u).indexOf('hermes-sessions/prs')>=0?J("
+        + json.dumps(prs_payload) + "):J(" + json.dumps(fb_payload) + ");};setP();W.innerHTML='';await load();"
         + "if(N.textContent.indexOf('src=prs (multi-agent)')<0)fail('prefer prs note');"
-        + "if(html.indexOf('harness:hermes-cli'.slice(8))<0)fail('tag harness');"
-        + "if(html.indexOf('model:test-model'.slice(6))<0)fail('tag model');"
-        + "if(html.indexOf('Saul review')<0)fail('saul label');"
-        + "if(html.indexOf('P0=1 P1=2 P2=3')<0)fail('saul counts');"
-        + "if(html.indexOf('pull/77')<0)fail('parent-PR join');if(html.indexOf('PR ?')>=0)fail('ghost unknown card');"
+        + "if(html().indexOf('harness:hermes-cli'.slice(8))<0)fail('tag harness');"
+        + "if(html().indexOf('model:test-model'.slice(6))<0)fail('tag model');"
+        + "if(html().indexOf('Saul review @ ')<0)fail('saul head');"
+        + "if(html().indexOf('codex_invoked')<0||html().indexOf('synthetic')<0)fail('saul fields');"
+        + "if(html().indexOf('P0=1 P1=2 P2=3')<0)fail('saul counts');"
+        + "if(html().indexOf('pull/77')<0)fail('parent-PR join');if(html().indexOf('PR ?')>=0)fail('ghost unknown card');"
+        + fallback_cases
+        + prs_body(bare_saul)
+        + "W.innerHTML='';await load();if(html().indexOf('unavailable')<0)fail('bare saul unavailable');"
+        + "if(html().indexOf('Saul review')<0)fail('bare saul gated-in');"
         + "global.fetch=async(u)=>String(u).indexOf('hermes-sessions/prs')>=0?{ok:false,status:503}:J("
         + json.dumps(fb_payload) + ");W.innerHTML='';await load();"
-        + "if(N.textContent.indexOf('src=sessions (fallback)')<0)fail('fallback note');"
+        + "if(N.textContent.indexOf('src=sessions (fallback)')<0)fail('down fallback note');"
         + "if(N.textContent.indexOf('count=1')<0)fail('fallback count');"
         + "})().catch(e=>{console.log('FAIL async '+(e&&e.message||e));process.exit(1);});"
         + "setTimeout(()=>{console.log(process.exitCode?'probe failed':'OK prs-probe:"
-        + " prefer/degrade/tags/Saul assertions passed');process.exit(process.exitCode?1:0);},2000);"
+        + " prefer/empty/stale/badrow/bare-Saul/503 fallback assertions passed');process.exit(process.exitCode?1:0);},2000);"
     )
     with tempfile.TemporaryDirectory(prefix="sai-prs-probe-") as tmp:
         probe = Path(tmp) / "probe.js"
@@ -1159,9 +1022,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         try:
             cp = subprocess.run(["node", str(probe)], text=True, capture_output=True, timeout=30)
         except FileNotFoundError:
-            raise SystemExit(
-                "render-sai-feature-maps --check: node is required for the "
-                "/prs fallback probe (same as --selftest)")
+            raise SystemExit("render-sai-feature-maps --check: node required for the /prs fallback probe")
     if cp.returncode != 0 or "FAIL" in (cp.stdout + cp.stderr):
         sys.stderr.write(cp.stdout + cp.stderr)
         problems.append("pr-sessions /prs fallback+tags+Saul probe failed")
@@ -1169,21 +1030,16 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         print(cp.stdout.strip().splitlines()[0])
     if "api.github.com" not in html_sessions:
         problems.append("pr-sessions.html missing GitHub authority plane")
-    # Line budget (1200 added cap): probe is runtime-assertive, not a needle
-    # wall — keep it compact when extending /prs coverage.
+    # Line budget cap: probes are runtime-assertive, not a needle wall; keep compact when extending coverage.
     if "Authorization" in html_sessions or "token " in html_sessions:
         problems.append("pr-sessions.html must stay token-free")
     if problems:
         raise SystemExit("render-sai-feature-maps --check failed:\n- " + "\n- ".join(problems))
 
-
 def run_selftest() -> int:
-    """Run the adversarial rollupChecks harness in node (exact shipped JS).
-    Fail-loud if node is unavailable: this net guards the rollup (Saul P1)."""
-    # Harness drives the exact shipped ghJson/ghWindowRoll (GH_PLANE_JS, which
-    # owns the rate-plane state); GH_API/ETAGS/GH_WINDOW_MS live in SESSIONS_JS.
-    harness = ('const GH_API="https://api.github.com/repos/Dezocode/Sai";\n'
-               "const GH_WINDOW_MS=3600000;\nconst ETAGS={};\n"
+    """Adversarial rollupChecks harness in node (exact shipped JS); fail-loud without node (Saul P1)."""
+    # Harness drives the exact shipped ghJson/ghWindowRoll; GH_API/ETAGS/GH_WINDOW_MS live in SESSIONS_JS.
+    harness = ('const GH_API="https://api.github.com/repos/Dezocode/Sai";\nconst GH_WINDOW_MS=3600000;\nconst ETAGS={};\n'
                + ROLLUP_JS + ENRICH_JS + GH_PLANE_JS + SELFTEST_JS)
     with tempfile.TemporaryDirectory(prefix="sai-rollup-selftest-") as tmp:
         js = Path(tmp) / "rollup_selftest.js"
@@ -1191,27 +1047,19 @@ def run_selftest() -> int:
         try:
             cp = subprocess.run(["node", str(js)], text=True, capture_output=True)
         except FileNotFoundError:
-            raise SystemExit(
-                "render-sai-feature-maps --selftest: node is required "
-                "but not on PATH (cannot run adversarial rollup harness)"
-            )
+            raise SystemExit("render-sai-feature-maps --selftest: node required but not on PATH")
     sys.stdout.write(cp.stdout)
     if cp.returncode != 0:
-        sys.stderr.write(cp.stderr or "")
-        raise SystemExit("render-sai-feature-maps --selftest: node harness FAILED")
+        sys.stderr.write(cp.stderr or "");raise SystemExit("render-sai-feature-maps --selftest: node harness FAILED")
     print("OK render-sai-feature-maps --selftest: rollupChecks latest-wins harness ALL PASS")
     return 0
 
-
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--root", default=".")
-    ap.add_argument("--out", default="")
-    ap.add_argument("--checks", default="")
-    ap.add_argument("--check", action="store_true")
-    ap.add_argument("--selftest", action="store_true")
-    ap.add_argument("--branch", default="")
-    ap.add_argument("--sha", default="")
+    for flag, kw in (("--root", {"default": "."}), ("--out", {"default": ""}), ("--checks", {"default": ""}),
+                     ("--check", {"action": "store_true"}), ("--selftest", {"action": "store_true"}),
+                     ("--branch", {"default": ""}), ("--sha", {"default": ""})):
+        ap.add_argument(flag, **kw)
     ns = ap.parse_args(argv)
     if ns.selftest:
         return run_selftest()
@@ -1219,38 +1067,29 @@ def main(argv: list[str]) -> int:
     os.chdir(root)
     feats, drift, cap = load_kernel_maps(root)
     if not feats:
-        print("render-sai-feature-maps: no indexed features", file=sys.stderr)
-        return 1
+        print("render-sai-feature-maps: no indexed features", file=sys.stderr);return 1
     sha = ns.sha or git(root, "rev-parse", "HEAD")
     branch = ns.branch or git(root, "rev-parse", "--abbrev-ref", "HEAD") or "HEAD"
     checks_path = Path(ns.checks) if ns.checks else None
     checks = load_checks(checks_path, root, sha)
     try:
-        from zoneinfo import ZoneInfo
         when = datetime.now(ZoneInfo("America/Chicago")).strftime("%d %b %Y - %I:%M %p CT")
-    except Exception:
-        when = datetime.utcnow().strftime("%d %b %Y - %H:%M UTC")
+    except Exception:when = datetime.utcnow().strftime("%d %b %Y - %H:%M UTC")
     html_text = render(root, feats, drift, cap, checks, branch, sha, when)
     html_sessions = render_sessions(branch, sha, when)
     if ns.check:
         run_selftest()
         with tempfile.TemporaryDirectory(prefix="sai-feature-maps-") as tmp:
-            out = Path(tmp)
-            write_site(out, html_text, html_sessions)
+            out = Path(tmp);write_site(out, html_text, html_sessions)
             verify(out, feats, html_text, html_sessions)
-        print("OK render-sai-feature-maps --check features=%d" % len(feats))
-        return 0
+        print("OK render-sai-feature-maps --check features=%d" % len(feats));return 0
     if not ns.out:
         print("render-sai-feature-maps: --out DIR required (or --check)", file=sys.stderr)
         return 2
     out = Path(ns.out)
-    if not out.is_absolute():
-        out = root / out
+    if not out.is_absolute():out = root / out
     write_site(out, html_text, html_sessions)
-    print("wrote %s/feature-maps.html" % out)
-    print("wrote %s/pr-sessions.html" % out)
+    print("wrote %s/feature-maps.html" % out);print("wrote %s/pr-sessions.html" % out)
     return 0
-
-
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
