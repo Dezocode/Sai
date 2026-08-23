@@ -46,6 +46,7 @@ jobs:
           scripts/render-sai-feature-maps --out "$OUT" --checks "$CHECKS" --sha "$SHA"
           test -f "$OUT/feature-maps.html"
           test -f "$OUT/index.html"
+          test -f "$OUT/pr-sessions.html"
           test -f "$OUT/.nojekyll"
           test ! -s "$OUT/.nojekyll"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

@@ -1,1 +1,10 @@
-{"task_id":"20260823-0215-pr-sessions-dashboard-hermes","agent":"hermes-sai-agent","purpose":"pr-sessions-dashboard","status":"in_progress"}
+{
+ "task_id": "20260823-0215-pr-sessions-dashboard-hermes",
+ "agent": "hermes-sai-agent",
+ "principal": "dezocode (U0BHYH0NMCY)",
+ "repository": "Dezocode/Sai",
+ "branch": "hermes/pr-sessions-dashboard",
+ "base_sha": "759d017a6c6cec3960c158bb5f1e8906c200d740",
+ "purpose": "Pages PR sessions dashboard: extend render-sai-feature-maps with pr-sessions.html tab, scrollable PR wheel, live sessions API cards.",
+ "status": "in_progress"
+}
