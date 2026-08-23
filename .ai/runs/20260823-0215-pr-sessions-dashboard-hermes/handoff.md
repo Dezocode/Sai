@@ -108,3 +108,29 @@ pass=63 fail=1 (proof-artifacts is the pre-existing local-drive-only row,
 identical single FAIL on BASE). Line budget 678/1200 added.
 Next safe action: push product+evidence commits, watch CI + Saul bind to the
 new head; owner review after exact-HEAD green + P0=P1=0. Stay draft.
+
+## Round-6 latest-wins check-run rollup (2026-08-23, STEER @ 08:04:58Z)
+
+STEER (worker DEAD, Origin relaunching) archived
+(STEER.applied.2026-08-23T08:04:58Z.md) and cleared. Finished the in-progress
+latest-wins rollup and hardened CI/Saul display:
+- `refreshChecks` dedupes GitHub check-runs by stable check name keeping the
+  newest attempt, so a superseded failed run no longer keeps CI marked failed
+  after a green rerun (Saul P1). The rollup is single-source `ROLLUP_JS`,
+  spliced into the page and into a new adversarial `--selftest` node harness;
+  the harness PASSes all 12 assertions on the fix and FAILs 4 on the pre-fix
+  rollup (proven negative), so it would have caught the P1. `--check` now runs
+  the selftest first; the Pages workflow gained an explicit setup-node step.
+- "last push" now comes only from authoritative `head.repo.pushed_at`; PR
+  `updated_at` is labeled separately as "updated". `DETAIL` stays
+  enrichment-only so a session-discovered PR never becomes a ghost card after
+  its session and the listing both drop it.
+- protected-ci.md + docs/pages-pr-sessions/README.md updated to claim the
+  selftest guard and the latest-wins rollup.
+Verification (captured-transcripts.md @ product commit): --selftest ALL PASS;
+--check features=11; node --check emitted JS; OLD-rollup negative check 4 FAIL
+(proves adversarial); hierarchy/audit/handoff OK; go test/vet clean; drive
+pass=63 fail=1 (proof-artifacts pre-existing local-drive-only row, identical
+single FAIL on BASE). Line budget ~703/1200 added.
+Next safe action: push product+evidence commits, watch CI + Saul bind to the
+new head; owner review after exact-HEAD green + P0=P1=0. Stay draft.
