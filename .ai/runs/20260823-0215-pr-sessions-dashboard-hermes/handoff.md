@@ -136,40 +136,34 @@ Next safe action: push product+evidence commits, watch CI + Saul bind to the
 new head; owner review after exact-HEAD green + P0=P1=0. Stay draft.
 
 Round-7 (Saul P1 fan-out quota exhaustion, STEER 2026-08-23T08:46:14Z):
-GitHub enrichment is now planned by single-source ENRICH_JS (spliced into the
-page and the --selftest harness). planEnrich caps each refresh at
-REQUEST_BUDGET=24 sequential requests - session-linked cards before open
-cards, check fetches deduped per head SHA - so first load can never exhaust
-the anonymous 60/hr GitHub quota. The enrichment done-cache is keyed by head
-SHA via pendingCards(), so a force-pushed PR is re-enriched at its new HEAD
-instead of freezing on "loading…" for CI/Saul; a failed per-PR detail fetch is
-not cached as done (retried next refresh).
-Verification (this round): py_compile OK; --selftest 22/22 ALL PASS; --check
-features=11 green; node --check on emitted sessions JS OK; negative pre-fix
-harness FAILs the force-push fixture (proven adversarial); hierarchy/audit/
-handoff verifiers re-run below. Line budget projected 1082/1200 added.
-protected-ci.md + docs/pages-pr-sessions/README.md claim both properties.
-Next safe action: push product+evidence, watch CI + Saul bind to the new head;
-owner review after exact-HEAD green + Saul P0=P1=0 with codex_invoked=true.
-Stay draft.
-
-Round-7c watch note: Saul runs on 946a0f2 and 232b867 arrived as infra-only
-neutrals (codex_invoked=false, grok-build-cli-fallback) - they do not count
-toward morning-ready. Superseded by the exact-HEAD real-Codex round-8 below.
-
-Round-8 (Saul P1x2 exact-HEAD @ ee45cec, STEER 10:22:53Z): Real Codex on
-exact HEAD: P0=0 P1=2 P2=0. P1-1: session-only PRs never enriched (assemble
-left pr=null; pendingCards dropped cards without headSha). P1-2: force-pushed
-PRs pinned to stale detail (normalize preferred cached DETAIL headSha).
-Fixed: pending-selection moved INTO planEnrich - session-only cards plan a
-detail BY PR NUMBER before any HEAD is known, then checks once a HEAD lands;
+enrichment is planned by single-source ENRICH_JS (page + --selftest):
+planEnrich caps each refresh at REQUEST_BUDGET=24 sequential requests
+(session-linked cards first, check fetches deduped per head SHA) so first
+load can't exhaust the anonymous 60/hr GitHub quota; done-cache keyed by head
+SHA re-enriches force-pushed PRs at the new HEAD; failed detail fetch is not
+cached done. --selftest 22/22; --check features=11; node --check OK; negative
+pre-fix harness FAILs force-push; line budget ~1082/1200. Saul runs on
+946a0f2 and 232b867 were infra-only neutrals (codex_invoked=false) - NOT the
+gate. Round-8 (Saul P1x2 exact-HEAD @ ee45cec, STEER 10:22:53Z): P0=0 P1=2
+P2=0. P1-1 session-only PRs never enriched; P1-2 force-pushed PRs pinned to
+stale detail. Fixed: pending-selection moved INTO planEnrich - session-only
+cards plan detail BY NUMBER before any HEAD, then checks once a HEAD lands;
 doneShas() marks done with the same SHA resolution (listing head wins, else
 cached DETAIL head) - no eternal re-plan; listing head wins over cached detail
 in normalize/refreshChecks/checksFor, so force-pushes re-bind CI/Saul.
-Verification: --selftest 29/29 (session-only detail-by-number, divergent-head
-force-push replan, steady-state zero-replan fixtures; pre-fix harness FAILs
-divergent-head); --check features=11; node --check emitted JS, no banned
-tokens; verifiers + anti-regression OK; line budget ~1194/1200. Next: push,
-watch CI + real-Codex Saul bind to the new exact HEAD; morning-ready =
-exact-HEAD SUCCESS P0=P1=0, codex_invoked=true, synthetic=false (neutrals
-don't count). Stay draft.
+--selftest 29/29 (pre-fix harness FAILs divergent-head); --check features=11;
+node --check OK; line budget ~1194/1200. Next: watch real-Codex Saul bind to
+the new exact HEAD; morning-ready = SUCCESS P0=P1=0, codex_invoked=true,
+synthetic=false (neutrals don't count). Stay draft.
+
+Round-9 (STEER 2026-08-23T11:26:02Z): exact-HEAD real-Codex Saul on 48ec687
+P1: session-only cards still never load CI/Saul - doneShas() marked a pass-1
+detail-only HEAD ENRICHED so pass-2 skipped check-runs forever. Fixed:
+doneShas() marks a HEAD done only once its check-runs were fetched for it
+(failed checks attempt counts as attempted - no eternal retry); the selftest
+blocks now follow shipped enrich() order (plan -> execute -> doneShas),
+including an adversarial pass-1-detail/pass-2-checks sequence that FAILs on
+the pre-fix marker. --selftest 30/30; --check features=11; node --check
+emitted JS; hierarchy/audit/anti-regression OK; line budget 1198/1200. Next:
+push, watch CI + real-Codex Saul bind to the new exact HEAD; morning-ready =
+exact-HEAD SUCCESS P0=P1=0, codex_invoked=true, synthetic=false. Stay draft.

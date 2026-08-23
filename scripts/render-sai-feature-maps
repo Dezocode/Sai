@@ -180,6 +180,7 @@ let failures=0;
   check("Saul latest-wins clears action_required",r.fails,0);
 }
 const DETAIL={};
+const CHECKS={};
 const ENRICHED=new Set();
 const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,ss:[{}]};
 {
@@ -219,33 +220,34 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("closed+merged PRs skipped by planner",steps.length,0);
 }
 {
-  // P1 round-8 #1: a session-linked PR with no known HEAD (absent from the
-  // pull list AND DETAIL) must still plan a detail BY NUMBER, then checks
-  // once any HEAD is known, then stop via the shipped done-marker - so a
-  // session-only card can never leak an eternal re-plan (quota burn).
+  // Round-9 (Steer 11:26): enrich() runs plan -> execute -> doneShas in one
+  // refresh; doneShas must not mark a pass-1 detail-only HEAD ENRICHED.
   const cards=[OC("77")];
   let steps=planEnrich(cards,4);
   check("session-only card plans a detail by number",steps.some(s=>s.kind==="detail"&&s.k==="77"),true);
   check("no checks before a HEAD is known",steps.some(s=>s.kind==="checks"),false);
   DETAIL["77"]={headSha:"CAFE12"};
+  for(const sha of doneShas(cards))ENRICHED.add(sha);
+  check("detail-only card NOT done pre-checks (shipped order)",ENRICHED.has("cafe12"),false);
   steps=planEnrich(cards,4);
   check("known-detail card does not refetch detail",steps.some(s=>s.kind==="detail"),false);
-  check("cached-HEAD card now plans checks",steps.some(s=>s.kind==="checks"),true);
+  check("cached-HEAD card now plans checks",steps.some(s=>s.kind==="checks"&&s.k==="77"),true);
+  CHECKS["cafe12"]={total:1,fails:0,pending:0,saul:"success (no blocking findings)"};
   for(const sha of doneShas(cards))ENRICHED.add(sha);
-  check("done-cache holds session-only HEAD via shipped marker",ENRICHED.has("cafe12"),true);
+  check("card done once check-runs fetched",ENRICHED.has("cafe12"),true);
   check("done HEAD stops replanning",planEnrich(cards,4).length,0);
 }
 {
-  // P1 round-8 #2: a force-push (listing HEAD != cached DETAIL head) replans
-  // detail + checks so CI/Saul re-bind; once done, mixed shapes replan none.
+  // Round-8 #2 kept: force-push replans detail + checks (shipped order).
   DETAIL["5"]={headSha:"AA11"};
   ENRICHED.add("aa11");
   check("stale-masked card stays done pre-detection",planEnrich([OC("5","aa11")],4).length,0);
   const steps=planEnrich([OC("5","BB22")],4);
   check("divergent listing HEAD replans detail",steps.some(s=>s.kind==="detail"&&s.k==="5"),true);
   check("divergent listing HEAD replans checks",steps.some(s=>s.kind==="checks"),true);
-  const mixed=[OC("77"),OC("5","bb22"),{k:"9",pr:{state:"closed",headSha:"ee55"},ss:[]}];
   DETAIL["5"]={headSha:"BB22"};
+  CHECKS["bb22"]={total:1,fails:0,pending:0};
+  const mixed=[OC("77"),OC("5","bb22"),{k:"9",pr:{state:"closed",headSha:"ee55"},ss:[]}];
   for(const sha of doneShas(mixed))ENRICHED.add(sha);
   check("steady-state replans nothing after 100 cycles",(function(){for(let i=0;i<100;i++){if(planEnrich(mixed,24).length)return 1;}return 0;})(),0);
 }
@@ -259,6 +261,7 @@ console.log("ALL PASS");
 # only cards schedule a detail by number, a force-push (listing head !=
 # cached head) replans, and doneShas() marks done with the same SHA
 # resolution planning used (single source, no eternal re-plan / quota burn).
+# Round-9 (Steer 11:26): doneShas() marks done only after check-runs fetch.
 ENRICH_JS = """
 function enrichPrio(c){
   if(c.ss&&c.ss.length)return 0;
@@ -285,14 +288,15 @@ function planEnrich(cards,budget){
   return steps;
 }
 function doneShas(cards){
-  // Same SHA resolution as planEnrich (listing, else cached DETAIL): only
-  // landed details mark done; failed details stay pending and retry.
+  // Same SHA resolution as planEnrich (listing, else cached DETAIL). DONE
+  // means check-runs were fetched for that HEAD (round-9 Steer 11:26); a
+  // failed checks attempt (null) counts as attempted - no eternal retry.
   const out=[];
   for(const c of cards){
     const det=DETAIL[c.k];if(!det||det===null)continue;
     const ls=c.pr&&c.pr.headSha?String(c.pr.headSha).toLowerCase():"";
     const cs=det.headSha?String(det.headSha).toLowerCase():"";
-    const sha=ls||cs;if(sha)out.push(sha);
+    const sha=ls||cs;if(sha&&CHECKS[sha]!==undefined)out.push(sha);
   }
   return out;
 }
