@@ -134,3 +134,21 @@ pass=63 fail=1 (proof-artifacts pre-existing local-drive-only row, identical
 single FAIL on BASE). Line budget ~703/1200 added.
 Next safe action: push product+evidence commits, watch CI + Saul bind to the
 new head; owner review after exact-HEAD green + P0=P1=0. Stay draft.
+
+Round-7 (Saul P1 fan-out quota exhaustion, STEER 2026-08-23T08:46:14Z):
+GitHub enrichment is now planned by single-source ENRICH_JS (spliced into the
+page and the --selftest harness). planEnrich caps each refresh at
+REQUEST_BUDGET=24 sequential requests - session-linked cards before open
+cards, check fetches deduped per head SHA - so first load can never exhaust
+the anonymous 60/hr GitHub quota. The enrichment done-cache is keyed by head
+SHA via pendingCards(), so a force-pushed PR is re-enriched at its new HEAD
+instead of freezing on "loading…" for CI/Saul; a failed per-PR detail fetch is
+not cached as done (retried next refresh).
+Verification (this round): py_compile OK; --selftest 22/22 ALL PASS; --check
+features=11 green; node --check on emitted sessions JS OK; negative pre-fix
+harness FAILs the force-push fixture (proven adversarial); hierarchy/audit/
+handoff verifiers re-run below. Line budget projected 1082/1200 added.
+protected-ci.md + docs/pages-pr-sessions/README.md claim both properties.
+Next safe action: push product+evidence, watch CI + Saul bind to the new head;
+owner review after exact-HEAD green + Saul P0=P1=0 with codex_invoked=true.
+Stay draft.

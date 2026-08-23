@@ -19,7 +19,13 @@ CI rollup keeps only the newest attempt per check name (a successful rerun
 clears an earlier failure) — guarded by an adversarial `--selftest` node
 harness whose fixtures include a superseded failed attempt followed by a
 green rerun of the same check name (this exact bug was Saul P1; the harness
-fails on the pre-fix rollup); "last push" is an authoritative head-repo push
+fails on the pre-fix rollup); GitHub enrichment runs through a budgeted,
+sequential planner (at most 24 requests per refresh — session-linked cards
+then open cards first, check fetches deduped per head SHA) so first load can
+never exhaust the anonymous 60/hr quota; the enrichment done-cache is keyed
+by head SHA, so a force-pushed PR is re-enriched at its new HEAD instead of
+freezing on "loading…" for CI/Saul; both properties are adversarial `--selftest`
+fixtures that fail on their pre-fix implementations; "last push" is an authoritative head-repo push
 timestamp, with PR `updated_at` labeled separately as "updated"; a PR
 discovered only through a session disappears once that session and the
 listing both drop it (no ghost cards). Missing data renders as unavailable,
