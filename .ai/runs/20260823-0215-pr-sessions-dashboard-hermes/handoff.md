@@ -85,3 +85,26 @@ payloads). All three fixed at `fde6b56`: Agent UNKNOWN state,
 count parsing from check-run output summaries with latest-run-wins,
 malformed-payload degradation. Next safe action: CI + Saul exact-head round
 on the pushed child of this commit; owner review after P0=P1=0. Stay draft.
+
+## Round-5 GitHub-plane robustness (2026-08-23, STEER relaunch)
+
+STEER @ 07:05:25Z (worker DEAD, Origin relaunching) archived
+(STEER.applied.2026-08-23T07:05:25Z.md) and cleared. Finished the dirty
+protected-ci/render work and hardened the GitHub data plane:
+- `loadPulls()` now throws on a malformed GitHub pull-list payload; the
+  renderer degrades as `github=unavailable (malformed ...)` instead of
+  silently rendering an empty universe.
+- `enrich()` now fetches per-PR detail for every known-key card, so a
+  session-linked PR that falls outside the first GitHub listing page
+  (e.g. old/closed) still gets authoritative title/state/draft/merged/head/
+  pushed/mergeability from its per-PR endpoint; `refreshDetail` captures
+  `state`/`draft`/`mergedAt` and `normalize` honors them.
+- protected-ci.md sub-feature updated to claim malformed-payload-on-either-
+  plane degradation + per-PR enrichment of out-of-listing session PRs.
+Verification (captured-transcripts.md @ product commit): --check features=11;
+node --check emitted JS; DOM smokes 6 scenarios all SMOKE-OK (live x4 stable
+against intermittent GitHub anon 403); verifiers OK; go test/vet clean; drive
+pass=63 fail=1 (proof-artifacts is the pre-existing local-drive-only row,
+identical single FAIL on BASE). Line budget 678/1200 added.
+Next safe action: push product+evidence commits, watch CI + Saul bind to the
+new head; owner review after exact-HEAD green + P0=P1=0. Stay draft.

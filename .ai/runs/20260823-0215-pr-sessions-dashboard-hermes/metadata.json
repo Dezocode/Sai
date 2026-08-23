@@ -7,5 +7,5 @@
  "base_sha": "759d017a6c6cec3960c158bb5f1e8906c200d740",
  "purpose": "Pages PR sessions dashboard: extend render-sai-feature-maps with pr-sessions.html tab, scrollable PR wheel, live sessions API cards.",
  "status": "awaiting-review",
- "note": "full-flight product @56a2197 + Saul round-4 fixes @fde6b56; evidence staged by child commit; awaiting exact-head CI+Saul rebind and owner review"
+ "note": "full-flight product @56a2197 + Saul round-4 fixes @fde6b56 + round-5 GitHub-plane robustness (malformed pull-list degrades; out-of-listing session PRs enriched via per-PR); evidence staged by child commit; awaiting exact-head CI+Saul rebind and owner review"
 }
