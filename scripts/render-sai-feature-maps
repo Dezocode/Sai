@@ -78,6 +78,9 @@ SESSIONS_CSS = """<style>
 .sid{font-weight:650;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
 .fields{display:grid;grid-template-columns:92px 1fr;gap:3px 10px;font-size:12px}
 .k2{color:var(--mute)} .v2{word-break:break-word} .dim{color:var(--mute)}
+.psummary{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
+.psummary .lbl{font-size:11px;letter-spacing:.08em;color:var(--mute);font-weight:650;margin-right:4px}
+.hb-stale{color:var(--bad);font-weight:650}
 </style>"""
 
 # Plain (non-f-string) on purpose: real JS braces. Inserted verbatim.
@@ -85,10 +88,14 @@ SESSIONS_JS = """
 const FIELDS=["profile","status","phase","head","heartbeat","steer","monitors"];
 const WHEEL=document.getElementById("wheel");
 const NOTE=document.getElementById("note");
+const SUMMARY=document.getElementById("summary");
+const STALE_MIN=30;
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","'":"&#39;"}[c]));
 const dash=s=>(s==null||s===""?"\\u2014":s);
 const stCls=s=>({active:"ok",finished:"ok",done:"mute",failed:"bad"}[String(s||"").toLowerCase()]||"warn");
-function age(iso){const t=Date.parse(iso);if(isNaN(t))return "";const m=Math.max(0,Math.round((Date.now()-t)/60000));return m<60?m+"m ago":Math.round(m/60)+"h ago";}
+function ageMin(iso){const t=Date.parse(iso);if(isNaN(t))return null;return Math.max(0,Math.round((Date.now()-t)/60000));}
+function age(iso){const m=ageMin(iso);if(m==null)return "";return m<60?m+"m ago":Math.round(m/60)+"h ago";}
+function isStale(s){const m=ageMin(s&&s.heartbeat_at);return m==null||m>=STALE_MIN;}
 function cell(f,s){
   if(f==="status"){return '<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span>';}
   if(f==="steer"){const n=s.note?String(s.note):"";return n?'<span class="st warn">'+esc(n)+'</span>':'<span class="st mute">none reported</span>';}
@@ -97,9 +104,11 @@ function cell(f,s){
   return esc(dash(s[f]));
 }
 function srow(s){
+  const stale=isStale(s);
   return '<div class="srow"><div class="sid"><span>'+esc(dash(s.id))+'</span>'
     +'<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span></div>'
-    +'<div class="fields">'+FIELDS.map(f=>'<div class="k2">'+esc(f)+'</div><div class="v2">'+cell(f,s)+'</div>').join("")+'</div></div>';
+    +'<div class="fields">'+FIELDS.map(f=>'<div class="k2">'+esc(f)+'</div><div class="v2">'+cell(f,s)+'</div>').join("")
+    +(stale?'<div class="k2">heartbeat</div><div class="v2 hb-stale">stale &middot; no beat for '+STALE_MIN+'m+</div>':'')+'</div></div>';
 }
 function group(list){
   const byPr=new Map();
@@ -107,10 +116,28 @@ function group(list){
   const keys=[...byPr.keys()].sort((a,b)=>{const na=a==="?"?Infinity:parseInt(a,10),nb=b==="?"?Infinity:parseInt(b,10);return na-nb;});
   return keys.map(k=>{
     const ss=(byPr.get(k)||[]).slice().sort((x,y)=>String(x.id||"").localeCompare(String(y.id||"")));
-    return '<article class="pcard"><h2>PR '+(k==="?"?"?":"#"+esc(k))+'</h2>'
-      +'<p class="sub">'+ss.length+' session'+(ss.length===1?"":"s")+'</p>'
+    const stale=ss.some(isStale);
+    return '<article class="pcard"'+(stale?' style="outline:2px solid var(--bad);outline-offset:-2px"':'')+'><h2>PR '+(k==="?"?"?":"#"+esc(k))+'</h2>'
+      +'<p class="sub">'+ss.length+' session'+(ss.length===1?"":"s")+(stale?' &middot; <span class="hb-stale">stale heartbeat</span>':'')+'</p>'
       +ss.map(srow).join("")+'</article>';
   }).join("");
+}
+function summarize(list){
+  if(SUMMARY){SUMMARY.innerHTML=summaryHTML(list);}
+}
+function summaryHTML(list){
+  if(!Array.isArray(list)||!list.length)return "";
+  const byStatus=new Map(),fresh=[],stale=[];
+  for(const s of list){
+    const k=String(s&&s.status?s.status:"unknown").toLowerCase();
+    byStatus.set(k,(byStatus.get(k)||0)+1);
+    (isStale(s)?stale:fresh).push(s);
+  }
+  const chips=[...byStatus.entries()].sort().map(kv=>'<span class="pill">'+esc(kv[0])+": "+kv[1]+'</span>').join(" ");
+  const prCount=new Set(list.map(s=>s&&s.pr!=null?String(s.pr):"?")).size;
+  return '<span class="lbl">PR GRAPH</span><span class="pill">prs: '+prCount+'</span><span class="pill">sessions: '+list.length+'</span>'
+    +chips+' <span class="pill">heartbeats fresh(&lt;'+STALE_MIN+'m): '+fresh.length+'</span>'
+    +'<span class="pill'+(stale.length?' hb-stale':'')+'">stale: '+stale.length+'</span>';
 }
 async function load(){
   try{
@@ -119,13 +146,16 @@ async function load(){
     const d=await r.json();
     const list=Array.isArray(d&&d.sessions)?d.sessions:[];
     WHEEL.innerHTML=list.length?('<div class="wheel">'+group(list)+'</div>'):'<p class="empty">No sessions reported right now.</p>';
-    NOTE.textContent="count="+list.length+(d&&d.updated_at?" \\u00b7 updated_at="+d.updated_at:"")+" \\u00b7 live GET \\u00b7 no secrets, nothing invented";
+    summarize(list);
+    NOTE.textContent="count="+list.length+(d&&d.updated_at?" \u00b7 updated_at="+d.updated_at:"")+" \u00b7 live GET \u00b7 refreshes every 60s \u00b7 no secrets, nothing invented";
   }catch(e){
     WHEEL.innerHTML='<p class="empty">Sessions unavailable ('+esc(e&&e.message?e.message:String(e))+'). Nothing shown is invented.</p>';
+    summarize([]);
     NOTE.textContent="unavailable";
   }
 }
 load();
+setInterval(load,60000);
 """.replace("__API__", SESSIONS_API)
 
 
@@ -386,6 +416,7 @@ def render_sessions(branch: str, sha: str, when: str) -> str:
 <main class="main">
   <h1 id="readme">PR sessions</h1>
   <p class="cap">Hermes agent sessions driving Dezocode/Sai pull requests, one card per PR in a horizontally scrollable wheel. Live read-only GET from the sessions API below; every field comes straight from the response and stays blank or marked unavailable when missing. No secrets, no tokens, nothing invented.</p>
+  <div class="psummary" id="summary" aria-live="polite"></div>
   <div class="wheelwrap" id="wheelwrap">
     <div class="wheel" id="wheel"><noscript><p class="empty">JavaScript disabled — live sessions cannot load.</p></noscript></div>
   </div>
@@ -443,7 +474,10 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         SESSIONS_API,
         "overflow-x:auto",
         'id="wheel"',
+        'id="summary"',
+        "setInterval(load,60000)",
         'FIELDS=["profile","status","phase","head","heartbeat","steer","monitors"]',
+        ".hb-stale",
         "<noscript>",
         "Hostinger stays Saul-go",
     )
