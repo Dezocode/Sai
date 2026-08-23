@@ -110,6 +110,7 @@ const DETAIL={};
 const CHECKS={};
 let PULLS=null;
 let PULLS_ERR="";
+let SESSIONS_OK=false;
 const ESCMAP={};
 ESCMAP["&"]="&amp;";ESCMAP["<"]="&lt;";ESCMAP[">"]="&gt;";ESCMAP[String.fromCharCode(34)]="&quot;";ESCMAP[String.fromCharCode(39)]="&#39;";
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESCMAP[c]);
@@ -165,11 +166,31 @@ async function refreshChecks(num){
       if(c.status&&c.status!=="completed"){pending++;continue;}
       const cc=String(c.conclusion||"").toLowerCase();
       if(cc==="failure"||cc==="timed_out"||cc==="action_required")fails++;
-      if(/saul/i.test(String(c.name)))saul=c;
+      if(/saul/i.test(String(c.name))){
+        const t=String(c.completed_at||"");
+        if(!saul||t>=String(saul.completed_at||""))saul=c;
+      }
     }
-    CHECKS[sha]={total:total,fails:fails,pending:pending,
-      saul:!saul?"":(String(saul.conclusion||"")==="success"?"P0=P1=P2=0":String(saul.conclusion||"unknown"))};
+    CHECKS[sha]={total:total,fails:fails,pending:pending,saul:saulLabel(saul)};
   }catch(err){if(CHECKS[sha]===undefined)CHECKS[sha]=null;}
+}
+function pcounts(text){
+  if(!text)return null;
+  const grab=(tag)=>{
+    const i=text.indexOf(tag);if(i<0)return null;
+    let j=i+tag.length,num="";
+    while(j<text.length&&text[j]>="0"&&text[j]<="9"){num+=text[j];j++;}
+    return num===""?null:num;
+  };
+  const p0=grab("P0="),p1=grab("P1="),p2=grab("P2=");
+  return (p0==null||p1==null||p2==null)?null:{p0:p0,p1:p1,p2:p2};
+}
+function saulLabel(c){
+  if(!c)return "";
+  const pc=pcounts(c.output&&c.output.summary);
+  if(pc)return "P0="+pc.p0+" P1="+pc.p1+" P2="+pc.p2;
+  const cc=String(c.conclusion||"");
+  return cc==="success"?"success (no blocking findings)":(cc||"unknown");
 }
 function normalize(k){
   const raw=PULLS?PULLS.get(k):undefined;
@@ -202,7 +223,7 @@ function assemble(list){
       const h=String(s&&s.head||"").toLowerCase();
       return !!h&&!pr.headSha.toLowerCase().startsWith(h);
     }));
-    const agentState=ss.length===0?"none":(ss.some(isMissing)?"missing":(ss.some(isStale)?"stale":"fresh"));
+    const agentState=ss.length===0?(SESSIONS_OK?"none":"unknown"):(ss.some(isMissing)?"missing":(ss.some(isStale)?"stale":"fresh"));
     return {k:k,pr:pr,ss:ss,mismatch:mismatch,agentState:agentState};
   });
 }
@@ -283,6 +304,8 @@ function prCard(c){
   let sub;
   if(c.agentState==="none"){
     sub='<p class="sub"><span class="noworker">Agent: NONE — no worker attached</span></p>';
+  }else if(c.agentState==="unknown"){
+    sub='<p class="sub"><span class="st warn">Agent: UNKNOWN — sessions unavailable; worker attachment unknown</span></p>';
   }else{
     const b={fresh:0,stale:0,missing:0};
     for(const s of c.ss)b[beatBucket(s)]++;
@@ -302,7 +325,7 @@ function prCard(c){
 }
 function group(cards){return cards.map(prCard).join("");}
 function summaryHTML(cards,list){
-  let open=0,openDraft=0,mergedN=0,closedN=0,sessionOnly=0,unknownKey=0,noneWorker=0,mismatchN=0;
+  let open=0,openDraft=0,mergedN=0,closedN=0,sessionOnly=0,unknownKey=0,noneWorker=0,unknownWorker=0,mismatchN=0;
   for(const c of cards){
     if(c.k==="?"){unknownKey++;continue;}
     if(!c.pr){sessionOnly++;continue;}
@@ -310,6 +333,7 @@ function summaryHTML(cards,list){
     else if(c.pr.state==="open"){open++;if(c.pr.draft)openDraft++;}
     else closedN++;
     if(c.agentState==="none")noneWorker++;
+    if(c.agentState==="unknown")unknownWorker++;
     if(c.mismatch)mismatchN++;
   }
   const hb={fresh:0,stale:0,missing:0};
@@ -323,6 +347,7 @@ function summaryHTML(cards,list){
     '<span class="pill">agent NONE: '+noneWorker+'</span>'];
   if(sessionOnly)chips.push('<span class="pill">session-only PRs: '+sessionOnly+'</span>');
   if(unknownKey)chips.push('<span class="pill">unmapped PR keys: '+unknownKey+'</span>');
+  if(unknownWorker)chips.push('<span class="pill hb-stale">agent unknown: '+unknownWorker+'</span>');
   if(mismatchN)chips.push('<span class="pill hb-stale">HEAD mismatch: '+mismatchN+'</span>');
   chips.push('<span class="pill">heartbeats fresh(&lt;'+STALE_MIN+'m): '+hb.fresh+'</span>',
     '<span class="pill'+(hb.stale?" hb-stale":"")+'">stale: '+hb.stale+'</span>',
@@ -340,18 +365,23 @@ function renderWheel(cards,list){
   if(list.length){WHEEL.innerHTML='<p class="empty">No PR cards could be assembled; sessions exist but GitHub data is unavailable. Nothing shown is invented.</p>';return;}
   WHEEL.innerHTML='<p class="empty">No PRs and no sessions reported right now.</p>';
 }
+async function enrich(cards){
+  await Promise.all(cards.filter(c=>c.pr&&c.k!=="?").map(async c=>{
+    await refreshDetail(c.k);
+    if(DETAIL[c.k]&&DETAIL[c.k].headSha)await refreshChecks(c.k);
+  }));
+}
 async function load(){
   try{
     const r=await fetch(SESSIONS_URL,{cache:"no-store"});
     if(!r.ok)throw new Error("HTTP "+r.status);
     const d=await r.json();
-    const list=Array.isArray(d&&d.sessions)?d.sessions:[];
+    if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload");
+    const list=d.sessions;
+    SESSIONS_OK=true;
     await loadPulls();
     let cards=assemble(list);
-    await Promise.all(cards.filter(c=>c.pr&&c.k!=="?").map(async c=>{
-      await refreshDetail(c.k);
-      if(DETAIL[c.k]&&DETAIL[c.k].headSha)await refreshChecks(c.k);
-    }));
+    await enrich(cards);
     cards=assemble(list);
     renderWheel(cards,list);
     SUMMARY.innerHTML=summaryHTML(cards,list);
@@ -359,8 +389,11 @@ async function load(){
       +" · github="+describeGh()+" · live GET · refreshes every 60s · no secrets, nothing invented";
   }catch(err){
     const msg=err&&err.message?err.message:String(err);
+    SESSIONS_OK=false;
     await loadPulls();
-    const cards=assemble([]);
+    let cards=assemble([]);
+    await enrich(cards);
+    cards=assemble([]);
     renderWheel(cards,[]);
     SUMMARY.innerHTML=summaryHTML(cards,[]);
     NOTE.textContent="sessions unavailable ("+msg+") · github="+describeGh()+" · nothing shown is invented";
@@ -694,6 +727,8 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         "/pulls?state=all&per_page=100",
         "If-None-Match",
         "Agent: NONE",
+        "Agent: UNKNOWN",
+        "success (no blocking findings)",
         'class="mismatch">session HEAD ≠ PR HEAD',
         "github.com/Dezocode/Sai/pull/",
         ".hb-fresh",
