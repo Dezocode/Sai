@@ -160,3 +160,32 @@ scripts/render-sai-feature-maps                      | 158 ++++++--
 4 files changed, 155 insertions(+), 23 deletions(-)
 (1200 added-line budget; deletions free.)
 ```
+
+## Round-7b runtime proof (STEER 09:03:17Z) — exact shipped page JS
+
+Harness: /tmp/verify_runtime_budget.mjs (node; stubbed fetch/document/setInterval;
+executes the literal <script> block emitted into pr-sessions.html at HEAD).
+
+Scenario A (healthy first load, 100 GitHub PRs + 2 sessions):
+PASS first-load GitHub requests bounded got=25 (1 listing + 24 budgeted)
+PASS exactly 1 listing request
+PASS enrichment requests <= 24 budget
+PASS union cards rendered = 101 (100 GH PRs + session-only pr=9999 ghost)
+PASS session-linked PR 77 detail fetched FIRST (priority order)
+PASS CI rollup rendered ("1 checks")
+PASS Agent: NONE card present for open PR without session
+
+Scenario B (GitHub quota exhausted right after the listing):
+PASS total GitHub attempts <= listing + budget
+PASS all 101 cards still render from listing-level data
+PASS CI/Saul fields honestly ">unavailable<" — never invented totals
+
+Scenario C (refresh with ETag revalidation, everything 304 Not Modified):
+PASS refresh issues at most 1 GitHub request (listing only; 304 does not
+count against the anonymous 60/hr quota)
+PASS all cards survive the refresh
+PASS cached check-rollup data survives and still renders
+
+Result: RUNTIME PROOF ALL PASS (15/15). The budgeted planner bounds
+first-load GitHub calls to 25 requests worst-case, degrades honestly when
+the quota is hit mid-load, and steady-state refreshes stay at ~1 request.
