@@ -183,11 +183,112 @@ let failures=0;
   check("Saul latest-wins conclusion",r.saul&&r.saul.conclusion,"success");
   check("Saul latest-wins clears action_required",r.fails,0);
 }
+{
+  // Saul P1 round-6b: fan-out budget. 100 open PRs sharing 2 head SHAs must
+  // plan at most REQUEST_BUDGET steps (not ~200), deduped by head SHA, with
+  // open/visible cards first. This is what prevented the quota exhaustion.
+  const cards=[];
+  for(let i=1;i<=100;i++){
+    cards.push({k:String(i),pr:{state:"open",merged:false,headSha:(i%2?"aa11":"bb22")},ss:[],agentState:"none"});
+  }
+  const steps=planEnrich(cards,24);
+  check("budget caps planned enrichment steps",steps.length<=24,true);
+  check("budget total never exceeds 24",steps.length,24);
+  const kinds={};
+  for(const s of steps)kinds[s.kind]=(kinds[s.kind]||0)+1;
+  check("every step is detail or checks",(kinds.detail||0)+(kinds.checks||0),steps.length);
+  // dedupe: same head SHA must not re-request checks
+  const checkedShas=new Set();
+  let redup=0;
+  for(const s of steps){if(s.kind==="checks"){if(checkedShas.has(s.k))redup++;checkedShas.add(s.k);}}
+  check("check steps deduped by head SHA",redup,0);
+}
+{
+  // Priority: a PR with a session is enriched before a session-less open PR.
+  const cards=[
+    {k:"2",pr:{state:"open",merged:false,headSha:"cc33"},ss:[],agentState:"none"},
+    {k:"1",pr:{state:"open",merged:false,headSha:"dd44"},ss:[{id:"s1"}],agentState:"fresh"}
+  ];
+  const steps=planEnrich(cards,4);
+  const details=steps.filter(s=>s.kind==="detail");
+  check("session card planned first",details[0].k,"1");
+  check("open card planned second",details[1].k,"2");
+}
+{
+  // Closed/merged PRs are not enrichment targets at all.
+  const cards=[
+    {k:"9",pr:{state:"closed",merged:false,headSha:"ee55"},ss:[],agentState:"none"},
+    {k:"10",pr:{state:"open",merged:true,headSha:"ff66"},ss:[],agentState:"none"}
+  ];
+  const steps=planEnrich(cards,4);
+  check("closed+merged PRs skipped by planner",steps.length,0);
+}
+{
+  // Force-push: the enrichment done-cache is keyed by head SHA, not PR
+  // number, so a re-pushed PR is re-enriched at its new HEAD instead of
+  // freezing on "loading…" for CI/Saul forever.
+  const ENRICHED=new Set();
+  const cards=[{k:"5",pr:{state:"open",merged:false,headSha:"AA11"},ss:[],agentState:"fresh"}];
+  let pend=pendingCards(cards,ENRICHED);
+  check("un-enriched card is pending",pend.length,1);
+  ENRICHED.add("aa11");
+  pend=pendingCards(cards,ENRICHED);
+  check("same-HEAD card is not re-planned",pend.length,0);
+  cards[0].pr.headSha="BB22";
+  pend=pendingCards(cards,ENRICHED);
+  check("force-pushed card becomes pending again",pend.length,1);
+}
 if(failures){console.error(failures+" selftest failure(s)");process.exit(1);}
 console.log("ALL PASS");
 """
+# ENRICH_JS: pure planning for the per-refresh GitHub enrichment budget (Saul
+# P1 round-6b: unauthenticated fan-out exhausted the 60/hr quota). Spliced into
+# the page AND into the --selftest harness, so the test drives the exact
+# shipped planner. Backslash-free like the other blocks.
+ENRICH_JS = """
+function enrichPrio(c){
+  if(c.ss&&c.ss.length)return 0;
+  if(c.pr&&c.pr.state==="open"&&!c.pr.merged)return 1;
+  return 2;
+}
+function planEnrich(cards,budget){
+  const order=cards.filter(c=>c.k!=="?").sort((a,b)=>enrichPrio(a)-enrichPrio(b));
+  const steps=[];
+  let b=budget;
+  const checked=new Set();
+  for(const c of order){
+    if(b<=0)break;
+    const pr=c.pr;
+    const relevant=!!(c.ss&&c.ss.length)||(pr&&pr.state==="open"&&!pr.merged);
+    if(!relevant)continue;
+    b--;
+    steps.push({kind:"detail",k:c.k});
+    const sha=pr&&pr.headSha?pr.headSha.toLowerCase():"";
+    if(sha&&!checked.has(sha)){
+      checked.add(sha);
+      if(b>0){b--;steps.push({kind:"checks",k:c.k});}
+    }
+  }
+  return steps;
+}
+function pendingCards(cards,done){
+  // A card is pending while its PR HEAD still needs detail+CI. Keyed by head
+  // SHA (not PR number): a force-push changes the sha, so the new HEAD is
+  // enriched again and CI/Saul never freeze on "loading…" after a re-push.
+  const out=[];
+  for(const c of cards){
+    if(!c.pr||!c.pr.headSha)continue;
+    const sha=String(c.pr.headSha).toLowerCase();
+    if(!done.has(sha))out.push(c);
+  }
+  return out;
+}
+"""
 SESSIONS_JS = """
 const STALE_MIN=30;
+// Per-refresh budget for GitHub enrichment requests (unauthenticated quota is
+// 60/hr; we stay well under so a full initial render can never exhaust it).
+const REQUEST_BUDGET=24;
 const GH_API="https://api.github.com/repos/Dezocode/Sai";
 const GH_WEB="https://github.com/Dezocode/Sai";
 const GH_PULL="https://github.com/Dezocode/Sai/pull/";
@@ -457,11 +558,24 @@ function renderWheel(cards,list){
   if(list.length){WHEEL.innerHTML='<p class="empty">No PR cards could be assembled; sessions exist but GitHub data is unavailable. Nothing shown is invented.</p>';return;}
   WHEEL.innerHTML='<p class="empty">No PRs and no sessions reported right now.</p>';
 }
+__ENRICH__
+const ENRICHED=new Set();
 async function enrich(cards){
-  await Promise.all(cards.filter(c=>c.k!=="?").map(async c=>{
-    await refreshDetail(c.k);
-    if(DETAIL[c.k]&&DETAIL[c.k].headSha)await refreshChecks(c.k);
-  }));
+  // Budgeted, sequential (no Promise.all fan-out): the unauthenticated GitHub
+  // quota is 60/hr, so per-refresh we plan at most REQUEST_BUDGET enrichment
+  // requests, prioritized to open/visible cards, deduping check fetches by
+  // head SHA. The done-cache is keyed by head SHA (not PR number) so a
+  // force-pushed PR is enriched again at its new HEAD instead of freezing on
+  // "loading…". Cards the budget cannot reach stay on listing-level data with
+  // those fields honestly unavailable - never fabricated, never a quota burn.
+  const pending=pendingCards(cards,ENRICHED);
+  const steps=planEnrich(pending,REQUEST_BUDGET);
+  for(const s of steps){
+    if(s.kind==="detail")await refreshDetail(s.k);
+    else await refreshChecks(s.k);
+  }
+  const doneCards=new Set(pending.filter(c=>DETAIL[c.k]&&DETAIL[c.k]!==null).map(c=>c.k));
+  for(const c of pending){if(doneCards.has(c.k))ENRICHED.add(String(c.pr.headSha).toLowerCase());}
 }
 async function load(){
   try{
@@ -493,7 +607,7 @@ async function load(){
 }
 load();
 setInterval(load,60000);
-""".replace("__API__", SESSIONS_API).replace("__ROLLUP__", ROLLUP_JS)
+""".replace("__API__", SESSIONS_API).replace("__ROLLUP__", ROLLUP_JS).replace("__ENRICH__", ENRICH_JS)
 
 
 def git(root: Path, *args: str) -> str:
@@ -860,7 +974,7 @@ def run_selftest() -> int:
     Fail-loud if node is unavailable: the selftest is the regression net for
     the latest-wins check-run rollup (Saul P1), so skipping is never silent.
     """
-    harness = ROLLUP_JS + SELFTEST_JS
+    harness = ROLLUP_JS + ENRICH_JS + SELFTEST_JS
     with tempfile.TemporaryDirectory(prefix="sai-rollup-selftest-") as tmp:
         js = Path(tmp) / "rollup_selftest.js"
         js.write_text(harness, encoding="utf-8")
