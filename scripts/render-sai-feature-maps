@@ -97,20 +97,28 @@ SESSIONS_CSS = """<style>
 # for quote keys) so the JS-in-Python splice cannot lose an escape level.
 # ROLLUP_JS is the single source for the check-run rollup: spliced into the
 # page AND into the --selftest node harness, so the test drives the exact
-# shipped function (adversarial fixture: superseded failed attempt followed by
-# a green rerun of the same check name must roll up to latest-wins).
+# shipped function (newest attempt per check name by stable id/attempt
+# order; timestamps only as fallback - a queued rerun must supersede).
 ROLLUP_JS = """
 function rollupChecks(runs){
   // GitHub returns every historical attempt plus reruns for the same check
   // name; keep only the newest attempt per check so a successful rerun
   // clears an earlier failure instead of being double-counted.
   const newest=new Map();
+  const rank=x=>{if(!x)return null;
+    const id=Number(x.id);if(Number.isFinite(id)&&id>0)return [2,id];
+    const at=Number(x.attempt);if(Number.isFinite(at)&&at>0)return [1,at];
+    const t=String(x.started_at||x.completed_at||"");return t?[0,t]:null;};
+  const cmp=(a,b)=>{if(a===null)return b===null?0:-1;if(b===null)return 1;
+    for(let i=0;i<2;i++){if(a[i]!==b[i])return a[i]<b[i]?-1:1;}return 0;};
   for(const c of runs){
     if(!c||!c.name)continue;
     const name=String(c.name);
     const cur=newest.get(name);
-    const ts=x=>String((x&&x.started_at)||(x&&x.completed_at)||"");
-    if(!cur||ts(c)>=ts(cur))newest.set(name,c);
+    // Newest by stable monotone order, never timestamps alone (Saul P1): a
+    // queued rerun can carry neither started_at nor completed_at, so an
+    // empty timestamp must not lose to a superseded completed run.
+    if(!cur||cmp(rank(c),rank(cur))>0)newest.set(name,c);
   }
   let total=0,fails=0,pending=0,saul=null;
   for(const c of newest.values()){
@@ -144,6 +152,24 @@ let failures=0;
   check("P1 latest-wins total by name",r.total,1);
   check("P1 green rerun clears superseded failure",r.fails,0);
   check("P1 pending count",r.pending,0);
+}
+{
+  // Saul P1 round-10: a newly QUEUED rerun carries neither started_at nor
+  // completed_at, so its empty timestamp key must not lose to the older
+  // superseded FAILURE - CI must read pending, never stuck on failed.
+  const f={name:"build",id:97188392852,status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"};
+  const q={name:"build",id:97199999999,status:"queued"};
+  check("queued rerun supersedes failure (total)",rollupChecks([f,q]).total,1);
+  check("queued rerun supersedes failure (fails)",rollupChecks([f,q]).fails,0);
+  check("queued rerun reads as pending",rollupChecks([f,q]).pending,1);
+  check("supersession independent of array order",rollupChecks([q,f]).fails+":"+rollupChecks([q,f]).pending,"0:1");
+}
+{
+  // Attempt breaks ties when a payload ships no check-run ids; a ranked
+  // id-bearing run also beats any timestamp-only run regardless of times.
+  const idless=[{name:"deploy",attempt:1,status:"completed",conclusion:"failure",started_at:"2026-08-23T00:00:00Z",completed_at:"2026-08-23T00:05:00Z"},{name:"deploy",attempt:2,status:"in_progress"}];
+  check("attempt orders id-less reruns",rollupChecks(idless).fails+":"+rollupChecks(idless).pending,"0:1");
+  check("ranked id beats timestamp-only run",rollupChecks([{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},{name:"icm-enforcement",id:42,status:"queued"}]).fails+":"+rollupChecks([{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},{name:"icm-enforcement",id:42,status:"queued"}]).pending,"0:1");
 }
 {
   // Out-of-order arrival: array lists green first, failing rerun last with
