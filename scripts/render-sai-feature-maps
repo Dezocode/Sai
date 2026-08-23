@@ -430,7 +430,7 @@ async function loadPrs(){
     const r=await fetch(PRS_URL,{cache:"no-store"});const d=r.ok?await r.json():null;
     if(d&&Array.isArray(d.prs)){
       const out=[];
-      for(const p of d.prs){if(p&&p.pr!=null&&Array.isArray(p.agents))for(const a of p.agents)out.push(a);}
+      for(const p of d.prs){if(p&&p.pr!=null&&Array.isArray(p.agents))for(const a of p.agents)out.push({pr:p.pr,...a});}
       SRC="prs";return {list:out,multi:true};
     }
   }catch(err){}
@@ -1106,7 +1106,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         'if(f==="diff")return diffView(s&&s.diff)', "<details><summary>files</summary>",
         '"st warn">dirty', "hermes-sessions/prs", "const PRS_URL=", ".tag{", ".saul{",
         "tagsView(s)+reviewView(s)", 'src="+(multi?"prs (multi-agent)":"sessions (fallback)")',
-        "prs feed unavailable",
+        "prs feed unavailable", "mergeability", "for(const k of PULLS.keys())keys.add(k)", "out.push({pr:p.pr,...a})",
     )
     for needle in sessions_needles:
         if needle not in html_sessions:
@@ -1144,6 +1144,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         + "if(html.indexOf('model:test-model'.slice(6))<0)fail('tag model');"
         + "if(html.indexOf('Saul review')<0)fail('saul label');"
         + "if(html.indexOf('P0=1 P1=2 P2=3')<0)fail('saul counts');"
+        + "if(html.indexOf('pull/77')<0)fail('parent-PR join');if(html.indexOf('PR ?')>=0)fail('ghost unknown card');"
         + "global.fetch=async(u)=>String(u).indexOf('hermes-sessions/prs')>=0?{ok:false,status:503}:J("
         + json.dumps(fb_payload) + ");W.innerHTML='';await load();"
         + "if(N.textContent.indexOf('src=sessions (fallback)')<0)fail('fallback note');"
