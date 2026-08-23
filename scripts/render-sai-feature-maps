@@ -136,9 +136,9 @@ async function loadPulls(){
   try{
     const j=await ghJson("/pulls?state=all&per_page=100&sort=created&direction=desc","pulls");
     if(j.notModified)return;
-    const arr=Array.isArray(j.data)?j.data:[];
+    if(!Array.isArray(j.data))throw new Error("malformed GitHub pull-list payload");
     const map=new Map();
-    for(const p of arr){if(p&&p.number!=null)map.set(String(p.number),p);}
+    for(const p of j.data){if(p&&p.number!=null)map.set(String(p.number),p);}
     PULLS=map;PULLS_ERR="";
   }catch(err){PULLS_ERR=err&&err.message?err.message:String(err);}
 }
@@ -147,7 +147,8 @@ async function refreshDetail(num){
     const j=await ghJson("/pulls/"+num,"pr:"+num);
     if(j.notModified)return;
     const d=j.data||{};
-    DETAIL[num]={title:d.title||"",mergeable:d.mergeable,mergeableState:d.mergeable_state||"",
+    DETAIL[num]={title:d.title||"",state:d.state||"",draft:!!d.draft,mergedAt:d.merged_at||"",
+      mergeable:d.mergeable,mergeableState:d.mergeable_state||"",
       headSha:d.head&&d.head.sha?d.head.sha:"",pushedAt:d.pushed_at||"",updatedAt:d.updated_at||""};
   }catch(err){if(DETAIL[num]===undefined)DETAIL[num]=null;}
 }
@@ -198,9 +199,9 @@ function normalize(k){
   if(!raw&&det===undefined)return null;
   return {
     title:(det&&det.title)||(raw&&raw.title)||"",
-    state:raw?String(raw.state):(det?"unknown":""),
-    draft:raw?!!raw.draft:false,
-    merged:raw?!!raw.merged_at:false,
+    state:raw?String(raw.state):(det&&det.state?det.state:"unknown"),
+    draft:raw?!!raw.draft:(det?!!det.draft:false),
+    merged:raw?!!raw.merged_at:(det?!!det.mergedAt:false),
     headSha:(det&&det.headSha)||(raw&&raw.head&&raw.head.sha)||"",
     pushedAt:(det&&det.pushedAt)||(raw&&raw.pushed_at)||"",
     updatedAt:(det&&det.updatedAt)||(raw&&raw.updated_at)||"",
@@ -366,7 +367,7 @@ function renderWheel(cards,list){
   WHEEL.innerHTML='<p class="empty">No PRs and no sessions reported right now.</p>';
 }
 async function enrich(cards){
-  await Promise.all(cards.filter(c=>c.pr&&c.k!=="?").map(async c=>{
+  await Promise.all(cards.filter(c=>c.k!=="?").map(async c=>{
     await refreshDetail(c.k);
     if(DETAIL[c.k]&&DETAIL[c.k].headSha)await refreshChecks(c.k);
   }));
