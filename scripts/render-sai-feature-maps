@@ -235,7 +235,13 @@ check("partial rollup excluded from doneShas (B-PARTIAL)",doneShas(card("91","DD
 fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:"badkey",agents:[{id:"i",status:"active",heartbeat_at:beat}]},{pr:78,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes"}]}]}):GHJ({sessions:[]}); const fed=await loadPrs();
 check("healthy group survives malformed sibling (C-05)",fed.multi===true&&fed.list.some(r=>r.pr==="78"),true); check("malformed pr-key rows dropped as invalid (A-H1)",DROPPED>=1,true);
 fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:79,agents:[{id:"z",status:"x"}]}]}):GHJ({sessions:[{id:"s1",status:"active",heartbeat_at:beat,pr:80}]}); const fb2=await loadPrs();
-check("all-invalid feed falls back to sessions (C-05)",fb2.multi===false&&fb2.list.length===1&&fb2.list[0].pr==="80",true); PULLS=null;fetch=realFetch;}
+check("all-invalid feed falls back to sessions (C-05)",fb2.multi===false&&fb2.list.length===1&&fb2.list[0].pr==="80",true);
+{ // Saul 97338826287: invalid group's flightboard never publishes via a valid sibling; checks backoff uses its own retry window.
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:81,agents:[{id:"bad",status:"x"}],flightboard:{implementation_pct:99,merge_readiness_pct:99}},{pr:82,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes"}]}]}):GHJ({sessions:[]}); const fed3=await loadPrs();
+check("invalid group's flightboard excluded (97338826287)",fed3.multi===true&&FLIGHT["81"]===undefined&&fed3.list.some(r=>r.pr==="82"),true);}
+{const now2=Date.now();CHECKS_FAIL["ef01"]=MAX_DETAIL_FAILS;delete CHECKS_RETRY_AT["ef01"];check("capped checks not replanned before window",planEnrich(card("93","EF01"),9).some(s=>s.kind==="checks"),false);
+CHECKS_RETRY_AT["ef01"]=now2-1;check("expired checks retry window replans (97338826287)",planEnrich(card("93","EF01"),9).some(s=>s.kind==="checks"),true);delete CHECKS_FAIL["ef01"];delete CHECKS_RETRY_AT["ef01"];}
+PULLS=null;fetch=realFetch;}
 
 fetch=realFetch; if(failures){console.error(failures+" selftest failure(s)");process.exit(1);} console.log("ALL PASS");
 })();
@@ -266,7 +272,7 @@ function planEnrich(cards,budget){
     }
     if(sha&&!checked.has(sha)){checked.add(sha);
       const cfailed=(CHECKS_FAIL[sha]||0)>=MAX_DETAIL_FAILS,cprobe=!!CHECKS_RETRY_AT[sha]&&now>=CHECKS_RETRY_AT[sha];
-      if((!cfailed||probe)&&b>0){b--;steps.push({kind:"checks",k:c.k});}}
+      if((!cfailed||cprobe)&&b>0){b--;steps.push({kind:"checks",k:c.k});}} // Saul 97338826287: cprobe (checks retry window), never the detail probe.
   }
   return steps;
 }
@@ -427,11 +433,12 @@ async function loadPrs(){ // falls back to /sessions when /prs is unreachable, e
       for(const p of d.prs){
         const pk=prKeyOf(p&&p.pr); // A-H1: prototype-safe keys only.
         if(!pk||!Array.isArray(p.agents)||p.agents.length===0){DROPPED+=(p&&Array.isArray(p.agents))?p.agents.length:0;continue;} // C-05: bad groups skip themselves, siblings survive.
-        if((p.flightboard||p.flight)&&typeof (p.flightboard||p.flight)==="object")fbc[pk]=p.flightboard||p.flight;
         let vc=0; // Round-20: per-row v2 validation — invalid rows drop, valid rows survive.
         for(const a of p.agents)if(rowValid(a)){out.push({pr:pk,...a});vc++;}
         DROPPED+=p.agents.length-vc;
-        if(vc>0)validGroups++;
+        if(vc===0)continue; // Saul 97338826287: whole-group gate — an invalid group's flightboard never reaches FLIGHT.
+        validGroups++;
+        if((p.flightboard||p.flight)&&typeof (p.flightboard||p.flight)==="object")fbc[pk]=p.flightboard||p.flight;
       }
       if(validGroups>0){SRC="prs";for(const k in fbc)FLIGHT[k]=fbc[k];return {list:out,multi:true};} // ≥1 healthy group commits telemetry
     }
