@@ -37,7 +37,6 @@ func lockedFixture(t *testing.T) string {
 	writeRel(t, root, designAuth+"/SaiDesignLanguage.swift", authoritySwift(false))
 	return root
 }
-
 func writeRel(t *testing.T, root, rel, src string) {
 	t.Helper()
 	p := filepath.Join(root, rel)
@@ -48,7 +47,6 @@ func writeRel(t *testing.T, root, rel, src string) {
 }
 
 const protoView = "import SwiftUI\nstruct AuthorEditor: View {\n    var body: some View {\n        VStack { Text(\"Author\") }\n    }\n}\n"
-
 const expTokens = "let experiment = \"#FF00AA\"\n"
 
 // mustFail: rel→src on a fresh locked fixture must fail; mustPass is the inverse over a file set.
@@ -61,7 +59,6 @@ func mustFail(t *testing.T, rel, src string) {
 		t.Fatalf("expected %s to fail", rel)
 	}
 }
-
 func mustPass(t *testing.T, files map[string]string) {
 	t.Helper()
 	root := lockedFixture(t)
@@ -108,7 +105,6 @@ func TestProductionTestGoCannotImportLane(t *testing.T) {
 		t.Fatalf("lane-free production test file must pass: %v", err)
 	}
 }
-
 func TestInCanonicalPrototypeFailsClosed(t *testing.T) {
 	for _, tc := range []struct {
 		rel  string
@@ -119,7 +115,6 @@ func TestInCanonicalPrototypeFailsClosed(t *testing.T) {
 		}
 	}
 }
-
 func TestStripSwiftComments(t *testing.T) {
 	cases := map[string]string{
 		"import /* x */ SwiftUI": "import   SwiftUI", "import /* a /* b */ c */ SwiftUI": "import   SwiftUI", "import // line\n SwiftUI": "import  \n SwiftUI", "import/**/SwiftUI": "import SwiftUI", `let s = "import /* not */ SwiftUI"`: `let s = "import /* not */ SwiftUI"`,
@@ -130,7 +125,6 @@ func TestStripSwiftComments(t *testing.T) {
 		}
 	}
 }
-
 func TestCandidateJSONCannotRelocatePrototypeRoot(t *testing.T) {
 	root := lockedFixture(t)
 	writeRel(t, root, "prototypes/plugins/author/Editor.swift", protoView)
@@ -260,7 +254,6 @@ func TestGoImportClassifier(t *testing.T) {
 		t.Fatalf("non-import mention must not trip the gate: %v", err)
 	}
 }
-
 func TestPrototypeGoCannotModifyProtectedProduction(t *testing.T) {
 	for _, src := range []string{
 		"package author\nimport \"plugin\"\nfunc x() { plugin.Open(\"\") }\n",
@@ -322,7 +315,6 @@ func gitc(t *testing.T, root string, a ...string) string {
 	}
 	return strings.TrimSpace(string(o))
 }
-
 func TestPrototypeLaneDiffGate(t *testing.T) {
 	fail := [][]string{
 		{"prototypes/plugins/author/Editor.swift", "internal/app/app.go"}, {"prototypes/plugins/author/bridge.go", "cmd/sai/main.go"}, {"prototypes/x.go", "internal/app/app_test.go"},
@@ -361,6 +353,47 @@ func TestPrototypeLaneDiffGate(t *testing.T) {
 		t.Fatal("failed trusted-base git diff must fail the gate closed")
 	}
 }
+
+// Saul 97348395053: --name-only reports only a rename's DESTINATION, so moving protected production Go into the lane passed as "prototype-only"; both rename sides must be inspected.
+func TestPrototypeLaneRenameIntoLaneFails(t *testing.T) {
+	root := lockedFixture(t)
+	gitc(t, root, "init", "-q")
+	writeRel(t, root, "internal/app/app.go", "package app\nvar x = 1\n")
+	writeRel(t, root, "prototypes/plugins/author/Editor.swift", protoView)
+	gitc(t, root, "add", "-A")
+	gitc(t, root, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "--allow-empty", "-qm", "base")
+	t.Setenv("SAI_TRUSTED_BASE", gitc(t, root, "rev-parse", "HEAD"))
+	os.MkdirAll(filepath.Join(root, "prototypes/plugins/author"), 0755)
+	gitc(t, root, "mv", "internal/app/app.go", "prototypes/plugins/author/app.go")
+	gitc(t, root, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-aqm", "move production Go into the lane")
+	// Adversarial precondition: git records a genuine R100 rename whose old --name-only view exposed ONLY the destination.
+	raw, rerr := exec.Command("git", "-C", root, "diff", "-M", "--name-status", "-z", os.Getenv("SAI_TRUSTED_BASE")+"..HEAD").Output()
+	nameOnly := gitc(t, root, "diff", "-M", "--name-only", os.Getenv("SAI_TRUSTED_BASE")+"..HEAD") // pre-fix gate input
+	if rerr != nil || !strings.HasPrefix(string(raw), "R100\x00internal/app/app.go\x00") || strings.Contains(nameOnly, "internal/") || !strings.HasPrefix(nameOnly, "prototypes/") {
+		t.Fatalf("fixture could not induce the rename vector: %v %q %q", rerr, raw, nameOnly)
+	}
+	if err := checkPrototypeLaneDiff(root); err == nil {
+		t.Fatal("rename of protected production Go into prototypes/ must trip the trusted-base gate")
+	}
+}
+
+// Saul 97348395053: name-status parsing surfaces BOTH sides of rename/copy records, keeps -z spaced names intact, fails closed on malformed records.
+func TestParseNameStatusPaths(t *testing.T) {
+	ok := map[string][]string{
+		"": nil, "M\x00a.txt\x00": {"a.txt"}, "A\x00n.txt\x00D\x00o.txt\x00": {"n.txt", "o.txt"}, "C75\x00x\x00y\x00": {"x", "y"}, "T\x00a b dir/c d.txt\x00": {"a b dir/c d.txt"}, "R100\x00a\x00b": {"a", "b"}, // missing final terminator still yields complete records
+		"R100\x00internal/app/app.go\x00prototypes/plugins/author/app.go\x00": {"internal/app/app.go", "prototypes/plugins/author/app.go"},
+	}
+	for raw, want := range ok {
+		if got, err := parseNameStatusPaths([]byte(raw)); err != nil || strings.Join(got, "|") != strings.Join(want, "|") {
+			t.Fatalf("parseNameStatusPaths(%q) = %v, %v; want %v", raw, got, err, want)
+		}
+	}
+	for _, raw := range []string{"\x00M\x00x\x00", "M", "R100\x00only-dest\x00", "M\x00"} { // malformed records fail closed
+		if got, err := parseNameStatusPaths([]byte(raw)); err == nil {
+			t.Fatalf("malformed record %q must fail closed, got %v", raw, got)
+		}
+	}
+}
 func TestModuleReplaceIntoLaneFails(t *testing.T) {
 	root := lockedFixture(t) // resolution basis; moduleTargetsLane reads no disk
 	parent := t.TempDir()    // Saul 97279716328: absolute targets are judged AFTER symlink resolution — an outside alias into the lane must fail
@@ -368,9 +401,10 @@ func TestModuleReplaceIntoLaneFails(t *testing.T) {
 		t.Fatal("fixture")
 	}
 	hit := []string{
-		"replace example.com/x => ./prototypes/plugins/author\n", "replace (\n	A => prototypes/plugins/author\n	B => ./prototypes\n)\n", "replacex y\nreplace e.com/x => prototypes/plugins/author", "replace (e.com/x => ./prototypes/author)", // single-line block form
+		"replace example.com/x => ./prototypes/plugins/author\n", "replace (\n	A => prototypes/plugins/author\n	B => ./prototypes\n)\n", "replacex y\nreplace e.com/x => prototypes/plugins/author", "replace (e.com/x => ./prototypes/author)", // single-line block form; Saul 97348395053: EOF inside an open replace block fails closed even when every scanned entry is lane-free
 		"replace e.com/x => prototypes/../prototypes/plugins/author\n", // relative traversal that still lands in the lane fails
 		// Absolute targets resolve against the repo root (STEER 97234516350): rooted paths must not evade via ../.
+		"replace (\n	example.com/x => ./internal/x\n", "replace (\n	a => ./vendor/x v1.0.0\n", "module m\nrequire e.com/y v1.2.3\n\nreplace (\n	e.com/z => ../shared\n",
 		"module m\nreplace github.com/evil/bad => " + filepath.Join(root, "prototypes/plugins/author") + "\n", "replace e.com/x => \"" + filepath.Join(root, "prototypes") + "\"\n", "replace e.com/x => " + filepath.Join(parent, "alias") + "\n",
 	}
 	for _, src := range hit {
@@ -381,9 +415,10 @@ func TestModuleReplaceIntoLaneFails(t *testing.T) {
 	miss := []string{
 		"// replace e.com/x => prototypes/plugins/author is only a comment\n", "there is no replace of anything into prototypes/plugins here\n", "replace e.com/x => ../vendor/some/module v1.0.0\n", "replace e.com/x => ./internal/gen v0.0.0\n", "replace e.com/x => /opt/elsewhere/module v1.0.0\n", // absolute, outside the repo
 		"module m\nreplace github.com/evil/bad => ../prototypes/plugins/author\n", "replace e.com/x => ../../prototypes/plugins/author\n", "replace e.com/x => \"../prototypes/../prototypes/plugins/author\" // pinned\n", // Relative targets resolve against the go.mod dir, NOT "/" (Saul 97328846218): leading ../ escapes the repo and stays legal.
-		"replace e.com/x => \"..\"\n",                       // repo parent is not the lane
-		"replace e.com/x => " + parent + "\n",               // a real outside directory stays legal
-		"replace e.com/x => " + filepath.Clean(root) + "\n", // repo root itself is not a lane target
+		"replace e.com/x => \"..\"\n",                              // repo parent is not the lane
+		"replace e.com/x => " + parent + "\n",                      // a real outside directory stays legal
+		"replace e.com/x => " + filepath.Clean(root) + "\n",        // repo root itself is not a lane target
+		"replace (\n	ok.com/a => ./vendor/x v1.0.0\n)\nmodule m\n", // properly closed block stays legal (closure tracking must not over-flag)
 	}
 	for _, src := range miss {
 		if moduleTargetsLane(root, src) {

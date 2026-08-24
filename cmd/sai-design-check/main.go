@@ -378,7 +378,6 @@ func isPathLabel(src string, i int) bool {
 	j := skipTrivia(src, i+4)
 	return j < len(src) && src[j] == ':'
 }
-
 func isWordByte(c byte) bool {
 	return c == '_' || c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
 }
@@ -486,7 +485,6 @@ func readStringFragment(src string, i int) (content string, ok bool) {
 	}
 	return "", false
 }
-
 func snippet(s string, i int) string {
 	if len(s)-i <= 24 {
 		return s[i:]
@@ -633,11 +631,41 @@ func checkPrototypeLaneDiff(root string) error {
 	} else if git(root, "rev-parse", "--verify", base+"^{commit}") == "" {
 		return fmt.Errorf("prototype lane: SAI_TRUSTED_BASE %q does not resolve to a commit", base)
 	}
-	diffRaw, derr := exec.Command("git", "-c", "safe.directory=*", "-C", root, "diff", "--name-only", "-z", base+"..HEAD").Output() // -z keeps spaced filenames intact; a failed invocation must FAIL closed, never pass as an empty diff (Saul 97328846218)
+	diffRaw, derr := exec.Command("git", "-c", "safe.directory=*", "-C", root, "diff", "-M", "--name-status", "-z", base+"..HEAD").Output() // -z keeps spaced filenames intact; a failed invocation must FAIL closed, never pass as an empty diff (Saul 97328846218); -M --name-status exposes BOTH rename paths so moving protected Go into the lane cannot pass as prototype-only (Saul 97348395053)
 	if derr != nil {
 		return fmt.Errorf("prototype lane: trusted-base diff failed; failing closed: %w", derr)
 	}
-	return prototypeLaneViolation(strings.Split(strings.TrimSpace(string(diffRaw)), "\x00"))
+	changed, perr := parseNameStatusPaths(diffRaw)
+	if perr != nil {
+		return fmt.Errorf("prototype lane: trusted-base diff unparseable; failing closed: %w", perr)
+	}
+	return prototypeLaneViolation(changed)
+}
+
+// parseNameStatusPaths flattens `git diff -M --name-status -z` records into every affected path — BOTH sides of rename/copy records; malformed records fail closed.
+func parseNameStatusPaths(raw []byte) ([]string, error) {
+	f := strings.Split(string(raw), "\x00")
+	fail := func(m string) ([]string, error) { return nil, fmt.Errorf("trusted-base diff %s; failing closed", m) }
+	paths := []string{}
+	for i := 0; i < len(f); i++ {
+		st := f[i]
+		if st == "" && i == len(f)-1 {
+			return paths, nil // trailing NUL record terminator (or an entirely empty diff)
+		}
+		i++
+		if st == "" || i >= len(f) || f[i] == "" {
+			return fail(fmt.Sprintf("record %q lacks a path", st))
+		}
+		paths = append(paths, f[i])
+		if st[0] == 'R' || st[0] == 'C' { // rename/copy records carry origin AND destination
+			i++
+			if i >= len(f) || f[i] == "" {
+				return fail(fmt.Sprintf("rename/copy %q lacks its origin path", st))
+			}
+			paths = append(paths, f[i])
+		}
+	}
+	return paths, nil
 }
 
 // moduleTargetsLane: go.mod replace targets resolving inside prototypes/ fail — single-line/block/quoted. Relative targets resolve against the go.mod dir; absolute targets are symlink-resolved, then judged against the canonical root (an outside alias into the lane fails); missing "=>"/malformed targets fail closed.
@@ -704,8 +732,7 @@ func moduleTargetsLane(root, src string) bool {
 		if rest := strings.TrimSpace(strings.TrimPrefix(t, "replace")); rest == "" {
 			continue
 		} else if strings.HasPrefix(rest, "(") {
-			inBlock = true
-			// Single-line block form: "replace (A => ./prototypes/x)".
+			inBlock = !strings.HasSuffix(rest, ")") // closure tracking: EOF while open fails closed (Saul 97348395053); single-line block "replace (A => ./p)" closes here
 			if s := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(rest, "("), ")")); s != "" && directive(s) {
 				return true
 			}
@@ -713,9 +740,8 @@ func moduleTargetsLane(root, src string) bool {
 			return true
 		}
 	}
-	return false
+	return inBlock // unterminated replace block at EOF fails closed even when every scanned entry is lane-free (Saul 97348395053)
 }
-
 func check(root string) error {
 	body, err := os.ReadFile(filepath.Join(root, "design", "sai-design-language.json"))
 	if err != nil {
