@@ -1,2 +1,2 @@
 # Handoff 20260824-1120-pr76-graft-final-tree-ox-alpha
-Graft for PR #136: re-parents the byte-identical final tree of the closed PR #76 lineage (== d6e7b16^{tree}, incl. checkGoWorkFiles @16386f4, parseNameStatusPaths rename hardening @69a9f14, budget condensation @dc1e779) onto main 759d017a so GitHub allows a reviewable, mergeable PR. Zero content change vs the reviewed orphan lineage. Gates: build/vet/test green, design-check PASS, audit OK.
+Re-parented the byte-identical final tree of the closed #76 lineage onto main so PR #136 is reviewable/mergeable; zero content change; gates green.

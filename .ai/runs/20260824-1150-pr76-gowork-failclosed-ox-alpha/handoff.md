@@ -1,2 +1,2 @@
 # Handoff 20260824-1150-pr76-gowork-failclosed-ox-alpha
-Closed Saul 97417392762 code-P2x2 in checkGoWorkFiles: (1) unterminated use (/replace ( blocks at EOF fail closed even with lane-free entries; (2) empty replace targets return a controlled error instead of panicking on strings.Fields(...)[0]. Paired adversarial tests added (TestGoWorkUnterminatedBlockFailsClosed, TestGoWorkEmptyReplaceTargetFailsClosed). Gates: build/vet/test green, design-check PASS with pinned trusted base.
+Closed code-P2x2: unterminated go.work blocks fail closed; empty replace targets error instead of panicking; paired adversarial tests added.
