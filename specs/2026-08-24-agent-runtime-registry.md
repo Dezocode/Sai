@@ -54,6 +54,8 @@ Open-PR session cards under-represent the fleet: Cursor cloud reviewers (which r
 - [ ] Writes fail-closed: no token configured ⇒ reads serve, writes refuse.
 - [ ] Performance: readers never block on writers; GitHub polling respects ETags and a rate budget; PR-card assembly is cached and O(1)-indexed.
 - [ ] **REQUIRED — determinism:** flight-board state is a pure function of published verdicts + CI/goals evidence. Agents have ZERO flight-deck management surface; identical evidence always produces an identical board.
+- [ ] **REQUIRED — exact-head attribution:** a PR card's head is the LAST head that made diffs to THAT PR (GitHub-authoritative tip bound to the card), never a head shared in from unrelated PR tracking. PRs tracking identical lineages still display their OWN binding.
+- [ ] **REQUIRED — 100% head-match dispatch:** Saul dispatch, request reception, landed evidence, and card rendering all bind to the SAME exact SHA — enforced by infrastructure (API asserts head equality at dispatch AND reception; mismatch = refusal, never a mis-attributed review). Zero manual helper pushes of review requests.
 - [ ] **REQUIRED — bounded CPU:** no expensive processes feed API data. Idle API ≈ 0% CPU; every feeding process (adapters, fleet probe) is scheduled, budget-guarded, and completes in bounded time. Busy-polling loops are forbidden.
 
 ### 3.2 Non-Goals (Out of Scope)
@@ -180,6 +182,15 @@ publish_flightboard_verdict(
 ): Result<FlightBoard, VerdictError>
 // Guarantee: the published readiness for this PR equals the rubric applied to this verdict, P2-capped,
 // and DETERMINISTIC — identical verdicts yield identical boards; agent input cannot perturb it.
+
+assert_head_binding(
+  github_head: Head40,
+  card_head: Head40,
+  evidence_head: Head40 | None,
+): Result[HeadBinding, HeadBindingError]
+// Guarantee: card, evidence, and dispatch name ONE sha — or the refusal names the divergent party.
+// HeadBindingError = CardDiverges | EvidenceStale | ShortSha
+// Called BY infra on every render and every Saul dispatch/reception, replacing manual helper pushes.
 // bound to the stated head — until the next legitimate verdict replaces it.
 // VerdictError = Unauthorized | MalformedEvidence (=> component reads "unavailable", never invented)
 ```
@@ -324,6 +335,7 @@ This section ships verbatim as `AGENTS.md` next to `app.py` at implementation, a
 - **Secrets:** the API never handles repo credentials (`_gh_get` is public-data-only — preserved); worker scripts keep tokens in env; rendered Pages artifact must remain free of credential material (regression-scanned).
 - **Provisional ceiling:** fallback-registered runtimes get conservative windows, minimal caps, `registration:"provisional"` on every view, and are excluded from any authoritative role until promoted — being visible is not being trusted.
 - **Threat model:** hostile LAN peer forging heartbeats ⇒ mitigated by mandatory token + payload caps + provisional ceiling; GitHub rate-limit exhaustion ⇒ budget guard + ETag; malicious finding text ⇒ redaction pipeline unchanged; compromised verifier token ⇒ rotate (it can move readiness — treat like a deploy key).
+- **Exact-head binding is infra-enforced:** Saul dispatch, reception, and card rendering each call assert_head_binding; helper agents hold NO door that triggers Saul reviews manually. A stale head between dispatch and reception yields a named refusal, never a mis-bound certification.
 - **Availability:** reads never block on writes; GH outage degrades CI enrichment to cached/absent with honest sourcing, exactly as today.
 
 ## 8. Test Plan
