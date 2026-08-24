@@ -6,6 +6,7 @@ Verifier-owned non-shipping prototype-plugin lane: canonical root, SwiftUI exemp
 - `proto-design-experiment-scope` `prototypes/plugins/*/PrototypeDesign/*` plugin-local experimental visual values; raw literals outside this scope still fail.
 - `proto-dependency-isolation` `cmd/sai-design-check/*` every production `Package.swift` (walk-discovered) and all production Go may not reference/import the prototype tree; prototype Go may reuse stable production packages but not modify protected production behavior.
 - `proto-ci-trigger` `.github/workflows/sai-design-language.yml` prototype changes trigger the single Sai Design Language check.
+- `cross-intercom-proto` `prototypes/plugins/cross-intercom/README.md` prototype gh-auth lane bridge: `.cursor/hooks.json` aspectizer on prompt receipt (`prototypes/plugins/cross-intercom/.cursor/hooks/*`) and sessions-API connector for local-vs-repo crosscomming; goals in `prototypes/plugins/cross-intercom/docs/GOALS.md`.
 ## How to get to it (user POV)
 - Read `docs/architecture/SAI-PROTOTYPE-LANE-ENFORCEMENT.md`; place future prototype code under `prototypes/plugins/<plugin>/`; experimental visuals go in that plugin's `PrototypeDesign/`.
 ## Driving it with verify-sai
