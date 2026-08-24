@@ -20,7 +20,6 @@ func patchContract(t *testing.T, root string, patch func(map[string]interface{})
 	if b, err = json.Marshal(m); err != nil { t.Fatal(err) }
 	if err := os.WriteFile(filepath.Join(root, "design/sai-design-language.json"), b, 0644); err != nil { t.Fatal(err) }
 }
-
 // lockedFixture: repo fixture locked to production (featureUIAllowed=false in JSON and Swift source).
 func lockedFixture(t *testing.T) string {
 	t.Helper()
@@ -35,7 +34,6 @@ func writeRel(t *testing.T, root, rel, src string) {
 	if os.MkdirAll(filepath.Dir(p), 0755) == nil && os.WriteFile(p, []byte(src), 0644) == nil { return }
 	t.Fatal("writeRel " + rel)
 }
-
 const protoView = "import SwiftUI\nstruct AuthorEditor: View {\n    var body: some View {\n        VStack { Text(\"Author\") }\n    }\n}\n"
 const expTokens = "let experiment = \"#FF00AA\"\n"
 
@@ -53,7 +51,6 @@ func mustPass(t *testing.T, files map[string]string) {
 	for rel, src := range files { writeRel(t, root, rel, src) }
 	if err := check(root); err != nil { t.Fatalf("expected pass, got: %v", err) }
 }
-
 // SwiftUI lock + PrototypeDesign boundaries: lookalikes fail.
 func TestPrototypeSwiftUIBoundariesFail(t *testing.T) {
 	for _, tc := range []struct{ rel, src string }{
@@ -67,7 +64,6 @@ func TestPrototypeSwiftUIBoundariesFail(t *testing.T) {
 	mustFail(t, featureRoot+"/Dash.swift", "let x = 1; public import SwiftUI\nstruct Dash: View { var body: some View { Text(\"d\") } }\n")
 	// Access-modified non-SwiftUI imports stay legal (lockedFixture is production-locked, so only SwiftUI trips).
 }
-
 // Exemptions hold only in the canonical lane: plain prototype SwiftUI, PrototypeDesign experiments, one-way reuse of stable production Go.
 func TestPrototypeExemptionsPass(t *testing.T) {
 	mustPass(t, map[string]string{
@@ -75,7 +71,6 @@ func TestPrototypeExemptionsPass(t *testing.T) {
 		featureRoot + "/Dash.swift": "public import Foundation\nlet dash = 1\n", // access-modified non-UI import stays legal
 	})
 }
-
 // Production _test.go never skips the purity gate (STEER 97234516350): lane imports there fail; lane-free test files stay legal.
 func TestProductionTestGoCannotImportLane(t *testing.T) {
 	mustFail(t, "internal/app/leak_test.go",
@@ -111,7 +106,6 @@ func TestCandidateJSONCannotRelocatePrototypeRoot(t *testing.T) {
 	})
 	if err := check(root); err == nil { t.Fatal("pinned codePolicy paths must fail closed when tampered") }
 }
-
 // Classifier: single-line literals (+ chains) evaluate exactly; vars, calls, interpolation, escapes, multiline, unterminated fail closed.
 func TestManifestPathValueClassifier(t *testing.T) {
 	exact := map[string]string{`path: "Sources/X"`: "Sources/X", `path:#"Raw/X"#`: "Raw/X", `path: ###"Hashed/X"###`: "Hashed/X", `path: "A/" + "B" + "C"`: "A/BC", `path: #"a"# +#"b"#`: "ab", `path /* c */ : /* d */ "W"`: "W"}
@@ -134,7 +128,6 @@ func TestManifestPathValueClassifier(t *testing.T) {
 		if got := manifestPaths(src); len(got) != 0 { t.Fatalf("%q must yield no declarations, got %+v", src, got) }
 	}
 }
-
 // E2E manifest gate: lane-referencing declarations fail wherever the walk finds them; non-declarations/outside-lane paths never trip.
 func TestProductionManifestGateEndToEnd(t *testing.T) {
 	for _, tc := range []struct {
@@ -159,7 +152,6 @@ func TestProductionManifestGateEndToEnd(t *testing.T) {
 	// Walk fail-closed wiring: an unwalkable root is an unverifiable tree, not a pass.
 	if err := checkProductionManifests(filepath.Join(root, "no", "such")); err == nil { t.Fatal("unwalkable root must fail closed") }
 }
-
 // Absolute manifest values resolve vs the repo root (incl. symlinked ancestors of missing leaves); unresolvable homes fail closed.
 func TestAbsoluteManifestResolution(t *testing.T) {
 	root := lockedFixture(t)
@@ -177,7 +169,6 @@ func TestAbsoluteManifestResolution(t *testing.T) {
 	t.Setenv("HOME", "")
 	if !resolvesInto(root, "apps/apple/Package.swift", "~x/plugin") { t.Fatal("unresolvable home must fail closed") }
 }
-
 // Import classifier flags real lane-naming import specs in any legal placement; comments/strings/near-prefixes never trip it.
 func TestGoImportClassifier(t *testing.T) {
 	hit := []string{
@@ -210,7 +201,6 @@ func TestPrototypeGoCannotModifyProtectedProduction(t *testing.T) {
 		mustFail(t, "prototypes/plugins/author/hook.go", src)
 	}
 }
-
 // Symlink redirects/lane reach fail closed; production aliases stay legal.
 func TestSymlinkEscapeFailsClosed(t *testing.T) {
 	cases := []struct {
@@ -239,13 +229,11 @@ func TestSymlinkEscapeFailsClosed(t *testing.T) {
 		if err := check(root); (err == nil) != tc.legal { t.Fatalf("symlink %s -> %q: want legal=%v, got err=%v", tc.at, target, tc.legal, err) }
 	}
 }
-
 // Verifier's own source mentions lane paths only as string data: real imports/bare init() absent.
 func TestVerifierSourceNotSelfFlagged(t *testing.T) {
 	b, err := os.ReadFile("main.go")
 	if err != nil || goImportsPrototype(string(b)) || strings.Contains(string(b), "\nfunc init()") { t.Fatal("verifier source unreadable or self-triggers the gates") }
 }
-
 // gitc runs git -C root for tests, failing the test on error.
 func gitc(t *testing.T, root string, a ...string) string {
 	t.Helper()
@@ -281,7 +269,6 @@ func TestPrototypeLaneDiffGate(t *testing.T) {
 	if _, derr := exec.Command("git", "-C", root, "diff", "--name-only", "-z", os.Getenv("SAI_TRUSTED_BASE")+"..HEAD").Output(); derr == nil { t.Skip("git diff unexpectedly succeeded; fixture could not induce the failure vector") }
 	if err := check(root); err == nil { t.Fatal("failed trusted-base git diff must fail the gate closed") }
 }
-
 // Saul 97348395053: --name-only reports only a rename's DESTINATION, so moving protected production Go into the lane passed as "prototype-only"; both rename sides must be inspected.
 func TestPrototypeLaneRenameIntoLaneFails(t *testing.T) {
 	root := lockedFixture(t)
@@ -300,7 +287,6 @@ func TestPrototypeLaneRenameIntoLaneFails(t *testing.T) {
 	if rerr != nil || !strings.HasPrefix(string(raw), "R100\x00internal/app/app.go\x00") || strings.Contains(nameOnly, "internal/") || !strings.HasPrefix(nameOnly, "prototypes/") { t.Fatalf("fixture could not induce the rename vector: %v %q %q", rerr, raw, nameOnly) }
 	if err := checkPrototypeLaneDiff(root); err == nil { t.Fatal("rename of protected production Go into prototypes/ must trip the trusted-base gate") }
 }
-
 // Saul 97348395053: name-status parsing surfaces BOTH sides of rename/copy records, keeps -z spaced names intact, fails closed on malformed records.
 func TestParseNameStatusPaths(t *testing.T) {
 	ok := map[string][]string{
@@ -343,25 +329,21 @@ func TestModuleReplaceIntoLaneFails(t *testing.T) {
 	writeRel(t, root, "go.mod", "module m\nreplace e.com/x => "+filepath.Join(root, "prototypes/plugins/author")+"\n")
 	if err := check(root); err == nil { t.Fatal("go.mod replace into the lane must fail check()") }
 }
-
 func TestGoWorkUseIntoLaneFails(t *testing.T) {
 	root := lockedFixture(t)
 	writeRel(t, root, "go.work", "go 1.22\n\nuse .\nuse ./prototypes/plugins/author\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("use into lane must fail") }
 }
-
 func TestGoWorkReplaceBlockIntoLaneFails(t *testing.T) {
 	root := lockedFixture(t)
 	writeRel(t, root, "tools/go.work", "go 1.22\n\nreplace (\n\texample.com/x => ../prototypes/plugins/author\n)\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("replace-block into lane must fail (relative to go.work dir)") }
 }
-
 func TestGoWorkNestedWorkspaceCannotBypass(t *testing.T) {
 	root := lockedFixture(t)
 	writeRel(t, root, "cmd/nested/go.work", "go 1.22\n\nuse ../../prototypes/plugins/author\nreplace e.com/y => ../../prototypes/plugins/author\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("nested workspace traversal into lane must fail") }
 }
-
 func TestGoWorkSymlinkedAliasIntoLaneFails(t *testing.T) {
 	root := lockedFixture(t)
 	parent := t.TempDir()
@@ -369,21 +351,17 @@ func TestGoWorkSymlinkedAliasIntoLaneFails(t *testing.T) {
 	writeRel(t, root, "sub/go.work", "go 1.22\n\nuse "+filepath.Join(parent, "alias")+"\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("symlink-aliased use into lane must fail") }
 }
-
 func TestGoWorkCleanPasses(t *testing.T) {
 	root := lockedFixture(t)
 	writeRel(t, root, "go.work", "// production workspace\ngo 1.22\n\nuse .\nuse ./internal/app\n\nreplace example.com/a => ./internal/a v1.0.0\n")
 	if err := checkGoWorkFiles(root); err != nil { t.Fatal(err) }
 }
-
 func TestGoWorkMalformedFailsClosed(t *testing.T) {
 	root := lockedFixture(t)
 	writeRel(t, root, "go.work", "replace (\n\texample.com/x ./no-arrow-entry\n)\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("malformed replace block must fail closed") }
 }
-
-
-// CODEX-UNIT-0027-0001/0025: unterminated use/replace blocks fail closed even with lane-free entries.
+// CODEX-UNIT-0027-0001/0025: unterminated blocks fail closed even with lane-free entries.
 func TestGoWorkUnterminatedBlockFailsClosed(t *testing.T) {
 	root := lockedFixture(t)
 	writeRel(t, root, "go.work", "go 1.22\n\nuse (\n\t./prototypes/plugins/author\n")
@@ -391,7 +369,6 @@ func TestGoWorkUnterminatedBlockFailsClosed(t *testing.T) {
 	writeRel(t, root, "go.work", "go 1.22\n\nreplace (\n\texample.com/x => ./internal/a\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("unterminated replace block with lane-free entries must still fail closed") }
 }
-
 // CODEX-UNIT-0027-0002: empty replace targets fail closed instead of panicking on Fields(...)[0].
 func TestGoWorkEmptyReplaceTargetFailsClosed(t *testing.T) {
 	root := lockedFixture(t)
@@ -400,8 +377,6 @@ func TestGoWorkEmptyReplaceTargetFailsClosed(t *testing.T) {
 	writeRel(t, root, "go.work", "go 1.22\n\nreplace (\n\texample.com/x =>\n)\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("empty block replace target must fail closed") }
 }
-
-
 // Reviewer r1 transitive vector: a NESTED production go.mod aliasing the lane must fail even when the root go.mod is clean (workspace consumers apply replaces from all modules).
 func TestNestedGoModReplaceIntoLaneFails(t *testing.T) {
 	root := lockedFixture(t)

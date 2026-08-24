@@ -1,0 +1,1 @@
+# Handoff 20260824-1210-pr76-nested-gomod-ox-alpha: nested production go.mod replace directives are now lane-checked (manifest-dir resolution), closing the reviewer-r1 transitive bypass; paired adversarial test.

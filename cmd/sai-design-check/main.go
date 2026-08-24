@@ -632,18 +632,12 @@ func checkPrototypeLaneDiff(root string) error {
 	} else if err != nil && !os.IsNotExist(err) { return err }
 	// Nested/vendored production go.mod files are lane-checked too (reviewer r1 transitive vector): a nested module's replace can alias the lane for workspace consumers even when the root go.mod is clean. Walk-discovered; canonical top-level prototypes/ tree and tooling metadata pruned; unreadable manifests fail closed.
 	if err := filepath.WalkDir(root, func(np string, d fs.DirEntry, werr error) error {
-		if werr != nil {
-			return werr
-		}
+		if werr != nil { return werr }
 		if d.IsDir() {
-			if np == filepath.Join(root, protoRoot) || skipMeta(d.Name()) {
-				return fs.SkipDir
-			}
+			if np == filepath.Join(root, protoRoot) || skipMeta(d.Name()) { return fs.SkipDir }
 			return nil
 		}
-		if d.Name() != "go.mod" || np == filepath.Join(root, "go.mod") {
-			return nil
-		}
+		if d.Name() != "go.mod" || np == filepath.Join(root, "go.mod") { return nil }
 		nb, nerr := os.ReadFile(np)
 		if nerr != nil {
 			return fmt.Errorf("%s: unreadable go.mod fails closed: %v", np, nerr)
