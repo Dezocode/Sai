@@ -52,12 +52,7 @@ func TestSchemaRejectsMissingRequired(t *testing.T) {
 
 func TestProductionContractSatisfiesSchema(t *testing.T) {
 	src := filepath.Join("..", "..")
-	if head := git(src, "rev-parse", "HEAD"); head == "" && git(src, "rev-parse", "--is-inside-work-tree") == "true" {
-		t.Fatal("git checkout without resolvable HEAD; cannot pin a trusted base")
-	} else if head := git(src, "rev-parse", "HEAD"); head != "" {
-		os.Setenv("SAI_TRUSTED_BASE", head)
-		defer os.Unsetenv("SAI_TRUSTED_BASE")
-	} // trusted base = pinned HEAD
+	if head := git(src, "rev-parse", "HEAD"); head == "" && git(src, "rev-parse", "--is-inside-work-tree") == "true" { t.Fatal("git checkout without resolvable HEAD; cannot pin a trusted base") } else if head != "" { os.Setenv("SAI_TRUSTED_BASE", head); defer os.Unsetenv("SAI_TRUSTED_BASE") } // trusted base = pinned HEAD
 	if err := check(src); err != nil {
 		t.Fatal(err)
 	}

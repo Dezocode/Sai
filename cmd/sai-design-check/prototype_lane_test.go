@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 )
-
 // patchContract decodes the contract JSON beneath root, applies patch, writes it back.
 func patchContract(t *testing.T, root string, patch func(map[string]interface{})) {
 	t.Helper()
@@ -36,7 +35,6 @@ func writeRel(t *testing.T, root, rel, src string) {
 }
 const protoView = "import SwiftUI\nstruct AuthorEditor: View {\n    var body: some View {\n        VStack { Text(\"Author\") }\n    }\n}\n"
 const expTokens = "let experiment = \"#FF00AA\"\n"
-
 // mustFail: rel→src on a fresh locked fixture must fail; mustPass is the inverse over a file set.
 func mustFail(t *testing.T, rel, src string) {
 	t.Helper()
@@ -361,7 +359,6 @@ func TestGoWorkMalformedFailsClosed(t *testing.T) {
 	writeRel(t, root, "go.work", "replace (\n\texample.com/x ./no-arrow-entry\n)\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("malformed replace block must fail closed") }
 }
-// CODEX-UNIT-0027-0001/0025: unterminated blocks fail closed even with lane-free entries.
 func TestGoWorkUnterminatedBlockFailsClosed(t *testing.T) {
 	root := lockedFixture(t)
 	writeRel(t, root, "go.work", "go 1.22\n\nuse (\n\t./prototypes/plugins/author\n")
@@ -377,7 +374,6 @@ func TestGoWorkEmptyReplaceTargetFailsClosed(t *testing.T) {
 	writeRel(t, root, "go.work", "go 1.22\n\nreplace (\n\texample.com/x =>\n)\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("empty block replace target must fail closed") }
 }
-// Reviewer r1 transitive vector: a NESTED production go.mod aliasing the lane must fail even when the root go.mod is clean (workspace consumers apply replaces from all modules).
 func TestNestedGoModReplaceIntoLaneFails(t *testing.T) {
 	root := lockedFixture(t)
 	writeRel(t, root, "internal/evilmod/go.mod", "module github.com/Dezocode/Sai/internal/evilmod\n\nreplace github.com/SomeBody/lanealias => ../../prototypes/plugins/author\n")
