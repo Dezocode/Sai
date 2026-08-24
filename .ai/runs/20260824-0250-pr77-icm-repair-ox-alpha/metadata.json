@@ -1,9 +1,1 @@
-{
-  "task_id": "20260824-0250-pr77-icm-repair-ox-alpha",
-  "agent": "hermes-sai-agent",
-  "repository": "Dezocode/Sai",
-  "pr": 77,
-  "branch": "hermes/pr-sessions-dashboard",
-  "status": "complete",
-  "objective": "metadata.json x4 for new runs + condensed handoffs restoring line budget"
-}
+{"task_id":"20260824-0250-pr77-icm-repair-ox-alpha","agent":"hermes-sai-agent","repository":"Dezocode/Sai","pr":77,"branch":"hermes/pr-sessions-dashboard","status":"complete","objective":"metadata.json x4 for new runs + condensed handoffs restoring line budget"}
