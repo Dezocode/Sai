@@ -381,3 +381,22 @@ func TestGoWorkMalformedFailsClosed(t *testing.T) {
 	writeRel(t, root, "go.work", "replace (\n\texample.com/x ./no-arrow-entry\n)\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("malformed replace block must fail closed") }
 }
+
+
+// CODEX-UNIT-0027-0001/0025: unterminated use/replace blocks fail closed even with lane-free entries.
+func TestGoWorkUnterminatedBlockFailsClosed(t *testing.T) {
+	root := lockedFixture(t)
+	writeRel(t, root, "go.work", "go 1.22\n\nuse (\n\t./prototypes/plugins/author\n")
+	if err := checkGoWorkFiles(root); err == nil { t.Fatal("unterminated use block must fail closed") }
+	writeRel(t, root, "go.work", "go 1.22\n\nreplace (\n\texample.com/x => ./internal/a\n")
+	if err := checkGoWorkFiles(root); err == nil { t.Fatal("unterminated replace block with lane-free entries must still fail closed") }
+}
+
+// CODEX-UNIT-0027-0002: empty replace targets fail closed instead of panicking on Fields(...)[0].
+func TestGoWorkEmptyReplaceTargetFailsClosed(t *testing.T) {
+	root := lockedFixture(t)
+	writeRel(t, root, "go.work", "go 1.22\n\nreplace example.com/x => \n")
+	if err := checkGoWorkFiles(root); err == nil { t.Fatal("empty single-line replace target must fail closed") }
+	writeRel(t, root, "go.work", "go 1.22\n\nreplace (\n\texample.com/x =>\n)\n")
+	if err := checkGoWorkFiles(root); err == nil { t.Fatal("empty block replace target must fail closed") }
+}

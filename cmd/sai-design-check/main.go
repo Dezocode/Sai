@@ -282,15 +282,16 @@ func checkGoWorkFiles(root string) error {
 				rhs := tr[len("replace "):]
 				parts := strings.SplitN(rhs, "=>", 2)
 				if len(parts) != 2 { return fmt.Errorf("%s: malformed replace fails closed: %q", p, tr) }
-				if err := test(strings.Fields(parts[1])[0]); err != nil { return err }
+				{ targets := strings.Fields(parts[1]); if len(targets) == 0 { return fmt.Errorf("%s: replace target missing fails closed: %q", p, tr) }; if err := test(targets[0]); err != nil { return err } }
 			case inUse:
 				if err := test(tr); err != nil { return err }
 			case inRep:
 				parts := strings.SplitN(tr, "=>", 2)
 				if len(parts) != 2 { return fmt.Errorf("%s: malformed replace-block entry fails closed: %q", p, tr) }
-				if err := test(strings.Fields(parts[1])[0]); err != nil { return err }
+				{ targets := strings.Fields(parts[1]); if len(targets) == 0 { return fmt.Errorf("%s: replace target missing fails closed: %q", p, tr) }; if err := test(targets[0]); err != nil { return err } }
 			}
 		}
+		if inUse || inRep { return fmt.Errorf("%s: unterminated use/replace block fails closed", p) }
 		return nil
 	})
 }
