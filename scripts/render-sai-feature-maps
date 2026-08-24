@@ -495,17 +495,20 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESCMAP[c]);
 const dash=s=>(s==null||s===""?"—":s);
 const stCls=s=>({active:"ok",finished:"ok",done:"mute",failed:"bad"}[String(s||"").toLowerCase()]||"warn");
 const PRS_STALE_MIN=10; // STEER 20:18Z: /prs payloads older than this fall back (honesty note names the source).
-let SRC="sessions",loadErr="";
+let SRC="sessions",loadErr="",DROPPED=0;
 async function loadSessions(){
   const r=await fetch(SESSIONS_URL,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);
   const d=await r.json();if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload");
   return d.sessions;
 }
-function agentOk(a){ // sai-sessions-v2 required fields for any flattened agent row.
+function rowValid(a){ // sai-sessions-v2 required per-row fields: id, status, heartbeat_at.
   return !!(a&&typeof a==="object"&&a.id!=null&&a.id!==""&&a.status!=null&&a.status!==""&&a.heartbeat_at!=null&&a.heartbeat_at!=="");
 }
+function invalidRow(s){ // honesty badge: a row that fails v2 required fields is named, never rendered as a live worker.
+  return '<div class="srow"><span class="st warn">invalid row — missing '+((["id","status","heartbeat_at"].filter(function(f){return !s||s[f]==null||s[f]==="";})).join(", ")||"required fields")+" (dropped)</span></div>";
+}
 async function loadPrs(){ // falls back to /sessions when /prs is unreachable, empty, stale, or malformed (STEER 20:18Z).
-  for(const k of Object.keys(FLIGHT))delete FLIGHT[k]; // FLIGHT-BOARD: rebuilt per poll so removed cards never render stale authority.
+  for(const k of Object.keys(FLIGHT))delete FLIGHT[k];DROPPED=0; // FLIGHT-BOARD: rebuilt per poll so removed cards never render stale authority.
   try{
     const r=await fetch(PRS_URL,{cache:"no-store"});const d=r.ok?await r.json():null;
     const age=d&&d.updated_at?ageMin(d.updated_at):null;
@@ -514,8 +517,10 @@ async function loadPrs(){ // falls back to /sessions when /prs is unreachable, e
       for(const p of d.prs){
         if(!p||p.pr==null||!Array.isArray(p.agents)||p.agents.length===0){ok=false;break;}
         if((p.flightboard||p.flight)&&typeof (p.flightboard||p.flight)==="object")fbc[p.pr]=p.flightboard||p.flight;
-        for(const a of p.agents){if(!agentOk(a)){ok=false;break;}out.push({pr:p.pr,...a});}
-        if(!ok)break;
+        let vc=0; // Round-20: per-row sai-sessions-v2 validation — invalid rows drop, valid rows survive.
+        for(const a of p.agents)if(rowValid(a)){out.push({pr:p.pr,...a});vc++;}
+        DROPPED+=p.agents.length-vc;
+        if(vc===0){ok=false;break;} // every row invalid -> feed-level fallback (nothing invented).
       }
       if(ok){SRC="prs";for(const k in fbc)FLIGHT[k]=fbc[k];return {list:out,multi:true};} // telemetry commits ONLY when the whole feed validated
     }
@@ -657,6 +662,7 @@ function cell(f,s){
   }
   if(f==="monitors"){const m=Array.isArray(s.monitors)?s.monitors.join(", "):s.monitors;return esc(dash(m));}
   if(f==="usage")return usageView(s);if(f==="diff")return diffView(s&&s.diff);
+  if(f==="head"){const h=String(s.head==null?"":s.head);return h?esc(shortSha(h)):"—";} // Round-20: client-side shortSha for session head.
   return esc(dash(s[f]));
 }
 function usageView(s){ // Round-16: live usage stats; null degrades honestly.
@@ -673,6 +679,7 @@ function diffView(d){ // Round-16: live worktree diff; expandable when a file li
   return "<span>"+esc(st.stat)+badge+"</span>"+list;
 }
 function srow(s){
+  if(!rowValid(s))return invalidRow(s); // Round-20: sessions-plane invalid rows render as named badges, never live workers.
   const extra=(tagsView(s)+reviewView(s));
   return '<div class="srow"><div class="sid"><span>'+esc(dash(s.id))+'</span>'
     +'<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span></div>'+(extra?'<div class="atags">'+extra+"</div>":"")
@@ -772,8 +779,8 @@ function summaryHTML(cards,list){
     if(c.agentState==="unknown")unknownWorker++;
     if(c.mismatch)mismatchN++;
   }
-  const hb={fresh:0,stale:0,missing:0};
-  for(const s of list)hb[beatBucket(s)]++;
+  const hb={fresh:0,stale:0,missing:0};let invalid=DROPPED; // Round-20: /prs-dropped rows stay visible in the summary.
+  for(const s of list){if(!rowValid(s)){invalid++;continue;}hb[beatBucket(s)]++;}
   const chips=['<span class="lbl">PR GRAPH</span>','<span class="pill">cards: '+cards.length+'</span>',
     '<span class="pill">sessions: '+list.length+'</span>','<span class="pill">open: '+open+(openDraft?" ("+openDraft+" draft)":"")+'</span>',
     '<span class="pill">merged: '+mergedN+'</span>','<span class="pill">closed: '+closedN+'</span>',
@@ -784,6 +791,7 @@ function summaryHTML(cards,list){
   if(mismatchN)chips.push('<span class="pill hb-stale">HEAD mismatch: '+mismatchN+'</span>')
   chips.push('<span class="pill">heartbeats fresh(&lt;'+STALE_MIN+'m): '+hb.fresh+'</span>',
     '<span class="pill'+(hb.stale?" hb-stale":"")+'">stale: '+hb.stale+'</span>','<span class="pill'+(hb.missing?" hb-missing":"")+'">missing: '+hb.missing+'</span>');
+  if(invalid)chips.push('<span class="pill hb-stale">invalid rows dropped: '+invalid+'</span>');
   return chips.join(" ");
 }
 function describeGh(){
@@ -828,7 +836,8 @@ async function load(){
     cards=assemble(list);
     renderWheel(cards,list);SUMMARY.innerHTML=summaryHTML(cards,list);
     NOTE.textContent="count="+list.length+" · src="+(multi?"prs (multi-agent)":"sessions (fallback)")
-      +(SRC==="prs"?"":" · prs feed unavailable")+" · github="+describeGh()+" · live GET · sessions 60s · github "
+      +(SRC==="prs"?"":" · prs feed unavailable")+(DROPPED?" · "+DROPPED+" invalid row"+(DROPPED===1?"":"s")+" dropped":"")
+      +" · github="+describeGh()+" · live GET · sessions 60s · github "
       +Math.round(GH_POLL_MS/60000)+"m"+(go?"":" · github poll throttled")+" · no secrets, nothing invented";
   }else{
     SESSIONS_OK=false;
@@ -1067,8 +1076,8 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         "<details><summary>files</summary>", '"st warn">dirty', "hermes-sessions/prs", "const PRS_URL=",
         ".tag{", ".saul{", "tagsView(s)+reviewView(s)", 'src="+(multi?"prs (multi-agent)":"sessions (fallback)")',
         "prs feed unavailable", "mergeability", "for(const k of PULLS.keys())keys.add(k)", "out.push({pr:p.pr,...a})",
-        "const PRS_STALE_MIN=", "function agentOk(", "function reviewView(a){", "Saul review @ ",
-        'cell("codex_invoked"', "agentOk(a)", '=="saul")return ""',
+        "const PRS_STALE_MIN=", "function rowValid(", "function reviewView(a){", "Saul review @ ",
+        'cell("codex_invoked"', "rowValid(a)", "invalidRow(s)", '=="saul")return ""',
         "const CHECK_PAGES_MAX=", "/check-runs?per_page=100&page=", '" · partial"',
         "PAGE_CACHE", "if(p>1&&!ghStepDue(",
     )
