@@ -34,7 +34,7 @@ type contract struct {
 }
 
 var (
-	swiftUIImport = regexp.MustCompile(`(?m)(?:^|;)\s*(?:@[_\w]+(?:\([^)]*\))?\s+|\b(?:open|public|package|internal|fileprivate|private)\s+)*import\s+(?:(?:struct|class|enum|func|var|typealias)\s+)?SwiftUI\b`)
+	swiftUIImport = regexp.MustCompile(`(?m)(?:^|;)\s*(?:@[_\w]+(?:\([^)]*\))?\s+|\b(?:open|public|package|internal|fileprivate|private)\s+)*import\s+(?:(?:struct|class|enum|protocol|func|let|var|typealias)\s+)?SwiftUI\b`)
 	shellUI       = regexp.MustCompile(`\b(?:VStack|HStack|ZStack|LazyVStack|LazyHStack|LazyVGrid|LazyHGrid|List|Form|NavigationStack|NavigationView|NavigationSplitView|TabView|Text|Button|Image|Label|Picker|Toggle|Slider|Stepper|TextField|SecureField|TextEditor|ProgressView|Spacer|Divider|ScrollView|ForEach|Section|Menu|Grid|GeometryReader|View|Rectangle|Circle|Ellipse|Capsule|Path|Canvas|AnyView)\b`)
 	shellBody     = regexp.MustCompile(`WindowGroup\s*\{\s*SaiCanvas\s*\{\s*SaiText\s*\(\s*"[^"]*"\s*\)\s*\}\s*(?:\.task\s*\{\s*await\s+ping\(\)\s*\}\s*)?\}`)
 	forbidden     = []struct {
@@ -591,7 +591,7 @@ func modifiesProtectedGo(text string) bool {
 	return hooked
 }
 
-// git runs git in root, returning trimmed stdout ("" on any failure).
+// git runs git in root, returning trimmed stdout ("" on any failure); gates needing fail-closed errors call exec directly.
 func git(root string, args ...string) string {
 	b, _ := exec.Command("git", append([]string{"-c", "safe.directory=*", "-C", root}, args...)...).Output()
 	return strings.TrimSpace(string(b))
@@ -633,9 +633,11 @@ func checkPrototypeLaneDiff(root string) error {
 	} else if git(root, "rev-parse", "--verify", base+"^{commit}") == "" {
 		return fmt.Errorf("prototype lane: SAI_TRUSTED_BASE %q does not resolve to a commit", base)
 	}
-	// -z keeps spaced filenames intact so they cannot split and evade the suffix match.
-	changed := strings.Split(git(root, "diff", "--name-only", "-z", base+"..HEAD"), "\x00")
-	return prototypeLaneViolation(changed)
+	diffRaw, derr := exec.Command("git", "-c", "safe.directory=*", "-C", root, "diff", "--name-only", "-z", base+"..HEAD").Output() // -z keeps spaced filenames intact; a failed invocation must FAIL closed, never pass as an empty diff (Saul 97328846218)
+	if derr != nil {
+		return fmt.Errorf("prototype lane: trusted-base diff failed; failing closed: %w", derr)
+	}
+	return prototypeLaneViolation(strings.Split(strings.TrimSpace(string(diffRaw)), "\x00"))
 }
 
 // moduleTargetsLane: go.mod replace targets resolving inside prototypes/ fail — single-line/block/quoted. Relative targets resolve against the go.mod dir; absolute targets are symlink-resolved, then judged against the canonical root (an outside alias into the lane fails); missing "=>"/malformed targets fail closed.
@@ -660,9 +662,12 @@ func moduleTargetsLane(root, src string) bool {
 				return false // outside this repo (lexically or through symlinks): not a lane target
 			}
 			s = "/" + filepath.ToSlash(rel)
+		} else if base, berr := filepath.Abs(root); berr != nil { // Relative targets resolve against the go.mod dir, NOT "/" (Saul 97328846218): traversal above it leaves the repo and stays legal.
+			return true // unresolvable resolution basis fails closed
+		} else if rel, rerr := filepath.Rel(base, filepath.Join(base, p)); rerr != nil || strings.HasPrefix(rel, "..") || rel == "." {
+			return false // escapes the go.mod dir: outside this repo, not a lane target
 		} else {
-			// Relative: resolve against the go.mod dir by anchoring at "/" (drops leading ../).
-			s = filepath.ToSlash(filepath.Clean("/" + p))
+			s = "/" + filepath.ToSlash(rel)
 		}
 		return s == "/"+protoRoot || strings.HasPrefix(s, "/"+protoRoot+"/") ||
 			s == "/prototypes" || strings.HasPrefix(s, "/prototypes/")

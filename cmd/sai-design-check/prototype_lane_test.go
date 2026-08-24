@@ -313,6 +313,16 @@ func TestVerifierSourceNotSelfFlagged(t *testing.T) {
 	}
 }
 
+// gitc runs git -C root for tests, failing the test on error.
+func gitc(t *testing.T, root string, a ...string) string {
+	t.Helper()
+	o, err := exec.Command("git", append([]string{"-C", root}, a...)...).CombinedOutput()
+	if err != nil {
+		t.Fatalf("git %v: %v\n%s", a, err, o)
+	}
+	return strings.TrimSpace(string(o))
+}
+
 func TestPrototypeLaneDiffGate(t *testing.T) {
 	fail := [][]string{
 		{"prototypes/plugins/author/Editor.swift", "internal/app/app.go"}, {"prototypes/plugins/author/bridge.go", "cmd/sai/main.go"}, {"prototypes/x.go", "internal/app/app_test.go"},
@@ -331,26 +341,24 @@ func TestPrototypeLaneDiffGate(t *testing.T) {
 			t.Fatalf("expected pass for %v: %v", c, err)
 		}
 	}
-	// E2E wiring through check(): STEER counterexample (proto PR editing internal/**, zero init()/plugin.Open) fails.
+	// E2E wiring through check(): STEER counterexample (proto PR editing internal/**, zero init()/plugin.Open) fails; then Saul 97328846218: a failed `git diff` invocation must FAIL the gate closed, never pass as an empty diff.
 	root := lockedFixture(t)
-	gitc := func(a ...string) string {
-		t.Helper()
-		o, err := exec.Command("git", append([]string{"-C", root}, a...)...).CombinedOutput()
-		if err != nil {
-			t.Fatalf("git %v: %v", a, err)
-		}
-		return strings.TrimSpace(string(o))
-	}
-	gitc("init", "-q")
-	gitc("-c", "user.email=t@t", "-c", "user.name=t", "commit", "--allow-empty", "-qm", "base")
-	os.Setenv("SAI_TRUSTED_BASE", gitc("rev-parse", "HEAD"))
-	defer os.Unsetenv("SAI_TRUSTED_BASE")
+	gitc(t, root, "init", "-q")
+	gitc(t, root, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "--allow-empty", "-qm", "base")
+	t.Setenv("SAI_TRUSTED_BASE", gitc(t, root, "rev-parse", "HEAD")) // raw sha stays resolvable without refs
 	writeRel(t, root, "prototypes/plugins/author/bridge.go", "package author\nvar x = 1\n")
 	writeRel(t, root, "internal/app/app.go", "package app\nvar bumped = 1\n")
-	gitc("add", "-A")
-	gitc("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "touch")
+	gitc(t, root, "add", "-A")
+	gitc(t, root, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "touch")
 	if err := check(root); err == nil {
 		t.Fatal("prototype-scoped change editing internal/** must fail")
+	}
+	os.RemoveAll(filepath.Join(root, ".git", "refs", "heads")) // HEAD becomes unresolvable: `git diff base..HEAD` errors
+	if _, derr := exec.Command("git", "-C", root, "diff", "--name-only", "-z", os.Getenv("SAI_TRUSTED_BASE")+"..HEAD").Output(); derr == nil {
+		t.Skip("git diff unexpectedly succeeded; fixture could not induce the failure vector")
+	}
+	if err := check(root); err == nil {
+		t.Fatal("failed trusted-base git diff must fail the gate closed")
 	}
 }
 func TestModuleReplaceIntoLaneFails(t *testing.T) {
@@ -360,7 +368,8 @@ func TestModuleReplaceIntoLaneFails(t *testing.T) {
 		t.Fatal("fixture")
 	}
 	hit := []string{
-		"module m\nreplace github.com/evil/bad => ../prototypes/plugins/author\n", "replace example.com/x => ./prototypes/plugins/author\n", "replace (\n	A => prototypes/plugins/author\n	B => ./prototypes\n)\n", "replace e.com/x => \"../prototypes/../prototypes/plugins/author\" // pinned\n", "replacex y\nreplace e.com/x => prototypes/plugins/author", "replace (e.com/x => ./prototypes/author)", // single-line block form
+		"replace example.com/x => ./prototypes/plugins/author\n", "replace (\n	A => prototypes/plugins/author\n	B => ./prototypes\n)\n", "replacex y\nreplace e.com/x => prototypes/plugins/author", "replace (e.com/x => ./prototypes/author)", // single-line block form
+		"replace e.com/x => prototypes/../prototypes/plugins/author\n", // relative traversal that still lands in the lane fails
 		// Absolute targets resolve against the repo root (STEER 97234516350): rooted paths must not evade via ../.
 		"module m\nreplace github.com/evil/bad => " + filepath.Join(root, "prototypes/plugins/author") + "\n", "replace e.com/x => \"" + filepath.Join(root, "prototypes") + "\"\n", "replace e.com/x => " + filepath.Join(parent, "alias") + "\n",
 	}
@@ -371,6 +380,7 @@ func TestModuleReplaceIntoLaneFails(t *testing.T) {
 	}
 	miss := []string{
 		"// replace e.com/x => prototypes/plugins/author is only a comment\n", "there is no replace of anything into prototypes/plugins here\n", "replace e.com/x => ../vendor/some/module v1.0.0\n", "replace e.com/x => ./internal/gen v0.0.0\n", "replace e.com/x => /opt/elsewhere/module v1.0.0\n", // absolute, outside the repo
+		"module m\nreplace github.com/evil/bad => ../prototypes/plugins/author\n", "replace e.com/x => ../../prototypes/plugins/author\n", "replace e.com/x => \"../prototypes/../prototypes/plugins/author\" // pinned\n", // Relative targets resolve against the go.mod dir, NOT "/" (Saul 97328846218): leading ../ escapes the repo and stays legal.
 		"replace e.com/x => \"..\"\n",                       // repo parent is not the lane
 		"replace e.com/x => " + parent + "\n",               // a real outside directory stays legal
 		"replace e.com/x => " + filepath.Clean(root) + "\n", // repo root itself is not a lane target
