@@ -228,6 +228,16 @@ const OC=(k,sha)=>sha?{k:k,pr:{state:"open",headSha:sha},ss:[{}]}:{k:k,pr:null,s
   check("headerless responses keep local budget (pre-fix 1)",GH_WINDOW_USED,71);
   check("budget blocks after consumption sans headers",ghStepDue(1001000,GH_REMAIN,0,5,GH_WINDOW_USED,60,GH_WINDOW_AT,3600000),false);
   fetch=realFetch;}
+{ // Round-19 (Saul P1 F037): an already-expired reset RESENT on every response must not re-zero the local window.
+  const realFetch=fetch;
+  const ok={status:200,ok:true,json:()=>({then:g=>g({})}),headers:{get:h=>h==="X-RateLimit-Reset"?"999":null}};
+  fetch=(path,opt)=>({then:f=>f(ok)});
+  GH_RESET_AT=999000;GH_WINDOW_USED=0;GH_WINDOW_AT=1000000;GH_REMAIN=null;
+  for(let i=0;i<65;i++)ghJson("/pulls","pulls");
+  check("resent stale reset never re-zeros budget (pre-fix 1)",GH_WINDOW_USED,65);
+  check("stale reset not stored",GH_RESET_AT,0);
+  check("budget blocks under resent stale reset",ghStepDue(1000001,GH_REMAIN,GH_RESET_AT,5,GH_WINDOW_USED,60,GH_WINDOW_AT,3600000),false);
+  fetch=realFetch;}
 { // Round-16 (STEER 17:07Z): live usage + diff card fields.
   check("usage totals win over in/out",usageStats({input_tokens:91891,output_tokens:10382,total_tokens:102273}),"102.3k tok");
   check("usage falls back to in/out",usageStats({input_tokens:1500,output_tokens:500}),"1.5k in / 500 out");
@@ -397,7 +407,7 @@ function ghJson(path,key){
   const ghNow=Date.now();ghWindowRoll(ghNow);GH_WINDOW_USED++;
   return fetch(GH_API+path,{cache:"no-store",headers:headers}).then(r=>{ // Round-13: honor rate headers so the plane backs off.
     const rem=r.headers.get("X-RateLimit-Remaining");if(rem!=null)GH_REMAIN=Number(rem);
-    const rs=r.headers.get("X-RateLimit-Reset");if(rs!=null)GH_RESET_AT=Number(rs)*1000;
+    const rs=r.headers.get("X-RateLimit-Reset");if(rs!=null){const t=Number(rs)*1000;if(t>ghNow)GH_RESET_AT=t;} // Round-19 (Saul P1 F037): a stale/expired reset is never re-stored, so the consume-once roll cannot loop and the local hourly budget stays authoritative.
     if(r.status===304)return {notModified:true};
     const et=r.headers.get("ETag");if(et)ETAGS[key]=et;
     if(!r.ok)throw new Error("HTTP "+r.status+" for "+path);
