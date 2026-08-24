@@ -4,7 +4,7 @@ name: agent-audit
 # merge HANDOFF documentation, and optional Slack merge report.
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
     branches: [main]
 
