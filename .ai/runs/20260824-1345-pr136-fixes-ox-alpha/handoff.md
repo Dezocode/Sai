@@ -1,0 +1,2 @@
+# Handoff 20260824-1345-pr136-fixes-ox-alpha
+Restored the parser-canonical prototype-plugins feature map (five sub-feature ids, entry marker, three proof recipes, full gotchas) that the budget-trim prose joins had broken, unbreaking sai-verify TestFuturePRAndHooks/TestMapsJSON/TestPrototypeMapEntryParses; funded the +9 additions by compacting prototype_map_test.go. Gates: build/vet/test green incl -race; design-check PASS; additions 1199 <= 1200.
