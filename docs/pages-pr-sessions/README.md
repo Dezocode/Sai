@@ -9,11 +9,7 @@ is consumed once so headerless responses never re-zero the window; ETags only sa
 cache total can only lower toward partial), past-cap or gate-stopped reads are labeled partial, and pagination requests pass the per-request gate.
 (2) Sessions — the public Hostinger sessions API for live Hermes agent sessions. Regenerate via `--check`/`--out DIR`; CI deploys via `feature-maps-pages.yml`.
 
-Cards are the union of both planes: an open PR with no session renders `Agent: NONE — no worker attached`; a session whose `head` differs from the
-authoritative PR HEAD gets a mismatch flag; heartbeat buckets fresh / stale / missing stay distinct (missing never counts as stale); CI rollup keeps only
-the newest attempt per check name; enrichment is planned (≤24 sequential requests, session-linked then open cards, deduped per head SHA) so force-pushes
-re-bind CI/Saul and no PR becomes a ghost card; "last push" is a head-repo timestamp labeled apart from PR `updated_at`; missing data renders as unavailable,
-never fabricated.
+Cards are the union of both planes: an open PR with no session renders `Agent: NONE — no worker attached`; head mismatch gets a flag; heartbeat buckets fresh / stale / missing stay distinct; CI rollup keeps the newest attempt per name; planned enrichment (≤24 steps × ≤3 pages each, session-linked then open cards, deduped per head SHA) re-binds force-pushes and prevents ghost cards; "last push" is labeled apart from `updated_at`; missing data renders unavailable, never fabricated.
 
 ## Multi-agent /prs feed contract (STEER 20:18Z)
 
