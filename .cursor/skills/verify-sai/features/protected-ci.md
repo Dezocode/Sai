@@ -17,7 +17,7 @@ GitHub Actions enforce ICM audit, trusted-base behavioral anti-regression, and a
 - **Policy.** ::py .github/policy/anti-regression.py --trusted . --candidate . --self-test timeout=180
 - **Budget.** ::contains .github/workflows/pr-line-budget.yml MAX_ADDITIONS
 - **Trusted path.** ::contains .github/workflows/anti-regression.yml trusted/.github/policy/anti-regression.py
-- **Pages render.** ::exists scripts/render-sai-feature-maps
+- **Pages render.** ::exists scripts/render-sai-feature-maps docs/pages-pr-sessions/README.md .gitignore
 - **Pages workflow.** ::exists .github/workflows/feature-maps-pages.yml
 - **Pages sessions.** ::contains scripts/render-sai-feature-maps pr-sessions.html
 - **Pages maps.** ::contains scripts/render-sai-feature-maps go run ./cmd/sai-verify maps

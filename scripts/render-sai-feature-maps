@@ -78,36 +78,22 @@ SESSIONS_CSS = """<style>
 
 ROLLUP_JS = """
 function rollupChecks(runs){ // Newest attempt per check name wins: a green rerun clears an earlier failure.
-  const newest=new Map();
-  const rank=x=>{if(!x)return null;
-    const id=Number(x.id);if(Number.isFinite(id)&&id>0)return [2,id];
-    const at=Number(x.attempt);if(Number.isFinite(at)&&at>0)return [1,at];
-    return String(x.started_at||x.completed_at||"")?[0,String(x.started_at||x.completed_at||"")]:null;};
-  const cmp=(a,b)=>{if(a===null)return b===null?0:-1;if(b===null)return 1;
-    for(let i=0;i<2;i++){if(a[i]!==b[i])return a[i]<b[i]?-1:1;}return 0;};
-  for(const c of runs){
-    if(!c||!c.name)continue;
-    const name=String(c.name);
-    const cur=newest.get(name);
+const newest=new Map(); const rank=x=>{if(!x)return null; const id=Number(x.id);if(Number.isFinite(id)&&id>0)return [2,id]; const at=Number(x.attempt);if(Number.isFinite(at)&&at>0)return [1,at];
+return String(x.started_at||x.completed_at||"")?[0,String(x.started_at||x.completed_at||"")]:null;}; const cmp=(a,b)=>{if(a===null)return b===null?0:-1;if(b===null)return 1; for(let i=0;i<2;i++){if(a[i]!==b[i])return a[i]<b[i]?-1:1;}return 0;};
+for(const c of runs){ if(!c||!c.name)continue; const name=String(c.name); const cur=newest.get(name);
     // Newest by stable monotone order, never timestamps alone (Saul P1).
-    if(!cur||cmp(rank(c),rank(cur))>0)newest.set(name,c);
+if(!cur||cmp(rank(c),rank(cur))>0)newest.set(name,c);
   }
-  let total=0,fails=0,pending=0,saul=null;
-  for(const c of newest.values()){
-    total++;
-    if(c.status&&c.status!=="completed"){pending++;continue;}
-    const cc=String(c.conclusion||"").toLowerCase();
+let total=0,fails=0,pending=0,saul=null; for(const c of newest.values()){ total++; if(c.status&&c.status!=="completed"){pending++;continue;} const cc=String(c.conclusion||"").toLowerCase();
     // P2-2 (audit): cancelled/stale/startup_failure are terminal non-success — never omitted from the summary.
-    if(cc==="failure"||cc==="timed_out"||cc==="action_required"||cc==="cancelled"||cc==="stale"||cc==="startup_failure")fails++;
+if(cc==="failure"||cc==="timed_out"||cc==="action_required"||cc==="cancelled"||cc==="stale"||cc==="startup_failure")fails++;
     // P1-2 (audit): the Saul field binds to EXACT "Saul / Product Quality" — other saul-* checks (comptrollers, runners) are separate identities and can never overwrite it.
-    if(String(c.name).trim().toLowerCase()==="saul / product quality"){
-      const t=String(c.completed_at||"");
-      if(!saul||t>=String(saul.completed_at||""))saul=c;
+if(String(c.name).trim().toLowerCase()==="saul / product quality"){ const t=String(c.completed_at||""); if(!saul||t>=String(saul.completed_at||""))saul=c;
     }
   }
-  return {total:total,fails:fails,pending:pending,saul:saul};
+return {total:total,fails:fails,pending:pending,saul:saul};
 }
-"""
+        """
 SELFTEST_JS = """
 function check(name,got,want){ console.log((got===want?"PASS ":"FAIL ")+name+"  got="+got+" want="+want); if(got!==want)failures++;
 }
@@ -287,318 +273,202 @@ fetch=realFetch; if(failures){console.error(failures+" selftest failure(s)");pro
 """
 
 ENRICH_JS = """
-function enrichPrio(c){
-  if(c.ss&&c.ss.length)return 0;if(c.pr&&c.pr.state==="open"&&!c.pr.merged)return 1;return 2;
+function enrichPrio(c){ if(c.ss&&c.ss.length)return 0;if(c.pr&&c.pr.state==="open"&&!c.pr.merged)return 1;return 2;
 }
-function planEnrich(cards,budget){
-  const steps=[];const checked=new Set();let b=budget;const now=Date.now();
-  for(const c of cards.filter(c=>c.k!=="?").sort((a,b)=>enrichPrio(a)-enrichPrio(b))){
-    if(b<=0)break;
-    const pr=c.pr;
-    if(!(c.ss&&c.ss.length)&&!(pr&&pr.state==="open"&&!pr.merged))continue;
-    const det=DETAIL[c.k];
-    const ls=pr&&pr.headSha?String(pr.headSha).toLowerCase():"";
-    const cs=det&&det.headSha?String(det.headSha).toLowerCase():"";
-    const sha=ls||cs;
+function planEnrich(cards,budget){ const steps=[];const checked=new Set();let b=budget;const now=Date.now(); for(const c of cards.filter(c=>c.k!=="?").sort((a,b)=>enrichPrio(a)-enrichPrio(b))){ if(b<=0)break; const pr=c.pr;
+if(!(c.ss&&c.ss.length)&&!(pr&&pr.state==="open"&&!pr.merged))continue; const det=DETAIL[c.k]; const ls=pr&&pr.headSha?String(pr.headSha).toLowerCase():""; const cs=det&&det.headSha?String(det.headSha).toLowerCase():""; const sha=ls||cs;
     // P1-1: session-only cards revalidate detail on a TTL once fetched. Round-12: cap = backoff (Saul 97194598684).
-    const inPulls=!!(PULLS&&PULLS.get(String(c.k))),dts=DETAIL_TS[c.k];
-    const stale=!inPulls&&det&&dts&&(now-dts)>REVALIDATE_MS;
-    if(sha&&ENRICHED.has(sha)&&!stale)continue;
-    const failed=(DETAIL_FAIL[c.k]||0)>=MAX_DETAIL_FAILS;
-    const probe=!!DETAIL_RETRY_AT[c.k]&&now>=DETAIL_RETRY_AT[c.k];
-    if(!det||det===null||(ls&&cs&&ls!==cs)||stale){
-      if(!failed||probe){b--;steps.push({kind:"detail",k:c.k});if(b<=0)break;}
+const inPulls=!!(PULLS&&PULLS.get(String(c.k))),dts=DETAIL_TS[c.k]; const stale=!inPulls&&det&&dts&&(now-dts)>REVALIDATE_MS; if(sha&&ENRICHED.has(sha)&&!stale)continue; const failed=(DETAIL_FAIL[c.k]||0)>=MAX_DETAIL_FAILS;
+const probe=!!DETAIL_RETRY_AT[c.k]&&now>=DETAIL_RETRY_AT[c.k]; if(!det||det===null||(ls&&cs&&ls!==cs)||stale){ if(!failed||probe){b--;steps.push({kind:"detail",k:c.k});if(b<=0)break;}
     }
-    if(sha&&!checked.has(sha)){checked.add(sha);
-      const cfailed=(CHECKS_FAIL[sha]||0)>=MAX_DETAIL_FAILS,cprobe=!!CHECKS_RETRY_AT[sha]&&now>=CHECKS_RETRY_AT[sha];
+if(sha&&!checked.has(sha)){checked.add(sha); const cfailed=(CHECKS_FAIL[sha]||0)>=MAX_DETAIL_FAILS,cprobe=!!CHECKS_RETRY_AT[sha]&&now>=CHECKS_RETRY_AT[sha];
       if((!cfailed||cprobe)&&b>0){b--;steps.push({kind:"checks",k:c.k});}} // Saul 97338826287: cprobe (checks retry window), never the detail probe.
   }
-  return steps;
+return steps;
 }
 function doneShas(cards){ // Same SHA resolution as planEnrich; DONE = check-runs fetched for that HEAD.
-  const out=[];
-  for(const c of cards){
-    const det=DETAIL[c.k];
-    const ls=c.pr&&c.pr.headSha?String(c.pr.headSha).toLowerCase():"";
-    const cs=det&&det.headSha?String(det.headSha).toLowerCase():"";
+const out=[]; for(const c of cards){ const det=DETAIL[c.k]; const ls=c.pr&&c.pr.headSha?String(c.pr.headSha).toLowerCase():""; const cs=det&&det.headSha?String(det.headSha).toLowerCase():"";
     const sha=ls||cs;if(sha&&CHECKS[sha]&&CHECKS[sha].partial!==true)out.push(sha); // Q1/B-PARTIAL: failed+partial stay in the retry plan.
   }
-  return out;
+return out;
 }
 function ghDue(now,lastPoll,remain,resetAt,pollMs,minRem){ // Round-13 (Saul 97206101278): cadence <=pollMs; hold until reset below floor.
-  if(remain!=null&&now<resetAt&&(remain<=0||remain<minRem))return false;
-  return now-lastPoll>=pollMs;
+if(remain!=null&&now<resetAt&&(remain<=0||remain<minRem))return false; return now-lastPoll>=pollMs;
 }
 function ghStepDue(now,remain,resetAt,minRem,windowUsed,windowBudget,windowAt,windowMs){ // Round-15: floor + per-window budget anchored by windowAt.
-  if(remain!=null&&now<resetAt&&remain<minRem)return false;
-  return !(windowUsed>=windowBudget&&!(resetAt>0&&now>=resetAt)&&!(windowAt>0&&now-windowAt>=windowMs));
+if(remain!=null&&now<resetAt&&remain<minRem)return false; return !(windowUsed>=windowBudget&&!(resetAt>0&&now>=resetAt)&&!(windowAt>0&&now-windowAt>=windowMs));
 }
 function posNum(x){ // Round-18: null/undefined/"" mean "not reported" -> unknown, never 0; real 0 stays a valid measurement. Non-numeric types (bool/array) are not measurements either.
-  if(x==null||x===""||typeof x!=="number"&&typeof x!=="string")return null;const v=Number(x);return Number.isFinite(v)&&v>=0?v:null;}
-function fmtTok(v){return v>=1000000?(Math.round(v/100000)/10)+"M":(v>=1000?(Math.round(v/100)/10)+"k":String(v));}
+if(x==null||x===""||typeof x!=="number"&&typeof x!=="string")return null;const v=Number(x);return Number.isFinite(v)&&v>=0?v:null;} function fmtTok(v){return v>=1000000?(Math.round(v/100000)/10)+"M":(v>=1000?(Math.round(v/100)/10)+"k":String(v));}
 function usageStats(u){ // Round-16/18: live usage; missing/null/negative pieces drop, never invented as zeros.
-  if(!u||typeof u!=="object")return null;
-  const i=posNum(u.input_tokens),o=posNum(u.output_tokens),t=posNum(u.total_tokens);
-  const bits=[];
-  if(t!=null)bits.push(fmtTok(t)+" tok");
-  else if(i!=null&&o!=null)bits.push(fmtTok(i)+" in / "+fmtTok(o)+" out");
-  else if(i!=null)bits.push(fmtTok(i)+" in");
-  else if(o!=null)bits.push(fmtTok(o)+" out");
-  const c=posNum(u.api_call_count);
-  if(c!=null&&c>0)bits.push(c+" calls");
-  return bits.length?bits.join(" · "):null;
+if(!u||typeof u!=="object")return null; const i=posNum(u.input_tokens),o=posNum(u.output_tokens),t=posNum(u.total_tokens); const bits=[]; if(t!=null)bits.push(fmtTok(t)+" tok"); else if(i!=null&&o!=null)bits.push(fmtTok(i)+" in / "+fmtTok(o)+" out");
+else if(i!=null)bits.push(fmtTok(i)+" in"); else if(o!=null)bits.push(fmtTok(o)+" out"); const c=posNum(u.api_call_count); if(c!=null&&c>0)bits.push(c+" calls"); return bits.length?bits.join(" · "):null;
 }
 function diffStats(d){ // Round-16: live worktree diff; null degrades to unavailable upstream.
-  if(!d||typeof d!=="object")return null;
-  const f=posNum(d.file_count),ins=posNum(d.insertions),del=posNum(d.deletions);
-  const files=Array.isArray(d.files)?d.files.map(x=>String(x)):[];
-  if(f==null&&ins==null&&del==null&&!files.length)return null;
-  return {stat:(f==null?"?":f)+" files"+(ins!=null&&del!=null?" · +"+ins+" / -"+del:""),files:files,
-    dirty:typeof d.dirty==="boolean"?d.dirty:null};
+if(!d||typeof d!=="object")return null; const f=posNum(d.file_count),ins=posNum(d.insertions),del=posNum(d.deletions); const files=Array.isArray(d.files)?d.files.map(x=>String(x)):[]; if(f==null&&ins==null&&del==null&&!files.length)return null;
+return {stat:(f==null?"?":f)+" files"+(ins!=null&&del!=null?" · +"+ins+" / -"+del:""),files:files, dirty:typeof d.dirty==="boolean"?d.dirty:null};
 }
-"""
+        """
 GH_PLANE_JS = """
 let GH_LAST_POLL=0,GH_REMAIN=null,GH_RESET_AT=0,GH_WINDOW_USED=0,GH_WINDOW_AT=0;
 // Round-16 (Saul 97231269873): an expired X-RateLimit-Reset is consumed ONCE - rolled, re-anchored, cleared - so later headerless responses can never re-zero the local window.
-function ghWindowRoll(ghNow){
-  if(GH_WINDOW_AT===0)GH_WINDOW_AT=ghNow;
+function ghWindowRoll(ghNow){ if(GH_WINDOW_AT===0)GH_WINDOW_AT=ghNow;
   if(GH_RESET_AT>0&&ghNow>=GH_RESET_AT){GH_RESET_AT=0;GH_WINDOW_USED=0;GH_WINDOW_AT=ghNow;} // expired reset consumed once
-  else if(ghNow-GH_WINDOW_AT>=GH_WINDOW_MS){GH_WINDOW_AT=ghNow;GH_WINDOW_USED=0;}
+else if(ghNow-GH_WINDOW_AT>=GH_WINDOW_MS){GH_WINDOW_AT=ghNow;GH_WINDOW_USED=0;}
 }
-function ghJson(path,key){
-  const headers={"Accept":"application/vnd.github+json"};
-  if(ETAGS[key])headers["If-None-Match"]=ETAGS[key];
-  const ghNow=Date.now();ghWindowRoll(ghNow);GH_WINDOW_USED++;
+function ghJson(path,key){ const headers={"Accept":"application/vnd.github+json"}; if(ETAGS[key])headers["If-None-Match"]=ETAGS[key]; const ghNow=Date.now();ghWindowRoll(ghNow);GH_WINDOW_USED++;
   return fetch(GH_API+path,{cache:"no-store",headers:headers}).then(r=>{ // Round-13: honor rate headers so the plane backs off.
-    const rem=r.headers.get("X-RateLimit-Remaining");if(rem!=null)GH_REMAIN=Number(rem);
+const rem=r.headers.get("X-RateLimit-Remaining");if(rem!=null)GH_REMAIN=Number(rem);
     const rs=r.headers.get("X-RateLimit-Reset");if(rs!=null){const t=Number(rs)*1000;if(t>ghNow)GH_RESET_AT=t;} // Round-19 (Saul P1 F037): a stale/expired reset is never re-stored, so the consume-once roll cannot loop and the local hourly budget stays authoritative.
-    if(r.status===304)return {notModified:true};
-    const et=r.headers.get("ETag");if(et)cachePut(ETAGS,key,et);
-    if(!r.ok)throw new Error("HTTP "+r.status+" for "+path);
-    return r.json().then(j=>({data:j}));
+if(r.status===304)return {notModified:true}; const et=r.headers.get("ETag");if(et)cachePut(ETAGS,key,et); if(!r.ok)throw new Error("HTTP "+r.status+" for "+path); return r.json().then(j=>({data:j}));
   });
 }
 const CHECK_PAGES_MAX=3,PAGE_CACHE={},CACHE_CAP=64;function cachePut(o,k,v){o[k]=v;const ks=Object.keys(o);while(ks.length>CACHE_CAP)delete o[ks.shift()];} // B-CACHE-GROWTH: bounded across force-pushes.
 async function fetchAllChecks(sha){ // Round-17b (Saul 97267214495): page 304 reuses its cached page; every request re-passes ghStepDue.
-  const runs=[];let maxTot=NaN;
-  for(let p=1;p<=CHECK_PAGES_MAX;p++){
+const runs=[];let maxTot=NaN; for(let p=1;p<=CHECK_PAGES_MAX;p++){
     if(p>1&&!ghStepDue(Date.now(),GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET,GH_WINDOW_AT,GH_WINDOW_MS))break; // P1: pagination obeys the per-request gate.
-    const key="ck:"+sha+":"+p,j=await ghJson("/commits/"+sha+"/check-runs?per_page=100&page="+p,key);let tot;
+const key="ck:"+sha+":"+p,j=await ghJson("/commits/"+sha+"/check-runs?per_page=100&page="+p,key);let tot;
     if(j.notModified){const c=PAGE_CACHE[key];if(!c)return {runs:null,partial:false};runs.push(...c.list);tot=c.total;} // no cache: honest aggregate-level not-modified
-    else{
-      const batch=(j.data&&j.data.check_runs)||[];tot=j.data?Number(j.data.total_count):NaN;
-      cachePut(PAGE_CACHE,key,{list:batch,total:tot});runs.push(...batch);
+else{ const batch=(j.data&&j.data.check_runs)||[];tot=j.data?Number(j.data.total_count):NaN; cachePut(PAGE_CACHE,key,{list:batch,total:tot});runs.push(...batch);
     }
     if(Number.isFinite(tot)&&!(maxTot>=tot))maxTot=tot; // largest total seen governs completeness; a stale smaller cache total can never fabricate it.
-    if(runs.length>=maxTot)return {runs:runs,partial:false};
+if(runs.length>=maxTot)return {runs:runs,partial:false};
   }
-  return {runs:runs,partial:true};
+return {runs:runs,partial:true};
 }
-"""
+        """
 FLIGHT_JS = """
 const FESC_MAP={"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot;",[String.fromCharCode(39)]:"&#39;"};
 const fEsc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>FESC_MAP[c]); // FLIGHT-BOARD is self-contained: no SESSIONS_JS esc dependency.
 function pctOf(x){ // FLIGHT-BOARD: strict numeric 0..100; anything else renders unavailable, never coerced to 0.
-  return (typeof x==="number"&&isFinite(x)&&x>=0&&x<=100)?Math.round(x):null;
+return (typeof x==="number"&&isFinite(x)&&x>=0&&x<=100)?Math.round(x):null;
 }
 function flightIngest(f){ // P1-1 (audit): BOTH planes ingest only allowlisted-source + full-40-hex-bound progress; exact current-head equality enforced at render.
-  return verifierGated(f)&&/^[0-9a-f]{40}$/i.test(String(f&&f.head_sha||"")); }
+return verifierGated(f)&&/^[0-9a-f]{40}$/i.test(String(f&&f.head_sha||"")); }
 function verifierGated(p){ // flat /sessions progress counts only when its source names a known verifier/aggregator identity (no agent self-award).
-  const s=p&&typeof p==="object"?String(p.source||"").toLowerCase():"";
+const s=p&&typeof p==="object"?String(p.source||"").toLowerCase():"";
   return /^(pr[-_])?aggregator$|^sai-verify$|^sai-verify-(live|prod)$/.test(s); // A-H3 anchored: "sai-verify*whatever" cannot self-award.
 }
 function flightBreakdown(f){ // "Goals X/45 · CI X/20 · Saul X/20 · Preservation X/10 · Hygiene X/5" (+ requirement states when present).
-  if(!f||typeof f!=="object")return "unavailable";
-  const mc=f.merge_components&&typeof f.merge_components==="object"?f.merge_components:null;
-  if(!mc)return "unavailable";
-  const n=(o,k)=>o&&Number.isFinite(Number(o[k]))?Number(o[k]):null;
-  const g=n(mc,"goals"),ci=n(mc,"ci"),sl=n(mc,"saul"),pr=n(mc,"preservation"),hy=n(mc,"hygiene");
+if(!f||typeof f!=="object")return "unavailable"; const mc=f.merge_components&&typeof f.merge_components==="object"?f.merge_components:null; if(!mc)return "unavailable"; const n=(o,k)=>o&&Number.isFinite(Number(o[k]))?Number(o[k]):null;
+const g=n(mc,"goals"),ci=n(mc,"ci"),sl=n(mc,"saul"),pr=n(mc,"preservation"),hy=n(mc,"hygiene");
   if(g==null||ci==null||sl==null||pr==null||hy==null)return "unavailable"; // partial component sets are not invented into totals.
-  let t="Goals "+g+"/45 · CI "+ci+"/20 · Saul "+sl+"/20 · Preservation "+pr+"/10 · Hygiene "+hy+"/5";
-  const rq=f.requirements&&typeof f.requirements==="object"?f.requirements:null;
-  if(rq){
-    const r=["met","partial","unmet","blocked"].map(k=>k+" "+(Number.isFinite(Number(rq[k]))?Number(rq[k]):"unavailable"));
-    t+=" — requirements: "+r.join(" · ");
+let t="Goals "+g+"/45 · CI "+ci+"/20 · Saul "+sl+"/20 · Preservation "+pr+"/10 · Hygiene "+hy+"/5"; const rq=f.requirements&&typeof f.requirements==="object"?f.requirements:null; if(rq){
+const r=["met","partial","unmet","blocked"].map(k=>k+" "+(Number.isFinite(Number(rq[k]))?Number(rq[k]):"unavailable")); t+=" — requirements: "+r.join(" · ");
   }
-  return t;
+return t;
 }
 function shortShaF(x){x=String(x||"");return x.length>=7?x.slice(0,7):x;}
 function flightBars(f,headSha){ // Two rows: visible label + track + numeric % OUTSIDE the bar so narrow layouts never truncate either.
-  const bad=!f||typeof f!=="object"||f.status==="unavailable";
-  const head=String(headSha||"");
-  const srcOk=!bad&&verifierGated(f);
+const bad=!f||typeof f!=="object"||f.status==="unavailable"; const head=String(headSha||""); const srcOk=!bad&&verifierGated(f);
   const bound=(srcOk&&/^[0-9a-f]{40}$/i.test(String(f.head_sha||"")))?String(f.head_sha).toLowerCase():""; // P1-1 audit: full 40-hex required
-  if(bad||!srcOk||!bound){const row=l=>"<div class='fbar'><span class='flbl'>"+l+"</span><span class='ftrack' role='img' aria-label='"+l+" unavailable'><span class='ffill none' style='width:0'></span></span><span class='fpct'><span class='dim'>unavailable</span></span></div>";return row("Implementation")+row("Merge readiness");}
+if(bad||!srcOk||!bound){const row=l=>"<div class='fbar'><span class='flbl'>"+l+"</span><span class='ftrack' role='img' aria-label='"+l+" unavailable'><span class='ffill none' style='width:0'></span></span><span class='fpct'><span class='dim'>unavailable</span></span></div>";return row("Implementation")+row("Merge readiness");}
   const cur=head.toLowerCase()===bound; // P1-1 audit: EXACT equality with authoritative head; startsWith credit removed. Mismatch renders stale, never current.
-  const st=(bound&&!cur)?" <span class='mismatch' title='bound "+fEsc(bound.slice(0,12))+" @ "+fEsc(f.computed_at||"unknown time")+"'>@"+fEsc(shortShaF(bound))+" stale</span>":"";
-  const imp=bad?null:pctOf(f.implementation_pct);
-  const mr=bad?null:pctOf(f.merge_readiness_pct);
-  const row=(label,pct)=>"<div class='fbar'><span class='flbl'>"+label+"</span>"
-    +"<span class='ftrack' role='img' aria-label='"+label+(pct==null?" unavailable":": "+pct+" percent")+"'>"
-    +"<span class='ffill"+(pct==null?" none":"")+"' style='"+(pct==null?"width:0":"width:"+pct+"%")+"'></span></span>"
-    +"<span class='fpct'>"+(pct==null?"<span class='dim'>unavailable</span>":pct+"%")+st+"</span></div>";
-  return row("Implementation",imp)+row("Merge readiness",mr);
+const st=(bound&&!cur)?" <span class='mismatch' title='bound "+fEsc(bound.slice(0,12))+" @ "+fEsc(f.computed_at||"unknown time")+"'>@"+fEsc(shortShaF(bound))+" stale</span>":""; const imp=bad?null:pctOf(f.implementation_pct);
+const mr=bad?null:pctOf(f.merge_readiness_pct); const row=(label,pct)=>"<div class='fbar'><span class='flbl'>"+label+"</span>" +"<span class='ftrack' role='img' aria-label='"+label+(pct==null?" unavailable":": "+pct+" percent")+"'>"
++"<span class='ffill"+(pct==null?" none":"")+"' style='"+(pct==null?"width:0":"width:"+pct+"%")+"'></span></span>" +"<span class='fpct'>"+(pct==null?"<span class='dim'>unavailable</span>":pct+"%")+st+"</span></div>";
+return row("Implementation",imp)+row("Merge readiness",mr);
 }
-"""
+        """
 INGEST_JS = """
 const SESSIONS_URL="__API__";
 const PRS_URL="__PRS_API__"; // STEER 18:57Z: /prs preferred; flat /sessions fallback.
 let PULLS=null,PULLS_ERR="",SESSIONS_OK=false,SESSIONS_TS=0; // C-04: health = sessions plane seen within STALE_MIN.
-const ESCMAP={"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot;",[String.fromCharCode(39)]:"&#39;"};
-const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESCMAP[c]);
-const dash=s=>(s==null||s===""?"—":s);
+const ESCMAP={"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot;",[String.fromCharCode(39)]:"&#39;"}; const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESCMAP[c]); const dash=s=>(s==null||s===""?"—":s);
 const stCls=s=>({active:"ok",finished:"ok",done:"mute",failed:"bad"}[String(s||"").toLowerCase()]||"warn");
 const PRS_STALE_MIN=10; // STEER 20:18Z: /prs payloads older than this fall back (honesty note names the source).
 const FEED_TIMEOUT_MS=15000,withTimeout=(pr,ms)=>Promise.race([pr,new Promise((_,rej)=>setTimeout(()=>rej(new Error("feed timeout")),ms))]); // hung endpoints release LOAD_BUSY.
-let SRC="sessions",loadErr="",DROPPED=0;
-async function loadSessions(){
-  const r=await withTimeout(fetch(SESSIONS_URL,{cache:"no-store"}),FEED_TIMEOUT_MS);if(!r.ok)throw new Error("HTTP "+r.status);
-  const d=await r.json();if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload");
-  const ok=d.sessions.filter(x=>rowValid(x));
+let SRC="sessions",loadErr="",DROPPED=0; async function loadSessions(){ const r=await withTimeout(fetch(SESSIONS_URL,{cache:"no-store"}),FEED_TIMEOUT_MS);if(!r.ok)throw new Error("HTTP "+r.status);
+const d=await r.json();if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload"); const ok=d.sessions.filter(x=>rowValid(x));
   DROPPED+=d.sessions.length-ok.length; // P1-4 audit: invalid rows are telemetry counts, never assembled state.
-  SESSIONS_TS=Date.now();return ok;
+SESSIONS_TS=Date.now();return ok;
 }
 function rowValid(a){ // P1-4 (audit): canonical sai-sessions-v2 contract enforced BEFORE assembly — id/status/heartbeat_at/agent/harness/model/head all required. Invalid rows never influence worker-presence or summaries.
-  const req=["id","status","heartbeat_at","agent","harness","model","head"];
-  return !!(a&&typeof a==="object"&&req.every(k=>a[k]!=null&&a[k]!==""));
+const req=["id","status","heartbeat_at","agent","harness","model","head"]; return !!(a&&typeof a==="object"&&req.every(k=>a[k]!=null&&a[k]!==""));
 }
 function invalidRow(s){ // honesty badge: a row that fails v2 required fields is named, never rendered as a live worker.
-  return '<div class="srow"><span class="st warn">invalid row — missing '+((["id","status","heartbeat_at"].filter(function(f){return !s||s[f]==null||s[f]==="";})).join(", ")||"required fields")+" (dropped)</span></div>";
+return '<div class="srow"><span class="st warn">invalid row — missing '+((["id","status","heartbeat_at"].filter(function(f){return !s||s[f]==null||s[f]==="";})).join(", ")||"required fields")+" (dropped)</span></div>";
 }
 function prKeyOf(v){ // A-H1: positive-int PR keys only — no "__proto__"-style bracket keys.
-  const s=typeof v==="number"?String(v):String(v==null?"":v).trim();
-  return /^[1-9][0-9]{0,5}$/.test(s)?s:null;
+const s=typeof v==="number"?String(v):String(v==null?"":v).trim(); return /^[1-9][0-9]{0,5}$/.test(s)?s:null;
 }
 async function loadPrs(){ // falls back to /sessions when /prs is unreachable, empty, stale, or malformed (STEER 20:18Z).
   for(const k of Object.keys(FLIGHT))delete FLIGHT[k];DROPPED=0; // FLIGHT-BOARD: rebuilt per poll so removed cards never render stale authority.
-  try{
-    const r=await withTimeout(fetch(PRS_URL,{cache:"no-store"}),FEED_TIMEOUT_MS);const d=r.ok?await r.json():null;
-    const age=d&&d.updated_at?ageMin(d.updated_at):null;
+try{ const r=await withTimeout(fetch(PRS_URL,{cache:"no-store"}),FEED_TIMEOUT_MS);const d=r.ok?await r.json():null; const age=d&&d.updated_at?ageMin(d.updated_at):null;
     if(d&&Array.isArray(d.prs)&&d.prs.length>0&&age!=null&&age>=0&&age<=PRS_STALE_MIN){ // H2: future updated_at reads stale.
-      const out=[],fbc={};let validGroups=0;
-      for(const p of d.prs){
+const out=[],fbc={};let validGroups=0; for(const p of d.prs){
         const pk=prKeyOf(p&&p.pr); // A-H1: prototype-safe keys only.
-        if(!pk){DROPPED+=(p&&Array.isArray(p.agents))?p.agents.length:0;continue;}
+if(!pk){DROPPED+=(p&&Array.isArray(p.agents))?p.agents.length:0;continue;}
         // P1-3 (audit): PR-level flight-board authority is ingested INDEPENDENTLY of agents[] — Agent NONE cards keep their PR progress.
-        const fb=(p.flightboard||p.flight)&&typeof (p.flightboard||p.flight)==="object"?(p.flightboard||p.flight):null;
-        if(fb&&flightIngest(fb))fbc[pk]=fb;
+const fb=(p.flightboard||p.flight)&&typeof (p.flightboard||p.flight)==="object"?(p.flightboard||p.flight):null; if(fb&&flightIngest(fb))fbc[pk]=fb;
         if(!Array.isArray(p.agents))continue; // no agent dataset on this group: PR-level state alone is still authoritative.
         let vc=0; // Round-20: per-row v2 validation — invalid rows drop, valid rows survive.
         for(const a of p.agents)if(rowValid(a)){out.push({...a,pr:pk});vc++;} // Saul 97342571251: parent pk wins — agent-supplied pr never overrides validated group key
-        DROPPED+=p.agents.length-vc;
+DROPPED+=p.agents.length-vc;
         if(vc===0)continue; // Saul 97338826287: rows-present-but-all-invalid gates the WHOLE group incl. its flightboard (empty-agents groups are NOT this case).
-        validGroups++;
+validGroups++;
       }
       if(validGroups>0||Object.keys(fbc).length>0){SRC="prs";for(const k in fbc)FLIGHT[k]=fbc[k];return {list:out,multi:true};} // ≥1 healthy group or any PR-level authority commits
     }
   }catch(err){}
   // FLIGHT-BOARD fallback: flat feed has no PR-level authority; accept ONLY verifier/aggregator-sourced progress (no agent self-award).
-  SRC="sessions";const fb=[];let fd=0;
-  for(const s of await loadSessions()){
+SRC="sessions";const fb=[];let fd=0; for(const s of await loadSessions()){
     if(!s||s.pr==null){fb.push(s);continue;} // legacy unkeyed session: "?" card, never map-keyed — prototype-safe.
-    const pk=prKeyOf(s.pr);
+const pk=prKeyOf(s.pr);
     if(!pk){fd++;continue;} // present-but-invalid pr values are dropped (A-H1), never used as keys.
     if(flightIngest(s.progress))FLIGHT[pk]=s.progress; // P1-1 audit: fallback plane enforces source + full-SHA authority
-    fb.push(Object.assign({},s,{pr:pk}));
+fb.push(Object.assign({},s,{pr:pk}));
   }
-  DROPPED+=fd;
-  return {list:fb,multi:false};
+DROPPED+=fd; return {list:fb,multi:false};
 }
 function tagsView(a){ // harness+model tags straight from tags[]; nothing synthesized.
-  let h="",m="";const tg=Array.isArray(a.tags)?a.tags:[];
-  for(const t of tg){if(h===""&&/^harness:/.test(t))h=String(t).slice(8);if(m===""&&/^model:/.test(t))m=String(t).slice(6);}
-  if(h==="")h=a.harness?String(a.harness):"";if(m==="")m=a.model?String(a.model):"";
-  const bits=[];
-  if(h)bits.push('<span class="tag">⚙ '+esc(h)+"</span>");if(m)bits.push('<span class="tag">◆ '+esc(m)+"</span>");
-  return bits.join(" ");
+let h="",m="";const tg=Array.isArray(a.tags)?a.tags:[]; for(const t of tg){if(h===""&&/^harness:/.test(t))h=String(t).slice(8);if(m===""&&/^model:/.test(t))m=String(t).slice(6);}
+if(h==="")h=a.harness?String(a.harness):"";if(m==="")m=a.model?String(a.model):""; const bits=[]; if(h)bits.push('<span class="tag">⚙ '+esc(h)+"</span>");if(m)bits.push('<span class="tag">◆ '+esc(m)+"</span>"); return bits.join(" ");
 }
 function reviewView(a){ // STEER 20:18Z: identity-gated on agent==="saul"; absent fields render "unavailable", never invented.
-  if(String(a&&a.agent||"").toLowerCase()!=="saul")return "";
-  const rv=(a.review&&typeof a.review==="object")?a.review:{};
-  const head=rv.head_sha?shortSha(rv.head_sha):"unavailable";
-  const pc=pcounts("P0="+rv.P0+" P1="+rv.P1+" P2="+rv.P2),cls=String(rv.conclusion)==="success"?"ok":"warn";
-  const val=v=>(v==null||v==="")?"unavailable":String(v),cell=(l,v)=>'<span class="k">'+l+'</span><span class="v">'+esc(v)+"</span>";
-  return '<div class="saul"><span>Saul review @ '+esc(head)+'</span>'
-    +'<span><span class="st '+cls+'">'+esc(rv.conclusion||"unavailable")+"</span></span><div>"
-    +cell("phase",val(rv.phase))+cell("progress",val(rv.progress))+cell("review status",val(rv.status))
-    +cell("codex_invoked",val(rv.codex_invoked))+cell("synthetic",val(rv.synthetic))
-    +cell("P0/P1/P2",pc?("P0="+pc.p0+" P1="+pc.p1+" P2="+pc.p2):"unavailable")+"</div></div>";
+if(String(a&&a.agent||"").toLowerCase()!=="saul")return ""; const rv=(a.review&&typeof a.review==="object")?a.review:{}; const head=rv.head_sha?shortSha(rv.head_sha):"unavailable";
+const pc=pcounts("P0="+rv.P0+" P1="+rv.P1+" P2="+rv.P2),cls=String(rv.conclusion)==="success"?"ok":"warn"; const val=v=>(v==null||v==="")?"unavailable":String(v),cell=(l,v)=>'<span class="k">'+l+'</span><span class="v">'+esc(v)+"</span>";
+return '<div class="saul"><span>Saul review @ '+esc(head)+'</span>' +'<span><span class="st '+cls+'">'+esc(rv.conclusion||"unavailable")+"</span></span><div>" +cell("phase",val(rv.phase))+cell("progress",val(rv.progress))+cell("review status",val(rv.status))
++cell("codex_invoked",val(rv.codex_invoked))+cell("synthetic",val(rv.synthetic)) +cell("P0/P1/P2",pc?("P0="+pc.p0+" P1="+pc.p1+" P2="+pc.p2):"unavailable")+"</div></div>";
 }
 
 function flightBlock(c){ // FLIGHT-BOARD: always-rendered section; honest unavailable when the API carries no authority.
-  const f=(FLIGHT[c.k]&&typeof FLIGHT[c.k]==="object")?FLIGHT[c.k]:{};
-  const head=c.pr&&c.pr.headSha?c.pr.headSha:"";
-  const src=(f&&typeof f.source==="string"&&f.source)?f.source:"unavailable";
-  return '<div class="srow"><div class="sid"><span>Flight board</span><span class="pill">'+esc(src)+"</span></div>"
-    +flightBars(f,head)+'<details class="fbrk"><summary>merge components</summary><div class="v2">'+esc(flightBreakdown(f))+"</div></details></div>";
+const f=(FLIGHT[c.k]&&typeof FLIGHT[c.k]==="object")?FLIGHT[c.k]:{}; const head=c.pr&&c.pr.headSha?c.pr.headSha:""; const src=(f&&typeof f.source==="string"&&f.source)?f.source:"unavailable";
+return '<div class="srow"><div class="sid"><span>Flight board</span><span class="pill">'+esc(src)+"</span></div>" +flightBars(f,head)+'<details class="fbrk"><summary>merge components</summary><div class="v2">'+esc(flightBreakdown(f))+"</div></details></div>";
 }
 
 function ageMin(iso){const t=Date.parse(iso);if(isNaN(t))return null;return Math.round((Date.now()-t)/60000);} // H2: negative=future, never clamped to fresh.
 function age(iso){const m=ageMin(iso);if(m==null)return "";if(m<0)return "in the future";return m<60?m+"m ago":Math.round(m/60)+"h ago";}
-function beatBucket(s){const m=ageMin(s&&s.heartbeat_at);return m==null?"missing":(m<0?"stale":(m<STALE_MIN?"fresh":"stale"));}
-function isStale(s){return beatBucket(s)==="stale";}
-function isMissing(s){return beatBucket(s)==="missing";}
+function beatBucket(s){const m=ageMin(s&&s.heartbeat_at);return m==null?"missing":(m<0?"stale":(m<STALE_MIN?"fresh":"stale"));} function isStale(s){return beatBucket(s)==="stale";} function isMissing(s){return beatBucket(s)==="missing";}
 function shortSha(x){x=String(x||"");return x.length>=7?x.slice(0,7):x;}
 const PULL_PAGES_MAX=3; // P2-1 (audit): PR universe paginates — an old open no-agent PR beyond item 100 must never vanish from the union.
-async function loadPulls(){
-  try{
-    const map=new Map();let listed=0;
-    for(let p=1;p<=PULL_PAGES_MAX;p++){
+async function loadPulls(){ try{ const map=new Map();let listed=0; for(let p=1;p<=PULL_PAGES_MAX;p++){
       if(p>1&&!ghStepDue(Date.now(),GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET))break; // per-request gate mirrors check-run pagination
-      const j=await ghJson("/pulls?state=all&per_page=100&sort=created&direction=desc&page="+p,"pulls:"+p);
+const j=await ghJson("/pulls?state=all&per_page=100&sort=created&direction=desc&page="+p,"pulls:"+p);
       if(j.notModified)return; // cached listing still authoritative from the prior poll
-      if(!Array.isArray(j.data))throw new Error("malformed GitHub pull-list payload");
-      for(const pr of j.data){if(pr&&pr.number!=null)map.set(String(pr.number),pr);}
-      listed=j.data.length;
-      if(listed<100)break;
+if(!Array.isArray(j.data))throw new Error("malformed GitHub pull-list payload"); for(const pr of j.data){if(pr&&pr.number!=null)map.set(String(pr.number),pr);} listed=j.data.length; if(listed<100)break;
     }
-    PULLS=map;PULLS_ERR="";
+PULLS=map;PULLS_ERR="";
   }catch(err){PULLS_ERR=err&&err.message?err.message:String(err);} // mid-pagination error keeps prior listing rather than a partial map
 }
-async function refreshDetail(num){
-  try{
-    const j=await ghJson("/pulls/"+num,"pr:"+num);
-    if(j.notModified){DETAIL_TS[num]=Date.now();return;}
-    const d=j.data||{};
-    DETAIL[num]={title:d.title||"",state:d.state||"",draft:!!d.draft,mergedAt:d.merged_at||"",
-      mergeable:d.mergeable,mergeableState:d.mergeable_state||"",headSha:d.head&&d.head.sha?d.head.sha:"",
-      pushedAt:d.head&&d.head.repo&&d.head.repo.pushed_at||"",updatedAt:d.updated_at||""};
-    DETAIL_TS[num]=Date.now();DETAIL_FAIL[num]=0;delete DETAIL_RETRY_AT[num];
+async function refreshDetail(num){ try{ const j=await ghJson("/pulls/"+num,"pr:"+num); if(j.notModified){DETAIL_TS[num]=Date.now();return;} const d=j.data||{}; DETAIL[num]={title:d.title||"",state:d.state||"",draft:!!d.draft,mergedAt:d.merged_at||"",
+mergeable:d.mergeable,mergeableState:d.mergeable_state||"",headSha:d.head&&d.head.sha?d.head.sha:"", pushedAt:d.head&&d.head.repo&&d.head.repo.pushed_at||"",updatedAt:d.updated_at||""}; DETAIL_TS[num]=Date.now();DETAIL_FAIL[num]=0;delete DETAIL_RETRY_AT[num];
   }catch(err){
-    DETAIL_FAIL[num]=(DETAIL_FAIL[num]||0)+1;
-    DETAIL_RETRY_AT[num]=Date.now()+DETAIL_RETRY_MS;
-    if(DETAIL[num]===undefined)DETAIL[num]=null;
+DETAIL_FAIL[num]=(DETAIL_FAIL[num]||0)+1; DETAIL_RETRY_AT[num]=Date.now()+DETAIL_RETRY_MS; if(DETAIL[num]===undefined)DETAIL[num]=null;
   }
 }
 async function refreshChecks(num){ // Round-8: listing HEAD wins over cached detail so force-pushes re-bind.
-  const pr=PULLS?PULLS.get(String(num)):undefined;
-  let sha=pr&&pr.head&&pr.head.sha?String(pr.head.sha).toLowerCase():"";
-  if(!sha){const det=DETAIL[num];sha=det&&det.headSha?String(det.headSha).toLowerCase():"";}
-  if(!sha)return;
-  try{
-    const f=await fetchAllChecks(sha);
-    if(!f.runs)return;
-    const r=rollupChecks(f.runs);
-    CHECKS[sha]={total:r.total,fails:r.fails,pending:r.pending,saul:saulLabel(r.saul),partial:f.partial};delete CHECKS_FAIL[sha];delete CHECKS_RETRY_AT[sha];
+const pr=PULLS?PULLS.get(String(num)):undefined; let sha=pr&&pr.head&&pr.head.sha?String(pr.head.sha).toLowerCase():""; if(!sha){const det=DETAIL[num];sha=det&&det.headSha?String(det.headSha).toLowerCase():"";} if(!sha)return; try{
+const f=await fetchAllChecks(sha); if(!f.runs)return; const r=rollupChecks(f.runs); CHECKS[sha]={total:r.total,fails:r.fails,pending:r.pending,saul:saulLabel(r.saul),partial:f.partial};delete CHECKS_FAIL[sha];delete CHECKS_RETRY_AT[sha];
   }catch(err){CHECKS_FAIL[sha]=(CHECKS_FAIL[sha]||0)+1;if(CHECKS_FAIL[sha]>=MAX_DETAIL_FAILS)CHECKS_RETRY_AT[sha]=Date.now()+DETAIL_RETRY_MS;} // Q1: undefined replans next poll; backoff mirrors detail path.
 }function pcounts(text){
-  if(!text)return null;
-  const grab=(tag)=>{
-    const i=text.indexOf(tag);if(i<0)return null;
-    let j=i+tag.length,num="";
-    while(j<text.length&&text[j]>="0"&&text[j]<="9"){num+=text[j];j++;}
-    return num===""?null:num;
+if(!text)return null; const grab=(tag)=>{ const i=text.indexOf(tag);if(i<0)return null; let j=i+tag.length,num=""; while(j<text.length&&text[j]>="0"&&text[j]<="9"){num+=text[j];j++;} return num===""?null:num;
   };
-  const p0=grab("P0="),p1=grab("P1="),p2=grab("P2=");
-  return (p0==null||p1==null||p2==null)?null:{p0:p0,p1:p1,p2:p2};
+const p0=grab("P0="),p1=grab("P1="),p2=grab("P2="); return (p0==null||p1==null||p2==null)?null:{p0:p0,p1:p1,p2:p2};
 }
-function saulLabel(c){
-  if(!c)return "";
-  const pc=pcounts(c.output&&c.output.summary);
-  if(pc)return "P0="+pc.p0+" P1="+pc.p1+" P2="+pc.p2;
-  const cc=String(c.conclusion||"");
-  return cc==="success"?"success (no blocking findings)":(cc||"unknown");
-}"""
+function saulLabel(c){ if(!c)return ""; const pc=pcounts(c.output&&c.output.summary); if(pc)return "P0="+pc.p0+" P1="+pc.p1+" P2="+pc.p2; const cc=String(c.conclusion||""); return cc==="success"?"success (no blocking findings)":(cc||"unknown");
+}
+        """
 SESSIONS_JS = """
 const STALE_MIN=30;
 const REQUEST_BUDGET=24;
