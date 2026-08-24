@@ -1,14 +1,21 @@
-{
-  "harness": "Sai Harness",
-  "version": 1,
-  "provenance": {
-    "derived_from": "Atomic CLI (bastani-inc/atomic, MIT)",
-    "license": "MIT © 2025 Bastani, Inc. — attribution clause: >100M MAU / >$20M MRR products must display 'Atomic' in UI",
-    "tier": "prototype"
-  },
-  "hooks": {
-    "beforeSubmitPrompt": [{"command": "prototypes/plugins/cross-intercom/.sai/hooks/aspectizer.sh", "failClosed": false, "timeout": 30}],
-    "sessionStart": [{"command": "prototypes/plugins/cross-intercom/.sai/hooks/lane-connector.sh", "args": ["reconcile"], "failClosed": false, "timeout": 60}],
-    "stop": [{"command": "prototypes/plugins/cross-intercom/.sai/hooks/lane-connector.sh", "args": ["upsert"], "failClosed": false, "timeout": 60, "loop_limit": 1}]
-  }
-}
+{"version":1,"harness":"Sai Harness","provenance":{"derived_from":"Atomic CLI (bastani-inc/atomic, MIT)","tier":"prototype"},"hooks":{
+"sessionStart":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/lane-connector.sh","args":["reconcile"],"failClosed":false,"timeout":60}],
+"sessionEnd":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"preToolUse":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30,"matcher":".*"}],
+"postToolUse":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30,"matcher":".*"}],
+"postToolUseFailure":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"subagentStart":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"subagentStop":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"beforeShellExecution":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"afterShellExecution":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"beforeMCPExecution":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"afterMCPExecution":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"beforeReadFile":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30,"matcher":".*"}],
+"afterFileEdit":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"beforeSubmitPrompt":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/aspectizer.sh","failClosed":false,"timeout":30}],
+"preCompact":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"stop":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["tick"],"failClosed":false,"timeout":120,"loop_limit":2}],
+"afterAgentResponse":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["tick"],"failClosed":false,"timeout":60}],
+"afterAgentThought":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["hook"],"failClosed":false,"timeout":30}],
+"workspaceOpen":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/grokbot.sh","args":["flightboard"],"failClosed":false,"timeout":30}]
+}}

@@ -53,3 +53,16 @@ If Fleet A's consumer depends on Fleet B's producer:
 - Launching against artifacts you didn't author without checking ownership first (verify `/tmp/<checkout>` and research-doc provenance).
 - Editing a shared file while another fleet has an in-flight integration tree — stage patches, integrate sequentially, gate after each merge.
 - Treating "checks green" as convergence: convergence = exact-head CI green + reviewer SUCCESS + acceptance ticked + owner verification.
+
+## 7. Grokbot automation loop (10-minute wake contract)
+
+Cursor defines post-turn continuation via the `stop` event + `loop_limit` (see production `.cursor/hooks.json` on main). Sai Harness mimics that in `.sai/hooks.json`: `stop`/`afterAgentResponse` fire `grokbot.sh tick`, and `grokbot.sh daemon` loops every `SAI_GROKBOT_INTERVAL` (default 600s).
+
+On every wake:
+1. **Resolve name** — owner-marked > env alias > generated fingerprint (`sai.grunt-<hash>`); never use the gh account login as an agent identity.
+2. **Inbox sweep** — launch each queued mention in `.sai/state/inbox/*.md` as a user request via the Atomic CLI (`atomic "<request>"`).
+3. **Flightboard attribution** — write local `flightboard.json`: `agent : org_role : pr_assignment` (the API relays local events to repo side where appropriate).
+4. **Wake-proof ping** — post a proof-of-wake comment to the assigned PR every wake (consistency goal).
+5. **Continuation prompt** — mentions first; else if CI red, launch debugging (tdd skill); else continue next goal skill (crosscomm).
+
+Stop-file: `.sai/state/GROKBOT_STOP`. Inbox registration: your name resolves once, then other agents drop files into `.sai/state/inbox/`.
