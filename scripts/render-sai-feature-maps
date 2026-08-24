@@ -707,8 +707,7 @@ async function load(){
   }
   probeSessions().catch(()=>{});
   if(list!=null){
-    if(SRC==="prs")SESSIONS_TS=Date.now(); // Saul 97367010892: /prs success is sessions-plane liveness evidence (same backend) — sessionless PRs read Agent NONE, never UNKNOWN.
-    SESSIONS_OK=!!(SESSIONS_TS&&Date.now()-SESSIONS_TS<=STALE_MIN*60000); // C-04: /prs alone never authorizes Agent NONE.
+    SESSIONS_OK=!!(SESSIONS_TS&&Date.now()-SESSIONS_TS<=STALE_MIN*60000); // C-04 + Saul 97376638286: only real probeSessions() evidence authorizes Agent NONE; /prs success must not mask a dead /sessions.
     const now=Date.now();const go=ghGo(now);
     if(go){GH_LAST_POLL=now;await loadPulls();}
     let cards=assemble(list);
