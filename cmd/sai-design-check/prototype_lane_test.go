@@ -400,3 +400,14 @@ func TestGoWorkEmptyReplaceTargetFailsClosed(t *testing.T) {
 	writeRel(t, root, "go.work", "go 1.22\n\nreplace (\n\texample.com/x =>\n)\n")
 	if err := checkGoWorkFiles(root); err == nil { t.Fatal("empty block replace target must fail closed") }
 }
+
+
+// Reviewer r1 transitive vector: a NESTED production go.mod aliasing the lane must fail even when the root go.mod is clean (workspace consumers apply replaces from all modules).
+func TestNestedGoModReplaceIntoLaneFails(t *testing.T) {
+	root := lockedFixture(t)
+	writeRel(t, root, "internal/evilmod/go.mod", "module github.com/Dezocode/Sai/internal/evilmod\n\nreplace github.com/SomeBody/lanealias => ../../prototypes/plugins/author\n")
+	if err := checkPrototypeLaneDiff(root); err == nil { t.Fatal("nested go.mod replace into lane must fail") }
+	writeRel(t, root, "tools/vendored/go.mod", "module vend\n\nreplace e.com/x => ./vendor/x v1.0.0\n")
+	writeRel(t, root, "third_party/prototypes/keep/go.mod", "module keep\n")
+	if err := checkPrototypeLaneDiff(root); err == nil { t.Fatal("unreadable nested manifest path handling diverged") }
+}

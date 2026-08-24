@@ -77,7 +77,9 @@ func matchSwift(root string, c contract, body []byte) error {
 		return fmt.Errorf("tokens: missing SaiDesignLanguage.swift")
 	}
 	s := string(b)
-	if m := regexp.MustCompile(`featureUIAllowed\s*=\s*(true|false)`).FindStringSubmatch(s); len(m) < 2 || (m[1] == "true") != c.FeatureUIAllowed { return fmt.Errorf("tokens: featureUIAllowed") }
+	if m := regexp.MustCompile(`featureUIAllowed\s*=\s*(true|false)`).FindStringSubmatch(s); len(m) < 2 || (m[1] == "true") != c.FeatureUIAllowed {
+		return fmt.Errorf("tokens: featureUIAllowed")
+	}
 	eqRGB := func(field, hex string) error {
 		g := regexp.MustCompile(field + `\s*=\s*Color\(\s*red:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*,\s*green:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*,\s*blue:\s*([0-9.]+)\s*/\s*255(?:\.0)?\s*\)`).FindStringSubmatch(s)
 		var hr, hg, hb int
@@ -127,15 +129,21 @@ func matchSwift(root string, c contract, body []byte) error {
 // inCanonicalPrototype: rel in the verifier-owned prototype root under a non-empty plugin; fails closed on traversal/abs/near-prefix/root/direct child.
 func inCanonicalPrototype(rel string) bool {
 	raw := filepath.ToSlash(rel)
-	if strings.Contains(raw, "..") || strings.HasPrefix(raw, "/") { return false }
+	if strings.Contains(raw, "..") || strings.HasPrefix(raw, "/") {
+		return false
+	}
 	p := filepath.ToSlash(filepath.Clean("/" + strings.TrimPrefix(raw, "/")))
-	if p == "/"+protoRoot || !strings.HasPrefix(p, "/"+protoRoot+"/") { return false }
+	if p == "/"+protoRoot || !strings.HasPrefix(p, "/"+protoRoot+"/") {
+		return false
+	}
 	return strings.IndexByte(strings.TrimPrefix(p, "/"+protoRoot+"/"), '/') > 0
 }
 
 // inPluginDesignScope: canonical-prototype file in its plugin's PrototypeDesign/ (nested ok).
 func inPluginDesignScope(rel string) bool {
-	if !inCanonicalPrototype(rel) { return false } // canonical form guarantees prototypes/plugins/<plugin>/...
+	if !inCanonicalPrototype(rel) {
+		return false
+	} // canonical form guarantees prototypes/plugins/<plugin>/...
 	p := strings.SplitN(filepath.ToSlash(rel), "/", 4)
 	return len(p) == 4 && strings.HasPrefix(p[3], protoDesignDir+"/")
 }
@@ -143,12 +151,16 @@ func inPluginDesignScope(rel string) bool {
 // resolvesInto: manifest path value resolved against its manifest dir (or repo root when absolute); fails closed.
 func resolvesInto(root, from, value string) bool {
 	v := strings.TrimSpace(strings.ReplaceAll(value, "\\", "/"))
-	if v == "" { return false }
+	if v == "" {
+		return false
+	}
 	if filepath.IsAbs(v) || strings.HasPrefix(v, "~") {
 		abs := v
 		if abs[0] == '~' {
 			home, err := os.UserHomeDir()
-			if err != nil { return true }
+			if err != nil {
+				return true
+			}
 			abs = filepath.Join(home, abs[1:])
 		} // unresolvable ~ fails closed
 		rootAbs, err := filepath.Abs(root)
@@ -166,7 +178,9 @@ func resolvesInto(root, from, value string) bool {
 				break
 			}
 			u := filepath.Dir(d)
-			if u == d { break }
+			if u == d {
+				break
+			}
 			d = u
 		}
 		lane := filepath.ToSlash(filepath.Clean(rootCanon)) + "/prototypes"
@@ -186,15 +200,21 @@ func skipMeta(name string) bool {
 func checkSymlinkEscape(root string) error {
 	// Canonicalize root once (macOS /var -> /private/var) so target Rels share its basis.
 	rootAbs, err := filepath.Abs(root)
-	if err != nil { return fmt.Errorf("%s: cannot absolutize root, fails closed: %v", root, err) }
+	if err != nil {
+		return fmt.Errorf("%s: cannot absolutize root, fails closed: %v", root, err)
+	}
 	rootCanon, err := filepath.EvalSymlinks(rootAbs)
-	if err != nil { return fmt.Errorf("%s: cannot resolve root, fails closed: %v", root, err) }
+	if err != nil {
+		return fmt.Errorf("%s: cannot resolve root, fails closed: %v", root, err)
+	}
 	return filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
 		if d.Type()&fs.ModeSymlink == 0 {
-			if d.IsDir() && skipMeta(d.Name()) { return fs.SkipDir }
+			if d.IsDir() && skipMeta(d.Name()) {
+				return fs.SkipDir
+			}
 			return nil
 		}
 		rel, err := filepath.Rel(root, path)
@@ -202,18 +222,24 @@ func checkSymlinkEscape(root string) error {
 			return err
 		}
 		slash := filepath.ToSlash(rel)
-		if slash == "prototypes" || strings.HasPrefix(slash, "prototypes/") { return fmt.Errorf("%s: symlink on prototype lane path escapes verification", slash) }
+		if slash == "prototypes" || strings.HasPrefix(slash, "prototypes/") {
+			return fmt.Errorf("%s: symlink on prototype lane path escapes verification", slash)
+		}
 		absPath, err := filepath.Abs(path)
 		if err != nil {
 			return err
 		}
 		resolved, err := filepath.EvalSymlinks(absPath)
-		if err != nil { return fmt.Errorf("%s: cannot resolve symlink, fails closed: %v", slash, err) }
+		if err != nil {
+			return fmt.Errorf("%s: cannot resolve symlink, fails closed: %v", slash, err)
+		}
 		trel, err := filepath.Rel(rootCanon, resolved)
 		if err != nil {
 			return err
 		}
-		if tslash := filepath.ToSlash(trel); tslash == "prototypes" || strings.HasPrefix(tslash, "prototypes/") { return fmt.Errorf("%s: symlink resolves into prototype lane (%s)", slash, tslash) }
+		if tslash := filepath.ToSlash(trel); tslash == "prototypes" || strings.HasPrefix(tslash, "prototypes/") {
+			return fmt.Errorf("%s: symlink resolves into prototype lane (%s)", slash, tslash)
+		}
 		return nil
 	})
 }
@@ -223,12 +249,18 @@ func checkSymlinkEscape(root string) error {
 // are symlink-resolved, then judged against the canonical root; unreadable workspaces fail closed.
 func checkGoWorkFiles(root string) error {
 	rootCanon, err := filepath.EvalSymlinks(func() string { a, _ := filepath.Abs(root); return a }())
-	if err != nil { return fmt.Errorf("go.work: cannot resolve root, fails closed: %v", err) }
+	if err != nil {
+		return fmt.Errorf("go.work: cannot resolve root, fails closed: %v", err)
+	}
 	gwLane := func(wdir, tok string) bool {
 		tok = strings.Trim(tok, "\"'")
-		if tok == "" || strings.HasPrefix(tok, "//") { return false }
+		if tok == "" || strings.HasPrefix(tok, "//") {
+			return false
+		}
 		p := tok
-		if !filepath.IsAbs(p) { p = filepath.Join(wdir, p) }
+		if !filepath.IsAbs(p) {
+			p = filepath.Join(wdir, p)
+		}
 		cand := filepath.ToSlash(filepath.Clean(p))
 		for d := cand; ; { // canonicalize via nearest existing ancestor (resolvesInto-style): symlinked root components (/var to /private/var on macOS CI) and missing leaves are both judged against the resolved root
 			if r, rerr := filepath.EvalSymlinks(d); rerr == nil {
@@ -236,7 +268,9 @@ func checkGoWorkFiles(root string) error {
 				break
 			}
 			u := filepath.Dir(d)
-			if u == d { break }
+			if u == d {
+				break
+			}
 			d = u
 		}
 		laneRoot := filepath.ToSlash(filepath.Clean(rootCanon))
@@ -247,24 +281,36 @@ func checkGoWorkFiles(root string) error {
 			return err
 		}
 		if d.IsDir() {
-			if p == filepath.Join(root, protoRoot) || skipMeta(d.Name()) { return fs.SkipDir }
+			if p == filepath.Join(root, protoRoot) || skipMeta(d.Name()) {
+				return fs.SkipDir
+			}
 			return nil
 		}
-		if d.Name() != "go.work" { return nil }
+		if d.Name() != "go.work" {
+			return nil
+		}
 		b, rerr := os.ReadFile(p)
-		if rerr != nil { return fmt.Errorf("%s: unreadable workspace fails closed: %v", p, rerr) }
+		if rerr != nil {
+			return fmt.Errorf("%s: unreadable workspace fails closed: %v", p, rerr)
+		}
 		wdir := filepath.Dir(p)
 		var inUse, inRep bool
 		for _, line := range strings.Split(string(b), "\n") {
 			tr := line
-			if i := strings.Index(tr, "//"); i >= 0 { tr = tr[:i] }
+			if i := strings.Index(tr, "//"); i >= 0 {
+				tr = tr[:i]
+			}
 			tr = strings.TrimSpace(tr)
-			if tr == "" { continue }
+			if tr == "" {
+				continue
+			}
 			hit := func(what string) error {
 				return fmt.Errorf("%s: %s directive reaches %s", p, what, protoRoot)
 			}
 			test := func(tok string) error {
-				if gwLane(wdir, tok) { return hit("use") }
+				if gwLane(wdir, tok) {
+					return hit("use")
+				}
 				return nil
 			}
 			switch {
@@ -276,22 +322,48 @@ func checkGoWorkFiles(root string) error {
 				inUse, inRep = false, false
 			case strings.HasPrefix(tr, "use "):
 				for _, f := range strings.Fields(strings.TrimPrefix(tr, "use ")) {
-					if err := test(f); err != nil { return err }
+					if err := test(f); err != nil {
+						return err
+					}
 				}
 			case strings.HasPrefix(tr, "replace ") && !inRep:
 				rhs := tr[len("replace "):]
 				parts := strings.SplitN(rhs, "=>", 2)
-				if len(parts) != 2 { return fmt.Errorf("%s: malformed replace fails closed: %q", p, tr) }
-				{ targets := strings.Fields(parts[1]); if len(targets) == 0 { return fmt.Errorf("%s: replace target missing fails closed: %q", p, tr) }; if err := test(targets[0]); err != nil { return err } }
+				if len(parts) != 2 {
+					return fmt.Errorf("%s: malformed replace fails closed: %q", p, tr)
+				}
+				{
+					targets := strings.Fields(parts[1])
+					if len(targets) == 0 {
+						return fmt.Errorf("%s: replace target missing fails closed: %q", p, tr)
+					}
+					if err := test(targets[0]); err != nil {
+						return err
+					}
+				}
 			case inUse:
-				if err := test(tr); err != nil { return err }
+				if err := test(tr); err != nil {
+					return err
+				}
 			case inRep:
 				parts := strings.SplitN(tr, "=>", 2)
-				if len(parts) != 2 { return fmt.Errorf("%s: malformed replace-block entry fails closed: %q", p, tr) }
-				{ targets := strings.Fields(parts[1]); if len(targets) == 0 { return fmt.Errorf("%s: replace target missing fails closed: %q", p, tr) }; if err := test(targets[0]); err != nil { return err } }
+				if len(parts) != 2 {
+					return fmt.Errorf("%s: malformed replace-block entry fails closed: %q", p, tr)
+				}
+				{
+					targets := strings.Fields(parts[1])
+					if len(targets) == 0 {
+						return fmt.Errorf("%s: replace target missing fails closed: %q", p, tr)
+					}
+					if err := test(targets[0]); err != nil {
+						return err
+					}
+				}
 			}
 		}
-		if inUse || inRep { return fmt.Errorf("%s: unterminated use/replace block fails closed", p) }
+		if inUse || inRep {
+			return fmt.Errorf("%s: unterminated use/replace block fails closed", p)
+		}
 		return nil
 	})
 }
@@ -299,19 +371,31 @@ func checkGoWorkFiles(root string) error {
 // checkProductionManifests: EVERY production Package.swift under root (walk-discovered; only the canonical top-level prototypes/ tree and tooling metadata are pruned) stays out of the lane; unlisted/nested/vendored manifests cannot bypass, unreadable trees fail closed.
 func checkProductionManifests(root string) error {
 	return filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
-		if err != nil { return err } // unreadable tree is unverifiable: fail closed
+		if err != nil {
+			return err
+		} // unreadable tree is unverifiable: fail closed
 		if d.IsDir() { // prune ONLY the canonical top-level lane tree; nested/vendored prototypes/ dirs stay inspected (Saul 97279716328)
-			if p == filepath.Join(root, "prototypes") || skipMeta(d.Name()) { return fs.SkipDir }
+			if p == filepath.Join(root, "prototypes") || skipMeta(d.Name()) {
+				return fs.SkipDir
+			}
 			return nil
 		}
-		if d.Name() != "Package.swift" { return nil }
+		if d.Name() != "Package.swift" {
+			return nil
+		}
 		b, err := os.ReadFile(p)
 		rel, rerr := filepath.Rel(root, p)
-		if err != nil || rerr != nil { return err } // unreadable manifest or unrelativizable path fails closed
+		if err != nil || rerr != nil {
+			return err
+		} // unreadable manifest or unrelativizable path fails closed
 		manifest := filepath.ToSlash(rel)
 		for _, q := range manifestPaths(string(b)) {
-			if !q.ok { return fmt.Errorf("%s: path must be an inline string literal, got computed %q", manifest, q.raw) }
-			if resolvesInto(root, manifest, q.val) { return fmt.Errorf("%s: production manifest references prototype tree (%q)", manifest, q.val) }
+			if !q.ok {
+				return fmt.Errorf("%s: path must be an inline string literal, got computed %q", manifest, q.raw)
+			}
+			if resolvesInto(root, manifest, q.val) {
+				return fmt.Errorf("%s: production manifest references prototype tree (%q)", manifest, q.val)
+			}
 		}
 		return nil
 	})
@@ -412,7 +496,9 @@ func stripSwiftComments(src string) string {
 
 // isPathLabel: `path` at i, bounded left by non-word, right by trivia then ':'; identifier tails never qualify.
 func isPathLabel(src string, i int) bool {
-	if i+4 > len(src) || src[i:i+4] != "path" || i > 0 && isWordByte(src[i-1]) { return false }
+	if i+4 > len(src) || src[i:i+4] != "path" || i > 0 && isWordByte(src[i-1]) {
+		return false
+	}
 	j := skipTrivia(src, i+4)
 	return j < len(src) && src[j] == ':'
 }
@@ -428,9 +514,13 @@ func skipSwiftString(src string, i int) int {
 		n++
 		i++
 	}
-	if i >= len(src) || src[i] != '"' { return start + 1 }
+	if i >= len(src) || src[i] != '"' {
+		return start + 1
+	}
 	multi := 0
-	if strings.HasPrefix(src[i:], `"""`) { multi = 2 }
+	if strings.HasPrefix(src[i:], `"""`) {
+		multi = 2
+	}
 	i += 1 + multi
 	for i < len(src) {
 		if n == 0 && src[i] == '\\' {
@@ -444,7 +534,9 @@ func skipSwiftString(src string, i int) int {
 				i+3+n <= len(src) && strings.Trim(src[i+3:i+3+n], "#") == "" {
 				return i + 3 + n
 			}
-			if multi == 0 && i+1+n <= len(src) && strings.Trim(src[i+1:i+1+n], "#") == "" { return i + 1 + n }
+			if multi == 0 && i+1+n <= len(src) && strings.Trim(src[i+1:i+1+n], "#") == "" {
+				return i + 1 + n
+			}
 			i++
 		} else if n == 0 && multi == 0 && src[i] == '\n' {
 			return i + 1
@@ -458,7 +550,9 @@ func skipSwiftString(src string, i int) int {
 // classifyPathValue evaluates the value after path:: single-line literals joined by + evaluate exactly, ending at , ) ] or EOF; other continuations/non-literals fail closed.
 func classifyPathValue(src string, i int, p *manifestPath) int {
 	pos := skipTrivia(src, i)
-	if pos < len(src) && src[pos] == ':' { pos = skipTrivia(src, pos+1) }
+	if pos < len(src) && src[pos] == ':' {
+		pos = skipTrivia(src, pos+1)
+	}
 	var parts []string
 	for {
 		pos = skipTrivia(src, pos)
@@ -485,26 +579,40 @@ func classifyPathValue(src string, i int, p *manifestPath) int {
 // readStringFragment reads one single-line normal/raw literal; multiline or unterminated: ok=false.
 func readStringFragment(src string, i int) (content string, ok bool) {
 	n := 0
-	for i+n < len(src) && src[i+n] == '#' { n++ }
-	if i+n >= len(src) || src[i+n] != '"' { return "", false }
-	if strings.HasPrefix(src[i+n:], `"""`) { return "", false }
+	for i+n < len(src) && src[i+n] == '#' {
+		n++
+	}
+	if i+n >= len(src) || src[i+n] != '"' {
+		return "", false
+	}
+	if strings.HasPrefix(src[i+n:], `"""`) {
+		return "", false
+	}
 	body := src[i:skipSwiftString(src, i)]
 	if n == 0 {
 		k := 1
 		for k < len(body) && body[k] != '"' {
-			if body[k] == '\\' { k++ }
+			if body[k] == '\\' {
+				k++
+			}
 			k++
 		}
-		if k >= len(body) || strings.IndexByte(body[:k], '\n') >= 0 { return "", false }
+		if k >= len(body) || strings.IndexByte(body[:k], '\n') >= 0 {
+			return "", false
+		}
 		return body[1:k], true
 	}
 	for k := n + 1; k+n <= len(body); k++ {
-		if body[k-1] == '"' && strings.Trim(body[k:k+n], "#") == "" { return body[n+1 : k-1], true }
+		if body[k-1] == '"' && strings.Trim(body[k:k+n], "#") == "" {
+			return body[n+1 : k-1], true
+		}
 	}
 	return "", false
 }
 func snippet(s string, i int) string {
-	if len(s)-i <= 24 { return s[i:] }
+	if len(s)-i <= 24 {
+		return s[i:]
+	}
 	return s[i:i+24] + "..."
 }
 
@@ -515,10 +623,14 @@ func checkProductionGoPurity(root string) error {
 			return walkErr
 		}
 		if d.IsDir() {
-			if skipMeta(d.Name()) { return fs.SkipDir }
+			if skipMeta(d.Name()) {
+				return fs.SkipDir
+			}
 			return nil
 		}
-		if filepath.Ext(path) != ".go" { return nil }
+		if filepath.Ext(path) != ".go" {
+			return nil
+		}
 		// Production _test.go links lane imports into the package test binary: one-way rule applies.
 		rel, err := filepath.Rel(root, path)
 		if err != nil {
@@ -531,8 +643,12 @@ func checkProductionGoPurity(root string) error {
 		}
 		text := string(b)
 		inProto := inCanonicalPrototype(rel)
-		if !inProto && goImportsPrototype(text) { return fmt.Errorf("%s: production Go must not import or require prototypes/**", rel) }
-		if inProto && modifiesProtectedGo(text) { return fmt.Errorf("%s: prototype code may not modify protected production Go behavior", rel) }
+		if !inProto && goImportsPrototype(text) {
+			return fmt.Errorf("%s: production Go must not import or require prototypes/**", rel)
+		}
+		if inProto && modifiesProtectedGo(text) {
+			return fmt.Errorf("%s: prototype code may not modify protected production Go behavior", rel)
+		}
 		return nil
 	})
 }
@@ -541,14 +657,20 @@ func checkProductionGoPurity(root string) error {
 func goImportsPrototype(text string) bool {
 	const protoMod = "github.com/Dezocode/Sai/prototypes"
 	lit := func(p string) bool {
-		if p == "" || strings.ContainsAny(p, " 	()") { return false }
+		if p == "" || strings.ContainsAny(p, " 	()") {
+			return false
+		}
 		return p == protoMod || strings.HasPrefix(p, protoMod+"/") ||
 			p == "prototypes" || strings.HasPrefix(p, "prototypes/")
 	}
 	f, err := parser.ParseFile(token.NewFileSet(), "x.go", text, parser.ImportsOnly)
-	if err != nil { return true } // unparseable input fails closed on the lane gate
+	if err != nil {
+		return true
+	} // unparseable input fails closed on the lane gate
 	for _, im := range f.Imports {
-		if p := strings.Trim(im.Path.Value, `"`+"`"); lit(p) { return true }
+		if p := strings.Trim(im.Path.Value, `"`+"`"); lit(p) {
+			return true
+		}
 	}
 	return false
 }
@@ -556,10 +678,14 @@ func goImportsPrototype(text string) bool {
 // modifiesProtectedGo: ANY reference to the resolved loader symbol fails closed — (plugin.Open)(...), o := plugin.Open, ((plugin)).Open; unparseable fails closed (protected-file edits hit the diff gate).
 func modifiesProtectedGo(text string) bool {
 	f, err := parser.ParseFile(token.NewFileSet(), "x.go", text, 0)
-	if err != nil { return true } // unparseable input fails closed on the protection gate
+	if err != nil {
+		return true
+	} // unparseable input fails closed on the protection gate
 	alias, dot := "", false // local binding of the std "plugin" import
 	for _, im := range f.Imports {
-		if strings.Trim(im.Path.Value, `"`+"`") != "plugin" { continue }
+		if strings.Trim(im.Path.Value, `"`+"`") != "plugin" {
+			continue
+		}
 		switch {
 		case im.Name == nil:
 			alias = "plugin"
@@ -601,9 +727,13 @@ func prototypeLaneViolation(changed []string) error {
 			hasProto = true
 			continue
 		}
-		if strings.HasSuffix(f, ".go") && (strings.HasPrefix(f, "cmd/sai/") || strings.HasPrefix(f, "internal/")) { touched = append(touched, f) }
+		if strings.HasSuffix(f, ".go") && (strings.HasPrefix(f, "cmd/sai/") || strings.HasPrefix(f, "internal/")) {
+			touched = append(touched, f)
+		}
 	}
-	if hasProto && len(touched) > 0 { return fmt.Errorf("prototype-scoped change must not edit protected production Go: %s", strings.Join(touched, ", ")) }
+	if hasProto && len(touched) > 0 {
+		return fmt.Errorf("prototype-scoped change must not edit protected production Go: %s", strings.Join(touched, ", "))
+	}
 	return nil
 }
 
@@ -611,16 +741,53 @@ func prototypeLaneViolation(changed []string) error {
 func checkPrototypeLaneDiff(root string) error {
 	if b, err := os.ReadFile(filepath.Join(root, "go.mod")); err == nil && moduleTargetsLane(root, string(b)) {
 		return fmt.Errorf("go.mod: replace target must not live under %s", protoRoot)
-	} else if err != nil && !os.IsNotExist(err) { return err }
-	if git(root, "rev-parse", "--is-inside-work-tree") != "true" { return nil }
+	} else if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	// Nested/vendored production go.mod files are lane-checked too (reviewer r1 transitive vector): a nested module's replace can alias the lane for workspace consumers even when the root go.mod is clean. Walk-discovered; canonical top-level prototypes/ tree and tooling metadata pruned; unreadable manifests fail closed.
+	if err := filepath.WalkDir(root, func(np string, d fs.DirEntry, werr error) error {
+		if werr != nil {
+			return werr
+		}
+		if d.IsDir() {
+			if np == filepath.Join(root, protoRoot) || skipMeta(d.Name()) {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if d.Name() != "go.mod" || np == filepath.Join(root, "go.mod") {
+			return nil
+		}
+		nb, nerr := os.ReadFile(np)
+		if nerr != nil {
+			return fmt.Errorf("%s: unreadable go.mod fails closed: %v", np, nerr)
+		}
+		if moduleTargetsLaneFrom(filepath.Dir(np), root, string(nb)) {
+			return fmt.Errorf("%s: replace target must not live under %s", np, protoRoot)
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	if git(root, "rev-parse", "--is-inside-work-tree") != "true" {
+		return nil
+	}
 	base := os.Getenv("SAI_TRUSTED_BASE")
 	if base == "" {
-		if base = git(root, "merge-base", "origin/main", "HEAD"); base == "" { return fmt.Errorf("prototype lane: cannot resolve trusted base; set SAI_TRUSTED_BASE or fetch origin/main") }
-	} else if git(root, "rev-parse", "--verify", base+"^{commit}") == "" { return fmt.Errorf("prototype lane: SAI_TRUSTED_BASE %q does not resolve to a commit", base) }
+		if base = git(root, "merge-base", "origin/main", "HEAD"); base == "" {
+			return fmt.Errorf("prototype lane: cannot resolve trusted base; set SAI_TRUSTED_BASE or fetch origin/main")
+		}
+	} else if git(root, "rev-parse", "--verify", base+"^{commit}") == "" {
+		return fmt.Errorf("prototype lane: SAI_TRUSTED_BASE %q does not resolve to a commit", base)
+	}
 	diffRaw, derr := exec.Command("git", "-c", "safe.directory=*", "-C", root, "diff", "-M", "--name-status", "-z", base+"..HEAD").Output() // -z keeps spaced filenames intact; a failed invocation must FAIL closed, never pass as an empty diff (Saul 97328846218); -M --name-status exposes BOTH rename paths so moving protected Go into the lane cannot pass as prototype-only (Saul 97348395053)
-	if derr != nil { return fmt.Errorf("prototype lane: trusted-base diff failed; failing closed: %w", derr) }
+	if derr != nil {
+		return fmt.Errorf("prototype lane: trusted-base diff failed; failing closed: %w", derr)
+	}
 	changed, perr := parseNameStatusPaths(diffRaw)
-	if perr != nil { return fmt.Errorf("prototype lane: trusted-base diff unparseable; failing closed: %w", perr) }
+	if perr != nil {
+		return fmt.Errorf("prototype lane: trusted-base diff unparseable; failing closed: %w", perr)
+	}
 	return prototypeLaneViolation(changed)
 }
 
@@ -631,13 +798,19 @@ func parseNameStatusPaths(raw []byte) ([]string, error) {
 	paths := []string{}
 	for i := 0; i < len(f); i++ {
 		st := f[i]
-		if st == "" && i == len(f)-1 { return paths, nil } // trailing NUL record terminator (or an entirely empty diff)
+		if st == "" && i == len(f)-1 {
+			return paths, nil
+		} // trailing NUL record terminator (or an entirely empty diff)
 		i++
-		if st == "" || i >= len(f) || f[i] == "" { return fail(fmt.Sprintf("record %q lacks a path", st)) }
+		if st == "" || i >= len(f) || f[i] == "" {
+			return fail(fmt.Sprintf("record %q lacks a path", st))
+		}
 		paths = append(paths, f[i])
 		if st[0] == 'R' || st[0] == 'C' { // rename/copy records carry origin AND destination
 			i++
-			if i >= len(f) || f[i] == "" { return fail(fmt.Sprintf("rename/copy %q lacks its origin path", st)) }
+			if i >= len(f) || f[i] == "" {
+				return fail(fmt.Sprintf("rename/copy %q lacks its origin path", st))
+			}
 			paths = append(paths, f[i])
 		}
 	}
@@ -646,23 +819,47 @@ func parseNameStatusPaths(raw []byte) ([]string, error) {
 
 // moduleTargetsLane: go.mod replace targets resolving inside prototypes/ fail — single-line/block/quoted. Relative targets resolve against the go.mod dir; absolute targets are symlink-resolved, then judged against the canonical root (an outside alias into the lane fails); missing "=>"/malformed targets fail closed.
 func moduleTargetsLane(root, src string) bool {
+	return moduleTargetsLaneFrom(root, root, src)
+}
+
+// moduleTargetsLaneFrom: same grammar, but relative targets resolve against the given manifest dir (nested go.mod files resolve against their own directory, not the repo root).
+func moduleTargetsLaneFrom(manifestDir, root, src string) bool {
+	rootAbs2, rootErr := filepath.Abs(root)
+	if rootErr != nil { // cannot anchor repo root: fail closed
+		return true
+	}
 	lane := func(p string) bool {
-		if p = strings.Trim(p, `"`+"`"); p == "" { return false }
+		if p = strings.Trim(p, `"`+"`"); p == "" {
+			return false
+		}
 		var s string
 		if filepath.IsAbs(p) { // symlink-resolve first, then judge vs canonical root: an outside alias into the lane must fail (Saul 97279716328)
 			absRoot, aerr := filepath.Abs(root)
 			rootCanon, err := filepath.EvalSymlinks(absRoot)
-			if aerr != nil || err != nil { return true } // unresolvable root fails closed
+			if aerr != nil || err != nil {
+				return true
+			} // unresolvable root fails closed
 			tgt := filepath.Clean(p)
-			if resolved, err := filepath.EvalSymlinks(tgt); err == nil { tgt = resolved } // dangling target: keep lexical path; walk/read gates fail closed on it elsewhere
+			if resolved, err := filepath.EvalSymlinks(tgt); err == nil {
+				tgt = resolved
+			} // dangling target: keep lexical path; walk/read gates fail closed on it elsewhere
 			rel, err := filepath.Rel(rootCanon, tgt)
-			if err != nil || strings.HasPrefix(rel, "..") || rel == "." { return false } // outside this repo (lexically or through symlinks): not a lane target
+			if err != nil || strings.HasPrefix(rel, "..") || rel == "." {
+				return false
+			} // outside this repo (lexically or through symlinks): not a lane target
 			s = "/" + filepath.ToSlash(rel)
-		} else if base, berr := filepath.Abs(root); berr != nil { // Relative targets resolve against the go.mod dir, NOT "/" (Saul 97328846218): traversal above it leaves the repo and stays legal.
+		} else if base, berr := filepath.Abs(manifestDir); berr != nil { // Relative targets resolve against the manifest dir, NOT "/" (Saul 97328846218): traversal above it leaves the repo and stays legal.
 			return true // unresolvable resolution basis fails closed
-		} else if rel, rerr := filepath.Rel(base, filepath.Join(base, p)); rerr != nil || strings.HasPrefix(rel, "..") || rel == "." {
-			return false // escapes the go.mod dir: outside this repo, not a lane target
-		} else {
+		} else { // Relative targets resolve against the manifest dir (Saul 97328846218), then the ABSOLUTE result is judged against the canonical root — a nested go.mod's ../../prototypes/plugins/author IS a lane target even though it escapes the manifest's own directory.
+			cand := filepath.Clean(filepath.Join(base, p))
+			rootCanon2, rerr := filepath.EvalSymlinks(rootAbs2)
+			if rerr != nil {
+				return true
+			} // unresolvable root fails closed
+			rel, relerr := filepath.Rel(rootCanon2, cand)
+			if relerr != nil || strings.HasPrefix(rel, "..") || rel == "." {
+				return false
+			} // lands outside this repo: not a lane target
 			s = "/" + filepath.ToSlash(rel)
 		}
 		return s == "/"+protoRoot || strings.HasPrefix(s, "/"+protoRoot+"/") ||
@@ -670,9 +867,13 @@ func moduleTargetsLane(root, src string) bool {
 	}
 	directive := func(t string) bool {
 		eq := strings.Index(t, "=>")
-		if eq < 0 { return true } // replace without target fails closed
+		if eq < 0 {
+			return true
+		} // replace without target fails closed
 		rhs := t[eq+2:]
-		if j := strings.LastIndex(rhs, "//"); j >= 0 { rhs = rhs[:j] } // trailing comment
+		if j := strings.LastIndex(rhs, "//"); j >= 0 {
+			rhs = rhs[:j]
+		} // trailing comment
 		f := strings.Fields(rhs)
 		if len(f) != 1 && len(f) != 2 { // path, or module path plus version
 			return true // malformed target fails closed
@@ -685,16 +886,24 @@ func moduleTargetsLane(root, src string) bool {
 		if inBlock {
 			if strings.HasPrefix(t, ")") {
 				inBlock = false
-			} else if t != "" && directive(t) { return true }
+			} else if t != "" && directive(t) {
+				return true
+			}
 			continue
 		}
-		if !strings.HasPrefix(t, "replace") || len(t) > 7 && isWordByte(t[7]) { continue } // "replacex..." is an identifier, not the directive
+		if !strings.HasPrefix(t, "replace") || len(t) > 7 && isWordByte(t[7]) {
+			continue
+		} // "replacex..." is an identifier, not the directive
 		if rest := strings.TrimSpace(strings.TrimPrefix(t, "replace")); rest == "" {
 			continue
 		} else if strings.HasPrefix(rest, "(") {
 			inBlock = !strings.HasSuffix(rest, ")") // closure tracking: EOF while open fails closed (Saul 97348395053); single-line block "replace (A => ./p)" closes here
-			if s := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(rest, "("), ")")); s != "" && directive(s) { return true }
-		} else if directive(rest) { return true }
+			if s := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(rest, "("), ")")); s != "" && directive(s) {
+				return true
+			}
+		} else if directive(rest) {
+			return true
+		}
 	}
 	return inBlock // unterminated replace block at EOF fails closed even when every scanned entry is lane-free (Saul 97348395053)
 }
@@ -721,15 +930,21 @@ func check(root string) error {
 		return err
 	}
 	for _, gate := range []func(string) error{checkProductionManifests, checkGoWorkFiles, checkProductionGoPurity, checkPrototypeLaneDiff} {
-		if err := gate(root); err != nil { return err }
+		if err := gate(root); err != nil {
+			return err
+		}
 	}
-	if err := checkSymlinkEscape(root); err != nil { return err }
+	if err := checkSymlinkEscape(root); err != nil {
+		return err
+	}
 	return filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
 		if d.IsDir() {
-			if skipMeta(d.Name()) { return fs.SkipDir }
+			if skipMeta(d.Name()) {
+				return fs.SkipDir
+			}
 			return nil
 		}
 		if filepath.Ext(path) != ".swift" {
@@ -749,16 +964,26 @@ func check(root string) error {
 			return nil
 		}
 		inProto := inCanonicalPrototype(rel)
-		if inProto && !c.FeatureUIAllowed && inPluginDesignScope(rel) { return nil }
+		if inProto && !c.FeatureUIAllowed && inPluginDesignScope(rel) {
+			return nil
+		}
 		scope := "outside SaiDesignLanguage"
-		if inProto && !c.FeatureUIAllowed { scope += " and PrototypeDesign scope" }
+		if inProto && !c.FeatureUIAllowed {
+			scope += " and PrototypeDesign scope"
+		}
 		for _, rule := range forbidden {
-			if rule.re.MatchString(text) { return fmt.Errorf("%s: %s %s", rel, rule.name, scope) }
+			if rule.re.MatchString(text) {
+				return fmt.Errorf("%s: %s %s", rel, rule.name, scope)
+			}
 		}
 		if !c.FeatureUIAllowed {
 			shell := rel == macShell || rel == iosShell
-			if !inProto && !shell && (swiftUIImport.MatchString(stripSwiftComments(text)) || strings.Contains(text, "SaiText") || strings.Contains(text, "SaiCanvas")) { return fmt.Errorf("%s: import SwiftUI is locked while design status=%s", rel, c.Status) }
-			if shell && (strings.Count(text, "SaiCanvas") != 1 || strings.Count(text, "SaiText") != 1 || !shellBody.MatchString(text) || shellUI.MatchString(text)) { return fmt.Errorf("%s: shell composition", rel) }
+			if !inProto && !shell && (swiftUIImport.MatchString(stripSwiftComments(text)) || strings.Contains(text, "SaiText") || strings.Contains(text, "SaiCanvas")) {
+				return fmt.Errorf("%s: import SwiftUI is locked while design status=%s", rel, c.Status)
+			}
+			if shell && (strings.Count(text, "SaiCanvas") != 1 || strings.Count(text, "SaiText") != 1 || !shellBody.MatchString(text) || shellUI.MatchString(text)) {
+				return fmt.Errorf("%s: shell composition", rel)
+			}
 		}
 		return nil
 	})
