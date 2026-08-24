@@ -13,15 +13,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.event.pull_request.head.sha || github.sha }}
+  group: pages-${{ github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: true
 
 permissions:
   contents: read
-
-concurrency:
-  group: feature-maps-pages-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   build:
