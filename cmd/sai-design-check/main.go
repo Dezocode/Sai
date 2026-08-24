@@ -893,8 +893,6 @@ func checkJSONType(t string, doc interface{}, path string) error {
 	default:
 		return nil
 	}
-	if !ok {
-		return fmt.Errorf("%s want %s", path, t)
-	}
+	if !ok {return fmt.Errorf("%s want %s", path, t)}
 	return nil
 }
