@@ -12,7 +12,8 @@ Owner: dezocode · Agent: **her** · Effort: **xhigh** · Tier: prototype (`prot
 
 ## Goals — this round
 
-- [ ] **Crosscomm skill codified**: intercom-hooking patterns between subagents, runtimes, and all agents (group topology, region-claim handshake, bridge agents, contract pinning via regression tests) captured as an agent skill and wired into this plugin's goals.
+- [x] **Crosscomm skill codified + optimized**: intercom-hooking patterns between subagents, runtimes, and all agents captured as an agent skill — including Atomic intercom mechanics as exercised by her + pr141-grunt-lead (exact-session-id send/reply semantics, fleet groups + bridge membership, non-interactive queue acks, re-intro compression, owner-routed decisions) — and incorporated into the plugin at `.sai/skills/crosscomm/SKILL.md`.
+- [x] **Structure benchmark vs `.cursor` and `.agents`**: `.sai` benchmarked against `.cursor` @ origin/main (19-event hooks schema, hooks/, skills/, rules/, settings.json) and `~/.agents` (flat persona docs + skills/); results in `.sai/bench/BENCHMARK.md`; Atomic CLI cloned shallow into ignored `bench/atomic/` for the comparison (MIT; clone uncommitted).
 - [ ] **Sai Harness naming + `.sai/` folder**: hook implementations live in `.sai/hooks/*`; `.sai/hooks.json` carries harness provenance (Atomic CLI derivation); `.cursor/hooks.json` delegates to it.
 - [ ] **Design-check green at every push** (`go run ./cmd/sai-design-check`, plain + trusted-base).
 

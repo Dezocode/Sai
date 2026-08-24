@@ -1,0 +1,77 @@
+{
+ "_generated": "2026-08-24T22:07:38.219111+00:00",
+ ".sai (Sai Harness)": {
+  ".cursor": {
+   "hooks": {},
+   "hooks.json": "file"
+  },
+  ".gitignore": "file",
+  ".sai": {
+   "hooks": {
+    "aspectizer.sh": "file",
+    "lane-connector.sh": "file"
+   },
+   "hooks.json": "file",
+   "skills": {
+    "crosscomm": {
+     "SKILL.md": "file"
+    }
+   }
+  },
+  "README.md": "file",
+  "docs": {
+   "GOALS.md": "file"
+  }
+ },
+ ".cursor @ origin/main": {},
+ ".agents (~)": {
+  "ox-ops.md": "file",
+  "skills": {
+   "agent-reach": {
+    "SKILL.md": "file",
+    "references": {
+     "career.md": "file",
+     "dev.md": "file",
+     "search.md": "file",
+     "social.md": "file",
+     "video.md": "file",
+     "web.md": "file"
+    }
+   },
+   "saul-loop": {
+    "SKILL.md": "file"
+   },
+   "swarm": {
+    "SKILL.md": "file"
+   }
+  }
+ },
+ "atomic suite (ignored bench clone)": {
+  "packages": [
+   "ai",
+   "coding-agent",
+   "intercom",
+   "mcp",
+   "natives",
+   "subagents",
+   "web-access",
+   "workflows"
+  ],
+  "top_level": [
+   ".agents",
+   ".atomic",
+   ".cargo",
+   ".crabbox.yaml",
+   ".git",
+   ".gitattributes",
+   ".github",
+   ".gitignore",
+   ".gitmodules",
+   ".mcp.json",
+   ".npmrc",
+   "AGENTS.md",
+   "CLAUDE.md",
+   "CONTRIBUTING.md"
+  ]
+ }
+}
