@@ -234,6 +234,8 @@ check("recovered SHA marked done (Q1)",doneShas([{k:"90",pr:{state:"open",headSh
 check("partial rollup excluded from doneShas (B-PARTIAL)",doneShas(card("91","DD55")).indexOf("dd55")<0,true);delete CHECKS["dd55"];
 fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:"badkey",agents:[{id:"i",status:"active",heartbeat_at:beat}]},{pr:78,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes"}]}]}):GHJ({sessions:[]}); const fed=await loadPrs();
 check("healthy group survives malformed sibling (C-05)",fed.multi===true&&fed.list.some(r=>r.pr==="78"),true); check("malformed pr-key rows dropped as invalid (A-H1)",DROPPED>=1,true);
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:83,agents:[{id:"spoof",status:"active",heartbeat_at:beat,pr:"__proto__"}]}]}):GHJ({sessions:[]}); const fed4=await loadPrs();
+check("agent-supplied pr never overrides validated parent (97342571251)",fed4.list.length===1&&fed4.list[0].pr==="83"&&Object.keys(FLIGHT).indexOf("__proto__")<0,true);
 fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:79,agents:[{id:"z",status:"x"}]}]}):GHJ({sessions:[{id:"s1",status:"active",heartbeat_at:beat,pr:80}]}); const fb2=await loadPrs();
 check("all-invalid feed falls back to sessions (C-05)",fb2.multi===false&&fb2.list.length===1&&fb2.list[0].pr==="80",true);
 { // Saul 97338826287: invalid group's flightboard never publishes via a valid sibling; checks backoff uses its own retry window.
@@ -434,7 +436,7 @@ async function loadPrs(){ // falls back to /sessions when /prs is unreachable, e
         const pk=prKeyOf(p&&p.pr); // A-H1: prototype-safe keys only.
         if(!pk||!Array.isArray(p.agents)||p.agents.length===0){DROPPED+=(p&&Array.isArray(p.agents))?p.agents.length:0;continue;} // C-05: bad groups skip themselves, siblings survive.
         let vc=0; // Round-20: per-row v2 validation — invalid rows drop, valid rows survive.
-        for(const a of p.agents)if(rowValid(a)){out.push({pr:pk,...a});vc++;}
+        for(const a of p.agents)if(rowValid(a)){out.push({...a,pr:pk});vc++;} // Saul 97342571251: parent pk wins — agent-supplied pr never overrides validated group key
         DROPPED+=p.agents.length-vc;
         if(vc===0)continue; // Saul 97338826287: whole-group gate — an invalid group's flightboard never reaches FLIGHT.
         validGroups++;
@@ -1016,7 +1018,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         '"monitors","usage","diff"', 'if(f==="usage")return usageView(s)', 'if(f==="diff")return diffView(s&&s.diff)',
         "<details><summary>files</summary>", '"st warn">dirty', "hermes-sessions/prs", "const PRS_URL=",
         ".tag{", ".saul{", "tagsView(s)+reviewView(s)", 'src="+(multi?"prs (multi-agent)":"sessions (fallback)")',
-        "prs feed unavailable", "mergeability", "for(const k of PULLS.keys())keys.add(k)", "out.push({pr:pk,...a})",
+        "prs feed unavailable", "mergeability", "for(const k of PULLS.keys())keys.add(k)", "{...a,pr:pk}",
         "const PRS_STALE_MIN=", "function rowValid(", "function reviewView(a){", "Saul review @ ",
         "function prKeyOf(", "LOAD_BUSY", "CACHE_CAP", "SESSIONS_TS", "in the future", "validGroups", "CHECKS_FAIL",
         "^sai-verify$|^sai-verify-(live|prod)$", "withTimeout", "FEED_TIMEOUT_MS",
