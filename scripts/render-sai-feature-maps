@@ -740,6 +740,8 @@ def git(root: Path, *args: str) -> str:
     return cp.stdout.strip() if cp.returncode == 0 else ""
 def e(text: str) -> str:
     return html.escape(text, quote=True)
+def redact_str(t: str) -> str:
+    return t[:6]+"...[REDACTED]"
 def items_ul(items: list[str]) -> str:
     if not items:return '<p class="empty">None listed on this HEAD.</p>'
     return "<ul>" + "".join(f"<li>{e(x)}</li>" for x in items) + "</ul>"
@@ -967,6 +969,10 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         if needle not in html_sessions:problems.append("pr-sessions.html missing " + needle)
     # Token names are legitimate prose in protected-ci; the pages we author here must never reference tokens.
     if "X-Sessions-Token" in html_text:problems.append("feature-maps.html contains forbidden X-Sessions-Token")
+    cred=re.compile(r"gh[pousr]_[A-Za-z0-9_]{16,}|github_pat_[A-Za-z0-9_]{20,}")
+    for page,label in ((html_text,"feature-maps.html"),(html_sessions,"pr-sessions.html")):
+        m=cred.search(page)
+        if m:problems.append(label+" contains a credential-shaped token: "+redact_str(m.group(0)))
     for banned in ("X-Sessions-Token", "GH_TOKEN", "GITHUB_TOKEN"):
         if banned in html_sessions:problems.append("pr-sessions.html contains forbidden " + banned)
     for guard in ("Agent: NONE", '"missing"', '"stale"', "no worker attached"):
