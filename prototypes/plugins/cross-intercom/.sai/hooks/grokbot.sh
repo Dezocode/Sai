@@ -12,14 +12,15 @@ REPO_SLUG="${CROSSCOM_REPO:-Dezocode/Sai}"
 INTERVAL="${SAI_GROKBOT_INTERVAL:-600}"
 
 fail() { printf 'grokbot: %s\n' "$1" >&2; exit 1; }
+# Fleet-shared credentials (never committed): /root/.sai-fleet/tokens.env, chmod 600.
+[ -f /root/.sai-fleet/tokens.env ] && { set -a; . /root/.sai-fleet/tokens.env; set +a; }
 [ -f "$PLUGIN_DIR/.gitignore" ] || fail "run from plugin checkout"
 
 cmd_name() {  # resolve this runtime's agent name: owner-marked > env > generated fingerprint.
   if [ -s "$STATE/agent-name" ]; then cat "$STATE/agent-name"; return; fi
   local n="${SAI_AGENT_NAME:-}"
-  if [ -z "$n" ] && command -v gh >/dev/null 2>&1; then n=$(gh api user --jq .login 2>/dev/null || true); fi
-  # gh login is an ACCOUNT, not an agent identity: only accept it when explicitly aliased.
-  case "$n" in sai-*|her) : ;; *) n="sai-grunt-$(printf '%s|%s|%s' "$(hostname)" "$PWD" "$$" | sha256sum | cut -c1-6)" ;; esac
+  # gh login is an ACCOUNT, not an agent identity — never consulted for naming.
+  case "$n" in *[!A-Za-z0-9_-]*|"") n="sai-grunt-$(printf '%s|%s|%s' "$(hostname)" "$PWD" "$$" | sha256sum | cut -c1-6)" ;; esac  # bot-id charset: any clean alias wins (H8 contract); only hostile/empty values regenerate
   # bot-id charset rule (bench/openbot agent-computer/src/bot-id.ts): plain id only —
   # letters, digits, hyphen, underscore; no dots. Normalize rather than emit an unusable id.
   n=$(printf '%s' "$n" | tr '.' '-')
