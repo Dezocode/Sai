@@ -4,9 +4,13 @@ name: agent-audit
 # merge HANDOFF documentation, and optional Slack merge report.
 on:
   push:
-    branches: [main]
+    branches: ["**"]
   pull_request:
     branches: [main]
+
+concurrency:
+  group: ci-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
