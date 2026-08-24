@@ -97,8 +97,10 @@ function rollupChecks(runs){ // Newest attempt per check name wins: a green reru
     total++;
     if(c.status&&c.status!=="completed"){pending++;continue;}
     const cc=String(c.conclusion||"").toLowerCase();
-    if(cc==="failure"||cc==="timed_out"||cc==="action_required")fails++;
-    if(/saul/i.test(String(c.name))){
+    // P2-2 (audit): cancelled/stale/startup_failure are terminal non-success — never omitted from the summary.
+    if(cc==="failure"||cc==="timed_out"||cc==="action_required"||cc==="cancelled"||cc==="stale"||cc==="startup_failure")fails++;
+    // P1-2 (audit): the Saul field binds to EXACT "Saul / Product Quality" — other saul-* checks (comptrollers, runners) are separate identities and can never overwrite it.
+    if(String(c.name).trim().toLowerCase()==="saul / product quality"){
       const t=String(c.completed_at||"");
       if(!saul||t>=String(saul.completed_at||""))saul=c;
     }
@@ -118,6 +120,13 @@ const r=rollupChecks([R("ci-verify-sai",1,"failure",0),R("ci-verify-sai",2,"succ
 check("queued rerun reads as pending",rollupChecks([f,Q("build",97199999999)]).pending,1);check("supersession independent of array order",rollupChecks([Q("build",97199999999),f]).fails+":"+rollupChecks([Q("build",97199999999),f]).pending,"0:1");}
 {const idless=[{name:"deploy",attempt:1,status:"completed",conclusion:"failure",started_at:T(0)},{name:"deploy",attempt:2,status:"in_progress"}];
 const ranked=[{name:"icm-enforcement",status:"completed",conclusion:"success",started_at:"2099-01-01T00:00:00Z"},Q("icm-enforcement",42)];
+{ // P1-2 (audit): Saul field binds to EXACT "Saul / Product Quality"; comptrollers/runners cannot overwrite it.
+const r=rollupChecks([R("Saul / Product Quality",7,"action_required",0),R("saul-runner-comptroller",9,"success",2)]);
+check("comptroller success cannot mask Product Quality ACTION_REQUIRED (audit P1-2)",r.saul&&r.saul.conclusion==="action_required"&&r.fails===1,true);}
+{ // P2-2 (audit): terminal non-success conclusions are non-green.
+const r=rollupChecks([R("req-a",11,"cancelled",0),R("req-b",12,"stale",1),R("req-c",13,"startup_failure",2)]);
+check("cancelled/stale/startup_failure count non-green (audit P2-2)",r.fails,3);}
+
 check("attempt orders id-less reruns",rollupChecks(idless).fails+":"+rollupChecks(idless).pending,"0:1");check("ranked id beats timestamp-only run",rollupChecks(ranked).fails+":"+rollupChecks(ranked).pending,"0:1");}
 {const r=rollupChecks([R("ci-verify-sai",3,"success",1),R("ci-verify-sai",4,"failure",2)]); check("latest-wins timestamp not array order",r.fails,1);check("latest-wins total still 1",r.total,1);}
 {const r=rollupChecks([R("icm-enforcement",5,"failure",0),R("Anti-regression",6,"failure",0)]); check("distinct failures total",r.total,2);check("distinct failures fails",r.fails,2);} {const r=rollupChecks([{name:"ci-verify-sai",status:"in_progress",started_at:T(3)}]);
@@ -183,12 +192,12 @@ check("diff without file_count shows ?",diffStats({insertions:1}).stat.indexOf("
 check("null file_count unavailable not 0 files",diffStats({file_count:null,insertions:3,deletions:1}).stat.indexOf("0 files")<0&&diffStats({file_count:null,insertions:3,deletions:1}).stat.indexOf("? files · +3 / -1")===0,true);}
 { // FLIGHT-BOARD (goal comment 5388822402): honest unavailable, bounds, SHA-bound staleness, rubric determinism.
 check("missing flight renders both rows unavailable",flightBars(null,"").split("unavailable").length-1,4); check("missing flight fabricates no percentage",flightBars(null,"").indexOf("%</span>")<0,true);
-check("status=unavailable gates both rows",flightBars({status:"unavailable"},"").split("unavailable").length-1,4); const good=flightBars({implementation_pct:85,merge_readiness_pct:60},""); check("valid percentages render",good.indexOf("85%")>=0&&good.indexOf("60%")>=0,true);
+check("status=unavailable gates both rows",flightBars({status:"unavailable"},"").split("unavailable").length-1,4); const good=flightBars({implementation_pct:85,merge_readiness_pct:60,source:"pr-aggregator",head_sha:"106cc4270b2856eed91b776cf9b3a58f655d0254"},"106cc4270b2856eed91b776cf9b3a58f655d0254"); check("valid percentages render",good.indexOf("85%")>=0&&good.indexOf("60%")>=0,true);
 check("aria labels expose percent",good.indexOf("Implementation: 85 percent")>=0&&good.indexOf("Merge readiness: 60 percent")>=0,true); check("pct above 100 unavailable",flightBars({implementation_pct:120,merge_readiness_pct:60},"").indexOf("120%")<0,true);
-check("pct below 0 unavailable",flightBars({implementation_pct:-5,merge_readiness_pct:60},"").indexOf("-5%")<0,true);
-check("string pct not coerced to number",flightBars({implementation_pct:"85",merge_readiness_pct:"60"},"").indexOf(">85%")<0&&flightBars({implementation_pct:"85",merge_readiness_pct:"60"},"").indexOf(">60%")<0,true);
+check("pct below 0 unavailable",flightBars({implementation_pct:-5,merge_readiness_pct:60,source:"pr-aggregator",head_sha:"106cc4270b2856eed91b776cf9b3a58f655d0254"},"106cc4270b2856eed91b776cf9b3a58f655d0254").indexOf("-5%")<0,true);
+check("string pct not coerced to number",flightBars({implementation_pct:"85",merge_readiness_pct:"60",source:"pr-aggregator",head_sha:"106cc4270b2856eed91b776cf9b3a58f655d0254"},"106cc4270b2856eed91b776cf9b3a58f655d0254").indexOf(">85%")<0&&flightBars({implementation_pct:"85",merge_readiness_pct:"60",source:"pr-aggregator",head_sha:"106cc4270b2856eed91b776cf9b3a58f655d0254"},"106cc4270b2856eed91b776cf9b3a58f655d0254").indexOf(">60%")<0,true);
 const cur=flightBars({implementation_pct:85,merge_readiness_pct:60,head_sha:"106cc4270b2856eed91b776cf9b3a58f655d0254"},"106cc4270b2856eed91b776cf9b3a58f655d0254"); check("bound sha marks current (no stale)",cur.indexOf("stale")<0,true);
-const old=flightBars({implementation_pct:85,merge_readiness_pct:60,head_sha:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"106cc4270b2856eed91b776cf9b3a58f655d0254"); check("mismatched sha marks stale @sha",old.indexOf("stale")>=0&&old.indexOf("@aaaaaaa")>=0,true);
+const old=flightBars({implementation_pct:85,merge_readiness_pct:60,source:"pr-aggregator",head_sha:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"106cc4270b2856eed91b776cf9b3a58f655d0254"); check("mismatched sha marks stale @sha",old.indexOf("stale")>=0&&old.indexOf("@aaaaaaa")>=0,true);
 check("breakdown exact 45/20/20/10/5 rubric",flightBreakdown({merge_components:{goals:39,ci:20,saul:0,preservation:10,hygiene:5}}),"Goals 39/45 · CI 20/20 · Saul 0/20 · Preservation 10/10 · Hygiene 5/5");
 check("partial component set renders unavailable",flightBreakdown({merge_components:{goals:39}}),"unavailable");
 check("requirements appended when present",flightBreakdown({merge_components:{goals:45,ci:20,saul:20,preservation:10,hygiene:5},requirements:{met:17,partial:2,unmet:3}}).indexOf("met 17 · partial 2 · unmet 3 · blocked unavailable")>=0,true);
@@ -196,6 +205,17 @@ check("verifierGated rejects agent-sourced progress",verifierGated({source:"herm
 check("verifierGated accepts aggregator identities",verifierGated({source:"pr-aggregator"})&&verifierGated({source:"PR_AGGREGATOR"})&&verifierGated({source:"sai-verify-live"}),true);
 check("verifierGated rejects substring spoof + non-object",!verifierGated({source:"not-a-verifier"})&&!verifierGated({source:"fake-aggregator-lol"})&&!verifierGated({source:"totally an aggregator"})&&!verifierGated(null),true);
 check("verifierGated anchored identities (A-H3)",!verifierGated({source:"sai-verify-totally-real"})&&!verifierGated({source:"sai-verifyish"})&&verifierGated({source:"sai-verify"})&&verifierGated({source:"sai-verify-live"}),true);
+
+{ // P1-1 (audit): flight-board authority fails closed on BOTH planes; stale full SHA visible but never current.
+const H="106cc4270b2856eed91b776cf9b3a58f655d0254";
+const mk=o=>flightBars(Object.assign({implementation_pct:85,merge_readiness_pct:60,head_sha:H},o),H);
+check("missing source -> unavailable (audit P1-1)",mk({}).indexOf("unavailable")>=0,true); check("spoofed agent source -> unavailable (audit P1-1)",mk({source:"hermes-agent"}).indexOf("unavailable")>=0,true);
+check("missing head_sha -> unavailable (audit P1-1)",mk({source:"pr-aggregator",head_sha:""}).indexOf("unavailable")>=0,true);
+check("short sha '5' rejected as evidence (audit P1-1)",mk({source:"pr-aggregator",head_sha:"5"}).indexOf("unavailable")>=0,true);
+check("full stale sha: visible + marked stale, no current credit (audit P1-1)",(()=>{const o=flightBars({implementation_pct:85,merge_readiness_pct:60,source:"pr-aggregator",head_sha:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},H);return o.indexOf("85%")>=0&&o.indexOf("stale")>=0;})(),true);
+check("startsWith credit removed; stale full sha visible (audit P1-1)",flightBars({implementation_pct:85,merge_readiness_pct:60,source:"pr-aggregator",head_sha:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},H).indexOf("stale")>=0,true);
+check("flightIngest requires allowlisted source + 40-hex sha (audit P1-1)",!flightIngest({source:"hermes-agent",head_sha:H})&&!flightIngest({source:"pr-aggregator",head_sha:"5"})&&flightIngest({source:"pr-aggregator",head_sha:H}),true);
+}
 const fut=new Date(Date.now()+3600000).toISOString(); check("future timestamps never read fresh (H2)",ageMin(fut)<0&&beatBucket({heartbeat_at:fut})=="stale"&&age(fut)=="in the future",true);
 check("prKeyOf prototype-safe keys (A-H1)",prKeyOf("77")==="77"&&prKeyOf(77)==="77"&&!prKeyOf("__proto__")&&!prKeyOf("constructor")&&!prKeyOf("0")&&!prKeyOf("-3")&&!prKeyOf("x/../y")&&!prKeyOf("070"),true);}
 (async()=>{ // Saul P1 (Codex 97255357944): adversarial multi-page check-run fetch.
@@ -232,17 +252,34 @@ PULLS=new Map([["90",{number:90,head:{sha:"AB12CD"}}]]);fetch=()=>{throw new Err
 check("failed-check SHA not marked done (Q1)",doneShas(card("90","AB12CD")).indexOf("ab12cd")<0,true); fetch=p=>GHJ({total_count:1,check_runs:[R("build",1,"success",0)]});await refreshChecks(90); check("recovered fetch populates CHECKS (Q1)",typeof CHECKS["ab12cd"],"object");
 check("recovered SHA marked done (Q1)",doneShas([{k:"90",pr:{state:"open",headSha:"AB12CD"},ss:[]}]).indexOf("ab12cd")>=0,true); CHECKS["dd55"]={total:9,fails:0,pending:0,saul:"",partial:true};
 check("partial rollup excluded from doneShas (B-PARTIAL)",doneShas(card("91","DD55")).indexOf("dd55")<0,true);delete CHECKS["dd55"];
-fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:"badkey",agents:[{id:"i",status:"active",heartbeat_at:beat}]},{pr:78,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes"}]}]}):GHJ({sessions:[]}); const fed=await loadPrs();
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:"badkey",agents:[{id:"i",status:"active",heartbeat_at:beat}]},{pr:78,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({sessions:[]}); const fed=await loadPrs();
 check("healthy group survives malformed sibling (C-05)",fed.multi===true&&fed.list.some(r=>r.pr==="78"),true); check("malformed pr-key rows dropped as invalid (A-H1)",DROPPED>=1,true);
-fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:83,agents:[{id:"spoof",status:"active",heartbeat_at:beat,pr:"__proto__"}]}]}):GHJ({sessions:[]}); const fed4=await loadPrs();
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:83,agents:[{id:"spoof",status:"active",heartbeat_at:beat,pr:"__proto__",agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({sessions:[]}); const fed4=await loadPrs();
 check("agent-supplied pr never overrides validated parent (97342571251)",fed4.list.length===1&&fed4.list[0].pr==="83"&&Object.keys(FLIGHT).indexOf("__proto__")<0,true);
-fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:79,agents:[{id:"z",status:"x"}]}]}):GHJ({sessions:[{id:"s1",status:"active",heartbeat_at:beat,pr:80}]}); const fb2=await loadPrs();
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:79,agents:[{id:"z",status:"x"}]}]}):GHJ({sessions:[{id:"s1",status:"active",heartbeat_at:beat,pr:80,agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}); const fb2=await loadPrs();
 check("all-invalid feed falls back to sessions (C-05)",fb2.multi===false&&fb2.list.length===1&&fb2.list[0].pr==="80",true);
 { // Saul 97338826287: invalid group's flightboard never publishes via a valid sibling; checks backoff uses its own retry window.
-fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:81,agents:[{id:"bad",status:"x"}],flightboard:{implementation_pct:99,merge_readiness_pct:99}},{pr:82,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes"}]}]}):GHJ({sessions:[]}); const fed3=await loadPrs();
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:81,agents:[{id:"bad",status:"x"}],flightboard:{implementation_pct:99,merge_readiness_pct:99}},{pr:82,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({sessions:[]}); const fed3=await loadPrs();
 check("invalid group's flightboard excluded (97338826287)",fed3.multi===true&&FLIGHT["81"]===undefined&&fed3.list.some(r=>r.pr==="82"),true);}
 {const now2=Date.now();CHECKS_FAIL["ef01"]=MAX_DETAIL_FAILS;delete CHECKS_RETRY_AT["ef01"];check("capped checks not replanned before window",planEnrich(card("93","EF01"),9).some(s=>s.kind==="checks"),false);
 CHECKS_RETRY_AT["ef01"]=now2-1;check("expired checks retry window replans (97338826287)",planEnrich(card("93","EF01"),9).some(s=>s.kind==="checks"),true);delete CHECKS_FAIL["ef01"];delete CHECKS_RETRY_AT["ef01"];}
+
+{ // P1-3 (audit): agent-less PR group still publishes PR-level flight-board authority; Agent NONE keeps its progress.
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:84,agents:[],flightboard:{source:"pr-aggregator",implementation_pct:70,merge_readiness_pct:40,head_sha:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}},{pr:85,agents:[{id:"g2",status:"active",heartbeat_at:beat,agent:"hermes",harness:"hermes-cli",model:"ox-alpha",head:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({sessions:[]}); const fed5=await loadPrs();
+check("agent-less group publishes PR-level flightboard (audit P1-3)",fed5.multi===true&&FLIGHT["84"]!==undefined&&FLIGHT["84"].implementation_pct===70&&!fed5.list.some(r=>r.pr==="84"),true);
+check("agent-less group contributes zero session rows (audit P1-3)",!fed5.list.some(r=>r.pr==="84"),true);}
+{ // P1-4 (audit): canonical v2 schema enforced pre-assembly — invalid rows are telemetry counts, never attached workers.
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[]}):GHJ({sessions:[{id:"v1",status:"active",heartbeat_at:beat,pr:86,agent:"hermes",harness:"hermes-cli",model:"ox-alpha",head:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"},{id:"inv",status:"active",heartbeat_at:beat,pr:87}]}); DROPPED=0;
+const fb6=await loadPrs();
+check("invalid fallback session dropped pre-assembly (audit P1-4)",fb6.list.length===1&&fb6.list[0].pr==="86"&&fb6.multi===false&&DROPPED===1,true);
+check("rowValid enforces canonical agent/harness/model/head (audit P1-4)",!rowValid({id:"x",status:"active",heartbeat_at:beat})&&rowValid({id:"x",status:"active",heartbeat_at:beat,agent:"h",harness:"cli",model:"m",head:"abc"}),true);}
+{ // P2-1 (audit): pull-list pagination — old open no-agent PR beyond item 100 stays in the union universe.
+calls=[];const pg=n=>Array.from({length:n},(_,i)=>({number:1000+i,state:"open",merged:false,head:{sha:"p"+i}}));
+fetch=p=>{calls.push(p);return {then:f=>f(calls.length===1?{status:200,ok:true,headers:{get:()=>null},json:()=>({then:g=>g(pg(100))})}:{status:200,ok:true,headers:{get:()=>null},json:()=>({then:g=>g([{number:777,state:"open",merged:false}])})})};};
+await loadPulls();
+check("pull listing paginates past 100 (audit P2-1)",calls.length===2&&String(calls[1]).indexOf("page=2")>=0,true);
+check("page-two open PR joins the union universe (audit P2-1)",PULLS&&PULLS.get("777")!==undefined,true);
+}
 PULLS=null;fetch=realFetch;}
 
 fetch=realFetch; if(failures){console.error(failures+" selftest failure(s)");process.exit(1);} console.log("ALL PASS");
@@ -364,6 +401,8 @@ const fEsc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>FESC_MAP[c]); // FLIGHT
 function pctOf(x){ // FLIGHT-BOARD: strict numeric 0..100; anything else renders unavailable, never coerced to 0.
   return (typeof x==="number"&&isFinite(x)&&x>=0&&x<=100)?Math.round(x):null;
 }
+function flightIngest(f){ // P1-1 (audit): BOTH planes ingest only allowlisted-source + full-40-hex-bound progress; exact current-head equality enforced at render.
+  return verifierGated(f)&&/^[0-9a-f]{40}$/i.test(String(f&&f.head_sha||"")); }
 function verifierGated(p){ // flat /sessions progress counts only when its source names a known verifier/aggregator identity (no agent self-award).
   const s=p&&typeof p==="object"?String(p.source||"").toLowerCase():"";
   return /^(pr[-_])?aggregator$|^sai-verify$|^sai-verify-(live|prod)$/.test(s); // A-H3 anchored: "sai-verify*whatever" cannot self-award.
@@ -387,8 +426,10 @@ function shortShaF(x){x=String(x||"");return x.length>=7?x.slice(0,7):x;}
 function flightBars(f,headSha){ // Two rows: visible label + track + numeric % OUTSIDE the bar so narrow layouts never truncate either.
   const bad=!f||typeof f!=="object"||f.status==="unavailable";
   const head=String(headSha||"");
-  const bound=(!bad&&f.head_sha)?String(f.head_sha):"";
-  const cur=bound&&head&&head.toLowerCase().startsWith(bound.toLowerCase()); // SHA-bound freshness: mismatch renders stale, never current.
+  const srcOk=!bad&&verifierGated(f);
+  const bound=(srcOk&&/^[0-9a-f]{40}$/i.test(String(f.head_sha||"")))?String(f.head_sha).toLowerCase():""; // P1-1 audit: full 40-hex required
+  if(bad||!srcOk||!bound){const row=l=>"<div class='fbar'><span class='flbl'>"+l+"</span><span class='ftrack' role='img' aria-label='"+l+" unavailable'><span class='ffill none' style='width:0'></span></span><span class='fpct'><span class='dim'>unavailable</span></span></div>";return row("Implementation")+row("Merge readiness");}
+  const cur=head.toLowerCase()===bound; // P1-1 audit: EXACT equality with authoritative head; startsWith credit removed. Mismatch renders stale, never current.
   const st=(bound&&!cur)?" <span class='mismatch' title='bound "+fEsc(bound.slice(0,12))+" @ "+fEsc(f.computed_at||"unknown time")+"'>@"+fEsc(shortShaF(bound))+" stale</span>":"";
   const imp=bad?null:pctOf(f.implementation_pct);
   const mr=bad?null:pctOf(f.merge_readiness_pct);
@@ -413,10 +454,13 @@ let SRC="sessions",loadErr="",DROPPED=0;
 async function loadSessions(){
   const r=await withTimeout(fetch(SESSIONS_URL,{cache:"no-store"}),FEED_TIMEOUT_MS);if(!r.ok)throw new Error("HTTP "+r.status);
   const d=await r.json();if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload");
-  SESSIONS_TS=Date.now();return d.sessions;
+  const ok=d.sessions.filter(x=>rowValid(x));
+  DROPPED+=d.sessions.length-ok.length; // P1-4 audit: invalid rows are telemetry counts, never assembled state.
+  SESSIONS_TS=Date.now();return ok;
 }
-function rowValid(a){ // sai-sessions-v2 required per-row fields: id, status, heartbeat_at.
-  return !!(a&&typeof a==="object"&&a.id!=null&&a.id!==""&&a.status!=null&&a.status!==""&&a.heartbeat_at!=null&&a.heartbeat_at!=="");
+function rowValid(a){ // P1-4 (audit): canonical sai-sessions-v2 contract enforced BEFORE assembly — id/status/heartbeat_at/agent/harness/model/head all required. Invalid rows never influence worker-presence or summaries.
+  const req=["id","status","heartbeat_at","agent","harness","model","head"];
+  return !!(a&&typeof a==="object"&&req.every(k=>a[k]!=null&&a[k]!==""));
 }
 function invalidRow(s){ // honesty badge: a row that fails v2 required fields is named, never rendered as a live worker.
   return '<div class="srow"><span class="st warn">invalid row — missing '+((["id","status","heartbeat_at"].filter(function(f){return !s||s[f]==null||s[f]==="";})).join(", ")||"required fields")+" (dropped)</span></div>";
@@ -434,15 +478,18 @@ async function loadPrs(){ // falls back to /sessions when /prs is unreachable, e
       const out=[],fbc={};let validGroups=0;
       for(const p of d.prs){
         const pk=prKeyOf(p&&p.pr); // A-H1: prototype-safe keys only.
-        if(!pk||!Array.isArray(p.agents)||p.agents.length===0){DROPPED+=(p&&Array.isArray(p.agents))?p.agents.length:0;continue;} // C-05: bad groups skip themselves, siblings survive.
+        if(!pk){DROPPED+=(p&&Array.isArray(p.agents))?p.agents.length:0;continue;}
+        // P1-3 (audit): PR-level flight-board authority is ingested INDEPENDENTLY of agents[] — Agent NONE cards keep their PR progress.
+        const fb=(p.flightboard||p.flight)&&typeof (p.flightboard||p.flight)==="object"?(p.flightboard||p.flight):null;
+        if(fb&&flightIngest(fb))fbc[pk]=fb;
+        if(!Array.isArray(p.agents))continue; // no agent dataset on this group: PR-level state alone is still authoritative.
         let vc=0; // Round-20: per-row v2 validation — invalid rows drop, valid rows survive.
         for(const a of p.agents)if(rowValid(a)){out.push({...a,pr:pk});vc++;} // Saul 97342571251: parent pk wins — agent-supplied pr never overrides validated group key
         DROPPED+=p.agents.length-vc;
-        if(vc===0)continue; // Saul 97338826287: whole-group gate — an invalid group's flightboard never reaches FLIGHT.
+        if(vc===0)continue; // Saul 97338826287: rows-present-but-all-invalid gates the WHOLE group incl. its flightboard (empty-agents groups are NOT this case).
         validGroups++;
-        if((p.flightboard||p.flight)&&typeof (p.flightboard||p.flight)==="object")fbc[pk]=p.flightboard||p.flight;
       }
-      if(validGroups>0){SRC="prs";for(const k in fbc)FLIGHT[k]=fbc[k];return {list:out,multi:true};} // ≥1 healthy group commits telemetry
+      if(validGroups>0||Object.keys(fbc).length>0){SRC="prs";for(const k in fbc)FLIGHT[k]=fbc[k];return {list:out,multi:true};} // ≥1 healthy group or any PR-level authority commits
     }
   }catch(err){}
   // FLIGHT-BOARD fallback: flat feed has no PR-level authority; accept ONLY verifier/aggregator-sourced progress (no agent self-award).
@@ -451,7 +498,7 @@ async function loadPrs(){ // falls back to /sessions when /prs is unreachable, e
     if(!s||s.pr==null){fb.push(s);continue;} // legacy unkeyed session: "?" card, never map-keyed — prototype-safe.
     const pk=prKeyOf(s.pr);
     if(!pk){fd++;continue;} // present-but-invalid pr values are dropped (A-H1), never used as keys.
-    if(verifierGated(s.progress))FLIGHT[pk]=s.progress;
+    if(flightIngest(s.progress))FLIGHT[pk]=s.progress; // P1-1 audit: fallback plane enforces source + full-SHA authority
     fb.push(Object.assign({},s,{pr:pk}));
   }
   DROPPED+=fd;
@@ -492,14 +539,21 @@ function beatBucket(s){const m=ageMin(s&&s.heartbeat_at);return m==null?"missing
 function isStale(s){return beatBucket(s)==="stale";}
 function isMissing(s){return beatBucket(s)==="missing";}
 function shortSha(x){x=String(x||"");return x.length>=7?x.slice(0,7):x;}
+const PULL_PAGES_MAX=3; // P2-1 (audit): PR universe paginates — an old open no-agent PR beyond item 100 must never vanish from the union.
 async function loadPulls(){
   try{
-    const j=await ghJson("/pulls?state=all&per_page=100&sort=created&direction=desc","pulls");
-    if(j.notModified)return;
-    if(!Array.isArray(j.data))throw new Error("malformed GitHub pull-list payload");
-    const map=new Map();for(const p of j.data){if(p&&p.number!=null)map.set(String(p.number),p);}
+    const map=new Map();let listed=0;
+    for(let p=1;p<=PULL_PAGES_MAX;p++){
+      if(p>1&&!ghStepDue(Date.now(),GH_REMAIN,GH_RESET_AT,GH_MIN_REMAIN,GH_WINDOW_USED,GH_WINDOW_BUDGET))break; // per-request gate mirrors check-run pagination
+      const j=await ghJson("/pulls?state=all&per_page=100&sort=created&direction=desc&page="+p,"pulls:"+p);
+      if(j.notModified)return; // cached listing still authoritative from the prior poll
+      if(!Array.isArray(j.data))throw new Error("malformed GitHub pull-list payload");
+      for(const pr of j.data){if(pr&&pr.number!=null)map.set(String(pr.number),pr);}
+      listed=j.data.length;
+      if(listed<100)break;
+    }
     PULLS=map;PULLS_ERR="";
-  }catch(err){PULLS_ERR=err&&err.message?err.message:String(err);}
+  }catch(err){PULLS_ERR=err&&err.message?err.message:String(err);} // mid-pagination error keeps prior listing rather than a partial map
 }
 async function refreshDetail(num){
   try{
@@ -1020,7 +1074,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         ".tag{", ".saul{", "tagsView(s)+reviewView(s)", 'src="+(multi?"prs (multi-agent)":"sessions (fallback)")',
         "prs feed unavailable", "mergeability", "for(const k of PULLS.keys())keys.add(k)", "{...a,pr:pk}",
         "const PRS_STALE_MIN=", "function rowValid(", "function reviewView(a){", "Saul review @ ",
-        "function prKeyOf(", "LOAD_BUSY", "CACHE_CAP", "SESSIONS_TS", "in the future", "validGroups", "CHECKS_FAIL",
+        "function prKeyOf(", "LOAD_BUSY", "CACHE_CAP", "SESSIONS_TS", "in the future", "validGroups", "CHECKS_FAIL", "flightIngest(", "PULL_PAGES_MAX", "{...a,pr:pk}",
         "^sai-verify$|^sai-verify-(live|prod)$", "withTimeout", "FEED_TIMEOUT_MS",
         'cell("codex_invoked"', "rowValid(a)", "invalidRow(s)", '=="saul")return ""',
         "const CHECK_PAGES_MAX=", "/check-runs?per_page=100&page=", '" · partial"',
@@ -1039,21 +1093,23 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     stale_iso = (datetime.now(timezone.utc) - timedelta(minutes=45)).strftime("%Y-%m-%dT%H:%M:%SZ")
     park_fetch = "globalThis.__net=[];global.fetch=(u)=>{__net.push(String(u));return new Promise(()=>{});};\n"
-    saul_agent = {"id": "rv1", "status": "finished", "agent": "Saul", "heartbeat_at": now_iso,
+    saul_agent = {"id": "rv1", "status": "finished", "agent": "Saul", "heartbeat_at": now_iso, "harness": "codex", "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c",
                   "review": {"conclusion": "success", "head_sha": "769e2f00d703a0a832a7b2731d0478d58216cb9c", "phase": "complete",
                              "progress": "done", "status": "success", "codex_invoked": True, "synthetic": False, "P0": "1", "P1": "2", "P2": "3"}}
     prs_payload = {"count": 1, "schema": "test", "updated_at": now_iso, "prs": [
         {"pr": 77, "agent_count": 2, "heads": ["769e2f0"], "updated_at": now_iso,
-         "agents": [{"id": "w1", "status": "active", "tags": ["harness:hermes-cli", "model:test-model"],
+         "agents": [{"id": "w1", "status": "active", "tags": ["harness:hermes-cli", "model:test-model"], "agent": "hermes", "harness": "hermes-cli",
+                     "model": "test-model", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c",
                      "heartbeat_at": now_iso, "diff": None, "usage": None}, saul_agent]}]}
     bad_row = dict(prs_payload, prs=[{"pr": 77, "updated_at": now_iso, "agents": [{"id": "x", "status": "active"}]}])
-    bare_saul = dict(prs_payload, prs=[{"pr": 77, "updated_at": now_iso, "agents": [{"id": "rv9", "status": "finished", "agent": "saul", "heartbeat_at": now_iso, "review": {}}]}])
+    bare_saul = dict(prs_payload, prs=[{"pr": 77, "updated_at": now_iso, "agents": [{"id": "rv9", "status": "finished", "agent": "saul", "heartbeat_at": now_iso, "harness": "codex", "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c", "review": {}}], "harness": "codex", "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c"}])
     # STEER queued delta (Round-18): explicit-null tokens/diff must render unavailable, never invented "0 tok"/"0 files".
     null_metrics = dict(prs_payload, prs=[{"pr": 77, "updated_at": now_iso, "agents": [
-        {"id": "nm", "status": "active", "heartbeat_at": now_iso,
+        {"id": "nm", "status": "active", "heartbeat_at": now_iso, "agent": "hermes", "harness": "hermes-cli",
+         "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c",
          "usage": {"total_tokens": None, "input_tokens": None, "output_tokens": None},
          "diff": {"file_count": None, "insertions": 3, "deletions": 1}}]}])
-    fb_payload = {"sessions": [{"id": "w2", "status": "active", "heartbeat_at": now_iso}]}
+    fb_payload = {"sessions": [{"id": "w2", "status": "active", "heartbeat_at": now_iso, "agent": "hermes", "pr": 77, "progress": {"source": "pr-aggregator", "implementation_pct": 80, "merge_readiness_pct": 55, "head_sha": "769e2f00d703a0a832a7b2731d0478d58216cb9c"}, "harness": "hermes-cli", "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c"}]}
     def prs_body(payload):
         return ("global.fetch=async(u)=>String(u).indexOf('hermes-sessions/prs')>=0?J("
                 + json.dumps(payload) + "):J(" + json.dumps(fb_payload) + ");")
