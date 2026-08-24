@@ -1,0 +1,14 @@
+{
+  "harness": "Sai Harness",
+  "version": 1,
+  "provenance": {
+    "derived_from": "Atomic CLI (bastani-inc/atomic, MIT)",
+    "license": "MIT © 2025 Bastani, Inc. — attribution clause: >100M MAU / >$20M MRR products must display 'Atomic' in UI",
+    "tier": "prototype"
+  },
+  "hooks": {
+    "beforeSubmitPrompt": [{"command": "prototypes/plugins/cross-intercom/.sai/hooks/aspectizer.sh", "failClosed": false, "timeout": 30}],
+    "sessionStart": [{"command": "prototypes/plugins/cross-intercom/.sai/hooks/lane-connector.sh", "args": ["reconcile"], "failClosed": false, "timeout": 60}],
+    "stop": [{"command": "prototypes/plugins/cross-intercom/.sai/hooks/lane-connector.sh", "args": ["upsert"], "failClosed": false, "timeout": 60, "loop_limit": 1}]
+  }
+}

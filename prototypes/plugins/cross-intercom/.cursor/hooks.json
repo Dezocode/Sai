@@ -1,5 +1,5 @@
 {"version":1,"hooks":{
-  "beforeSubmitPrompt":[{"command":"prototypes/plugins/cross-intercom/.cursor/hooks/aspectizer.sh","failClosed":false,"timeout":30}],
-  "sessionStart":[{"command":"prototypes/plugins/cross-intercom/.cursor/hooks/lane-connector.sh","args":["reconcile"],"failClosed":false,"timeout":60}],
-  "stop":[{"command":"prototypes/plugins/cross-intercom/.cursor/hooks/lane-connector.sh","args":["upsert"],"failClosed":false,"timeout":60,"loop_limit":1}]
+  "beforeSubmitPrompt":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/aspectizer.sh","failClosed":false,"timeout":30}],
+  "sessionStart":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/lane-connector.sh","args":["reconcile"],"failClosed":false,"timeout":60}],
+  "stop":[{"command":"prototypes/plugins/cross-intercom/.sai/hooks/lane-connector.sh","args":["upsert"],"failClosed":false,"timeout":60,"loop_limit":1}]
 }}
