@@ -1,0 +1,1 @@
+{"task_id":"20260824-0840-pr77-pycache-purge-ox-alpha","agent":"hermes-sai-agent","repository":"Dezocode/Sai","pr":77,"branch":"hermes/pr-sessions-dashboard","status":"complete","objective":"Remove accidentally committed scripts/__pycache__; add .gitignore entry"}

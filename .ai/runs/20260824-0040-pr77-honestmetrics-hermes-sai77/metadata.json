@@ -1,0 +1,9 @@
+{
+  "task_id": "20260824-0040-pr77-honestmetrics-hermes-sai77",
+  "agent": "sai-pr77",
+  "repository": "Dezocode/Sai",
+  "pr": 77,
+  "branch": "hermes/pr-sessions-dashboard",
+  "status": "in_progress",
+  "objective": "Round-18 honest metrics: posNum(null)->null so explicit-null tokens/diff render unavailable, never invented '0 tok'/'0 files'; locked by selftest + runtime /prs probe cases"
+}

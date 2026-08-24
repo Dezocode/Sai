@@ -12,12 +12,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: pages-${{ github.event_name }}-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
-
-concurrency:
-  group: feature-maps-pages-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   build:
@@ -32,6 +32,9 @@ jobs:
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.22"
+      - uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version: "22"
       - name: Write empty check-run metadata
         run: |
           echo '[]' > "${RUNNER_TEMP}/feature-maps-checks.json"
@@ -46,6 +49,7 @@ jobs:
           scripts/render-sai-feature-maps --out "$OUT" --checks "$CHECKS" --sha "$SHA"
           test -f "$OUT/feature-maps.html"
           test -f "$OUT/index.html"
+          test -f "$OUT/pr-sessions.html"
           test -f "$OUT/.nojekyll"
           test ! -s "$OUT/.nojekyll"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
