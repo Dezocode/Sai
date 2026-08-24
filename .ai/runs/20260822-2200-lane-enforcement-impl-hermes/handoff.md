@@ -1,0 +1,1 @@
+# Handoff task 20260822-2200-lane-enforcement-impl-hermes: status in_progress until exact-head CI + genuine Saul P0=P1=P2=0; R1-R19 shipped (R17 manifest walk-discovery + access-modified SwiftUI import lock @930a2e9; R18 sanctioned-condensation budget restore; R19 canonical-only lane pruning + symlink-resolved replace targets @347b8b3).

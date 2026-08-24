@@ -1,0 +1,1 @@
+# Handoff task 20260824-0606-saul-97328846218-p1x3-atomic-ox-alpha: shipped P1x3 fixes at 7753d34 (swiftUIImport protocol|let, go.mod-dir relative resolution, fail-closed diff gate); status in_progress until exact-head Saul re-review returns P1=0; remaining red: icm-enforcement blocked on historical 38493e4 nonconforming trailer (human-approved history rewrite required).
