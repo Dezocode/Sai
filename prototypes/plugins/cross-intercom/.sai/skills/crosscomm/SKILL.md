@@ -78,3 +78,7 @@ OpenBot (CopilotKit, MIT) shapes the .sai harness: **a channel per agent**, decl
 - **Bot-id charset**: ids become filesystem paths — letters/digits/hyphen/underscore, start alnum, no dots. Generated names comply (`sai-grunt-<hash>`, not dotted).
 - **Take-the-wheel / needs-you**: when CI is red or a blocker needs the owner, set needs-you in flightboard instead of silently looping; hand back when resolved.
 - **AG-UI as transport pattern**: agents speak one open protocol regardless of framework — the sessions-API contract for PR #141 follows the same shape.
+
+## 9. Debugger hooking (activation rule)
+
+Using /crosscom activates the Grokbot loop AND this rule: whenever a wake resolves to debugging (CI red with no queued mentions), or a hook/connector fails twice consecutively, **spawn a `debugger` subagent** instead of self-looping. The debugger gets: exact failure output, file paths, the contract doc, and authority to edit + re-run gates. If OpenBot-parity is the subject, point it at the upstream clone (`bench/openbot/`) as the architectural ground truth. Skill edits that change behavior must sync to BOTH the agent-side master and the plugin copy before the next wake.

@@ -16,7 +16,9 @@ verdict=$(decide)
 ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 printf '{"ts":"%s","decision":"%s","verdict":"%s"}\n' "$ts" "$decision" "$verdict" >> "$STATE/audit.jsonl"
 [ "$verdict" = "allow" ] || { printf 'gateway refused %s (%s)\n' "$decision" "$verdict" >&2; exit 1; }
-"$@"
-rc=$?
-printf '{"ts":"%s","decision":"%s","outcome":"%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$decision" "$([ $rc -eq 0 ] && echo ok || echo error)" >> "$STATE/audit.jsonl"
-exit $rc
+# set -e aborts on the action's failure before the outcome is ever recorded,
+# leaving decide+act in the log with no outcome line. Capture the rc instead.
+rc=0
+"$@" || rc=$?
+printf '{"ts":"%s","decision":"%s","outcome":"%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$decision" "$([ "$rc" -eq 0 ] && echo ok || echo error)" >> "$STATE/audit.jsonl"
+exit "$rc"
