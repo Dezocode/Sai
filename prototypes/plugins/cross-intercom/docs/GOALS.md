@@ -17,6 +17,8 @@ Owner: dezocode · Agent: **her** · Effort: **xhigh** · Tier: prototype (`prot
 - [ ] **Sai Harness naming + `.sai/` folder**: hook implementations live in `.sai/hooks/*`; `.sai/hooks.json` carries harness provenance (Atomic CLI derivation); `.cursor/hooks.json` delegates to it.
 - [ ] **Design-check green at every push** (`go run ./cmd/sai-design-check`, plain + trusted-base).
 
+- [x] **OpenBot channel architecture adopted**: `.sai/agents.yaml` fleet registration (channel-per-agent), composer park-and-drain inbox semantics, `audit-gateway.sh` decide→record→act gate, bot-id charset rule, take-the-wheel/needs-you flightboard states. Source: [CopilotKit/OpenBot](https://github.com/CopilotKit/OpenBot) (MIT), cloned to ignored `bench/openbot/` for reference.
+
 ## Goals — next round (atomic-cli)
 
 - [ ] **Atomic CLI integration into the plugin**: embed Atomic CLI as the local runtime for Sai Harness hooks (license verified MIT © 2025 Bastani, Inc., bastani-inc/atomic; attribution clause noted in README).

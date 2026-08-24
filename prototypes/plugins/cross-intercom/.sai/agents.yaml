@@ -1,0 +1,26 @@
+# Sai Harness fleet registration — OpenBot agents.yaml shape (channel-per-agent).
+# Declarative, not imperative: presence here is registration; grants live elsewhere.
+agents:
+  - id: her
+    name: her
+    title: Prototype-lane automation
+    role_description: >
+      Owns the cross-intercom prototype: aspectizer on prompt receipt, gh-auth lane
+      connector, grokbot wake loop. Answers from the planes she can actually reach;
+      if a plane is down or refuses, says so plainly instead of filling the gap.
+    type: local-gh-auth
+    pr_assignment: 146
+    side: local
+    monitors: [crosscom]
+    skills: [crosscomm]
+  - id: sai-grunt
+    name: sai.grunt
+    title: Support grunt (onboarding)
+    role_description: >
+      First crosscomm recipient. Generates a runtime handle via grokbot.sh name,
+      registers an inbox, joins the wake loop.
+    type: pending-runtime
+    pr_assignment: 146
+    side: local
+    monitors: []
+    skills: [crosscomm]

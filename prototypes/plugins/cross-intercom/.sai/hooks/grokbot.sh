@@ -19,7 +19,7 @@ cmd_name() {  # resolve this runtime's agent name: owner-marked > env > generate
   local n="${SAI_AGENT_NAME:-}"
   if [ -z "$n" ] && command -v gh >/dev/null 2>&1; then n=$(gh api user --jq .login 2>/dev/null | sed 's/^sai\.grunt-.*/&/'); fi
   # gh login is an ACCOUNT, not an agent identity: only accept it when explicitly aliased.
-  case "$n" in sai.*|her) : ;; *) n="sai.grunt-$(printf '%s|%s|%s' "$(hostname)" "$PWD" "$$" | sha256sum | cut -c1-6)" ;; esac
+  case "$n" in sai.*|her) : ;; *) n="sai-grunt-$(printf '%s|%s|%s' "$(hostname)" "$PWD" "$$" | sha256sum | cut -c1-6)" ;; esac
   printf '%s\n' "$n" > "$STATE/agent-name"; printf '%s\n' "$n"
 }
 
@@ -38,9 +38,10 @@ json.dump(fb,open(os.path.join(st,"flightboard.json"),"w"),indent=1)
 print(json.dumps(fb))' "$PR_NUMBER" 2>/dev/null || true
 }
 
-wake_proof() {  # consistency goal: ping proof-of-wake to the PR comments every wake
-  command -v gh >/dev/null 2>&1 || return 0
-  gh pr comment "$PR_NUMBER" --repo "$REPO_SLUG" --body "wake-proof [$AGENT] $(date -u +%Y-%m-%dT%H:%M:%SZ) · tick=$1 · ci=$(gh pr checks "$PR_NUMBER" --repo "$REPO_SLUG" 2>/dev/null | grep -cE '(pass|fail|passing|failing)' )checks-observed · next-wake=${INTERVAL}s" >/dev/null 2>&1 || true
+wake_proof() {  # consistency goal: proof-of-wake to PR comments every wake, through the gateway
+  local gate=""
+  [ -x "$HARNESS_DIR/hooks/audit-gateway.sh" ] && gate="$HARNESS_DIR/hooks/audit-gateway.sh wake-proof"
+  $gate gh pr comment "$PR_NUMBER" --repo "$REPO_SLUG" --body "wake-proof [$AGENT] $(date -u +%Y-%m-%dT%H:%M:%SZ) · tick=$1 · ci=$(gh pr checks "$PR_NUMBER" --repo "$REPO_SLUG" 2>/dev/null | grep -cE '(pass|fail|passing|failing)')checks-observed · next-wake=${INTERVAL}s" >/dev/null 2>&1 || true
 }
 
 continuation_prompt() {  # pick what this wake should launch
@@ -48,19 +49,25 @@ continuation_prompt() {  # pick what this wake should launch
   if gh pr checks "$PR_NUMBER" --repo "$REPO_SLUG" 2>/dev/null | grep -qE '\|\s*(fail|failing)'; then printf 'tdd'; else printf 'crosscomm'; fi
 }
 
-cmd_inbox() {  # scan drops; launch each mention as a user request via atomic CLI
+cmd_inbox() {  # OpenBot composer semantics: parked messages drain as ONE follow-up turn.
   shopt -s nullglob
+  local combined="" n=0
   for m in "$STATE"/inbox/*.md; do
-    printf '[grokbot] launching queued request: %s\n' "$(basename "$m")"
-    if command -v atomic >/dev/null 2>&1; then (cd "$PLUGIN_DIR/../../.." && nohup atomic "$(cat "$m")" >/tmp/grokbot-launch.$$ 2>&1 &) ; else printf 'atomic CLI missing; request stays queued\n' >&2; continue; fi
+    printf '[grokbot] parking parked request: %s\n' "$(basename "$m")"
+    combined="${combined}${combined:+ ; }$(cat "$m")"; n=$((n+1))
     mv "$m" "$m.sent" 2>/dev/null || rm -f "$m"
   done
+  [ "$n" -gt 0 ] || return 0
+  if command -v atomic >/dev/null 2>&1; then
+    (cd "$PLUGIN_DIR/../../.." && nohup atomic "$combined" >/tmp/grokbot-launch.$$ 2>&1 &)
+    printf '[grokbot] drained %d parked mention(s) as one follow-up turn\n' "$n"
+  else printf 'atomic CLI missing; %d request(s) stay parked\n' "$n" >&2; fi
 }
 
 cmd_tick() {
   n=$(cat "$STATE/ticks" 2>/dev/null || echo 0); n=$((n+1)); printf '%s' "$n" > "$STATE/ticks"
   cmd_name >/dev/null; cmd_inbox; cmd_flightboard >/dev/null
-  wake_proof "$n"
+  GATEWAY="$HARNESS_DIR/hooks/audit-gateway.sh" wake_proof "$n"
   printf '[grokbot] wake %s @ %s — continuation skill: %s\n' "$n" "$(date -u +%H:%M:%SZ)" "$(continuation_prompt)"
   [ -f "$STATE/GROKBOT_STOP" ] && exit 0
 }

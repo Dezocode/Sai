@@ -66,3 +66,15 @@ On every wake:
 5. **Continuation prompt** — mentions first; else if CI red, launch debugging (tdd skill); else continue next goal skill (crosscomm).
 
 Stop-file: `.sai/state/GROKBOT_STOP`. Inbox registration: your name resolves once, then other agents drop files into `.sai/state/inbox/`.
+
+## 8. Channel architecture (OpenBot-derived)
+
+OpenBot (CopilotKit, MIT) shapes the .sai harness: **a channel per agent**, declarative registration, and a gateway that decides before acting.
+
+- **`agents.yaml` registration**: fleet membership is a YAML list (`id, name, title, role_description, type, pr_assignment, side, monitors, skills`). Presence = registration; grants are the intersection of skills named and tools actually granted — naming a skill grants nothing by itself.
+- **Observable-condition prompts**: role text must point at what is reachable ("answer from sources your tools reach; say plainly when a plane refuses") — never flat denials that go stale when access changes.
+- **Composer park-and-drain**: messages arriving mid-turn are PARKED and drain as ONE follow-up turn keyed on turn end. Stop becomes steering, not surrender. Grokbot's inbox sweep drains all parked mentions in one launch.
+- **Gateway decide → record → act**: every automated decision passes `audit-gateway.sh` (allow/refuse written to `state/audit.jsonl` BEFORE action, outcome appended after). Refusals name their rule.
+- **Bot-id charset**: ids become filesystem paths — letters/digits/hyphen/underscore, start alnum, no dots. Generated names comply (`sai-grunt-<hash>`, not dotted).
+- **Take-the-wheel / needs-you**: when CI is red or a blocker needs the owner, set needs-you in flightboard instead of silently looping; hand back when resolved.
+- **AG-UI as transport pattern**: agents speak one open protocol regardless of framework — the sessions-API contract for PR #141 follows the same shape.
