@@ -100,6 +100,11 @@ function check(name,got,want){ console.log((got===want?"PASS ":"FAIL ")+name+"  
 let failures=0;
 // Fixture helpers: T = timestamp, R = completed check run, Q = queued rerun.
 const T=(h,m)=>"2026-08-23T0"+h+":0"+(m||0)+":00Z"; const R=(name,id,cc,h)=>({name:name,id:id,status:"completed",conclusion:cc,started_at:T(h),completed_at:T(h,5)}); const Q=(name,id)=>({name:name,id:id,status:"queued"});
+{ // Saul 97373399655: head-comparison honesty — prefixes and partial ids cannot suppress a real mismatch.
+  check("short prefix head still mismatches (97373399655)",headMismatch({head:"549b"},"549b7832c38275c59559a16c12a1fe40c38a033e"),true);
+  check("exact full head suppresses mismatch (97373399655)",headMismatch({head_full:"549b7832c38275c59559a16c12a1fe40c38a033e"},"549b7832c38275c59559a16c12a1fe40c38a033e"),false);
+  check("different commit mismatches (97373399655)",headMismatch({head:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"},"549b7832c38275c59559a16c12a1fe40c38a033e"),true);
+  check("missing heads never invent a verdict (97373399655)",headMismatch({},"549b7832c38275c59559a16c12a1fe40c38a033e"),false);}
 { // P1 latest-wins by name; green rerun clears a superseded failure.
 const r=rollupChecks([R("ci-verify-sai",1,"failure",0),R("ci-verify-sai",2,"success",1)]); check("P1 latest-wins total by name",r.total,1);check("P1 green rerun clears superseded failure",r.fails,0);check("P1 pending count",r.pending,0);}
 {const f=R("build",97188392852,"failure",0); check("queued rerun supersedes failure (total)",rollupChecks([f,Q("build",97199999999)]).total,1);check("queued rerun supersedes failure (fails)",rollupChecks([f,Q("build",97199999999)]).fails,0);
@@ -338,6 +343,10 @@ return {runs:runs,partial:true};
 }
         """
 FLIGHT_JS = """
+function headMismatch(s,prHead){ // Saul 97373399655: prefix suppression removed — head_full (or exact head) must equal authoritative head; a mere prefix never counts as current.
+  const hf=String(s&&s.head_full||"").toLowerCase(),h=String(s&&s.head||"").toLowerCase(),ph=String(prHead||"").toLowerCase();
+  return !!ph&&!!(hf||h)&&(hf||h)!==ph;
+}
 const FESC_MAP={"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot;",[String.fromCharCode(39)]:"&#39;"};
 const fEsc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>FESC_MAP[c]); // FLIGHT-BOARD is self-contained: no SESSIONS_JS esc dependency.
 function pctOf(x){ // FLIGHT-BOARD: strict numeric 0..100; anything else renders unavailable, never coerced to 0.
@@ -511,7 +520,7 @@ function assemble(list){
   return arr.map(k=>{
     const ss=(byPr.get(k)||[]).slice().sort((x,y)=>String(x.id||"").localeCompare(String(y.id||"")));
     const pr=normalize(k);
-    const mismatch=!!(pr&&pr.headSha&&ss.length&&ss.some(s=>{const h=String(s&&s.head||"").toLowerCase();return !!h&&!pr.headSha.toLowerCase().startsWith(h);}));
+    const mismatch=!!(pr&&pr.headSha&&ss.length&&ss.some(s=>headMismatch(s,pr.headSha)));
     const agentState=ss.length===0?(SESSIONS_OK?"none":"unknown"):(ss.some(isMissing)?"missing":(ss.some(isStale)?"stale":"fresh"));
     return {k:k,pr:pr,ss:ss,mismatch:mismatch,agentState:agentState};
   });
