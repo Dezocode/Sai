@@ -713,14 +713,9 @@ func moduleTargetsLaneFrom(manifestDir, root, src string) bool {
 				return true
 			} // unresolvable root fails closed
 			for d := cand; ; { // canonicalize via nearest existing ancestor: symlinked roots (macOS /var->/private/var) and missing leaves both judged against the resolved root
-				if r, rr := filepath.EvalSymlinks(d); rr == nil {
-					cand = filepath.ToSlash(filepath.Join(r, strings.TrimPrefix(cand, d)))
-					break
-				}
+				if r, rr := filepath.EvalSymlinks(d); rr == nil { cand = filepath.ToSlash(filepath.Join(r, strings.TrimPrefix(cand, d))); break }
 				u := filepath.Dir(d)
-				if u == d {
-					break
-				}
+				if u == d { break }
 				d = u
 			}
 			rel, relerr := filepath.Rel(filepath.ToSlash(rootCanon2), cand)
