@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# verify-merge-handoff — enforce HANDOFF documentation before/after main merges.
+#
+# Every agent commit in the audited range must map to a task-id whose run has
+# handoff.md OR a HANDOFF event in events.jsonl. Pushes to main additionally
+# require the tip commit's task-id to have handoff.md (the merge handoff).
+#
+# Usage:
+#   verify-merge-handoff [<rev-list args>]     default: origin/main..HEAD
+#   verify-merge-handoff --main-tip            check HEAD only (CI on main push)
+set -u
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "verify-merge-handoff: not a git repo" >&2; exit 1; }
+cd "$REPO_ROOT"
+
+MAIN_TIP=0
+ARGS=()
+for a in "$@"; do
+  case "$a" in
+    --main-tip) MAIN_TIP=1;;
+    *) ARGS+=("$a");;
+  esac
+done
+
+if [ "$MAIN_TIP" = "1" ]; then
+  RANGE="HEAD"
+else
+  RANGE="${ARGS[*]:-origin/main..HEAD}"
+fi
+
+python3 - "$RANGE" "$MAIN_TIP" <<'PY'
+import json, os, re, subprocess, sys
+
+range_arg, main_tip = sys.argv[1], sys.argv[2] == "1"
+fails = []
+TASK_ID = re.compile(r"^Task-ID:\s*(\S+)", re.M)
+
+def fail(msg): fails.append(msg)
+
+def sh(*cmd):
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+def has_handoff(task_id):
+    run = f".ai/runs/{task_id}"
+    hf = f"{run}/handoff.md"
+    if os.path.isfile(hf) and os.path.getsize(hf) > 20:
+        return True, "handoff.md"
+    ev = f"{run}/events.jsonl"
+    if os.path.isfile(ev):
+        for line in open(ev):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                d = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if d.get("event_type") == "HANDOFF" and d.get("task_id") == task_id:
+                return True, "events.jsonl HANDOFF"
+    return False, "missing"
+
+def is_agent_commit(body, author):
+    if TASK_ID.search(body) or re.search(r"^Agent:", body, re.M):
+        return True
+    if re.search(r"cursor|agent|bot", author, re.I):
+        return True
+    return False
+
+# Rev-list
+r = sh("git", "rev-list", "--no-merges", *range_arg.split())
+if r.returncode != 0:
+    fail(f"git rev-list failed: {r.stderr.strip()}")
+    shas = []
+else:
+    shas = [s for s in r.stdout.split() if s]
+
+task_ids = set()
+for sha in shas:
+    body = sh("git", "log", "-1", "--format=%B", sha).stdout
+    author = sh("git", "log", "-1", "--format=%an <%ae>", sha).stdout.strip()
+    if not is_agent_commit(body, author):
+        continue
+    m = TASK_ID.search(body)
+    if not m:
+        fail(f"{sha[:7]}: agent commit missing Task-ID trailer")
+        continue
+    tid = m.group(1)
+    if not re.match(r"^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$", tid):
+        fail(f"{sha[:7]}: invalid Task-ID '{tid}'")
+        continue
+    task_ids.add(tid)
+    ok, how = has_handoff(tid)
+    if not ok:
+        fail(f"{sha[:7]}: task-id {tid} has no handoff.md or HANDOFF event")
+
+if main_tip == "1":
+    tip = sh("git", "rev-parse", "HEAD").stdout.strip()
+    body = sh("git", "log", "-1", "--format=%B", tip).stdout
+    m = TASK_ID.search(body)
+    if m:
+        ok, how = has_handoff(m.group(1))
+        if not ok:
+            fail(f"main tip {tip[:7]}: merge task-id {m.group(1)} requires handoff.md before merge completes")
+    elif task_ids:
+        # Merge commit without Task-ID: require at least one handoff in range tasks
+        if not any(has_handoff(t)[0] for t in task_ids):
+            fail("main push: no HANDOFF documentation found for agent commits in range")
+
+if fails:
+    for m in fails:
+        print(f"FAIL {m}", file=sys.stderr)
+    print(f"verify-merge-handoff: FAILED ({len(fails)} problem(s))", file=sys.stderr)
+    sys.exit(1)
+print(f"verify-merge-handoff: OK ({len(task_ids)} task-id(s) checked)")
+PY

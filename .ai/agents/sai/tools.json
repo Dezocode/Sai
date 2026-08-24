@@ -1,0 +1,10 @@
+{
+  "agent_id": "ceo",
+  "folder": ".ai/agents/sai",
+  "primary_runtime": "cursor-cloud-vm",
+  "canonical_capabilities_path": "runtimes/cursor/tools.json",
+  "surveyed_at": "2026-07-15",
+  "environment": "cursor-cloud-vm",
+  "note": "Manifest only — verified capabilities live in canonical_capabilities_path per .ai/shared/references/agent-runtimes.md",
+  "capabilities": []
+}

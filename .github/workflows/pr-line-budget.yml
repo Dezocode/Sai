@@ -1,0 +1,51 @@
+name: PR line budget
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pr-line-budget:
+    name: PR line budget
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce 1,200 added-line maximum
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MAX_ADDITIONS: "1200"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pr_json="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPOSITORY}/pulls/${PR_NUMBER}")"
+
+          read -r additions deletions < <(
+            python3 -c 'import json,sys; p=json.load(sys.stdin); print(p["additions"], p["deletions"])' <<<"${pr_json}"
+          )
+
+          {
+            echo "## PR line budget"
+            echo
+            echo "- Added lines counted toward budget: **${additions}**"
+            echo "- Deleted lines (free): ${deletions}"
+            echo "- Hard maximum additions: **${MAX_ADDITIONS}**"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          echo "PR #${PR_NUMBER}: ${additions} additions (max ${MAX_ADDITIONS}); ${deletions} deletions are free"
+
+          if (( additions > MAX_ADDITIONS )); then
+            echo "::error title=PR adds too much code::${additions} added lines exceeds the hard maximum of ${MAX_ADDITIONS}. Delete, simplify, reuse, or split the PR. Deletions do not consume the budget."
+            exit 1
+          fi
+
+          echo "PR line budget passed."

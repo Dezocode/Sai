@@ -1,0 +1,10 @@
+{
+  "agent_id": "mimi",
+  "folder": ".ai/agents/mimi",
+  "primary_runtime": "claude-code-cli",
+  "canonical_capabilities_path": "runtimes/claude/tools.json",
+  "surveyed_at": "2026-07-15",
+  "environment": "claude-code-cli",
+  "note": "Manifest only — verified capabilities live in canonical_capabilities_path per .ai/shared/references/agent-runtimes.md",
+  "capabilities": []
+}

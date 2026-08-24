@@ -1,0 +1,21 @@
+{
+  "owner": "Saul",
+  "role": "CTO",
+  "updated": "2026-07-15",
+  "slack_channel_id": "C0BHBGBNMT7",
+  "status_values": ["proposed", "approved", "active", "blocked", "verified", "retired"],
+  "promotion_gates": [
+    "named owner and isolated worktree",
+    "documented interface and compatibility assumptions",
+    "stack-specific test and CI contract",
+    "security and data-boundary review",
+    "human review before core integration"
+  ],
+  "lanes": [
+    {"id": "foundation", "label": "Core architecture", "status": "proposed", "next": "Choose stack through a reviewed decision record"},
+    {"id": "prototypes", "label": "Prototype environments", "status": "proposed", "next": "Define prototype intake and compatibility manifest"},
+    {"id": "agents", "label": "Agent runtime integrity", "status": "active", "next": "Audit runtime-specific capability evidence"},
+    {"id": "ci", "label": "Development CI", "status": "active", "next": "Add stack checks only when the stack exists"},
+    {"id": "observability", "label": "Semantic tracking", "status": "proposed", "next": "Define module/interface inventory schema"}
+  ]
+}

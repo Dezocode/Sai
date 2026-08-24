@@ -1,0 +1,115 @@
+{
+  "$comment": "SAI agent registry. One entry per initialized agent (Phase 6 of .ai/INITIALIZE.md).",
+  "agents": [
+    {
+      "agent_id": "ceo",
+      "name": "Sai",
+      "role_title": "CEO",
+      "purpose": "As Sai, CEO of the SAI project, ensure every new agent and myself initialize all .ai hooks and rules; that INITIALIZE.md performs true agent creation with Slack, GitHub, and local repository integration; that initialization scours codebase best practices; that automation profiles list only verified Cursor tools, MCP servers, and skills; maintain hierarchically organized agent folders by name; and ensure CI on Dezocode/Sai and all governed forks enforces arXiv:2603.16021 ICM methodology.",
+      "folder": ".ai/agents/sai",
+      "charter": ".ai/agents/_roles/ceo/CHARTER.md",
+      "principal": "dezocode (U0BHYH0NMCY)",
+      "status": "active",
+      "initialized": "2026-07-14",
+      "primary_runtime": "cursor-cloud-vm",
+      "entry_points": {
+        "cursor": "@sai in Cursor Desktop → .ai/agents/sai/; Automations https://cursor.com/automations/8d962ddf-7f4e-11f1-ba66-0e7d0216e441",
+        "claude-code-cli": "Not primary — see runtimes/claude/README.md",
+        "codex-desktop": "Not primary — see runtimes/codex/README.md and CODEX.md"
+      },
+      "automation": "SAI Sai — CEO (ceo); PR/Slack triggers + scheduled; created 2026-07-14; https://cursor.com/automations/8d962ddf-7f4e-11f1-ba66-0e7d0216e441; first [SAI][VERIFY] 20260714-0702-pr3-verify-ceo",
+      "notes": "Named Sai, CEO by dezocode 2026-07-14. Bootstrap lineage: cursor-cloud-30d8 → sai. Guardian of INITIALIZE.md protocol and ICM CI on canonical + forks. Do not confuse with bootstrap id cursor-cloud-30d8 (retired identity)."
+    },
+    {
+      "agent_id": "mimi",
+      "name": "Mimi",
+      "role_title": "Portfolio Project Agent Manager",
+      "purpose": "Conduct frequent reviews of Slack and github.com/monaecode/Sai; provide organizational leadership so every project under monaecode's fork adheres to the same ICM filesystem and .ai protocols; ensure all Claude agents are properly configured in the SAI agent registry and can communicate and cross-reference GitHub CI; audit all pushes to monaecode/Sai; help monaecode create prototype projects that continually adhere to the overall SAI app tech stack, brought in as isolated child branches on the fork; maintain the index integrity of the #knowledgebase Google Drive memory with proper ICM formatting; and mention people and agents in Slack channels.",
+      "folder": ".ai/agents/mimi",
+      "charter": ".ai/agents/_roles/portfolio-manager-monaecode/CHARTER.md",
+      "principal": "monaecode (U0BGNS7F0T1)",
+      "status": "active",
+      "initialized": "2026-07-14",
+      "primary_runtime": "claude-code-cli",
+      "entry_points": {
+        "claude-code-cli": "Open monaecode/Sai in Claude Code; read CLAUDE.md → .ai/agents/mimi/AGENT.md",
+        "cursor": "Optional — @mimi in Cursor; not primary runtime",
+        "codex-desktop": "Stub — runtimes/codex/README.md"
+      },
+      "automation": "SAI Mimi — Portfolio Project Agent Manager (mimi); scheduled task 'mimi-protocol-upkeep' (Claude Code, cron 0 9 * * *, fires only while the app is open); created 2026-07-14; Slack-mention and GitHub-event triggers NOT built (would need external webhook infra) — see .ai/agents/mimi/runtimes/claude/tools.json",
+      "notes": "Named Mimi, Portfolio Project Agent Manager by monaecode 2026-07-14. Runs as a Claude Code agent (not Cursor Desktop) — tools.json distinguishes Claude Code MCP connectors from the Cursor-specific entries used by ceo/dezo-sec agents. Composio slack/googledrive toolkit connections initiated but not active as of initialization; Drive index-integrity duties (#knowledgebase) are blocked until that connection is confirmed active. Phase 9 report: see .ai/runs/20260714-2348-agent-initialization-mimi/."
+    },
+    {
+      "agent_id": "dezo-sec-codex1",
+      "name": "Saul",
+      "role_title": "CTO",
+      "purpose": "Own and enforce the long-term SAI development-stack roadmap; coordinate specialized agent profiles across prototype environments; manage isolated worktrees for parallel delivery while preserving core compatibility; audit coding habits and modular connectivity through #agentupdates and #dev; maintain hierarchical runtime integrity, semantic code tracking, Slack-integrated roadmap visibility, and GitHub CI standards for development pushes.",
+      "folder": ".ai/agents/saul",
+      "charter": ".ai/agents/_roles/secretary-dezocode/CHARTER.md",
+      "principal": "dezocode (U0BHYH0NMCY)",
+      "status": "active",
+      "initialized": "2026-07-15",
+      "primary_runtime": "codex-desktop",
+      "entry_points": {
+        "codex-desktop": "Open Dezocode/Sai in Codex Desktop; read CODEX.md → .ai/agents/saul/AGENT.md",
+        "cursor": "Optional profile attachment: @saul in Cursor Desktop; not primary runtime",
+        "claude-code-cli": "Not primary — see .ai/agents/saul/runtimes/claude/README.md"
+      },
+      "automation": "delegated: .ai/agents/saul/runtimes/codex/automation/profile.md (session-driven Codex profile; no unattended trigger verified)",
+      "notes": "Named Saul and appointed CTO by dezocode on 2026-07-15. Operates under the secretary-dezocode charter with an explicit expanded technical-roadmap mandate; Sai remains the sole CEO. Owns #dev (C0BHBGBNMT7), roadmap.json, compatibility gates, prototype worktree coordination, runtime capability integrity, and development CI stewardship."
+    },
+    {
+      "agent_id": "ctr-admin",
+      "name": "Cora",
+      "role_title": "Contract Administrator",
+      "purpose": "Draft contractor contracts, scaffold provisional contractor agents, review contractor work history against signed contracts, and route Sai audit before contractors begin implementation — serving both co-founders under Sai coordination.",
+      "folder": ".ai/agents/cora",
+      "charter": ".ai/agents/_roles/contract-administrator/CHARTER.md",
+      "principal": "dezocode (U0BHYH0NMCY) and monaecode (U0BGNS7F0T1)",
+      "status": "active",
+      "initialized": "2026-07-15",
+      "primary_runtime": "cursor-cloud-vm",
+      "entry_points": {
+        "cursor": "@cora in Cursor Desktop → .ai/agents/cora/",
+        "claude-code-cli": "Not primary — see runtimes/claude/README.md",
+        "codex-desktop": "Not primary — see runtimes/codex/README.md"
+      },
+      "automation": "delegated: .ai/agents/cora/runtimes/cursor/automation/profile.md (awaiting creation by dezocode or monaecode; profile regenerated 2026-07-15 with 25 verified capabilities)",
+      "notes": "Named Cora, Contract Administrator by dezocode and monaecode 2026-07-15. Phase 5B-9 complete 20260715-2152-cora-init-complete-ctr-admin: 25 verified capabilities, automation profile offered. Alpha (ctr-code-splunk1) remains provisional NO-GO until deliverables, capabilities, persona gate, and human approval."
+    },
+    {
+      "agent_id": "ctr-code-alfred1",
+      "name": "Alfred",
+      "role_title": "OpenClaw Administrator",
+      "purpose": "The OpenClaw Administrator: manage OpenClaw Gateway on Hostinger VPS; build SAI coordination dashboard (Mac + iPhone Whisper); integrate Dezocode/Sai and monaecode/Sai with Slack, GitHub, Composio; agent activity tracking, second-brain MCP, research tab, Habbo-style chat; contract 20260722-openclaw-dashboard-dezocode.",
+      "folder": ".ai/agents/alfred",
+      "charter": ".ai/agents/_roles/contractor-coding/CHARTER.md",
+      "principal": "dezocode (U0BHYH0NMCY) and monaecode (U0BGNS7F0T1)",
+      "status": "provisional",
+      "initialized": "2026-07-22",
+      "primary_runtime": "openclaw-gateway-vps",
+      "entry_points": {
+        "openclaw-gateway-vps": "Hostinger VPS: OPENCLAW.md → .ai/agents/alfred/; first-message .ai/contracts/20260722-openclaw-dashboard-dezocode/first-message-to-openclaw.md"
+      },
+      "automation": "delegated: .ai/agents/alfred/runtimes/openclaw/automation/profile.md",
+      "notes": "Named Alfred, OpenClaw Administrator by dezocode/monaecode intake 2026-07-22. OpenClaw-primary (NOT Cursor). Provisional until fulfillment_gate: 100% production, p99<=15ms ingest, Sai VERIFY, Saul review, human merge."
+    },
+    {
+      "agent_id": "ctr-code-splunk1",
+      "name": "Alpha",
+      "role_title": "Coding Contractor",
+      "purpose": "Contracted coding work on Cybersecurity Splunk Clone under contract 20260715-splunk-clone-monaecode.",
+      "folder": ".ai/agents/alpha",
+      "charter": ".ai/agents/_roles/contractor-coding/CHARTER.md",
+      "principal": "monaecode (U0BGNS7F0T1)",
+      "status": "provisional",
+      "primary_runtime": "claude-code-cli",
+      "entry_points": {
+        "claude-code-cli": "Open monaecode/Sai in Claude Code; read CLAUDE.md → .ai/agents/alpha/AGENT.md",
+        "cursor": "Optional — @alpha in Cursor; not primary runtime"
+      },
+      "automation": "delegated: .ai/agents/alpha/runtimes/claude/automation/profile.md (awaiting ONBOARDING persona gate)",
+      "notes": "Pilot coding contractor for splunk-clone prototype. ONBOARDING.md in progress; Sai audit pending persona gate."
+    }
+  ]
+}

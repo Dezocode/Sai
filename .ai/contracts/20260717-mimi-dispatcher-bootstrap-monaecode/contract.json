@@ -1,0 +1,125 @@
+{
+  "contract_id": "20260717-mimi-dispatcher-bootstrap-monaecode",
+  "contract_type": "principal_agent_evolution",
+  "project_slug": "mimi-dispatcher",
+  "project_name": "Mimi Dispatcher Bootstrap (Claude Desktop + ICM)",
+  "principal": "monaecode (U0BGNS7F0T1)",
+  "subject_agent_id": "mimi",
+  "subject_folder": ".ai/agents/mimi/",
+  "contractor_type": "n/a",
+  "isolation_mode": "integration",
+  "primary_runtime": "claude-code-cli",
+  "claude_desktop_project": {
+    "recommended_name": "Mimi — SAI Dispatcher",
+    "local_folder": "monaecode/Sai clone with full .ai/",
+    "settings_paths": [
+      ".claude/settings.json",
+      ".ai/agents/mimi/runtimes/claude/claude-desktop-bootstrap.json"
+    ],
+    "subagent_path": ".claude/agents/mimi-dispatcher.md"
+  },
+  "repository_canonical": "Dezocode/Sai",
+  "repository_fork": "monaecode/Sai",
+  "branch_prefix_mimi": "monae/",
+  "bootstrap_branch": "monae/mimi-dispatcher-bootstrap-v2",
+  "slack_channel_primary": "#agentupdates",
+  "slack_dispatch_triggers": {
+    "target": "@mimi mentions",
+    "channels": ["#agentupdates", "project channels as authorized"],
+    "status": "required_deliverable",
+    "implementation": "MCP Slack + documented OSS webhook bridge if Desktop cannot subscribe natively"
+  },
+  "github_dispatch_triggers": {
+    "target": "@mimi or labeled issues/PR comments",
+    "status": "required_deliverable",
+    "implementation": "GitHub MCP + optional GitHub Action/workflow_dispatch template in .github/"
+  },
+  "reviewers": {
+    "ceo": {"agent_id": "ceo", "name": "Sai", "gate": "VERIFY PASS on ICM + registry + verify-caps"},
+    "cto": {"agent_id": "dezo-sec-codex1", "name": "Saul", "gate": "CTO review on GitHub PR to canonical main"},
+    "humans": ["monaecode (U0BGNS7F0T1)", "dezocode (U0BHYH0NMCY)"]
+  },
+  "fulfillment_gate": {
+    "description": "Contract fulfilled only when all are true",
+    "conditions": [
+      "PR merged to Dezocode/Sai:main with Mimi dispatcher artifacts",
+      "Sai posts [SAI][VERIFY] PASS referencing this contract_id",
+      "Saul posts acceptable [SAI][CTO-REVIEW] or VERIFY on merged SHA (no blocking P1)",
+      "Both co-founders explicitly authorize merge (human gate)",
+      "scripts/agent-verify-caps PASS for .ai/agents/mimi/runtimes/claude/tools.json with Slack+GitHub evidence",
+      "Claude subagent mimi-dispatcher invocable by name; settings/hooks/skills committed",
+      "@mimi Slack and GitHub trigger path documented with evidence or honest BLOCKED + OSS plan"
+    ]
+  },
+  "splunky_poc_gate": {
+    "contract_ref": "20260715-splunk-clone-monaecode",
+    "rule": "Do NOT dispatch Splunky or digest splunk-clone contract as PoC until fulfillment_gate is complete",
+    "poc_after_fulfillment": "Single dispatch drill: post PLAN, paste onboarding-prompt to new session, verify branch/worktree rules — report only unless monaecode orders implementation"
+  },
+  "deliverables": [
+    {
+      "id": "M0-claude-agent-sdk",
+      "title": "Claude Agent SDK dispatch harness",
+      "paths": [
+        ".ai/agents/mimi/runtimes/claude/agent-sdk/",
+        ".ai/shared/references/claude-agent-sdk.md"
+      ],
+      "description": "Production @mimi / @GitHub dispatch via query(); hooks/MCP/subagents in agent-options.json; smoke evidence in tools.json"
+    },
+    {
+      "id": "M1-claude-native-profile",
+      "title": "Claude-native Mimi dispatcher profile",
+      "paths": [
+        ".claude/agents/mimi-dispatcher.md",
+        ".claude/skills/mimi-dispatcher/",
+        ".ai/agents/mimi/runtimes/claude/claude-desktop-bootstrap.json"
+      ]
+    },
+    {
+      "id": "M2-hooks-automation",
+      "title": "Hooks + automation trigger truth table",
+      "paths": [".ai/agents/mimi/hooks.json", ".claude/settings.json", ".ai/agents/mimi/runtimes/claude/automation/profile.md"]
+    },
+    {
+      "id": "M3-mcp-connectors",
+      "title": "Mandatory MCP + OSS connector plan (verified only in tools.json)",
+      "paths": [".ai/agents/mimi/runtimes/claude/tools.json"],
+      "mandatory_candidates": ["github", "slack", "filesystem", "git/gh shell"]
+    },
+    {
+      "id": "M4-slack-github-triggers",
+      "title": "@mimi dispatch triggers (Slack + GitHub)",
+      "paths": [".ai/agents/mimi/docs/dispatch-triggers.md", ".github/workflows/mimi-dispatch-stub.yml"]
+    },
+    {
+      "id": "M5-charter-amendment",
+      "title": "Dispatcher charter amendment proposal",
+      "paths": [".ai/agents/_roles/portfolio-manager-monaecode/CHARTER.md", ".ai/contracts/20260717-mimi-dispatcher-bootstrap-monaecode/amendments/"]
+    },
+    {
+      "id": "M6-proof-package",
+      "title": "Review package for Sai + Saul",
+      "paths": [".ai/runs/<task-id>/handoff.md", "PR to Dezocode/Sai:main"]
+    }
+  ],
+  "acceptance_criteria": [
+    "All M0–M6 deliverables exist on bootstrap branch with ICM run artifacts",
+    "Claude Agent SDK smoke test + claude-agent-sdk capability verified in tools.json",
+    "agent-init PASS in monaecode Claude environment (record evidence)",
+    "agent-verify-caps: Slack + GitHub MCP or shell gh verified with dates",
+    "verify-semantic-hierarchy OK on PR branch",
+    "No registry status=active upgrade without Sai VERIFY; Mimi may propose registry diff only",
+    "Splunky PoC section untouched until fulfillment_gate complete",
+    "Every commit: Task-ID, Agent: Mimi, Report-Event trailers"
+  ],
+  "approved_capabilities": [],
+  "proposed_capabilities": [
+    {"name": "github", "type": "mcp", "mandatory": true, "status": "proposed"},
+    {"name": "slack", "type": "mcp", "mandatory": true, "status": "proposed"},
+    {"name": "composio-or-oss-webhook", "type": "connector", "mandatory": false, "status": "proposed", "note": "Only if needed for @mimi when native Desktop lacks Events API"}
+  ],
+  "status": "active",
+  "created_at": "2026-07-17T06:16:00Z",
+  "created_by": "ctr-admin",
+  "contract_admin_agent_id": "ctr-admin"
+}

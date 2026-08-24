@@ -1,0 +1,8 @@
+{
+  "task_id": "20260717-2045-claude-agent-sdk-scaffold-ctr-admin",
+  "agent": "ctr-admin",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/claude-agent-sdk-scaffold-f1d6",
+  "status": "completed",
+  "purpose": "Remediate Claude runtime scaffolding to require Agent SDK per dezocode Slack"
+}

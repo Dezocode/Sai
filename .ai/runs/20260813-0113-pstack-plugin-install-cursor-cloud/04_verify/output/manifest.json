@@ -1,0 +1,28 @@
+{
+  "task_id": "20260813-0113-pstack-plugin-install-cursor-cloud",
+  "stage": "04_verify",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-13T01:18:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/03_implement/output/changes.md",
+    ".ai/shared/references/testing.md",
+    ".cursor/settings.json",
+    ".ai/plugins/pstack/manifest.json"
+  ],
+  "outputs": [
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/04_verify/output/verification.md",
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/04_verify/output/manifest.json"
+  ],
+  "decisions": [
+    "0004"
+  ],
+  "commits": [
+    "3dbd9514ba36311398f5144652cc8ed698c65c20"
+  ],
+  "events": [
+    "20260813-0113-pstack-plugin-install-cursor-cloud:verify"
+  ],
+  "human_edits": "none",
+  "notes": "Slash-command picker not observable in this session; disclosed as skip. icm-enforcement passed on GitHub Actions for PR 57."
+}

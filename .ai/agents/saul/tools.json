@@ -1,0 +1,10 @@
+{
+  "agent_id": "dezo-sec-codex1",
+  "folder": ".ai/agents/saul",
+  "primary_runtime": "codex-desktop",
+  "canonical_capabilities_path": "runtimes/codex/tools.json",
+  "surveyed_at": "2026-07-15",
+  "environment": "codex-desktop",
+  "note": "Manifest only — run scripts/agent-verify-caps against canonical_capabilities_path in Phase 5B",
+  "capabilities": []
+}

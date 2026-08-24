@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# verify-contract-shell-allowlist — reject Claude Code shell allowlist patterns
+# that permit destructive git branch operations via prefix wildcards (CTO P1 PR #15).
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+python3 - <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+root = Path(".")
+failed = []
+
+# Bare `git branch` (no args) lists branches — read-only.
+SAFE_BRANCH = re.compile(
+    r"^Bash\(git branch\)$|^Bash\(git branch --(?:list|show-current)(?: [^)]*)?\)$"
+)
+# `git branch <ref>` or wildcards allow `git branch <prefix> -D <victim>` under prefix matchers.
+UNSAFE_BRANCH = re.compile(r"^Bash\(git branch (?!--)")
+
+def iter_allow_entries(obj, path: Path):
+    if isinstance(obj, dict):
+        for key in ("allow", "shell_allowlist_after_phase_5b"):
+            if key in obj:
+                val = obj[key]
+                if key == "shell_allowlist_after_phase_5b" and isinstance(val, dict):
+                    for entry in val.get("allow", []):
+                        yield path, entry
+                elif isinstance(val, list):
+                    for entry in val:
+                        yield path, entry
+        for v in obj.values():
+            yield from iter_allow_entries(v, path)
+    elif isinstance(obj, list):
+        for item in obj:
+            yield from iter_allow_entries(item, path)
+
+for path in sorted(root.glob(".ai/contracts/**/*.json")):
+    if path.name.startswith("."):
+        continue
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        failed.append(f"{path}: invalid JSON: {e}")
+        continue
+    for _, entry in iter_allow_entries(data, path):
+        if not isinstance(entry, str) or not entry.startswith("Bash(git branch"):
+            continue
+        if SAFE_BRANCH.match(entry):
+            continue
+        if UNSAFE_BRANCH.match(entry):
+            failed.append(
+                f"{path}: unsafe shell allowlist {entry!r} — use "
+                "'Bash(git branch --list …)' or 'Bash(git checkout -b …)' only; "
+                "never 'Bash(git branch <prefix>/*)' (permits -D suffix attacks)"
+            )
+
+if failed:
+    print("verify-contract-shell-allowlist: FAILED", file=sys.stderr)
+    for line in failed:
+        print(line, file=sys.stderr)
+    sys.exit(1)
+
+print("verify-contract-shell-allowlist: OK")
+PY

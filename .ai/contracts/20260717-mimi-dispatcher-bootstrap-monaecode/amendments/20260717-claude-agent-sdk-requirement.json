@@ -1,0 +1,16 @@
+{
+  "amendment_id": "20260717-claude-agent-sdk-requirement",
+  "contract_id": "20260717-mimi-dispatcher-bootstrap-monaecode",
+  "amended_at": "2026-07-17T20:45:00Z",
+  "amended_by": "ctr-admin",
+  "summary": "Cora remediation: require Claude Agent SDK harness per dezocode Slack @cora question (2026-07-17). Subagent/settings scaffolding alone was insufficient.",
+  "reference": ".ai/shared/references/claude-agent-sdk.md",
+  "added_deliverable": {
+    "id": "M0-claude-agent-sdk",
+    "title": "Claude Agent SDK dispatch harness",
+    "paths": [
+      ".ai/agents/mimi/runtimes/claude/agent-sdk/",
+      ".ai/shared/references/claude-agent-sdk.md"
+    ]
+  }
+}

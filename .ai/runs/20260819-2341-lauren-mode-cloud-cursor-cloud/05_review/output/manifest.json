@@ -1,0 +1,19 @@
+{
+  "task_id": "20260819-2341-lauren-mode-cloud-cursor-cloud",
+  "stage": "05_review",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-19T23:50:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/stages/05_review/CONTEXT.md",
+    ".ai/_config/security-policy.md",
+    ".ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/04_verify/output/verification.md"
+  ],
+  "outputs": [
+    ".ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/05_review/output/review.md"
+  ],
+  "decisions": ["0004", "0005"],
+  "commits": ["8dd7270862fbb3307a1561656c5f6ee2d646a8e5"],
+  "events": [],
+  "human_edits": "none"
+}

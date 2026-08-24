@@ -1,0 +1,19 @@
+{
+  "task_id": "20260715-1620-contractor-charters-ctr-admin",
+  "agent": "ctr-admin",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/contractor-charters-d11b",
+  "status": "in_progress",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "purpose": "Implement contractor charters and contract administration framework",
+  "claimed_files": [
+    ".ai/ONBOARDING.md",
+    ".ai/contracts/",
+    ".ai/projects/",
+    ".ai/agents/_roles/contract-*",
+    ".ai/agents/cora/",
+    ".ai/agents/alpha/",
+    "scripts/agent-contract-*",
+    "scripts/agent-memory-scaffold"
+  ]
+}

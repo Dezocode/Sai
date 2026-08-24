@@ -1,0 +1,19 @@
+{
+  "task_id": "20260813-0133-redact-intake-email-cursor-cloud",
+  "agent": "cursor-cloud",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/redact-intake-email-10de",
+  "base_sha": "3186cfbad7f4c8fb91043b365a569fdfae4eac27",
+  "purpose": "Redact personal email from merged pstack run intake per Codex P1 and dezocode fix request on PR #57",
+  "status": "handoff",
+  "claimed_files": [
+    ".ai/runs/20260813-0113-pstack-plugin-install-cursor-cloud/01_intake/output/intake.md",
+    ".ai/shared/memory/conventions.md",
+    ".ai/stages/01_intake/CONTEXT.md",
+    ".ai/_config/security-policy.md",
+    ".ai/runs/20260813-0133-redact-intake-email-cursor-cloud/"
+  ],
+  "trigger": "PR #57 review thread on intake.md line 5; dezocode: @cursoragent fix!",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)"
+}

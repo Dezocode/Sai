@@ -1,0 +1,163 @@
+name: agent-audit
+
+# ICM CI enforcement (arXiv:2603.16021): audit trailers, semantic hierarchy,
+# merge HANDOFF documentation, and optional Slack merge report.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  icm-enforcement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: "1.22"
+
+      - name: Determine commit range
+        id: range
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "range=${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ] && git cat-file -e "${{ github.event.before }}" 2>/dev/null; then
+            echo "range=${{ github.event.before }}..${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "range=-n 20 ${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install script permissions
+        run: |
+          chmod +x scripts/verify-agent-audit scripts/verify-semantic-hierarchy \
+                   scripts/verify-merge-handoff scripts/ci-merge-handoff-slack \
+                   scripts/verify-scaffold-safety scripts/verify-contract-shell-allowlist \
+                   scripts/verify-agent-setup \
+                   scripts/agent-memory-scaffold \
+                   scripts/agent-contract-scaffold scripts/agent-contract-pr-review
+
+      - name: Verify scaffold path safety
+        run: scripts/verify-scaffold-safety
+
+      - name: Verify contract shell allowlists (Phase 5B least-privilege)
+        run: scripts/verify-contract-shell-allowlist
+
+      - name: Verify agent setup (profiles, SDK scaffold, contracts)
+        env:
+          SAI_CI_STRICT_CONTRACTS: "1"
+          SAI_CI_REQUIRE_SDK_SMOKE: "0"
+        run: scripts/verify-agent-setup
+
+      - name: Validate scaffold script syntax
+        run: |
+          set -e
+          for f in scripts/agent-scaffold scripts/agent-memory-scaffold \
+                   scripts/agent-contract-scaffold scripts/agent-contract-pr-review \
+                   scripts/lib/agent-path-guards.sh; do
+            bash -n "$f"
+            echo "OK bash -n $f"
+          done
+
+      - name: Verify agent audit metadata
+        run: scripts/verify-agent-audit "${{ steps.range.outputs.range }}"
+
+      - name: Verify semantic hierarchy (ICM .ai structure)
+        run: scripts/verify-semantic-hierarchy
+
+      - name: Verify merge HANDOFF documentation
+        run: |
+          scripts/verify-merge-handoff "${{ steps.range.outputs.range }}"
+          if [ "${{ github.ref }}" = "refs/heads/main" ] && [ "${{ github.event_name }}" = "push" ]; then
+            scripts/verify-merge-handoff --main-tip
+          fi
+
+      - name: Verify OpenClaw gateway loopback bind (Saul P1)
+        run: |
+          chmod +x openclaw-dashboard/scripts/verify-gateway-bind.sh \
+                   openclaw-dashboard/scripts/verify-all-dependencies.sh \
+                   openclaw-dashboard/scripts/verify-gateway-health.sh \
+                   openclaw-dashboard/scripts/verify-agent-telegram.sh \
+                   openclaw-dashboard/tests/smoke/subagent-connection-gate-negative.sh
+          openclaw-dashboard/scripts/verify-gateway-bind.sh
+          openclaw-dashboard/scripts/verify-all-dependencies.sh --self-test
+          openclaw-dashboard/scripts/verify-gateway-health.sh --self-test
+          openclaw-dashboard/scripts/verify-agent-telegram.sh --self-test
+          openclaw-dashboard/tests/smoke/subagent-connection-gate-negative.sh
+
+      - name: Validate event and schema JSON
+        run: |
+          set -e
+          for f in .ai/shared/schemas/*.json; do
+            python3 -m json.tool "$f" > /dev/null
+            echo "OK $f"
+          done
+          for f in $(git ls-files '.ai/runs/*/metadata.json'); do
+            python3 -m json.tool "$f" > /dev/null
+            echo "OK $f"
+          done
+
+      - name: Verify sai-verify kernel and native map
+        run: |
+          unset GITHUB_TOKEN GH_TOKEN; chmod +x .cursor/hooks/sai-verify.sh
+          go test -race ./...
+          go vet ./...
+          EV="${RUNNER_TEMP:-/tmp}/sai-verify-evidence.json"
+          BASE="${{ github.event.pull_request.base.sha || 'origin/main' }}"
+          git fetch --depth=1 origin "$BASE" 2>/dev/null || true
+          if git cat-file -e "$BASE:cmd/sai-verify/main.go" 2>/dev/null; then mkdir -p "${RUNNER_TEMP}/tk" && git archive "$BASE" cmd/sai-verify go.mod | tar -x -C "${RUNNER_TEMP}/tk" && (cd "${RUNNER_TEMP}/tk" && go build -o "${RUNNER_TEMP}/tv" ./cmd/sai-verify) && "${RUNNER_TEMP}/tv" preserve --base-ref "$BASE" --head "$(pwd)" --root "$(pwd)"; else echo "BOOTSTRAP: BASE has no sai-verify kernel; candidate drive is test plane, not preservation policy"; fi
+          go run ./cmd/sai-verify drive --evidence "$EV"
+          go run ./cmd/sai-verify doctor --evidence "$EV"
+          go run ./cmd/sai-verify preserve --base-ref "$BASE"
+          go run ./cmd/sai-verify proof --evidence "$EV" | tee "${RUNNER_TEMP}/sai-verify-proof.txt"; test -s "${RUNNER_TEMP}/sai-verify-proof.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: sai-verify-proof-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/sai-verify-proof*
+      - name: Confirm ICM workflow files present
+        run: |
+          test -f .github/workflows/agent-audit.yml
+          test -f .ai/INITIALIZE.md
+          test -f .cursor/rules/sai-coordination.mdc
+          test -f scripts/verify-agent-setup
+          test -f .ai/shared/references/claude-agent-sdk.md
+          grep -q verify-merge-handoff .github/workflows/agent-audit.yml
+          grep -q verify-semantic-hierarchy .github/workflows/agent-audit.yml
+          grep -q verify-agent-setup .github/workflows/agent-audit.yml
+          echo "ICM CI files: OK"
+
+      - name: Server-side push confirmation
+        if: github.event_name == 'push'
+        run: |
+          echo "Server-side confirmation: ref=${{ github.ref }} sha=${{ github.sha }} pusher=${{ github.actor }}"
+          echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+  merge-handoff-slack:
+    needs: icm-enforcement
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Post merge HANDOFF to #agentupdates
+        env:
+          SAI_SLACK_BOT_TOKEN: ${{ secrets.SAI_SLACK_BOT_TOKEN }}
+          SAI_AGENT_ID: ceo-automation
+          GITHUB_REF_NAME: main
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+        run: |
+          chmod +x scripts/agent-report scripts/ci-merge-handoff-slack
+          scripts/ci-merge-handoff-slack

@@ -1,0 +1,10 @@
+{
+  "task_id": "20260722-0446-design-language-smoke-ctr-admin",
+  "agent": "ctr-admin",
+  "contract_id": "20260722-openclaw-dashboard-dezocode",
+  "purpose": "Unified Cursor/Obsidian design language, native Mac/iOS stack, Habbo engine, shared workspaces, smoke gates, Telegram MCQ",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/alfred-openclaw-contract-f1d6",
+  "status": "publish_sync",
+  "started_at": "2026-07-22T04:46:00Z"
+}

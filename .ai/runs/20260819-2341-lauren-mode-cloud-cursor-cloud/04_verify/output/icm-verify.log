@@ -1,0 +1,38 @@
+parent_head c69076ac8751181d1d859deb3e4fd0b240d72938
+worktree_dirty:
+ M .ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/04_verify/output/icm-verify.log
+ M .ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/05_review/output/review.md
+ M .ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/06_publish_sync/output/publish.md
+ M .ai/runs/20260819-2341-lauren-mode-cloud-cursor-cloud/handoff.md
+ M scripts/agent-report
+=== bash -n scripts/agent-report ===
+OK
+=== agent-report compare-tip ===
+explicit --base-sha dda0e976... -> dda0e97 (asserted)
+gh pr view baseRefOid path -> dda0e97 (asserted)
+bogus --base-sha deadbeef... -> fail, no HEAD fallback (asserted)
+=== json ===
+manifest.json OK
+metadata.json OK
+=== events.jsonl ===
+1 PLAN dda0e97
+2 PR dda0e97
+3 VERIFY dda0e97
+4 HANDOFF dda0e97
+events.jsonl base_sha OK
+=== yaml frontmatter ===
+.cursor/skills/lauren-mode/SKILL.md OK
+.cursor/rules/pstack-models.mdc OK
+=== chrome ===
+lrwxrwxrwx 1 root root 31 Jan  1  1970 /usr/bin/google-chrome -> /etc/alternatives/google-chrome
+lrwxrwxrwx 1 root root 32 Jan  1  1970 /usr/bin/google-chrome-stable -> /opt/google/chrome/google-chrome
+=== verify-semantic-hierarchy ===
+verify-semantic-hierarchy: OK
+=== verify-agent-audit ===
+verify-agent-audit: OK (origin/main..HEAD)
+=== verify-merge-handoff ===
+verify-merge-handoff: OK (1 task-id(s) checked)
+=== verify-agent-setup ===
+verify-agent-setup: OK
+=== compileall scripts ===
+OK

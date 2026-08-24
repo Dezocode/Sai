@@ -1,0 +1,13 @@
+{
+  "task_id": "20260715-2130-pr9-contractor-verify-ceo",
+  "agent": "ceo-automation",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/contractor-charters-d11b",
+  "status": "in_progress",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "purpose": "CEO VERIFY of PR #9 contractor charters; fix merge-handoff CI gate",
+  "claimed_files": [
+    ".ai/runs/20260715-2128-contractor-charters-rebase-ceo/",
+    ".ai/runs/20260715-2130-pr9-contractor-verify-ceo/"
+  ]
+}

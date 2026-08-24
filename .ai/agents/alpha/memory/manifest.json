@@ -1,0 +1,12 @@
+{
+  "agent_id": "ctr-code-splunk1",
+  "folder": ".ai/agents/alpha",
+  "created_at": "2026-07-15T16:24:14Z",
+  "drive_mirror_path": "SAI/agents/ctr-code-splunk1/memory/",
+  "contracts": [
+    "20260715-splunk-clone-monaecode"
+  ],
+  "audit_years": [
+    "2026"
+  ]
+}

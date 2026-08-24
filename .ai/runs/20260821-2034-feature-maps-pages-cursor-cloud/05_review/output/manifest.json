@@ -1,0 +1,20 @@
+{
+  "task_id": "20260821-2034-feature-maps-pages-cursor-cloud",
+  "stage": "05_review",
+  "agent": "cursor-cloud",
+  "completed_at": "2026-08-21T21:20:00Z",
+  "status": "complete",
+  "inputs": [
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/04_verify/output/verify.md",
+    ".cursor/skills/verify-sai/features/protected-ci.md",
+    ".github/workflows/feature-maps-pages.yml"
+  ],
+  "outputs": [
+    ".ai/runs/20260821-2034-feature-maps-pages-cursor-cloud/05_review/output/review.md"
+  ],
+  "decisions": ["0004", "0005"],
+  "commits": ["4db544e2e9da0097a5e55e45dc13684fb642184f"],
+  "events": [],
+  "human_edits": "none",
+  "notes": "Preserve stays additive. Pages is not a required check."
+}

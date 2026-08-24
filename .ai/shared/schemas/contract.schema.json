@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/contract.schema.json",
+  "title": "SAI contractor contract",
+  "description": "Canonical contract artifact for contractor agents. Stored at .ai/contracts/<contract-id>/contract.json and mirrored to Drive after GitHub verification.",
+  "type": "object",
+  "required": [
+    "contract_id",
+    "project_slug",
+    "project_name",
+    "principal",
+    "contractor_type",
+    "isolation_mode",
+    "primary_runtime",
+    "compatibility_layer",
+    "repository",
+    "branch_prefix",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "contract_id": {
+      "type": "string",
+      "pattern": "^[0-9]{8}-[a-z0-9][a-z0-9-]*$",
+      "description": "YYYYMMDD-<project-slug>-<principal-slug>, e.g. 20260715-splunk-clone-monaecode"
+    },
+    "project_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "URL-safe project identifier used in branches and Drive paths"
+    },
+    "project_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable project name"
+    },
+    "principal": {
+      "type": "string",
+      "description": "Contract owner, e.g. dezocode (U0BHYH0NMCY) or monaecode (U0BGNS7F0T1)"
+    },
+    "contractor_type": {
+      "type": "string",
+      "enum": ["coding", "design"]
+    },
+    "isolation_mode": {
+      "type": "string",
+      "enum": ["prototype", "integration"],
+      "description": "prototype = isolated worktree; integration = merge to main after CI gates"
+    },
+    "primary_runtime": {
+      "type": "string",
+      "enum": ["cursor-cloud-vm", "cursor-desktop", "claude-code-cli", "codex-desktop", "openclaw-gateway-vps"]
+    },
+    "compatibility_layer": {
+      "type": "string",
+      "description": "Target compatibility, e.g. sai-mac-ios-android"
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "branch_prefix": {
+      "type": "string",
+      "pattern": "^proj/[a-z0-9][a-z0-9-]*/$",
+      "description": "proj/<project-slug>/ — contractor branches append <agent-id>/<task-slug>"
+    },
+    "slack_channel": {
+      "type": "string",
+      "description": "Project Slack channel, e.g. #proj-splunk-clone (creation requires owner approval)"
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Measurable criteria evaluated on every PR"
+    },
+    "deliverables": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Expected outputs for contract completion"
+    },
+    "approved_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "approved_by", "approved_at"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string", "enum": ["mcp", "skill", "hook", "dependency"] },
+          "approved_by": { "type": "string" },
+          "approved_at": { "type": "string", "format": "date-time" },
+          "evidence": { "type": "string" }
+        }
+      },
+      "description": "Owner-approved MCP servers, skills, hooks recorded during ONBOARDING Phase 3"
+    },
+    "assigned_contractors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["agent_id", "status"],
+        "properties": {
+          "agent_id": { "type": "string", "pattern": "^ctr-(code|design)-[a-z0-9][a-z0-9-]*$" },
+          "folder": { "type": "string" },
+          "branch": { "type": "string" },
+          "status": { "type": "string", "enum": ["provisional", "active", "retired"] }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "active", "review", "closed"]
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "created_by": { "type": "string" },
+    "contract_admin_agent_id": { "type": "string" }
+  }
+}

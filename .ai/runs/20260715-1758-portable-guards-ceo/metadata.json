@@ -1,0 +1,14 @@
+{
+  "task_id": "20260715-1758-portable-guards-ceo",
+  "agent": "ceo-automation",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-a9c9",
+  "base_sha": "24de40c",
+  "purpose": "Fix P1 portability block on PR #10 scaffold path guards for macOS/Codex Desktop",
+  "status": "verify",
+  "claimed_files": [
+    "scripts/lib/agent-path-guards.sh",
+    ".ai/runs/20260715-1758-portable-guards-ceo/"
+  ],
+  "trigger": "Slack BLOCKED 20260715-cto-pr10-governance-dezo-sec-codex1"
+}

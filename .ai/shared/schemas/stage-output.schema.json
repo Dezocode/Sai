@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Dezocode/Sai/.ai/shared/schemas/stage-output.schema.json",
+  "title": "SAI stage output manifest",
+  "description": "Manifest written to .ai/runs/<task-id>/<NN_stage>/output/manifest.json when a stage completes, recording provenance from outputs back to inputs, decisions, commits, and agents.",
+  "type": "object",
+  "required": ["task_id", "stage", "agent", "completed_at", "inputs", "outputs", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "01_intake", "02_plan", "03_implement",
+        "04_verify", "05_review", "06_publish_sync"
+      ]
+    },
+    "agent": { "type": "string" },
+    "completed_at": { "type": "string", "format": "date-time" },
+    "status": {
+      "type": "string",
+      "enum": ["complete", "partial", "blocked", "abandoned"]
+    },
+    "inputs": {
+      "type": "array",
+      "description": "Every file the stage loaded (Layer 3 references and Layer 4 artifacts), repo-relative paths.",
+      "items": { "type": "string" }
+    },
+    "outputs": {
+      "type": "array",
+      "description": "Every file the stage wrote, repo-relative paths.",
+      "items": { "type": "string" }
+    },
+    "decisions": {
+      "type": "array",
+      "description": "Decision record IDs consulted or created (e.g. '0001').",
+      "items": { "type": "string" }
+    },
+    "commits": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" }
+    },
+    "events": {
+      "type": "array",
+      "description": "event_ids emitted during this stage.",
+      "items": { "type": "string" }
+    },
+    "human_edits": {
+      "type": "string",
+      "description": "Summary of human edits made to prior outputs before this stage ran, or 'none'."
+    },
+    "notes": { "type": "string" }
+  }
+}

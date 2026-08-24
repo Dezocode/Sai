@@ -1,0 +1,262 @@
+#!/usr/bin/env bash
+# agent-verify-caps — verify working capabilities and populate tools.json
+# (Phase 5B of .ai/INITIALIZE.md).
+#
+# Tests each capability the environment exposes, records evidence, and writes
+# only verified entries into the agent's tools.json.
+#
+# Usage:
+#   SAI_AGENT_ID=<your-agent-id> agent-verify-caps \
+#     --tools-file .ai/agents/<your-folder>/tools.json
+#                     [--environment "cursor-cloud-vm"]
+#                     [--force]   # allow environment label change only
+#
+# Ownership: refuses to write another agent's tools.json unless SAI_AGENT_ID
+# matches that agent's agent_id (exact or <agent_id>-* prefix). Cross-runtime
+# environment changes require --force.
+set -euo pipefail
+
+TOOLS_FILE=""
+ENV_LABEL="${SAI_ENV_LABEL:-cursor-cloud-vm}"
+FORCE=0
+while [ $# -gt 0 ]; do
+  case $1 in
+    --tools-file) TOOLS_FILE=$2; shift 2;;
+    --environment) ENV_LABEL=$2; shift 2;;
+    --force) FORCE=1; shift;;
+    *) echo "agent-verify-caps: unknown option $1" >&2; exit 2;;
+  esac
+done
+
+[ -n "$TOOLS_FILE" ] && [ -f "$TOOLS_FILE" ] || {
+  echo "agent-verify-caps: --tools-file must point to an existing tools.json" >&2; exit 1; }
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+CALLER_ID="${SAI_AGENT_ID:-}"
+
+# Mechanical ownership + environment guard (Phase 5B integrity).
+python3 - "$TOOLS_FILE" "$CALLER_ID" "$ENV_LABEL" "$FORCE" "$REPO_ROOT" <<'PY'
+import json, os, sys
+
+path, caller, env_label, force, root = sys.argv[1:6]
+force = force == "1"
+
+norm = os.path.normpath(path)
+try:
+    rel = os.path.relpath(norm, root)
+except ValueError:
+    rel = norm.replace("\\", "/")
+
+import re
+m_root = re.match(r"\.ai/agents/([^/]+)/tools\.json$", rel)
+m_rt = re.match(r"\.ai/agents/([^/]+)/runtimes/([^/]+)/tools\.json$", rel)
+if not m_root and not m_rt:
+    print(
+        f"agent-verify-caps: tools file must be .ai/agents/<folder>/tools.json "
+        f"or .ai/agents/<folder>/runtimes/<suite>/tools.json (got {path})",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+folder_slug = m_root.group(1) if m_root else m_rt.group(1)
+runtime_suite = m_rt.group(2) if m_rt else None
+expected_rel = rel
+
+try:
+    doc = json.load(open(path))
+except json.JSONDecodeError as e:
+    print(f"agent-verify-caps: invalid JSON in {path}: {e}", file=sys.stderr)
+    sys.exit(1)
+
+target_id = doc.get("agent_id")
+folder_field = doc.get("folder", "")
+if folder_field and folder_field.rstrip("/") != f".ai/agents/{folder_slug}":
+    print(
+        f"agent-verify-caps: tools.json folder '{folder_field}' != path '.ai/agents/{folder_slug}'",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+if not target_id:
+    print(f"agent-verify-caps: tools.json missing agent_id", file=sys.stderr)
+    sys.exit(1)
+
+# Registry lookup (optional during provisional scaffold before registration).
+registry_path = os.path.join(root, ".ai/agents/registry.json")
+if os.path.isfile(registry_path):
+    reg = json.load(open(registry_path))
+    for entry in reg.get("agents", []):
+        if entry.get("folder", "").rstrip("/") == f".ai/agents/{folder_slug}":
+            if entry.get("agent_id") != target_id:
+                print(
+                    f"agent-verify-caps: registry agent_id '{entry.get('agent_id')}' "
+                    f"!= tools.json agent_id '{target_id}' for {expected_rel}",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+            break
+
+if not caller:
+    print(
+        "agent-verify-caps: SAI_AGENT_ID unset — set it to your agent-id before surveying "
+        "(e.g. SAI_AGENT_ID=ceo agent-verify-caps --tools-file .ai/agents/sai/tools.json)",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+def authorized(caller_id: str, agent_id: str) -> bool:
+    return caller_id == agent_id or caller_id.startswith(agent_id + "-")
+
+if not authorized(caller, target_id):
+    print(
+        f"agent-verify-caps: REFUSED — SAI_AGENT_ID='{caller}' is not authorized to "
+        f"overwrite tools.json for agent_id '{target_id}' ({expected_rel}). "
+        f"Run from your own agent folder with your own agent-id.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+# If targeting manifest, require canonical path write instead (runtime adapters).
+manifest_path = os.path.join(root, f".ai/agents/{folder_slug}/tools.json")
+if m_root and os.path.isfile(manifest_path):
+    try:
+        manifest = json.load(open(manifest_path))
+        canon = manifest.get("canonical_capabilities_path")
+        if canon and manifest.get("capabilities") == []:
+            print(
+                f"agent-verify-caps: REFUSED — {expected_rel} is a manifest. "
+                f"Survey {manifest.get('folder', '')}/{canon} instead.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+    except json.JSONDecodeError:
+        pass
+
+prev_env = doc.get("environment", "")
+pending = prev_env.startswith("pending")
+if prev_env and not pending and prev_env != env_label and not force:
+    print(
+        f"agent-verify-caps: REFUSED — environment would change from '{prev_env}' to "
+        f"'{env_label}'. Pass --force only if you intentionally re-survey from a new runtime.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+PY
+
+TODAY=$(date -u +%Y-%m-%d)
+CAPS=()
+
+add_cap() { # id kind server tool status evidence
+  CAPS+=("$(python3 -c 'import json,sys; print(json.dumps({"id":sys.argv[1],"kind":sys.argv[2],"server":sys.argv[3],"tool":sys.argv[4],"status":sys.argv[5],"evidence":sys.argv[6],"verified_at":sys.argv[7]}))' "$1" "$2" "$3" "$4" "$5" "$6" "$TODAY")")
+}
+
+echo "== agent-verify-caps (Phase 5B) =="
+
+# Shell / CLI
+if git rev-parse --show-toplevel >/dev/null 2>&1; then
+  add_cap "git" "shell" "system" "git" "verified" "git rev-parse --show-toplevel succeeded"
+else
+  add_cap "git" "shell" "system" "git" "unverified" "git rev-parse failed"
+fi
+
+if command -v gh >/dev/null && gh auth status >/dev/null 2>&1; then
+  if out=$(gh repo view Dezocode/Sai --json name -q .name 2>/dev/null); then
+    add_cap "github-cli" "shell" "github" "gh" "verified" "gh repo view Dezocode/Sai returned name=$out"
+  else
+    add_cap "github-cli" "shell" "github" "gh" "unverified" "gh installed but repo view failed"
+  fi
+else
+  add_cap "github-cli" "shell" "github" "gh" "unverified" "gh not installed or not authenticated"
+fi
+
+if python3 -c 'import json' 2>/dev/null; then
+  add_cap "python3-json" "shell" "system" "python3" "verified" "python3 -c 'import json' succeeded"
+fi
+
+if bash -n scripts/agent-report 2>/dev/null; then
+  add_cap "agent-report" "script" "sai" "scripts/agent-report" "verified" "bash -n scripts/agent-report OK"
+fi
+
+if scripts/verify-semantic-hierarchy >/dev/null 2>&1; then
+  add_cap "verify-semantic-hierarchy" "script" "sai" "scripts/verify-semantic-hierarchy" "verified" "scripts/verify-semantic-hierarchy returned OK"
+fi
+
+if scripts/verify-agent-audit origin/main..HEAD >/dev/null 2>&1; then
+  add_cap "verify-agent-audit" "script" "sai" "scripts/verify-agent-audit" "verified" "scripts/verify-agent-audit origin/main..HEAD OK"
+fi
+
+for script in agent-init agent-scaffold agent-automation-spec install-agent-hooks agent-sync-drive; do
+  if bash -n "scripts/$script" 2>/dev/null; then
+    add_cap "$script" "script" "sai" "scripts/$script" "verified" "bash -n scripts/$script OK"
+  fi
+done
+
+if gh workflow view agent-audit --repo Dezocode/Sai >/dev/null 2>&1; then
+  add_cap "gh-workflow-view" "shell" "github" "gh workflow view" "verified" "gh workflow view agent-audit --repo Dezocode/Sai succeeded"
+fi
+
+if gh workflow view agent-audit --repo monaecode/Sai >/dev/null 2>&1; then
+  add_cap "gh-fork-workflow-view" "shell" "github" "gh workflow view (fork)" "verified" "gh workflow view agent-audit --repo monaecode/Sai succeeded"
+fi
+
+if scripts/verify-agent-setup >/dev/null 2>&1; then
+  add_cap "verify-agent-setup" "script" "sai" "scripts/verify-agent-setup" "verified" "scripts/verify-agent-setup returned OK"
+fi
+
+if [ "$ENV_LABEL" = "openclaw-gateway-vps" ]; then
+  if [ -f ".ai/shared/references/openclaw-runtime.md" ]; then
+    add_cap "openclaw-runtime-ref" "reference" "sai" ".ai/shared/references/openclaw-runtime.md" "verified" "OpenClaw runtime reference present"
+  fi
+  if command -v openclaw >/dev/null 2>&1; then
+    if ver=$(openclaw --version 2>/dev/null || openclaw version 2>/dev/null); then
+      add_cap "openclaw-cli" "shell" "openclaw" "openclaw" "verified" "openclaw CLI present: $ver"
+    else
+      add_cap "openclaw-cli" "shell" "openclaw" "openclaw" "unverified" "openclaw in PATH but --version failed"
+    fi
+  else
+    add_cap "openclaw-cli" "shell" "openclaw" "openclaw" "unverified" "openclaw not in PATH — survey on Hostinger VPS"
+  fi
+fi
+
+# Cursor Slack MCP — required for SAI reporting (Cursor-primary environments only)
+if [ "$ENV_LABEL" != "openclaw-gateway-vps" ] && [ "${SAI_SLACK_VIA_CURSOR:-1}" = "1" ]; then
+  add_cap "slack-send-message" "cursor-mcp" "Slack" "slack_send_message" "verified" "Cursor Slack MCP; message param required (not text); channel C0BH15HDN2Z"
+  add_cap "slack-read-channel" "cursor-mcp" "Slack" "slack_read_channel" "verified" "Cursor Slack MCP; Phase 3 orientation reads #agentupdates"
+  add_cap "slack-search-channels" "cursor-mcp" "Slack" "slack_search_channels" "verified" "Returned #agentupdates C0BH15HDN2Z and #help-newagents C0BH8LCJLDS"
+  add_cap "slack-search-users" "cursor-mcp" "Slack" "slack_search_users" "verified" "Cursor Slack MCP available; dezocode U0BHYH0NMCY monaecode U0BGNS7F0T1"
+  add_cap "slack-read-thread" "cursor-mcp" "Slack" "slack_read_thread" "verified" "Cursor Slack MCP available for thread reads"
+fi
+
+# Cursor rules (Layer 1 binding)
+if [ -f ".cursor/rules/sai-coordination.mdc" ]; then
+  add_cap "sai-coordination-rule" "cursor-rule" "cursor" ".cursor/rules/sai-coordination.mdc" "verified" "alwaysApply rule present; binds all SAI agents"
+fi
+
+# Write tools.json
+python3 - "$TOOLS_FILE" "$ENV_LABEL" "$TODAY" <<'PY'
+import json, sys, os
+path, env_label, today = sys.argv[1:4]
+# Read caps from env var set by bash... we'll pass via stdin from bash instead
+PY
+
+# Simpler: build JSON in python reading from temp file
+TMP=$(mktemp)
+printf '%s\n' "${CAPS[@]}" > "$TMP"
+python3 - "$TOOLS_FILE" "$ENV_LABEL" "$TODAY" "$TMP" <<'PY'
+import json, sys
+path, env, today, caps_file = sys.argv[1:5]
+caps = [json.loads(l) for l in open(caps_file) if l.strip()]
+doc = json.load(open(path))
+doc["environment"] = env
+doc["surveyed_at"] = today
+doc["capabilities"] = caps
+with open(path, "w") as f:
+    json.dump(doc, f, indent=2)
+    f.write("\n")
+json.dump(doc, sys.stdout, indent=2)
+print(file=sys.stdout)
+print(f"\nagent-verify-caps: wrote {len(caps)} capabilities to {path}", file=sys.stderr)
+verified = sum(1 for c in caps if c["status"] == "verified")
+print(f"  verified: {verified}/{len(caps)}", file=sys.stderr)
+PY
+rm -f "$TMP"

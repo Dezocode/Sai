@@ -1,0 +1,96 @@
+name: Feature maps Pages
+
+# Non-required. Publishes Origin-light maps HTML from exact HEAD.
+# PR/push: build only (no github-pages environment).
+# main push: deploy via Actions Pages. Settings still need Pages=GitHub Actions.
+# Candidate renderer must not receive GH_TOKEN or GITHUB_TOKEN.
+# pull_request / non-main build must not receive github.token at all.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: feature-maps-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: "1.22"
+      - name: Write empty check-run metadata
+        run: |
+          echo '[]' > "${RUNNER_TEMP}/feature-maps-checks.json"
+      - name: Render feature maps
+        run: |
+          unset GITHUB_TOKEN GH_TOKEN
+          chmod +x scripts/render-sai-feature-maps
+          SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          OUT="${RUNNER_TEMP}/feature-maps-site"
+          CHECKS="${RUNNER_TEMP}/feature-maps-checks.json"
+          scripts/render-sai-feature-maps --check
+          scripts/render-sai-feature-maps --out "$OUT" --checks "$CHECKS" --sha "$SHA"
+          test -f "$OUT/feature-maps.html"
+          test -f "$OUT/index.html"
+          test -f "$OUT/.nojekyll"
+          test ! -s "$OUT/.nojekyll"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: feature-maps-html-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/feature-maps-site
+          include-hidden-files: true
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+      checks: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: "1.22"
+      - name: Fetch check-run metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CHECKS="${RUNNER_TEMP}/feature-maps-checks.json"
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs" \
+            --jq '[.check_runs[] | {name, conclusion, status}]' > "$CHECKS" || echo '[]' > "$CHECKS"
+          test -s "$CHECKS"
+      - name: Render feature maps for Pages
+        run: |
+          unset GITHUB_TOKEN GH_TOKEN
+          chmod +x scripts/render-sai-feature-maps
+          OUT="${RUNNER_TEMP}/feature-maps-site"
+          CHECKS="${RUNNER_TEMP}/feature-maps-checks.json"
+          scripts/render-sai-feature-maps --out "$OUT" --checks "$CHECKS" --sha "${GITHUB_SHA}"
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: ${{ runner.temp }}/feature-maps-site
+      - id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

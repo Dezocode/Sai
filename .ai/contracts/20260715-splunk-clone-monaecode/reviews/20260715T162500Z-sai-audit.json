@@ -1,0 +1,37 @@
+{
+  "review_id": "20260715T162500Z-sai-audit",
+  "contract_id": "20260715-splunk-clone-monaecode",
+  "reviewer": "ceo",
+  "review_type": "onboarding_compliance_audit",
+  "timestamp": "2026-07-15T16:25:00Z",
+  "contractor_agent_id": "ctr-code-splunk1",
+  "overall": "conditional_pass",
+  "checks": [
+    {
+      "criterion": "agent_folder_exists",
+      "status": "pass",
+      "detail": ".ai/agents/alpha/ with AGENT.md, skills.md, tools.json, hooks.json"
+    },
+    {
+      "criterion": "memory_scaffold",
+      "status": "pass",
+      "detail": ".ai/agents/alpha/memory/ with contract ref 20260715-splunk-clone-monaecode"
+    },
+    {
+      "criterion": "registry_provisional",
+      "status": "pass",
+      "detail": "ctr-code-splunk1 status provisional until persona gate"
+    },
+    {
+      "criterion": "onboarding_phases_complete",
+      "status": "pending",
+      "detail": "Phases 0-4 scaffolded; Phase 6 persona gate not yet demonstrated"
+    },
+    {
+      "criterion": "agent_init_pass",
+      "status": "pending",
+      "detail": "Run scripts/agent-init with SAI_AGENT_ID=ctr-code-splunk1 in contractor environment"
+    }
+  ],
+  "next_action": "Contractor completes ONBOARDING Phase 6 persona gate; Sai posts VERIFY PASS before status active"
+}

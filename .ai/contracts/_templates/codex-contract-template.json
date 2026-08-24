@@ -1,0 +1,26 @@
+{
+  "$schema": "../shared/schemas/contract.schema.json",
+  "contract_id": "YYYYMMDD-<project-slug>-<principal-slug>",
+  "project_slug": "<project-slug>",
+  "project_name": "<Human-readable project name>",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "contractor_type": "coding",
+  "isolation_mode": "prototype",
+  "primary_runtime": "codex-desktop",
+  "compatibility_layer": "sai-mac-ios-android",
+  "repository": "Dezocode/Sai",
+  "branch_prefix": "proj/<project-slug>/",
+  "slack_channel": "#proj-<project-slug>",
+  "acceptance_criteria": [
+    "Deliverables match contract scope",
+    "Compatibility manifest documented for prototype",
+    "agent-contract-pr-review PASS on every PR"
+  ],
+  "deliverables": [],
+  "approved_capabilities": [],
+  "assigned_contractors": [],
+  "status": "draft",
+  "created_at": "",
+  "created_by": "ctr-admin",
+  "contract_admin_agent_id": "ctr-admin"
+}

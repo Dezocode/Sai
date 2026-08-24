@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# agent-memory-scaffold — create per-agent memory directory structure.
+#
+# Usage: agent-memory-scaffold --agent-id ID --folder .ai/agents/<name> \
+#        [--contract-id ID]
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=scripts/lib/agent-path-guards.sh
+. "$SCRIPT_DIR/lib/agent-path-guards.sh"
+
+AGENT_ID="" FOLDER="" CONTRACT_ID=""
+while [ $# -gt 0 ]; do
+  case $1 in
+    --agent-id) AGENT_ID=$2; shift 2;;
+    --folder) FOLDER=$2; shift 2;;
+    --contract-id) CONTRACT_ID=$2; shift 2;;
+    *) echo "agent-memory-scaffold: unknown option $1" >&2; exit 2;;
+  esac
+done
+
+[ -n "$AGENT_ID" ] && [ -n "$FOLDER" ] || {
+  echo "agent-memory-scaffold: --agent-id and --folder required" >&2; exit 1; }
+
+guard_agent_id "$AGENT_ID"
+guard_agent_folder_rel "$REPO_ROOT" "$FOLDER"
+[ -z "$CONTRACT_ID" ] || guard_contract_id "$CONTRACT_ID"
+
+MEM_DIR="$REPO_ROOT/$FOLDER/memory"
+guard_under_ai_subtree "$REPO_ROOT" "$FOLDER/memory" "agents"
+YEAR=$(date -u +%Y)
+TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+mkdir -p "$MEM_DIR/contracts" "$MEM_DIR/audit/$YEAR"
+
+cat > "$MEM_DIR/manifest.json" <<EOF
+{
+  "agent_id": "${AGENT_ID}",
+  "folder": "${FOLDER}",
+  "created_at": "${TS}",
+  "drive_mirror_path": "SAI/agents/${AGENT_ID}/memory/",
+  "contracts": [],
+  "audit_years": ["${YEAR}"]
+}
+EOF
+
+cat > "$MEM_DIR/audit/index.json" <<EOF
+{
+  "agent_id": "${AGENT_ID}",
+  "years": {
+    "${YEAR}": "audit/${YEAR}/summary.jsonl"
+  },
+  "note": "Compressed event/handoff index for multi-year contract audit. Full runs remain in .ai/runs/."
+}
+EOF
+
+touch "$MEM_DIR/audit/$YEAR/summary.jsonl"
+touch "$MEM_DIR/capabilities-history.jsonl"
+
+if [ -n "$CONTRACT_ID" ]; then
+  guard_under_ai_subtree "$REPO_ROOT" "$FOLDER/memory/contracts/${CONTRACT_ID}.json" "agents"
+  echo "{\"contract_id\":\"${CONTRACT_ID}\",\"linked_at\":\"${TS}\"}" \
+    > "$MEM_DIR/contracts/${CONTRACT_ID}.json"
+  python3 - "$MEM_DIR/manifest.json" "$CONTRACT_ID" <<'PY'
+import json, sys
+path, cid = sys.argv[1], sys.argv[2]
+m = json.load(open(path))
+if cid not in m.get("contracts", []):
+    m.setdefault("contracts", []).append(cid)
+json.dump(m, open(path, "w"), indent=2)
+print()
+PY
+fi
+
+echo "agent-memory-scaffold: created $MEM_DIR"

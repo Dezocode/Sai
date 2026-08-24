@@ -1,0 +1,10 @@
+{
+  "agent_id": "ctr-code-alfred1",
+  "folder": ".ai/agents/alfred",
+  "primary_runtime": "openclaw-gateway-vps",
+  "canonical_capabilities_path": "runtimes/openclaw/tools.json",
+  "surveyed_at": "2026-07-22",
+  "environment": "openclaw-gateway-vps",
+  "note": "OpenClaw-primary — survey on Hostinger VPS with scripts/agent-verify-caps --environment openclaw-gateway-vps. Alfred is NOT a Cursor runtime agent.",
+  "capabilities": []
+}

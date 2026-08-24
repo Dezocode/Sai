@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# verify-agent-audit — CI/local check that commits carry the required audit
+# metadata and that queued events are schema-valid JSON.
+#
+# Usage: verify-agent-audit [<rev-list args>]   (default: origin/main..HEAD)
+#
+# Human commits are exempt from agent trailers; agent commits are detected by
+# the presence of any SAI trailer or an agent identity in the author line.
+# Merge commits are skipped. Exits non-zero if an agent commit lacks Task-ID
+# or Agent trailers.
+set -euo pipefail
+
+RANGE="${*:-origin/main..HEAD}"
+FAIL=0
+
+# shellcheck disable=SC2086 — RANGE may contain rev-list flags (e.g. "-n 20 <sha>")
+for sha in $(git rev-list --no-merges $RANGE 2>/dev/null); do
+  body=$(git log -1 --format=%B "$sha")
+  author=$(git log -1 --format='%an <%ae>' "$sha")
+  has_task=$(printf '%s' "$body" | grep -c '^Task-ID:' || true)
+  has_agent=$(printf '%s' "$body" | grep -c '^Agent:' || true)
+  is_agent_commit=0
+  if [ "$has_task" -gt 0 ] || [ "$has_agent" -gt 0 ]; then is_agent_commit=1; fi
+  case "$author" in
+    *[Cc]ursor*|*[Aa]gent*|*bot*) is_agent_commit=1;;
+  esac
+  if [ "$is_agent_commit" = "1" ]; then
+    if [ "$has_task" -eq 0 ]; then
+      echo "FAIL $sha: agent commit missing Task-ID trailer" >&2; FAIL=1
+    fi
+    if [ "$has_agent" -eq 0 ]; then
+      echo "FAIL $sha: agent commit missing Agent trailer" >&2; FAIL=1
+    fi
+    task=$(printf '%s' "$body" | sed -n 's/^Task-ID: *//p' | head -n1)
+    if [ -n "$task" ] && ! printf '%s' "$task" | grep -Eq '^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$'; then
+      echo "FAIL $sha: Task-ID '$task' does not match YYYYMMDD-HHMM-<purpose>-<agent-id>" >&2; FAIL=1
+    fi
+  fi
+done
+
+# Validate any queued/committed event JSON against basic well-formedness.
+GIT_DIR=$(git rev-parse --git-common-dir)
+for f in "$GIT_DIR"/agent-events/queue/*.json; do
+  [ -e "$f" ] || break
+  python3 -m json.tool "$f" >/dev/null 2>&1 || { echo "FAIL: malformed queued event $f" >&2; FAIL=1; }
+done
+for jsonl in $(git ls-files '.ai/runs/*/events.jsonl'); do
+  n=0
+  while IFS= read -r line; do
+    n=$((n+1))
+    [ -z "$line" ] && continue
+    printf '%s' "$line" | python3 -m json.tool >/dev/null 2>&1 \
+      || { echo "FAIL: $jsonl line $n is not valid JSON" >&2; FAIL=1; }
+  done < "$jsonl"
+done
+
+if [ "$FAIL" = "0" ]; then
+  echo "verify-agent-audit: OK ($RANGE)"
+else
+  echo "verify-agent-audit: FAILED — see messages above. Emergency bypass policy: .ai/_config/security-policy.md" >&2
+fi
+exit "$FAIL"

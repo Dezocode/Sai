@@ -1,0 +1,7 @@
+{
+  "agent_id": "ctr-admin",
+  "years": {
+    "2026": "audit/2026/summary.jsonl"
+  },
+  "note": "Compressed event/handoff index for multi-year contract audit. Full runs remain in .ai/runs/."
+}

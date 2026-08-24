@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+# verify-scaffold-safety — regression checks for scaffold path validation and
+# contract-review pass semantics (P1 gate from CTO review of PR #9).
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+FAILED=0
+
+check_fail() {
+  local name=$1
+  shift
+  if "$@" >/dev/null 2>&1; then
+    echo "FAIL  $name — expected rejection but command succeeded" >&2
+    FAILED=1
+  else
+    echo "PASS  $name — rejected invalid input"
+  fi
+}
+
+check_pass() {
+  local name=$1
+  shift
+  if "$@" >/dev/null 2>&1; then
+    echo "PASS  $name"
+  else
+    echo "FAIL  $name — expected success" >&2
+    FAILED=1
+  fi
+}
+
+TMP_BASE=$(mktemp -d)
+trap 'rm -rf "$TMP_BASE"' EXIT
+
+# agent-memory-scaffold must reject path traversal
+check_fail "memory-scaffold traversal folder" \
+  scripts/agent-memory-scaffold --agent-id test-agent --folder ".ai/agents/../contracts/evil"
+
+check_fail "memory-scaffold invalid agent-id" \
+  scripts/agent-memory-scaffold --agent-id '../evil' --folder ".ai/agents/safe"
+
+check_fail "memory-scaffold invalid contract-id" \
+  scripts/agent-memory-scaffold --agent-id safe-agent --folder ".ai/agents/safe" \
+    --contract-id '../../evil'
+
+# Symlink under .ai/agents pointing outside must be rejected (CTO block at 745c686)
+SYMLINK_OUT=$(mktemp -d)
+SYMLINK_SLUG="symlink-escape"
+ln -sf "$SYMLINK_OUT" ".ai/agents/$SYMLINK_SLUG"
+check_fail "memory-scaffold symlink folder" \
+  scripts/agent-memory-scaffold --agent-id test-agent --folder ".ai/agents/$SYMLINK_SLUG"
+rm -f ".ai/agents/$SYMLINK_SLUG"
+rm -rf "$SYMLINK_OUT"
+
+# Python fallback (macOS) must resolve symlinks for containment, not abspath-only
+SYMLINK_OUT2=$(mktemp -d)
+ln -sf "$SYMLINK_OUT2" ".ai/agents/symlink-check"
+RESOLVED=$(python3 - "$REPO_ROOT/.ai/agents/symlink-check" <<'PY'
+import os, sys
+print(os.path.realpath(sys.argv[1], strict=False))
+PY
+)
+if [ "$RESOLVED" = "$SYMLINK_OUT2" ]; then
+  echo "PASS  python-realpath follows symlink for containment"
+else
+  echo "FAIL  python-realpath — expected $SYMLINK_OUT2 got $RESOLVED" >&2
+  FAILED=1
+fi
+rm -f ".ai/agents/symlink-check"
+rm -rf "$SYMLINK_OUT2"
+
+# agent-scaffold must reject bad folder-name
+check_fail "agent-scaffold bad folder" \
+  scripts/agent-scaffold --agent-id dezo-sec-test1 --principal dezocode \
+    --charter .ai/agents/_roles/secretary-dezocode/CHARTER.md \
+    --folder-name "../contracts/evil"
+
+# agent-contract-scaffold must reject bad slugs (script may be absent on older branches)
+if [ -x scripts/agent-contract-scaffold ]; then
+  check_fail "contract-scaffold bad slug" \
+    scripts/agent-contract-scaffold \
+      --project-name "Test" --project-slug '../evil' --principal dezocode \
+      --contractor-type coding --isolation-mode prototype --runtime cursor
+fi
+
+# agent-contract-pr-review must not return overall pass when manual criteria exist
+if [ -x scripts/agent-contract-pr-review ]; then
+  CONTRACT_DIR="$TMP_BASE/contract"
+  mkdir -p "$CONTRACT_DIR/reviews"
+  cat > "$CONTRACT_DIR/contract.json" <<'JSON'
+{
+  "contract_id": "20260715-testproj-dezocode",
+  "project_slug": "testproj",
+  "branch_prefix": "proj/testproj/",
+  "acceptance_criteria": ["Manual owner sign-off required"]
+}
+JSON
+  mkdir -p "$TMP_BASE/.ai/contracts/20260715-testproj-dezocode"
+  cp "$CONTRACT_DIR/contract.json" "$TMP_BASE/.ai/contracts/20260715-testproj-dezocode/"
+  mkdir -p "$TMP_BASE/.ai/contracts/20260715-testproj-dezocode/reviews"
+  git -C "$TMP_BASE" init -q
+  git -C "$TMP_BASE" config user.email "test@test" && git -C "$TMP_BASE" config user.name "test"
+  git -C "$TMP_BASE" add .ai
+  git -C "$TMP_BASE" commit -q -m "test
+
+Task-ID: 20260715-1741-scaffold-safety-ceo
+Agent: ceo-automation"
+  git -C "$TMP_BASE" checkout -q -b proj/testproj/ctr-code-test1/feature
+  OUT=$(cd "$TMP_BASE" && SAI_AGENT_ID=ceo-automation \
+    "$REPO_ROOT/scripts/agent-contract-pr-review" \
+      --contract-id 20260715-testproj-dezocode \
+      --branch proj/testproj/ctr-code-test1/feature 2>&1 || true)
+  if echo "$OUT" | grep -qx 'pass'; then
+    echo "FAIL  contract-pr-review — overall pass with manual acceptance criteria" >&2
+    FAILED=1
+  elif echo "$OUT" | grep -qx 'pending_manual'; then
+    echo "PASS  contract-pr-review — pending_manual when manual criteria present"
+  else
+    echo "FAIL  contract-pr-review — unexpected overall: $OUT" >&2
+    FAILED=1
+  fi
+
+  # P1 (Saul PR #10): nonexistent branch must not return pass when criteria are empty
+  EMPTY_DIR="$TMP_BASE/empty-contract"
+  mkdir -p "$EMPTY_DIR/.ai/contracts/20260715-emptyproj-dezocode/reviews"
+  cat > "$EMPTY_DIR/.ai/contracts/20260715-emptyproj-dezocode/contract.json" <<'JSON'
+{
+  "contract_id": "20260715-emptyproj-dezocode",
+  "project_slug": "emptyproj",
+  "branch_prefix": "proj/emptyproj/",
+  "acceptance_criteria": []
+}
+JSON
+  git -C "$EMPTY_DIR" init -q
+  git -C "$EMPTY_DIR" config user.email "test@test" && git -C "$EMPTY_DIR" config user.name "test"
+  git -C "$EMPTY_DIR" add .ai
+  git -C "$EMPTY_DIR" commit -q -m "empty contract
+
+Task-ID: 20260715-2000-scaffold-safety-ceo
+Agent: ceo-automation"
+  OUT2=$(cd "$EMPTY_DIR" && SAI_AGENT_ID=ceo-automation \
+    "$REPO_ROOT/scripts/agent-contract-pr-review" \
+      --contract-id 20260715-emptyproj-dezocode \
+      --branch proj/emptyproj/nonexistent 2>&1 || true)
+  if echo "$OUT2" | grep -qx 'pass'; then
+    echo "FAIL  contract-pr-review — pass on nonexistent branch with empty criteria" >&2
+    FAILED=1
+  elif echo "$OUT2" | grep -qx 'fail'; then
+    echo "PASS  contract-pr-review — fail when branch unavailable"
+  else
+    echo "FAIL  contract-pr-review — unexpected overall for missing branch: $OUT2" >&2
+    FAILED=1
+  fi
+fi
+
+# P2 (Saul PR #10): guard_json_safe_string must reject all C0 control characters
+# shellcheck source=scripts/lib/agent-path-guards.sh
+. "$REPO_ROOT/scripts/lib/agent-path-guards.sh"
+BAD_JSON_VAL=$(printf 'bad\x01value')
+check_fail "json-safe-string C0 control (U+0001)" \
+  guard_json_safe_string test "$BAD_JSON_VAL"
+
+check_pass "verify-agent-setup" scripts/verify-agent-setup
+
+echo
+if [ "$FAILED" = "0" ]; then
+  echo "verify-scaffold-safety: OK"
+  exit 0
+else
+  echo "verify-scaffold-safety: FAILED" >&2
+  exit 1
+fi

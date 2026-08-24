@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Verify audit metadata before pushing to protected refs and announce the
+# ref update. Blocks pushes to protected branches when mandatory audit
+# metadata is absent. Documented emergency bypass:
+#   SAI_AUDIT_BYPASS="<reason>" git push ...
+# Every bypass is recorded and must be reported to #agentupdates.
+# Slack being unavailable never blocks a push (events queue instead).
+[ "${SAI_AGENT_REPORT_ACTIVE:-}" = "1" ] && exit 0
+remote=$1 url=$2
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+PROTECTED="refs/heads/main"
+zero=0000000000000000000000000000000000000000
+status=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ -z "$local_ref" ] && continue
+  if [ "$local_sha" = "$zero" ]; then
+    "$REPO_ROOT/scripts/agent-report" emit PUSH \
+      --purpose "Deleting remote ref $remote_ref on $remote" \
+      --result "ref deletion requested" \
+      --risks "destructive: requires explicit human approval per security policy" || true
+    continue
+  fi
+  range=$([ "$remote_sha" = "$zero" ] && echo "$local_sha" || echo "$remote_sha..$local_sha")
+
+  if printf '%s\n' "$PROTECTED" | grep -qx "$remote_ref"; then
+    audit_ok=1
+    "$REPO_ROOT/scripts/verify-agent-audit" "$range" || audit_ok=0
+    "$REPO_ROOT/scripts/verify-semantic-hierarchy" || audit_ok=0
+    "$REPO_ROOT/scripts/verify-merge-handoff" "$range" || audit_ok=0
+    if [ "$audit_ok" != "1" ]; then
+      if [ -n "${SAI_AUDIT_BYPASS:-}" ]; then
+        "$REPO_ROOT/scripts/agent-report" emit BYPASS \
+          --purpose "Audit bypass on push to $remote_ref" \
+          --justification "$SAI_AUDIT_BYPASS" \
+          --result "push allowed despite failed audit verification" \
+          --risks "bypass used; notify #agentupdates" || true
+      else
+        echo "pre-push: audit metadata or semantic hierarchy invalid for $remote_ref ($range)." >&2
+        echo "pre-push: fix the FAIL lines or use documented bypass: SAI_AUDIT_BYPASS=\"<reason>\" git push" >&2
+        status=1
+        continue
+      fi
+    fi
+  fi
+
+  "$REPO_ROOT/scripts/agent-report" emit PUSH \
+    --purpose "Announcing ref update $local_ref -> $remote:$remote_ref" \
+    --push-range "$range" --commit "$local_sha" \
+    --result "push in progress; run scripts/agent-report push-confirm (or rely on CI) to verify remote state" \
+    || true
+done
+exit $status

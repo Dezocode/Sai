@@ -1,0 +1,7 @@
+{
+  "agent_id": "ctr-code-splunk1",
+  "folder": ".ai/agents/alpha",
+  "surveyed_at": "2026-07-15",
+  "environment": "claude-code-cli",
+  "capabilities": []
+}

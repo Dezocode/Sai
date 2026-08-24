@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Report branch/worktree transitions. Thin wrapper; never blocks git.
+[ "${SAI_AGENT_REPORT_ACTIVE:-}" = "1" ] && exit 0
+prev=$1 new=$2 branch_flag=$3
+[ "$branch_flag" = "1" ] || exit 0            # ignore file checkouts
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "detached")
+prev_branch=$(git rev-parse --abbrev-ref '@{-1}' 2>/dev/null || echo "")
+# Skip only true no-ops: same commit AND same branch (e.g. `git checkout HEAD`).
+# Same-commit checkouts that create/switch branches (git checkout -b, git
+# switch -c, git worktree add) are transitions and must be reported.
+[ "$prev" = "$new" ] && [ -z "$prev_branch" ] && exit 0
+[ "$prev" = "$new" ] && [ "$prev_branch" = "$branch" ] && exit 0
+"$REPO_ROOT/scripts/agent-report" emit WORKTREE \
+  --purpose "Branch/worktree transition" \
+  --result "checked out $branch at $(git rev-parse --short HEAD) (from ${prev_branch:-detached} ${prev:0:7})" \
+  < /dev/null || true
+exit 0

@@ -1,0 +1,20 @@
+{
+  "task_id": "20260714-0439-hook-verification-cursor-cloud-30d8",
+  "agent": "cursor-cloud-30d8",
+  "requester": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "base_branch": "cursor/sai-agent-framework-30d8",
+  "base_sha": "0d8d2753ddd15b4728026849d0d96446652c3211",
+  "branch": "cursor/sai-agent-framework-30d8",
+  "worktree": "isolated cloud-agent VM workspace (non-synced); scratch test clone at a temporary path",
+  "status": "published-awaiting-review",
+  "claimed_files": [
+    ".githooks/post-checkout",
+    "scripts/agent-report",
+    ".ai/shared/memory/known-issues.md",
+    ".ai/runs/20260714-0439-hook-verification-cursor-cloud-30d8/**",
+    ".ai/runs/20260714-0418-sai-agent-framework-cursor-cloud-30d8/02_plan/output/plan.md"
+  ],
+  "merge_target": "Dezocode/Sai:main (via existing PR #3)",
+  "mirroring": "Drive mirror still pending (no credentials in this environment)"
+}

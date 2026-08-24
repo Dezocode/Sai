@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Report rebases and amended history (history rewrites must have been
+# authorized per the security policy). Thin wrapper; never blocks git.
+[ "${SAI_AGENT_REPORT_ACTIVE:-}" = "1" ] && exit 0
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+kind=$1   # "rebase" or "amend"
+count=$(wc -l < /dev/stdin 2>/dev/null || echo "?")
+"$REPO_ROOT/scripts/agent-report" emit WORKTREE \
+  --purpose "History rewrite: $kind" \
+  --result "$count commit(s) rewritten on $(git rev-parse --abbrev-ref HEAD); new HEAD $(git rev-parse --short HEAD)" \
+  --risks "history rewrite — verify authorization per .ai/_config/security-policy.md" \
+  || true
+exit 0

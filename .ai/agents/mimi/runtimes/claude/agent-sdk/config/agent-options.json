@@ -1,0 +1,13 @@
+{
+  "$comment": "ClaudeAgentOptions skeleton for Mimi dispatcher — expand after monaecode Phase 3 MCP approval",
+  "reference": ".ai/shared/references/claude-agent-sdk.md",
+  "agent_id": "mimi",
+  "systemPromptAppend": "Load .ai/agents/mimi/AGENT.md and contract 20260717-mimi-dispatcher-bootstrap-monaecode when present.",
+  "allowedTools": ["Read", "Glob", "Grep", "Bash"],
+  "settingSources": [".claude/settings.json", "splunk-clone/.claude/settings.json"],
+  "hooks": {},
+  "mcpServers": {},
+  "agents": {
+    "mimi-dispatcher": ".claude/agents/mimi-dispatcher.md"
+  }
+}

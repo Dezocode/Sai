@@ -1,0 +1,16 @@
+{
+  "task_id": "20260717-1001-scheduled-verify-ceo",
+  "agent": "ceo-automation",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/agent-initialization-compliance-68a5",
+  "status": "verify",
+  "worktree": "cloud-agent VM workspace",
+  "purpose": "CEO scheduled VERIFY: protocol steps + init-compliance gate for contract shell allowlists",
+  "claimed_files": [
+    ".github/workflows/agent-audit.yml",
+    "scripts/verify-contract-shell-allowlist",
+    ".ai/ONBOARDING.md",
+    ".ai/shared/memory/known-issues.md",
+    ".ai/runs/20260717-1001-scheduled-verify-ceo/"
+  ]
+}

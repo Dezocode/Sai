@@ -1,0 +1,8 @@
+{
+  "agent_id": "ctr-admin",
+  "folder": ".ai/agents/cora",
+  "created_at": "2026-07-15T16:24:00Z",
+  "drive_mirror_path": "SAI/agents/ctr-admin/memory/",
+  "contracts": [],
+  "audit_years": ["2026"]
+}

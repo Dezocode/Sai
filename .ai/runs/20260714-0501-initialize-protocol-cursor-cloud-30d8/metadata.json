@@ -1,0 +1,28 @@
+{
+  "task_id": "20260714-0501-initialize-protocol-cursor-cloud-30d8",
+  "agent": "cursor-cloud-30d8",
+  "requester": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "base_branch": "cursor/sai-agent-framework-30d8",
+  "base_sha": "60d5f7ec3f307a7389c6d2a40ad50d239bf3b962",
+  "branch": "cursor/sai-agent-framework-30d8",
+  "worktree": "isolated cloud-agent VM workspace (non-synced); scratch test clone at a temporary path",
+  "status": "published-awaiting-review",
+  "claimed_files": [
+    ".ai/INITIALIZE.md",
+    ".ai/agents/registry.json",
+    ".ai/agents/*/CHARTER.md",
+    ".ai/CONTEXT.md",
+    ".ai/shared/memory/repository-map.md",
+    ".ai/shared/references/testing.md",
+    ".ai/runs/20260714-0501-initialize-protocol-cursor-cloud-30d8/**",
+    ".cursor/rules/sai-coordination.mdc",
+    ".githooks/pre-push",
+    ".github/workflows/agent-audit.yml",
+    "scripts/agent-init",
+    "scripts/verify-semantic-hierarchy",
+    "scripts/install-agent-hooks"
+  ],
+  "merge_target": "Dezocode/Sai:main (via existing PR #3)",
+  "mirroring": "Drive mirror still pending (no credentials in this environment)"
+}

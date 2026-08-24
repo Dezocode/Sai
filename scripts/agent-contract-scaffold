@@ -1,0 +1,225 @@
+#!/usr/bin/env bash
+# agent-contract-scaffold — create contract folder, project index, onboarding prompt.
+#
+# Usage:
+#   agent-contract-scaffold \
+#     --project-name NAME --project-slug SLUG --principal dezocode|monaecode \
+#     --contractor-type coding|design --isolation-mode prototype|integration \
+#     --runtime cursor|claude|codex [--repository owner/repo] \
+#     [--contractor-agent-id ctr-code-alpha1] [--contractor-name NAME]
+set -euo pipefail
+
+PROJECT_NAME="" PROJECT_SLUG="" PRINCIPAL="" CONTRACTOR_TYPE="" ISOLATION_MODE=""
+RUNTIME="" REPOSITORY="" CONTRACTOR_AGENT_ID="" CONTRACTOR_NAME=""
+while [ $# -gt 0 ]; do
+  case $1 in
+    --project-name) PROJECT_NAME=$2; shift 2;;
+    --project-slug) PROJECT_SLUG=$2; shift 2;;
+    --principal) PRINCIPAL=$2; shift 2;;
+    --contractor-type) CONTRACTOR_TYPE=$2; shift 2;;
+    --isolation-mode) ISOLATION_MODE=$2; shift 2;;
+    --runtime) RUNTIME=$2; shift 2;;
+    --repository) REPOSITORY=$2; shift 2;;
+    --contractor-agent-id) CONTRACTOR_AGENT_ID=$2; shift 2;;
+    --contractor-name) CONTRACTOR_NAME=$2; shift 2;;
+    *) echo "agent-contract-scaffold: unknown option $1" >&2; exit 2;;
+  esac
+done
+
+for req in PROJECT_NAME PROJECT_SLUG PRINCIPAL CONTRACTOR_TYPE ISOLATION_MODE RUNTIME; do
+  [ -n "${!req}" ] || { echo "agent-contract-scaffold: --$(echo "$req" | tr A-Z_ a-z-) required" >&2; exit 1; }
+done
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=scripts/lib/agent-path-guards.sh
+. "$SCRIPT_DIR/lib/agent-path-guards.sh"
+
+guard_slug project-slug "$PROJECT_SLUG"
+guard_json_safe_string project-name "$PROJECT_NAME"
+[ -z "$CONTRACTOR_NAME" ] || guard_json_safe_string contractor-name "$CONTRACTOR_NAME"
+
+TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+DATE_PREFIX=$(date -u +%Y%m%d)
+
+case "$PRINCIPAL" in
+  dezocode) PRINCIPAL_FULL="dezocode (U0BHYH0NMCY)"; PRINCIPAL_SLUG="dezocode"
+    [ -n "$REPOSITORY" ] || REPOSITORY="Dezocode/Sai" ;;
+  monaecode) PRINCIPAL_FULL="monaecode (U0BGNS7F0T1)"; PRINCIPAL_SLUG="monaecode"
+    [ -n "$REPOSITORY" ] || REPOSITORY="monaecode/Sai" ;;
+  *) echo "agent-contract-scaffold: --principal must be dezocode or monaecode" >&2; exit 1;;
+esac
+guard_repo_name "$REPOSITORY"
+
+case "$RUNTIME" in
+  cursor) PRIMARY_RUNTIME="cursor-cloud-vm"; RUNTIME_SUITE="cursor" ;;
+  claude) PRIMARY_RUNTIME="claude-code-cli"; RUNTIME_SUITE="claude" ;;
+  codex)  PRIMARY_RUNTIME="codex-desktop"; RUNTIME_SUITE="codex" ;;
+  openclaw) PRIMARY_RUNTIME="openclaw-gateway-vps"; RUNTIME_SUITE="openclaw" ;;
+  *) echo "agent-contract-scaffold: --runtime must be cursor, claude, codex, or openclaw" >&2; exit 1;;
+esac
+
+case "$ISOLATION_MODE" in
+  prototype|integration) ;;
+  *) echo "agent-contract-scaffold: --isolation-mode must be prototype or integration" >&2; exit 1;;
+esac
+
+case "$CONTRACTOR_TYPE" in
+  coding) CHARTER=".ai/agents/_roles/contractor-coding/CHARTER.md"
+    [ -n "$CONTRACTOR_AGENT_ID" ] || CONTRACTOR_AGENT_ID="ctr-code-$(printf '%s' "$PROJECT_SLUG" | cut -c1-8)" ;;
+  design) CHARTER=".ai/agents/_roles/contractor-design/CHARTER.md"
+    [ -n "$CONTRACTOR_AGENT_ID" ] || CONTRACTOR_AGENT_ID="ctr-design-$(printf '%s' "$PROJECT_SLUG" | cut -c1-8)" ;;
+  *) echo "agent-contract-scaffold: --contractor-type must be coding or design" >&2; exit 1;;
+esac
+
+guard_agent_id "$CONTRACTOR_AGENT_ID"
+guard_charter_path "$REPO_ROOT" "$CHARTER"
+
+CONTRACT_ID="${DATE_PREFIX}-${PROJECT_SLUG}-${PRINCIPAL_SLUG}"
+guard_contract_id "$CONTRACT_ID"
+
+CONTRACT_DIR="$REPO_ROOT/.ai/contracts/$CONTRACT_ID"
+PROJECT_DIR="$REPO_ROOT/.ai/projects/$PROJECT_SLUG"
+guard_under_ai_subtree "$REPO_ROOT" ".ai/contracts/$CONTRACT_ID" "contracts"
+guard_under_ai_subtree "$REPO_ROOT" ".ai/projects/$PROJECT_SLUG" "projects"
+
+mkdir -p "$CONTRACT_DIR/amendments" "$CONTRACT_DIR/reviews" "$PROJECT_DIR/coordination"
+
+cat > "$CONTRACT_DIR/contract.json" <<EOF
+{
+  "contract_id": "${CONTRACT_ID}",
+  "project_slug": "${PROJECT_SLUG}",
+  "project_name": "${PROJECT_NAME}",
+  "principal": "${PRINCIPAL_FULL}",
+  "contractor_type": "${CONTRACTOR_TYPE}",
+  "isolation_mode": "${ISOLATION_MODE}",
+  "primary_runtime": "${PRIMARY_RUNTIME}",
+  "compatibility_layer": "sai-mac-ios-android",
+  "repository": "${REPOSITORY}",
+  "branch_prefix": "proj/${PROJECT_SLUG}/",
+  "slack_channel": "#proj-${PROJECT_SLUG}",
+  "acceptance_criteria": [
+    "Deliverables match contract scope and claimed files",
+    "ICM run artifacts complete for every executed stage",
+    "scripts/agent-contract-pr-review PASS on every PR (no pending_manual)"
+  ],
+  "deliverables": [],
+  "approved_capabilities": [],
+  "assigned_contractors": [],
+  "status": "draft",
+  "created_at": "${TS}",
+  "created_by": "ctr-admin",
+  "contract_admin_agent_id": "ctr-admin"
+}
+EOF
+
+cat > "$CONTRACT_DIR/contract.md" <<EOF
+# Contract: ${PROJECT_NAME}
+
+| Field | Value |
+|---|---|
+| **Contract ID** | \`${CONTRACT_ID}\` |
+| **Project** | ${PROJECT_NAME} (\`${PROJECT_SLUG}\`) |
+| **Principal** | ${PRINCIPAL_FULL} |
+| **Contractor type** | ${CONTRACTOR_TYPE} |
+| **Isolation** | ${ISOLATION_MODE} |
+| **Runtime** | ${PRIMARY_RUNTIME} |
+| **Repository** | ${REPOSITORY} |
+| **Branch prefix** | \`proj/${PROJECT_SLUG}/\` |
+| **Slack channel** | \`#proj-${PROJECT_SLUG}\` (requires owner approval to create) |
+
+## Acceptance criteria
+
+1. Deliverables match contract scope and claimed files
+2. ICM run artifacts complete for every executed stage
+3. \`scripts/agent-contract-pr-review\` PASS on every PR (no \`pending_manual\`)
+
+## Deliverables
+
+_(Owner and Contract Administrator define during intake.)_
+
+## Approved capabilities
+
+_(Recorded during ONBOARDING Phase 3 owner approval loops.)_
+EOF
+
+cat > "$CONTRACT_DIR/onboarding-prompt.md" <<EOF
+# Contractor onboarding prompt — paste into new agent session
+
+You are a **${CONTRACTOR_TYPE} contractor** for the SAI project.
+
+1. Read and execute **\`.ai/ONBOARDING.md\`** in full — every phase in order.
+2. Load your contract:
+   - \`.ai/contracts/${CONTRACT_ID}/contract.json\`
+   - \`.ai/contracts/${CONTRACT_ID}/contract.md\`
+3. Your charter: \`${CHARTER}\`
+4. Your agent ID (provisional): \`${CONTRACTOR_AGENT_ID}\`
+5. Your branch pattern: \`proj/${PROJECT_SLUG}/${CONTRACTOR_AGENT_ID}/<task-slug>\`
+6. Project Slack channel: \`#proj-${PROJECT_SLUG}\` (join when channel exists)
+7. Isolation mode: **${ISOLATION_MODE}**
+8. Primary runtime: **${PRIMARY_RUNTIME}**
+$(if [ "$RUNTIME" = "claude" ]; then cat <<'SDKONB'
+
+9. **Claude Agent SDK (required):** read `.ai/shared/references/claude-agent-sdk.md`; implement `.ai/agents/<your-folder>/runtimes/claude/agent-sdk/` (`query()` smoke test + `config/agent-options.json` for hooks/MCP/subagents); record verified `claude-agent-sdk` in tools.json.
+10. `.claude/agents/*.md` subagents complement the SDK — they do **not** replace SDK-based @Slack/@GitHub dispatch.
+SDKONB
+elif [ "$RUNTIME" = "openclaw" ]; then cat <<'OCONB'
+
+9. **OpenClaw Gateway (required):** read `OPENCLAW.md` and `.ai/shared/references/openclaw-runtime.md`; implement `.ai/agents/<your-folder>/runtimes/openclaw/gateway/` on Hostinger VPS; **not** a Cursor runtime agent.
+10. Host admin CLI must live-feed dashboard tabs with p99 latency ≤ 15ms; 100% production smoke before organization onboarding.
+OCONB
+fi)
+
+Do not begin implementation work until Phase 6 persona gate and Sai audit PASS.
+Ask your principal (owner) to confirm contract terms in ONBOARDING Phase 1.
+EOF
+
+cat > "$PROJECT_DIR/contract-refs.json" <<EOF
+{
+  "project_slug": "${PROJECT_SLUG}",
+  "project_name": "${PROJECT_NAME}",
+  "contracts": ["${CONTRACT_ID}"],
+  "updated_at": "${TS}"
+}
+EOF
+
+cat > "$PROJECT_DIR/branches-index.json" <<EOF
+{
+  "project_slug": "${PROJECT_SLUG}",
+  "branches": [],
+  "updated_at": "${TS}"
+}
+EOF
+
+cat > "$PROJECT_DIR/coordination/slack-channel.json" <<EOF
+{
+  "project_slug": "${PROJECT_SLUG}",
+  "channel_name": "#proj-${PROJECT_SLUG}",
+  "status": "pending_owner_approval",
+  "note": "Slack channel creation requires explicit owner approval per security policy"
+}
+EOF
+
+if [ -n "$CONTRACTOR_NAME" ]; then
+  ROLE_TITLE="${CONTRACTOR_TYPE} contractor"
+  case "$CONTRACTOR_TYPE" in
+    coding) ROLE_TITLE="Coding Contractor" ;;
+    design) ROLE_TITLE="Design Contractor" ;;
+  esac
+  "$REPO_ROOT/scripts/agent-scaffold" \
+    --name "$CONTRACTOR_NAME" \
+    --agent-id "$CONTRACTOR_AGENT_ID" \
+    --role-title "$ROLE_TITLE" \
+    --principal "$PRINCIPAL_FULL" \
+    --purpose "Contracted ${CONTRACTOR_TYPE} work on ${PROJECT_NAME} under contract ${CONTRACT_ID}." \
+    --charter "$CHARTER" \
+    --primary-runtime "$RUNTIME" \
+    --contract-id "$CONTRACT_ID" \
+    --with-memory
+fi
+
+echo "agent-contract-scaffold: created $CONTRACT_DIR"
+echo "  contract_id: $CONTRACT_ID"
+echo "  onboarding-prompt: $CONTRACT_DIR/onboarding-prompt.md"
+[ -n "$CONTRACTOR_NAME" ] && echo "  contractor scaffolded: $CONTRACTOR_AGENT_ID"

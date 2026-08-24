@@ -1,0 +1,1 @@
+# Intake — PR #69. Requester dezocode (U0BHYH0NMCY). Authoritative `/goal`. Exhaustive pstack map, one Go kernel, hooks, protected-base CI, exact-HEAD proof. No merge. Densify to stay ≤1200 additions.

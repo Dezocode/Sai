@@ -1,0 +1,30 @@
+{
+  "task_id": "20260820-0023-lauren-skills-fresh-cloud-cursor-cloud",
+  "agent": "cursor-cloud",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/lauren-skills-fresh-fd30",
+  "base_sha": "8a302026ce77e3fb03fbcdc0f6f3a6041df1798c",
+  "purpose": "Make PR 70 project skills usable in a fresh Cursor Cloud Agent: /lauren alias, description matching, always-on discovery, and gitSetup-reuse documentation",
+  "status": "handoff",
+  "claimed_files": [
+    ".cursor/skills/lauren-mode/SKILL.md",
+    ".cursor/skills/lauren/SKILL.md",
+    ".cursor/rules/lauren-mode.mdc",
+    ".cursor/skills/lauren-mode/references/environment.md",
+    "AGENTS.md",
+    ".ai/CONTEXT.md",
+    ".ai/plugins/pstack/README.md",
+    ".ai/plugins/pstack/manifest.json",
+    ".ai/shared/memory/decisions/0005-lauren-mode-cloud-skills.md",
+    ".ai/shared/memory/decisions/0006-lauren-mode-fresh-cloud-discovery.md",
+    ".ai/shared/memory/conventions.md",
+    ".ai/shared/memory/architecture.md",
+    ".ai/shared/memory/repository-map.md",
+    ".ai/runs/20260820-0023-lauren-skills-fresh-cloud-cursor-cloud/"
+  ],
+  "trigger": "dezocode mobile: /lauren-mode fix me not being able to use skills from pr70 in a fresh cursor cloud agent; screenshot of agent bc-01a01c89-0d79-709c-aacf-ba84185f18aa concluding no lauren files in the tree",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "environment_public_id": "6f2ece39-800a-11f1-ba66-0e7d0216e441",
+  "evidence_agent": "bc-01a01c89-0d79-709c-aacf-ba84185f18aa"
+}

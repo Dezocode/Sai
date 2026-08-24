@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+# agent-contract-pr-review — evaluate a branch/PR against contract acceptance criteria.
+#
+# Overall semantics:
+#   pass           — all automated checks pass and no manual criteria remain
+#   pending_manual — manual acceptance criteria require human/CI verification
+#   fail           — at least one automated check failed
+#
+# Usage:
+#   agent-contract-pr-review --contract-id ID --branch BRANCH [--task-id ID]
+set -euo pipefail
+
+CONTRACT_ID="" BRANCH="" TASK_ID=""
+while [ $# -gt 0 ]; do
+  case $1 in
+    --contract-id) CONTRACT_ID=$2; shift 2;;
+    --branch) BRANCH=$2; shift 2;;
+    --task-id) TASK_ID=$2; shift 2;;
+    *) echo "agent-contract-pr-review: unknown option $1" >&2; exit 2;;
+  esac
+done
+
+[ -n "$CONTRACT_ID" ] && [ -n "$BRANCH" ] || {
+  echo "agent-contract-pr-review: --contract-id and --branch required" >&2; exit 1; }
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=scripts/lib/agent-path-guards.sh
+. "$SCRIPT_DIR/lib/agent-path-guards.sh"
+
+guard_contract_id "$CONTRACT_ID"
+case "$BRANCH" in
+  *..*|*' '*)
+    echo "agent-contract-pr-review: invalid branch name" >&2
+    exit 1 ;;
+esac
+
+CONTRACT_PATH="$REPO_ROOT/.ai/contracts/$CONTRACT_ID/contract.json"
+guard_under_ai_subtree "$REPO_ROOT" ".ai/contracts/$CONTRACT_ID/contract.json" "contracts"
+[ -f "$CONTRACT_PATH" ] || { echo "agent-contract-pr-review: contract not found: $CONTRACT_PATH" >&2; exit 1; }
+
+ACTOR="${SAI_AGENT_ID:-unknown-agent}"
+[ -n "$TASK_ID" ] || TASK_ID=$(date -u +"%Y%m%d-%H%M-contract-pr-review-${ACTOR}")
+REVIEW_ID=$(date -u +"%Y%m%dT%H%M%SZ")
+OUT_FILE="$REPO_ROOT/.ai/contracts/$CONTRACT_ID/reviews/${REVIEW_ID}.json"
+guard_under_ai_subtree "$REPO_ROOT" ".ai/contracts/$CONTRACT_ID/reviews/${REVIEW_ID}.json" "contracts"
+
+set +e
+python3 - "$CONTRACT_PATH" "$BRANCH" "$REVIEW_ID" "$ACTOR" "$OUT_FILE" <<'PY'
+import json, sys, subprocess, os
+
+contract_path, branch, review_id, actor, out_file = sys.argv[1:6]
+ts = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+contract = json.load(open(contract_path))
+contract_id = contract["contract_id"]
+project_slug = contract["project_slug"]
+os.makedirs(os.path.dirname(out_file), exist_ok=True)
+
+checks = []
+expected_prefix = contract.get("branch_prefix", f"proj/{project_slug}/")
+checks.append({
+    "criterion": "branch_prefix",
+    "status": "pass" if branch.startswith(expected_prefix) else "fail",
+    "detail": f"expected prefix {expected_prefix}, got {branch}",
+})
+
+for i, ac in enumerate(contract.get("acceptance_criteria", [])):
+    checks.append({
+        "criterion": f"acceptance_criteria[{i}]",
+        "status": "manual",
+        "detail": ac,
+        "note": "Requires human/CI verification on PR",
+    })
+
+try:
+    log = subprocess.check_output(
+        ["git", "log", "--oneline", "-5", branch], stderr=subprocess.DEVNULL, text=True
+    ).strip()
+    checks.append({"criterion": "commit_history", "status": "pass" if log else "warn",
+                   "detail": log or "no commits"})
+except subprocess.CalledProcessError:
+    checks.append({"criterion": "commit_history", "status": "warn",
+                   "detail": f"branch {branch} not found locally"})
+
+try:
+    msg = subprocess.check_output(
+        ["git", "log", "-1", "--format=%B", branch], stderr=subprocess.DEVNULL, text=True
+    )
+    ok = "Task-ID:" in msg and "Agent:" in msg
+    checks.append({"criterion": "audit_trailers", "status": "pass" if ok else "fail",
+                   "detail": f"Task-ID: {'Task-ID:' in msg}, Agent: {'Agent:' in msg}"})
+except subprocess.CalledProcessError:
+    checks.append({"criterion": "audit_trailers", "status": "skip", "detail": "branch unavailable"})
+
+blockers = [c for c in checks if c["status"] in ("fail", "warn", "skip")]
+manuals = [c for c in checks if c["status"] == "manual"]
+if blockers:
+    overall = "fail"
+elif manuals:
+    overall = "pending_manual"
+else:
+    overall = "pass"
+
+review = {
+    "review_id": review_id,
+    "contract_id": contract_id,
+    "project_slug": project_slug,
+    "branch": branch,
+    "actor": actor,
+    "timestamp": ts,
+    "overall": overall,
+    "checks": checks,
+}
+json.dump(review, open(out_file, "w"), indent=2)
+
+proj_index = f".ai/projects/{project_slug}/branches-index.json"
+if os.path.exists(proj_index):
+    idx = json.load(open(proj_index))
+    entry = {
+        "branch": branch,
+        "contract_id": contract_id,
+        "review_id": review_id,
+        "overall": overall,
+        "updated_at": ts,
+    }
+    idx["branches"] = [b for b in idx.get("branches", []) if b.get("branch") != branch] + [entry]
+    idx["updated_at"] = ts
+    json.dump(idx, open(proj_index, "w"), indent=2)
+
+print(overall)
+sys.exit(1 if blockers or manuals else 0)
+PY
+PY_EXIT=$?
+set -e
+
+OVERALL=$(python3 -c "import json; print(json.load(open('$OUT_FILE'))['overall'])")
+
+"$REPO_ROOT/scripts/agent-report" emit CONTRACT_REVIEW \
+  --task-id "$TASK_ID" \
+  --actor "$ACTOR" \
+  --purpose "PR contract review for $CONTRACT_ID on $BRANCH" \
+  --result "$OVERALL" \
+  --verification "review artifact: $OUT_FILE" \
+  --branch "$BRANCH" \
+  --no-deliver 2>/dev/null || true
+
+echo "agent-contract-pr-review: $OVERALL — $OUT_FILE"
+exit $PY_EXIT
