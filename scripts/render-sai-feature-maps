@@ -255,6 +255,14 @@ check("invalid group's flightboard excluded (97338826287)",fed3.multi===true&&FL
 {const now2=Date.now();CHECKS_FAIL["ef01"]=MAX_DETAIL_FAILS;delete CHECKS_RETRY_AT["ef01"];check("capped checks not replanned before window",planEnrich(card("93","EF01"),9).some(s=>s.kind==="checks"),false);
 CHECKS_RETRY_AT["ef01"]=now2-1;check("expired checks retry window replans (97338826287)",planEnrich(card("93","EF01"),9).some(s=>s.kind==="checks"),true);delete CHECKS_FAIL["ef01"];delete CHECKS_RETRY_AT["ef01"];}
 
+{ // Saul 97400684573-class: probeSessions() requires a parsed, schema-valid v2 envelope — any 200 alone is not liveness.
+const beat2=new Date(Date.now()-60000).toISOString(); let ts0=0;
+fetch=u=>String(u).indexOf("__API__")>=0?(async()=>{return {ok:true,status:200,json:async()=>({schema:"wrong",sessions:[{id:"x",status:"active",heartbeat_at:beat2}]})};})():(async()=>{return {ok:false,status:503};})();
+SESSIONS_TS=12345; await probeSessions(); ts0=SESSIONS_TS;
+check("malformed-schema 200 is not liveness evidence (probeSessions)",ts0===12345,true);
+fetch=u=>String(u).indexOf("__API__")>=0?(async()=>{return {ok:true,status:200,json:async()=>({schema:"sai-sessions-v2",sessions:[{id:"ok2",status:"active",heartbeat_at:beat2}]})};})():fetch;
+await probeSessions();
+check("valid v2 envelope IS liveness evidence (probeSessions)",SESSIONS_TS!==12345,true);}
 { // P1-3 (audit): agent-less PR group still publishes PR-level flight-board authority; Agent NONE keeps its progress.
 fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({schema:"sai-sessions-v2",updated_at:new Date().toISOString(),prs:[{pr:84,agents:[],flightboard:{source:"pr-aggregator",implementation_pct:70,merge_readiness_pct:40,head_sha:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}},{pr:85,agents:[{id:"g2",status:"active",heartbeat_at:beat,agent:"hermes",harness:"hermes-cli",model:"ox-alpha",head:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({schema:"sai-sessions-v2",sessions:[]}); const fed5=await loadPrs();
 check("agent-less group publishes PR-level flightboard (audit P1-3)",fed5.multi===true&&FLIGHT["84"]!==undefined&&FLIGHT["84"].implementation_pct===70&&!fed5.list.some(r=>r.pr==="84"),true);
@@ -401,8 +409,11 @@ return '<div class="srow"><span class="st warn">invalid row — missing '+((["id
 function prKeyOf(v){ // A-H1: positive-int PR keys only — no "__proto__"-style bracket keys.
 const s=typeof v==="number"?String(v):String(v==null?"":v).trim(); return /^[1-9][0-9]{0,5}$/.test(s)?s:null;
 }
-async function probeSessions(){ // Saul 97376638286: the acceptance requires a periodic GET of SESSIONS_URL even while /prs is preferred — liveness evidence stays fresh on both planes.
-  try{const r=await withTimeout(fetch(SESSIONS_URL,{cache:"no-store"}),FEED_TIMEOUT_MS);if(r.ok)SESSIONS_TS=Date.now();}catch(e){}
+async function probeSessions(){ // Saul 97376638286 + 97400684573: periodic GET of SESSIONS_URL even while /prs is preferred — but only a PARSED, schema-valid v2 envelope counts as liveness evidence.
+  try{const r=await withTimeout(fetch(SESSIONS_URL,{cache:"no-store"}),FEED_TIMEOUT_MS);if(!r.ok)return;
+    const j=await r.json();
+    if(j&&j.schema==="sai-sessions-v2"&&Array.isArray(j.sessions))SESSIONS_TS=Date.now();
+  }catch(e){}
 }
 async function loadPrs(){ // falls back to /sessions when /prs is unreachable, empty, stale, or malformed (STEER 20:18Z).
   for(const k of Object.keys(FLIGHT))delete FLIGHT[k];DROPPED=0; // FLIGHT-BOARD: rebuilt per poll so removed cards never render stale authority.
