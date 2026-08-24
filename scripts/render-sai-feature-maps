@@ -70,7 +70,7 @@ SESSIONS_CSS = """<style>
 .psummary{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}.psummary .lbl{font-size:11px;letter-spacing:.08em;color:var(--mute);font-weight:650;margin-right:4px}
 .hb-fresh{color:var(--ok);font-weight:650} .hb-stale{color:var(--bad);font-weight:650} .hb-missing{color:var(--bad);font-weight:650;border-bottom:2px dotted var(--bad)}
 .pcard.hb-stale-card{outline:2px solid var(--bad);outline-offset:-2px}.pcard.hb-missing-card{outline:2px dashed var(--bad);outline-offset:-2px}
-.noworker{color:var(--bad);font-weight:700}.tag{display:inline-block;background:#ececec;border-radius:999px;padding:1px 8px;font:11px/1.5 ui-monospace,monospace;color:#333;margin:0 4px 2px 0}
+.noworker{color:var(--bad);font-weight:700}.tag{display:inline-block;background:#ececec;border-radius:999px;padding:1px 8px;font:11px/1.5 ui-monospace,monospace;color:#333;margin:0 4px 2px 0}.rt-badge{display:inline-block;background:#dce8ff;border-radius:999px;padding:1px 8px;font:11px/1.5 ui-monospace,monospace;color:#1a3a6b;margin:0 4px 2px 0}.rt-badge.rt-prov{color:#555;font-style:italic}
 .saul{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;font-size:12px;border-top:1px dashed var(--line);margin-top:8px;padding-top:8px;color:#333}
 .atags{margin:6px 0 2px}.mismatch{color:var(--bad);font-weight:650}
 .fbar{display:flex;align-items:center;gap:8px;font-size:12px;margin:4px 0}.flbl{flex:0 0 auto;width:112px;font-weight:650;color:#333}.fpct{flex:0 0 auto;text-align:right;font-weight:650}.ftrack{flex:1 1 auto;height:10px;background:#ececec;border-radius:999px;overflow:hidden;display:block}.ffill{display:block;height:100%;background:var(--accent)}.ffill.none{background:#d9d9d9}.fbrk{margin-top:6px;font-size:12px;color:#333}
@@ -448,6 +448,11 @@ function tagsView(a){ // harness+model tags straight from tags[]; nothing synthe
 let h="",m="";const tg=Array.isArray(a.tags)?a.tags:[]; for(const t of tg){if(h===""&&/^harness:/.test(t))h=String(t).slice(8);if(m===""&&/^model:/.test(t))m=String(t).slice(6);}
 if(h==="")h=a.harness?String(a.harness):"";if(m==="")m=a.model?String(a.model):""; const bits=[]; if(h)bits.push('<span class="tag">⚙ '+esc(h)+"</span>");if(m)bits.push('<span class="tag">◆ '+esc(m)+"</span>"); return bits.join(" ");
 }
+function runtimeBadge(a){ // fleet visibility: typed runtime pill; absent field renders nothing (backwards compatible).
+const rt=(a&&a.runtime!=null&&String(a.runtime)!=="")?String(a.runtime):""; if(!rt)return "";
+const prov=(a&&a.registration==="provisional");
+return '<span class="rt-badge'+(prov?" rt-prov":"")+'">⏺ '+esc(rt)+(prov?" · provisional":"")+"</span>";
+}
 function reviewView(a){ // STEER 20:18Z: identity-gated on agent==="saul"; absent fields render "unavailable", never invented.
 if(String(a&&a.agent||"").toLowerCase()!=="saul")return ""; const rv=(a.review&&typeof a.review==="object")?a.review:{}; const head=rv.head_sha?rv.head_sha:"unavailable"; // acceptance P1: exact review HEAD — full sha, never truncated
 const pc=pcounts("P0="+rv.P0+" P1="+rv.P1+" P2="+rv.P2),cls=String(rv.conclusion)==="success"?"ok":"warn"; const val=v=>(v==null||v==="")?"unavailable":String(v),cell=(l,v)=>'<span class="k">'+l+'</span><span class="v">'+esc(v)+"</span>";
@@ -567,7 +572,7 @@ function diffView(d){ // Round-16: live worktree diff; expandable when a file li
 }
 function srow(s){
   if(!rowValid(s))return invalidRow(s); // Round-20: sessions-plane invalid rows render as named badges, never live workers.
-  const extra=(tagsView(s)+reviewView(s));
+  const extra=(tagsView(s)+runtimeBadge(s)+reviewView(s));
   return '<div class="srow"><div class="sid"><span>'+esc(dash(s.id))+'</span>'
     +'<span class="st '+stCls(s.status)+'">'+esc(dash(s.status))+'</span></div>'+(extra?'<div class="atags">'+extra+"</div>":"")
     +'<div class="fields">'+FIELDS.map(f=>'<div class="k2">'+esc(f)+'</div><div class="v2">'+cell(f,s)+'</div>').join("")+'</div></div>';
@@ -967,9 +972,9 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         ".hb-stale", ".hb-missing", "hb-missing-card", "<noscript>", "Hostinger stays Saul-go",
         '"monitors","usage","diff"', 'if(f==="usage")return usageView(s)', 'if(f==="diff")return diffView(s&&s.diff)',
         "<details><summary>files</summary>", '"st warn">dirty', "hermes-sessions/prs", "const PRS_URL=",
-        ".tag{", ".saul{", "tagsView(s)+reviewView(s)", 'src="+(multi?"prs (multi-agent)":"sessions (fallback)")',
+        ".tag{", ".saul{", "tagsView(s)+runtimeBadge(s)+reviewView(s)", 'src="+(multi?"prs (multi-agent)":"sessions (fallback)")',
         "prs feed unavailable", "mergeability", "for(const k of PULLS.keys())keys.add(k)", "{...a,pr:pk}",
-        "const PRS_STALE_MIN=", "function rowValid(", "function reviewView(a){", "Saul review @ ",
+        "const PRS_STALE_MIN=", "function rowValid(", "function runtimeBadge(a){", ".rt-badge{", ".rt-badge.rt-prov", "function reviewView(a){", "Saul review @ ",
         "function prKeyOf(", "async function probeSessions(", "probeSessions().catch", "LOAD_BUSY", "CACHE_CAP", "SESSIONS_TS", "in the future", "validGroups", "CHECKS_FAIL", "flightIngest(", "PULL_PAGES_MAX", "{...a,pr:pk}",
         "^sai-verify$|^sai-verify-(live|prod)$", "withTimeout", "FEED_TIMEOUT_MS",
         'cell("codex_invoked"', "rowValid(a)", "invalidRow(s)", '=="saul")return ""',
@@ -1000,7 +1005,8 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         {"pr": 77, "agent_count": 2, "heads": ["769e2f0"], "updated_at": now_iso,
          "agents": [{"id": "w1", "status": "active", "tags": ["harness:hermes-cli", "model:test-model"], "agent": "hermes", "harness": "hermes-cli",
                      "model": "test-model", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c",
-                     "heartbeat_at": now_iso, "diff": None, "usage": None}, saul_agent]}]}
+                     "heartbeat_at": now_iso, "diff": None, "usage": None,
+                     "runtime": "atomic", "registration": "provisional"}, saul_agent]}]}
     bad_row = dict(prs_payload, prs=[{"pr": 77, "updated_at": now_iso, "agents": [{"id": "x", "status": "active"}]}])
     bare_saul = dict(prs_payload, prs=[{"pr": 77, "updated_at": now_iso, "agents": [{"id": "rv9", "status": "finished", "agent": "saul", "heartbeat_at": now_iso, "harness": "codex", "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c", "review": {}}], "harness": "codex", "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c"}])
     # STEER queued delta (Round-18): explicit-null tokens/diff must render unavailable, never invented "0 tok"/"0 files".
@@ -1029,6 +1035,11 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         + "if(N.textContent.indexOf('src=prs (multi-agent)')<0)fail('prefer prs note');"
         + "if(html().indexOf('harness:hermes-cli'.slice(8))<0)fail('tag harness');"
         + "if(html().indexOf('model:test-model'.slice(6))<0)fail('tag model');"
+        + "if(html().indexOf('rt-badge')<0||html().indexOf('&gt;atomic&lt;'.slice(0,0)+'atomic')<0)fail('runtime badge');"
+        + "if(html().indexOf('&middot; provisional')<0&&html().indexOf('&middot;&nbsp;provisional')<0&&html().indexOf('provisional')<0)fail('provisional marker');"
+        + "if(runtimeBadge({runtime:'<script>'}).indexOf('<script>')>=0)fail('hostile runtime unescaped');"
+        + "if(runtimeBadge({runtime:'<script>'}).indexOf('&lt;script&gt;')<0)fail('hostile runtime not entity-escaped');"
+        + "if(runtimeBadge({})!=='')fail('absent runtime must render nothing');"
         + "if(html().indexOf('Saul review @ ')<0)fail('saul head');"
         + "if(html().indexOf('codex_invoked')<0||html().indexOf('synthetic')<0)fail('saul fields');"
         + "if(html().indexOf('P0=1 P1=2 P2=3')<0)fail('saul counts');"
@@ -1045,6 +1056,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         + "if(html().indexOf('0 files')>=0)fail('null file_count invented as 0 files');"
         + "if(html().indexOf('+3 / -1')<0)fail('real insertions still render');"
         + "if(html().indexOf('unavailable')<0)fail('null metrics not degraded honestly');"
+        + "if(html().indexOf('rt-badge')>=0)fail('badge rendered without runtime field (backwards-compat break)');"
         + "global.fetch=async(u)=>String(u).indexOf('hermes-sessions/prs')>=0?{ok:false,status:503}:J("
         + json.dumps(fb_payload) + ");W.innerHTML='';await load();"
         + "if(N.textContent.indexOf('src=sessions (fallback)')<0)fail('down fallback note');"
