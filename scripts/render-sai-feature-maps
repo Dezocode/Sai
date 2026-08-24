@@ -243,24 +243,24 @@ PULLS=new Map([["90",{number:90,head:{sha:"AB12CD"}}]]);fetch=()=>{throw new Err
 check("failed-check SHA not marked done (Q1)",doneShas(card("90","AB12CD")).indexOf("ab12cd")<0,true); fetch=p=>GHJ({total_count:1,check_runs:[R("build",1,"success",0)]});await refreshChecks(90); check("recovered fetch populates CHECKS (Q1)",typeof CHECKS["ab12cd"],"object");
 check("recovered SHA marked done (Q1)",doneShas([{k:"90",pr:{state:"open",headSha:"AB12CD"},ss:[]}]).indexOf("ab12cd")>=0,true); CHECKS["dd55"]={total:9,fails:0,pending:0,saul:"",partial:true};
 check("partial rollup excluded from doneShas (B-PARTIAL)",doneShas(card("91","DD55")).indexOf("dd55")<0,true);delete CHECKS["dd55"];
-fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:"badkey",agents:[{id:"i",status:"active",heartbeat_at:beat}]},{pr:78,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({sessions:[]}); const fed=await loadPrs();
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({schema:"sai-sessions-v2",updated_at:new Date().toISOString(),prs:[{pr:"badkey",agents:[{id:"i",status:"active",heartbeat_at:beat}]},{pr:78,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({schema:"sai-sessions-v2",sessions:[]}); const fed=await loadPrs();
 check("healthy group survives malformed sibling (C-05)",fed.multi===true&&fed.list.some(r=>r.pr==="78"),true); check("malformed pr-key rows dropped as invalid (A-H1)",DROPPED>=1,true);
-fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:83,agents:[{id:"spoof",status:"active",heartbeat_at:beat,pr:"__proto__",agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({sessions:[]}); const fed4=await loadPrs();
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({schema:"sai-sessions-v2",updated_at:new Date().toISOString(),prs:[{pr:83,agents:[{id:"spoof",status:"active",heartbeat_at:beat,pr:"__proto__",agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({schema:"sai-sessions-v2",sessions:[]}); const fed4=await loadPrs();
 check("agent-supplied pr never overrides validated parent (97342571251)",fed4.list.length===1&&fed4.list[0].pr==="83"&&Object.keys(FLIGHT).indexOf("__proto__")<0,true);
-fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:79,agents:[{id:"z",status:"x"}]}]}):GHJ({sessions:[{id:"s1",status:"active",heartbeat_at:beat,pr:80,agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}); const fb2=await loadPrs();
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({schema:"sai-sessions-v2",updated_at:new Date().toISOString(),prs:[{pr:79,agents:[{id:"z",status:"x"}]}]}):GHJ({schema:"sai-sessions-v2",sessions:[{id:"s1",status:"active",heartbeat_at:beat,pr:80,agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}); const fb2=await loadPrs();
 check("all-invalid feed falls back to sessions (C-05)",fb2.multi===false&&fb2.list.length===1&&fb2.list[0].pr==="80",true);
 { // Saul 97338826287: invalid group's flightboard never publishes via a valid sibling; checks backoff uses its own retry window.
-fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:81,agents:[{id:"bad",status:"x"}],flightboard:{implementation_pct:99,merge_readiness_pct:99}},{pr:82,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({sessions:[]}); const fed3=await loadPrs();
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({schema:"sai-sessions-v2",updated_at:new Date().toISOString(),prs:[{pr:81,agents:[{id:"bad",status:"x"}],flightboard:{implementation_pct:99,merge_readiness_pct:99}},{pr:82,agents:[{id:"good",status:"active",heartbeat_at:beat,agent:"hermes","harness":"hermes-cli","model":"ox-alpha","head":"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({schema:"sai-sessions-v2",sessions:[]}); const fed3=await loadPrs();
 check("invalid group's flightboard excluded (97338826287)",fed3.multi===true&&FLIGHT["81"]===undefined&&fed3.list.some(r=>r.pr==="82"),true);}
 {const now2=Date.now();CHECKS_FAIL["ef01"]=MAX_DETAIL_FAILS;delete CHECKS_RETRY_AT["ef01"];check("capped checks not replanned before window",planEnrich(card("93","EF01"),9).some(s=>s.kind==="checks"),false);
 CHECKS_RETRY_AT["ef01"]=now2-1;check("expired checks retry window replans (97338826287)",planEnrich(card("93","EF01"),9).some(s=>s.kind==="checks"),true);delete CHECKS_FAIL["ef01"];delete CHECKS_RETRY_AT["ef01"];}
 
 { // P1-3 (audit): agent-less PR group still publishes PR-level flight-board authority; Agent NONE keeps its progress.
-fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[{pr:84,agents:[],flightboard:{source:"pr-aggregator",implementation_pct:70,merge_readiness_pct:40,head_sha:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}},{pr:85,agents:[{id:"g2",status:"active",heartbeat_at:beat,agent:"hermes",harness:"hermes-cli",model:"ox-alpha",head:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({sessions:[]}); const fed5=await loadPrs();
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({schema:"sai-sessions-v2",updated_at:new Date().toISOString(),prs:[{pr:84,agents:[],flightboard:{source:"pr-aggregator",implementation_pct:70,merge_readiness_pct:40,head_sha:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}},{pr:85,agents:[{id:"g2",status:"active",heartbeat_at:beat,agent:"hermes",harness:"hermes-cli",model:"ox-alpha",head:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"}]}]}):GHJ({schema:"sai-sessions-v2",sessions:[]}); const fed5=await loadPrs();
 check("agent-less group publishes PR-level flightboard (audit P1-3)",fed5.multi===true&&FLIGHT["84"]!==undefined&&FLIGHT["84"].implementation_pct===70&&!fed5.list.some(r=>r.pr==="84"),true);
 check("agent-less group contributes zero session rows (audit P1-3)",!fed5.list.some(r=>r.pr==="84"),true);}
 { // P1-4 (audit): canonical v2 schema enforced pre-assembly — invalid rows are telemetry counts, never attached workers.
-fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({updated_at:new Date().toISOString(),prs:[]}):GHJ({sessions:[{id:"v1",status:"active",heartbeat_at:beat,pr:86,agent:"hermes",harness:"hermes-cli",model:"ox-alpha",head:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"},{id:"inv",status:"active",heartbeat_at:beat,pr:87}]}); DROPPED=0;
+fetch=u=>String(u).indexOf("__PRS")>=0?GHJ({schema:"sai-sessions-v2",updated_at:new Date().toISOString(),prs:[]}):GHJ({schema:"sai-sessions-v2",sessions:[{id:"v1",status:"active",heartbeat_at:beat,pr:86,agent:"hermes",harness:"hermes-cli",model:"ox-alpha",head:"ab12cd34ab12cd34ab12cd34ab12cd34ab12cd34"},{id:"inv",status:"active",heartbeat_at:beat,pr:87}]}); DROPPED=0;
 const fb6=await loadPrs();
 check("invalid fallback session dropped pre-assembly (audit P1-4)",fb6.list.length===1&&fb6.list[0].pr==="86"&&fb6.multi===false&&DROPPED===1,true);
 check("rowValid enforces canonical agent/harness/model/head (audit P1-4)",!rowValid({id:"x",status:"active",heartbeat_at:beat})&&rowValid({id:"x",status:"active",heartbeat_at:beat,agent:"h",harness:"cli",model:"m",head:"abc"}),true);}
@@ -388,7 +388,7 @@ const stCls=s=>({active:"ok",finished:"ok",done:"mute",failed:"bad"}[String(s||"
 const PRS_STALE_MIN=10; // STEER 20:18Z: /prs payloads older than this fall back (honesty note names the source).
 const FEED_TIMEOUT_MS=15000,withTimeout=(pr,ms)=>Promise.race([pr,new Promise((_,rej)=>setTimeout(()=>rej(new Error("feed timeout")),ms))]); // hung endpoints release LOAD_BUSY.
 let SRC="sessions",loadErr="",DROPPED=0; async function loadSessions(){ const r=await withTimeout(fetch(SESSIONS_URL,{cache:"no-store"}),FEED_TIMEOUT_MS);if(!r.ok)throw new Error("HTTP "+r.status);
-const d=await r.json();if(!d||!Array.isArray(d.sessions))throw new Error("malformed sessions payload"); const ok=d.sessions.filter(x=>rowValid(x));
+const d=await r.json();if(!d||d.schema!=="sai-sessions-v2"||!Array.isArray(d.sessions))throw new Error("malformed sessions payload"); const ok=d.sessions.filter(x=>rowValid(x));
   DROPPED+=d.sessions.length-ok.length; // P1-4 audit: invalid rows are telemetry counts, never assembled state.
 SESSIONS_TS=Date.now();return ok;
 }
@@ -406,7 +406,7 @@ async function probeSessions(){ // Saul 97376638286: the acceptance requires a p
 }
 async function loadPrs(){ // falls back to /sessions when /prs is unreachable, empty, stale, or malformed (STEER 20:18Z).
   for(const k of Object.keys(FLIGHT))delete FLIGHT[k];DROPPED=0; // FLIGHT-BOARD: rebuilt per poll so removed cards never render stale authority.
-try{ const r=await withTimeout(fetch(PRS_URL,{cache:"no-store"}),FEED_TIMEOUT_MS);const d=r.ok?await r.json():null; const age=d&&d.updated_at?ageMin(d.updated_at):null;
+try{ const r=await withTimeout(fetch(PRS_URL,{cache:"no-store"}),FEED_TIMEOUT_MS);const d=r.ok?await (async()=>{const j=await r.json();return j&&j.schema==="sai-sessions-v2"?j:null;})():null; const age=d&&d.updated_at?ageMin(d.updated_at):null;
     if(d&&Array.isArray(d.prs)&&d.prs.length>0&&age!=null&&age>=0&&age<=PRS_STALE_MIN){ // H2: future updated_at reads stale.
 const out=[],fbc={};let validGroups=0; for(const p of d.prs){
         const pk=prKeyOf(p&&p.pr); // A-H1: prototype-safe keys only.
@@ -438,7 +438,7 @@ let h="",m="";const tg=Array.isArray(a.tags)?a.tags:[]; for(const t of tg){if(h=
 if(h==="")h=a.harness?String(a.harness):"";if(m==="")m=a.model?String(a.model):""; const bits=[]; if(h)bits.push('<span class="tag">⚙ '+esc(h)+"</span>");if(m)bits.push('<span class="tag">◆ '+esc(m)+"</span>"); return bits.join(" ");
 }
 function reviewView(a){ // STEER 20:18Z: identity-gated on agent==="saul"; absent fields render "unavailable", never invented.
-if(String(a&&a.agent||"").toLowerCase()!=="saul")return ""; const rv=(a.review&&typeof a.review==="object")?a.review:{}; const head=rv.head_sha?shortSha(rv.head_sha):"unavailable";
+if(String(a&&a.agent||"").toLowerCase()!=="saul")return ""; const rv=(a.review&&typeof a.review==="object")?a.review:{}; const head=rv.head_sha?rv.head_sha:"unavailable"; // acceptance P1: exact review HEAD — full sha, never truncated
 const pc=pcounts("P0="+rv.P0+" P1="+rv.P1+" P2="+rv.P2),cls=String(rv.conclusion)==="success"?"ok":"warn"; const val=v=>(v==null||v==="")?"unavailable":String(v),cell=(l,v)=>'<span class="k">'+l+'</span><span class="v">'+esc(v)+"</span>";
 return '<div class="saul"><span>Saul review @ '+esc(head)+'</span>' +'<span><span class="st '+cls+'">'+esc(rv.conclusion||"unavailable")+"</span></span><div>" +cell("phase",val(rv.phase))+cell("progress",val(rv.progress))+cell("review status",val(rv.status))
 +cell("codex_invoked",val(rv.codex_invoked))+cell("synthetic",val(rv.synthetic)) +cell("P0/P1/P2",pc?("P0="+pc.p0+" P1="+pc.p1+" P2="+pc.p2):"unavailable")+"</div></div>";
@@ -979,7 +979,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
     saul_agent = {"id": "rv1", "status": "finished", "agent": "Saul", "heartbeat_at": now_iso, "harness": "codex", "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c",
                   "review": {"conclusion": "success", "head_sha": "769e2f00d703a0a832a7b2731d0478d58216cb9c", "phase": "complete",
                              "progress": "done", "status": "success", "codex_invoked": True, "synthetic": False, "P0": "1", "P1": "2", "P2": "3"}}
-    prs_payload = {"count": 1, "schema": "test", "updated_at": now_iso, "prs": [
+    prs_payload = {"count": 1, "schema": "sai-sessions-v2", "updated_at": now_iso, "prs": [
         {"pr": 77, "agent_count": 2, "heads": ["769e2f0"], "updated_at": now_iso,
          "agents": [{"id": "w1", "status": "active", "tags": ["harness:hermes-cli", "model:test-model"], "agent": "hermes", "harness": "hermes-cli",
                      "model": "test-model", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c",
@@ -992,7 +992,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
          "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c",
          "usage": {"total_tokens": None, "input_tokens": None, "output_tokens": None},
          "diff": {"file_count": None, "insertions": 3, "deletions": 1}}]}])
-    fb_payload = {"sessions": [{"id": "w2", "status": "active", "heartbeat_at": now_iso, "agent": "hermes", "pr": 77, "progress": {"source": "pr-aggregator", "implementation_pct": 80, "merge_readiness_pct": 55, "head_sha": "769e2f00d703a0a832a7b2731d0478d58216cb9c"}, "harness": "hermes-cli", "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c"}]}
+    fb_payload = {"schema": "sai-sessions-v2", "sessions": [{"id": "w2", "status": "active", "heartbeat_at": now_iso, "agent": "hermes", "pr": 77, "progress": {"source": "pr-aggregator", "implementation_pct": 80, "merge_readiness_pct": 55, "head_sha": "769e2f00d703a0a832a7b2731d0478d58216cb9c"}, "harness": "hermes-cli", "model": "ox-alpha", "head": "769e2f00d703a0a832a7b2731d0478d58216cb9c"}]}
     def prs_body(payload):
         return ("global.fetch=async(u)=>String(u).indexOf('hermes-sessions/prs')>=0?J("
                 + json.dumps(payload) + "):J(" + json.dumps(fb_payload) + ");")
@@ -1015,7 +1015,7 @@ def verify(out: Path, feats: list[dict], html_text: str, html_sessions: str) -> 
         + "if(html().indexOf('Saul review @ ')<0)fail('saul head');"
         + "if(html().indexOf('codex_invoked')<0||html().indexOf('synthetic')<0)fail('saul fields');"
         + "if(html().indexOf('P0=1 P1=2 P2=3')<0)fail('saul counts');"
-        + "if(html().indexOf('Saul review @ 769e2f0')<0)fail('saul exact review HEAD (acceptance P1 #2)');"
+        + "if(html().indexOf('Saul review @ 769e2f00d703a0a832a7b2731d0478d58216cb9c')<0)fail('saul exact review HEAD (acceptance P1 #2)');"
         + "if(html().indexOf('review status')<0||html().indexOf('progress')<0||html().indexOf('phase')<0)fail('saul review progress/status cells');"
         + "if(html().indexOf('2 sessions')<0)fail('PR card groups Hermes+Saul agents (acceptance P1 #3)');"
         + "if(html().indexOf('pull/77')<0)fail('parent-PR join');if(html().indexOf('PR ?')>=0)fail('ghost unknown card');"
