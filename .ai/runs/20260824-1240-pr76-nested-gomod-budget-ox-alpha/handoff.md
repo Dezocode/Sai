@@ -1,2 +1,1 @@
-# Handoff 20260824-1240-pr76-nested-gomod-budget-ox-alpha
-Nested go.mod lane guard (moduleTargetsLaneFrom, manifest-dir resolution) + final budget trim; paired adversarial test; all gates green.
+# Handoff 20260824-1240-pr76-nested-gomod-budget-ox-alpha: nested go.mod lane guard plus final budget trim; all gates green at push.
