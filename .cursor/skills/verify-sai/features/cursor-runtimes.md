@@ -14,6 +14,7 @@ Project-enabled Cursor plugins, SAI Cursor rules, and Layer 0 routers for Claude
 - `pr-agent-monitor` `https://dezocode.github.io/Sai/pr-sessions.html` PR + agent monitor: authoritative GitHub PR state for Dezocode/Sai joined by PR number with live Hermes sessions (union cards, Agent NONE when no worker, session-vs-PR HEAD mismatch, fresh/stale/missing heartbeat buckets); secret-free public REST only.
 ## How to get to it (user POV)
 - Cursor: type `/` → pstack skills; attach `@<name>` for `.ai/agents/<name>/`. Claude Code: read `CLAUDE.md` then `AGENT.md`. Codex: `CODEX.md`. OpenClaw: `OPENCLAW.md` then Alfred first message. Cloud: new agent on a commit containing `.cursor/settings.json`.
+- Cloud Custom Mode: type `/lauren-mode` or `/lauren` (`.cursor/skills/lauren-mode/` and `.cursor/skills/lauren/`).
 PR agent monitor: global nav tab **PR sessions** on the Pages feature maps, or directly `/Sai/pr-sessions.html` on `dezocode.github.io`.
 ## Driving it with verify-sai
 - **Settings.** ::json .cursor/settings.json
@@ -21,6 +22,8 @@ PR agent monitor: global nav tab **PR sessions** on the Pages feature maps, or d
 - **Index.** ::json .ai/plugins/pstack/manifest.json
 - **Skill.** ::contains .ai/plugins/pstack/README.md create-verification-skill
 - **Routers.** ::exists AGENTS.md CLAUDE.md CODEX.md OPENCLAW.md .cursor/rules/sai-coordination.mdc
+- **Lauren.** ::exists .cursor/skills/lauren-mode/SKILL.md .cursor/skills/lauren/SKILL.md
+- **Cloud rules.** ::exists .cursor/rules/lauren-mode.mdc .cursor/rules/pstack-models.mdc
 - **Monitor.** ::contains scripts/render-sai-feature-maps api.github.com
 ## Gotchas
 - Do not vendor pstack skills into `.cursor/skills/` (duplicate `/` names). `verify-sai` is a project verification skill, not a pstack clone. User-scoped `/add-plugin` does not reach Cloud Agent VMs. Slack bots are not registered agents unless in `registry.json`.

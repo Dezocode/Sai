@@ -11,6 +11,6 @@ Verifier-owned non-shipping prototype-plugin lane: canonical root, SwiftUI exemp
 ## Driving it with verify-sai
 - **Lane policy tests.** ::gotest ./cmd/sai-design-check/...
 - **Whole kernel race.** ::gotest ./cmd/sai-verify/...
-- **Design contract live.** ::exec scripts/verify-semantic-hierarchy
+- **Design contract live.** ::contains .github/workflows/sai-design-language.yml prototypes/**
 ## Gotchas
 - The prototype root is owned by verifier code, never by `design/sai-design-language.json`, plugin metadata, env vars, or build settings; candidate keys naming other roots are ignored and pinned `codePolicy` paths still fail closed. `prototypes/plugin/`, `prototypes/plugins-evil/`, `prototype/plugins/`, traversal, absolute forms, and symlink escape do not satisfy the canonical-root test. Nested `PrototypeDesign/` directories are allowed exactly like nested SaiDesignLanguage dirs. Manifest gate: walk-discovered `Package.swift` files (prototypes/.git/.build/.swiftpm pruned) fail on lane-resolving paths or non-literal values; unreadable trees fail closed. The verifier's own source mentioning prototype import paths is string data, not an import declaration, so it never self-triggers the gate.

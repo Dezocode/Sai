@@ -1,0 +1,21 @@
+{
+  "task_id": "20260824-2155-maintain-verify-sai-cursor-cloud",
+  "agent": "cursor-cloud",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "cursor/pr-approval-agent-logic-5c6c",
+  "base_sha": "3159b58753a140ef052bb41dc987c8a5cd6fad81",
+  "purpose": "Maintain .cursor/skills/verify-sai after exact-HEAD drive; ship proven map drift only",
+  "status": "handoff",
+  "claimed_files": [
+    ".cursor/skills/verify-sai/SKILL.md",
+    ".cursor/skills/verify-sai/features/cursor-runtimes.md",
+    ".cursor/skills/verify-sai/features/openclaw-ops.md",
+    ".cursor/skills/verify-sai/features/prototype-plugins.md",
+    ".cursor/skills/verify-sai/features/verify-sai.md",
+    ".ai/runs/20260824-2155-maintain-verify-sai-cursor-cloud/"
+  ],
+  "trigger": "stop-hook exact-HEAD maintain-verification-skill + sai-verify doctor",
+  "worktree": "isolated cloud-agent VM workspace (non-synced)",
+  "note": "File-claim overlap: 20260822-2200-lane-enforcement-impl-hermes still in_progress and lists prototype-plugins.md. This run only edits the skill map on a different branch; introducing work already on HEAD bf6ea587."
+}

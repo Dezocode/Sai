@@ -13,7 +13,7 @@ Operators bootstrap a loopback OpenClaw Gateway, run fail-closed fleet/telegram/
 - `oc-telegram-mcq` `integrations/telegram/mcq-actions.md` + Alfred `telegram/BLOCKED-MCQ-CONTINUATION.md` + smoke `telegram-mcq.sh` (stub exit 2)
 - `oc-connection-gate` `tests/smoke/subagent-connection-gate.sh` fail-closed; `subagent-connection-gate-negative.sh` self-test
 - `oc-secrets` `scripts/verify-secrets-compliance.sh` + smoke `tests/smoke/secrets-compliance.sh` + `docs/secrets-security.md` + `auth-matrix.md` + `.ai/agents/alfred/runtimes/openclaw/gateway/config/secrets-store.schema.json`
-- `oc-ingest-slo` `scripts/verify-ingest-latency.sh` stub exit 2 until `services/activity-ingest` exists
+- `oc-ingest-slo` `scripts/verify-ingest-latency.sh` stub exit 2 until ingest SLO is wired (`services/activity-ingest/README.md` exists)
 - `oc-smoke-all` `tests/smoke/all-gates.sh` orchestrator fails while child stubs fail; `run-all.sh` stub exit 2
 - `oc-svc-ingest` `services/activity-ingest/README.md`
 - `oc-svc-presence` `services/agent-presence/README.md`

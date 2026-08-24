@@ -11,4 +11,4 @@ Prefer existing harnesses. Driving bullets are `::` recipes parsed as data (`exe
 ## Evidence
 Proofs are command + exit + stdout/stderr, plus a second read of stored state for mutations. Record feature ID and entry point. Artifacts: `.ai/runs/<task-id>/04_verify/output/` (survive cleanup). Unreachable live paths must name the concrete prerequisite. Delete only temp dirs a drive created. Never kill by process name. Never delete evidence.
 ## Helpers
-- `go run ./cmd/sai-verify snapshot|proof|doctor|relevant|preserve|hook|drive`; wrapper `.cursor/hooks/sai-verify.sh` (worktree-safe)
+- `go run ./cmd/sai-verify snapshot|proof|doctor|relevant|preserve|hook|drive|maps`; wrapper `.cursor/hooks/sai-verify.sh` (worktree-safe)
