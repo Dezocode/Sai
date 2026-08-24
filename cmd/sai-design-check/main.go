@@ -225,14 +225,22 @@ func checkGoWorkFiles(root string) error {
 	rootCanon, err := filepath.EvalSymlinks(func() string { a, _ := filepath.Abs(root); return a }())
 	if err != nil { return fmt.Errorf("go.work: cannot resolve root, fails closed: %v", err) }
 	gwLane := func(wdir, tok string) bool {
-		tok = strings.Trim(tok, "\""+"'")
+		tok = strings.Trim(tok, "\"'")
 		if tok == "" || strings.HasPrefix(tok, "//") { return false }
 		p := tok
 		if !filepath.IsAbs(p) { p = filepath.Join(wdir, p) }
-		if rp, rerr := filepath.EvalSymlinks(p); rerr == nil { p = rp }
-		rel, rerr := filepath.Rel(rootCanon, p)
-		if rerr != nil { return true }
-		return rel == protoRoot || rel == "prototypes" || strings.HasPrefix(rel, protoRoot+"/") || strings.HasPrefix(rel, "prototypes/")
+		cand := filepath.ToSlash(filepath.Clean(p))
+		for d := cand; ; { // canonicalize via nearest existing ancestor (resolvesInto-style): symlinked root components (/var to /private/var on macOS CI) and missing leaves are both judged against the resolved root
+			if r, rerr := filepath.EvalSymlinks(d); rerr == nil {
+				cand = filepath.ToSlash(filepath.Join(r, strings.TrimPrefix(cand, d)))
+				break
+			}
+			u := filepath.Dir(d)
+			if u == d { break }
+			d = u
+		}
+		laneRoot := filepath.ToSlash(filepath.Clean(rootCanon))
+		return cand == laneRoot+"/"+protoRoot || cand == laneRoot+"/prototypes" || strings.HasPrefix(cand, laneRoot+"/"+protoRoot+"/") || strings.HasPrefix(cand, laneRoot+"/prototypes/")
 	}
 	return filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
