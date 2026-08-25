@@ -1,0 +1,7 @@
+{
+  "_comment": "Canonical Sai Harness identity registry. Keys are handles, values are canonical identities. One canonical identity per observable channel. Immutable after cutover; renames require an owner-approved migration commit that re-keys in-flight ledgers.",
+  "her": "her",
+  "sai-grunt": "grunt",
+  "sai-grunt-f36750": "grunt",
+  "grunt": "grunt"
+}
