@@ -5,27 +5,31 @@
 # Prototype tier: read paths work today against the public API; the write path
 # emits the exact request the API lane (PR #141 work) must accept per GOALS.md.
 set -eu
+fail() { printf 'lane-connector: %s\n' "$1" >&2; exit 1; }
 SESSIONS_API_URL="${SESSIONS_API_URL:-https://srv1840454.hstgr.cloud/api/hermes-sessions}"
 CROSSCOM_SIDE="${CROSSCOM_SIDE:-local}"          # local | repo
-TASK_ID="${SAI_TASK_ID:-unknown-task-id}"
+TASK_ID="${SAI_TASK_ID:-}"
+if [ -z "$TASK_ID" ]; then
+  TASK_ID=$(git log -1 --format=%B 2>/dev/null | grep -oP 'Task-ID:\s*\K.*' | head -1)
+fi
+[ -n "$TASK_ID" ] || fail "TASK_ID unresolved: no SAI_TASK_ID env and no Task-ID trailer on HEAD — refusing to attribute a crosscomm row to 'unknown'"
 REPO_SLUG="${CROSSCOM_REPO:-Dezocode/Sai}"
 
-fail() { printf 'lane-connector: %s\n' "$1" >&2; exit 1; }
 command -v gh >/dev/null 2>&1 || fail "gh CLI not found — local gh auth is this plugin's auth mechanism"
 command -v curl >/dev/null 2>&1 || fail "curl not found"
 gh auth token >/dev/null 2>&1 || fail "gh auth token unavailable — run: gh auth login"
 
 GH_LOGIN=$(gh api user --jq .login 2>/dev/null) || GH_LOGIN="her"
-head=$(git rev-parse --short HEAD 2>/dev/null || printf '0000000')
+head=$(git rev-parse --short HEAD 2>/dev/null) || fail "head unresolved: not a git work tree"
 now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 session_id="crosscomm-${REPO_SLUG#*/}-${TASK_ID}"
 
 row=$(python3 -c '
 import json,sys
-print(json.dumps({"id":sys.argv[1],"pr":None,"agent":"her","harness":"gh-lane","model":"local-gh-auth",
+print(json.dumps({"id":sys.argv[1],"pr":int(sys.argv[6]) if sys.argv[6] else None,"agent":"her","harness":"gh-lane","model":"local-gh-auth",
  "head":sys.argv[2],"status":"active","heartbeat_at":sys.argv[3],"phase":"crosscomm",
  "side":sys.argv[4],"monitors":["crosscom"],"steer":"","task_id":sys.argv[5]}))
-' "$session_id" "$head" "$now" "$CROSSCOM_SIDE" "$TASK_ID")
+' "$session_id" "$head" "$now" "$CROSSCOM_SIDE" "$TASK_ID" "${SAI_GROKBOT_PR:-}")
 
 case "${1:-reconcile}" in
   read|reconcile)

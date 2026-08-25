@@ -11,6 +11,7 @@ STATE="$HARNESS_DIR/state"
 [ -f /root/.sai-fleet/tokens.env ] && { set -a; . /root/.sai-fleet/tokens.env; set +a; }
 : "${TELEGRAM_BOT_TOKEN:?telegram-bridge: TELEGRAM_BOT_TOKEN missing from fleet creds}"
 : "${TELEGRAM_CHAT_ID:?telegram-bridge: TELEGRAM_CHAT_ID missing from fleet creds}"
+case "$TELEGRAM_CHAT_ID" in *[!0-9-]*|"") fail "TELEGRAM_CHAT_ID malformed (got ${#TELEGRAM_CHAT_ID} chars, want numeric) — re-provision in fleet creds";; esac
 API="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}"
 TMUX_SESSION="${SAI_HARNESS_TMUX:-sai-harness}"
 
