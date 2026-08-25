@@ -5,6 +5,7 @@ A principal names an agent, binds a charter, initializes hooks and capabilities,
 - `init-script` `scripts/agent-init` mechanical Phase 2; refuse fail; do not run in managed VMs to set hooksPath.
 - `onboard-protocol` `.ai/ONBOARDING.md` contractor persona gate + Sai audit.
 - `registry` `.ai/agents/registry.json` one row per agent; status `active`|`provisional`|`retired`.
+- `runtime-registry-spec` `specs/2026-08-24-agent-runtime-registry.md` design RFC: exact-head attribution + head-match dispatch over the registry.
 - `charter-ceo` `.ai/agents/_roles/ceo/CHARTER.md`
 - `charter-secretary-dezocode` `.ai/agents/_roles/secretary-dezocode/CHARTER.md`
 - `charter-secretary-monaecode` `.ai/agents/_roles/secretary-monaecode/CHARTER.md`

@@ -12,6 +12,8 @@ Project-enabled Cursor plugins, SAI Cursor rules, and Layer 0 routers for Claude
 - `pstack-verify-skills` marketplace `/create-verification-skill` and `/maintain-verification-skill`; repo-local `/verify-sai` is `.cursor/skills/verify-sai/`.
 - `decision-0004` `.ai/shared/memory/decisions/0004-cursor-project-plugins.md` project-scope plugins.
 - `pr-agent-monitor` `https://dezocode.github.io/Sai/pr-sessions.html` PR + agent monitor: authoritative GitHub PR state for Dezocode/Sai joined by PR number with live Hermes sessions (union cards, Agent NONE when no worker, session-vs-PR HEAD mismatch, fresh/stale/missing heartbeat buckets); secret-free public REST only.
+- `sai-cli-layer-spec` `specs/2026-08-25-sai-cli-layer-over-atomic.md` design RFC: per-agent tmux channels, hooks and config over Atomic.
+- `cross-intercom-sai-plugin` `prototypes/plugins/cross-intercom/.sai/*` prototype plugin lane: fleet registration via agents.yaml, channel-per-agent hooks, sai.<botname> alias installer.
 ## How to get to it (user POV)
 - Cursor: type `/` → pstack skills; attach `@<name>` for `.ai/agents/<name>/`. Claude Code: read `CLAUDE.md` then `AGENT.md`. Codex: `CODEX.md`. OpenClaw: `OPENCLAW.md` then Alfred first message. Cloud: new agent on a commit containing `.cursor/settings.json`.
 PR agent monitor: global nav tab **PR sessions** on the Pages feature maps, or directly `/Sai/pr-sessions.html` on `dezocode.github.io`.

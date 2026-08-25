@@ -21,6 +21,7 @@ Operators bootstrap a loopback OpenClaw Gateway, run fail-closed fleet/telegram/
 - `oc-svc-research` `services/research-mcp/README.md`
 - `oc-svc-telegram` `services/telegram-session/{CONTEXT,BUILD}.md`
 - `oc-svc-vault` `services/vault-mcp/README.md`
+- `oc-svc-sessions` `services/sessions-api/*` hermes-sessions API contract, app, Dockerfile, and tests.
 - `oc-composio` `integrations/composio/README.md`
 - `oc-subagents` `openclaw-dashboard/.openclaw/agents/{config-expert,research-coordinator}.md`
 - `oc-onboard-docs` `docs/subagent-onboarding-protocol.md` `alfred-smoke-runbook.md` `fulfillment-evidence.md` `sai-icm-integration.md` `icm-protocol-handbook.md`
