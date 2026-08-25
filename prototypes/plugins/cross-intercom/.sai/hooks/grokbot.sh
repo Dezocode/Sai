@@ -84,6 +84,16 @@ cmd_inbox() {  # OpenBot composer semantics: parked messages drain as ONE follow
   # ate messages while claiming they "stay parked".
   command -v atomic >/dev/null 2>&1 || { printf 'atomic CLI missing; %d request(s) stay parked\n' "$n" >&2; return 1; }
   for m in "$STATE"/inbox/*.md; do mv "$m" "$m.sent" 2>/dev/null || rm -f "$m"; done
+  if command -v tmux >/dev/null 2>&1; then
+    # Persistent runtime coherence: ONE long-lived atomic session receives every
+    # drained prompt in order, keeping conversational context across wakes.
+    tmux has-session -t "${SAI_HARNESS_TMUX:-sai-harness}" 2>/dev/null || \
+      tmux new-session -d -s "${SAI_HARNESS_TMUX:-sai-harness}" -c "$PLUGIN_DIR/../.." \
+        'bash -lc "export PATH=/usr/local/go/bin:$PATH; exec atomic"'
+    tmux send-keys -t "${SAI_HARNESS_TMUX:-sai-harness}" "$combined" C-m
+    printf '[grokbot] drained %d parked mention(s) into persistent atomic tmux (%s)\n' "$n" "${SAI_HARNESS_TMUX:-sai-harness}"
+    return 0
+  fi
   local donef="$STATE/launch.$$"
   ( cd "$PLUGIN_DIR/../../.." && atomic "$combined" >"$donef.log" 2>&1; printf '%s' $? > "$donef" ) &
   printf '%s' $! > "$STATE/launches/$$"   # record: file=launcher pid, content=worker pid
@@ -100,9 +110,24 @@ self_heal() {  # stuck/errored atomic runtimes: kill stale, requeue with backoff
     if kill -0 "$pid" 2>/dev/null; then
       age=$(( $(date +%s) - $(stat -c %Y "$lf" 2>/dev/null || echo $(date +%s)) ))
       if [ "$age" -gt "$LAUNCH_TIMEOUT" ]; then
-        kill -9 "$pid" 2>/dev/null; printf 'self-heal: launch %s stuck %ss — killed, requeued\n' "$pid" "$age" >&2
-        [ -n "$sent" ] && mv "$sent" "${sent%.sent}" 2>/dev/null
-        rm -f "$lf"
+        # API monitoring, not wall-clock execution: a launch past 900s only dies if it
+        # is PROGRESS-DEAD across consecutive checks. Progress = its log grew since
+        # the last check-in (atomic workers stream output; quiet != dead, dead = quiet).
+        log="$lf.log"; sz=$(stat -c %s "$log" 2>/dev/null || echo 0)
+        szf="$lf.sz"; lastsz=$(cat "$szf" 2>/dev/null || echo -1)
+        if [ "$lastsz" -ge 0 ] && [ "$sz" -gt "$lastsz" ]; then
+          printf '%s' "$sz" > "$szf"; rm -f "$lf.stale"
+          printf 'self-heal: launch %s age=%ss but progressing (log %s->%sB) — left running\n' "$pid" "$age" "$lastsz" "$sz" >&2
+          continue
+        fi
+        st=$(( $(cat "$lf.stale" 2>/dev/null || echo 0) + 1 )); printf '%s' "$st" > "$lf.stale"
+        if [ "$st" -ge 2 ]; then
+          kill -9 "$pid" 2>/dev/null; printf 'self-heal: launch %s progress-dead %ss (stale %s/2) — killed, requeued\n' "$pid" "$age" "$st" >&2
+          [ -n "$sent" ] && mv "$sent" "${sent%.sent}" 2>/dev/null
+          rm -f "$lf" "$lf.stale" "$szf"
+        else
+          printf 'self-heal: launch %s quiet %ss (stale %s/2) — watching until next check-in\n' "$pid" "$age" "$st" >&2
+        fi
       fi
       continue
     fi
@@ -130,6 +155,15 @@ cmd_tick() {
   date +%s > "$STATE/daemon.heartbeat"
   self_heal
   cmd_name >/dev/null; cmd_inbox; cmd_flightboard >/dev/null
+  # Cross-fleet prompting: hand the counterpart the next goal so wakes prompt
+  # each other instead of only self-pinging (owner directive: stay in #141, together).
+  if [ -n "${SAI_PEER_INBOX:-}" ] && [ -d "$SAI_PEER_INBOX" ]; then
+    local skill; skill=$(continuation_prompt)
+    printf 'next-goal from %s @ %s: wake %s — continue with skill=%s on PR #%s (CI: %s). Prompt back when your plane changes.\n' \
+      "$AGENT" "$(date -u +%H:%M:%SZ)" "$n" "$skill" "$PR_NUMBER" \
+      "$(gh pr checks "$PR_NUMBER" --repo "$REPO_SLUG" 2>/dev/null | grep -cE 'pass' )/$(gh pr checks "$PR_NUMBER" --repo "$REPO_SLUG" 2>/dev/null | grep -c '|' )" \
+      > "$SAI_PEER_INBOX/next-goal-from-${AGENT}-$(date -u +%H%M%S).md" 2>/dev/null || true
+  fi
   wake_proof "$n"
   printf '[grokbot] wake %s @ %s — continuation skill: %s\n' "$n" "$(date -u +%H:%M:%SZ)" "$(continuation_prompt)"
   if command -v flock >/dev/null 2>&1; then flock -u 9; exec 9>&-; fi
