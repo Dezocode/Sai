@@ -44,7 +44,7 @@ mkdir -p "$DEST"
 
 # Files we migrate (channels.json, audit.jsonl, inbox ledgers, wake journal).
 PLAN="$(mktemp)"; trap 'rm -f "$PLAN"' EXIT
-for f in channels.json audit.jsonl wake.log flightboard.json; do
+for f in channels.json audit.jsonl wake.log flightboard.json ticks; do
   [ -f "$SRC/$f" ] && echo "copyfile $SRC/$f $DEST/$f" >> "$PLAN"
 done
 [ -d "$SRC/inbox" ] && echo "copydir $SRC/inbox $DEST/inbox" >> "$PLAN"
