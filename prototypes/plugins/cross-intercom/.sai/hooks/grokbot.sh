@@ -115,7 +115,8 @@ self_heal() {  # stuck/errored atomic runtimes: kill stale, requeue with backoff
       printf 'self-heal: launch %s failed rc=%s attempt=%s — DEAD-LETTERED\n' "$pid" "$rc" "$att" >&2
     else
       [ -n "$sent" ] && mv "$sent" "${sent%.sent}" 2>/dev/null
-      printf 'self-heal: launch %s failed rc=%s attempt=%s — requeued with backoff\n' "$pid" "$rc" "$att" >&2
+      backoff=$(( 2 ** (att-1) )); [ "$backoff" -gt 300 ] && backoff=300
+      printf 'self-heal: launch %s failed rc=%s attempt=%s — requeued, backoff %ss\n' "$pid" "$rc" "$att" "$backoff" >&2
     fi
     rm -f "$lf" "$donef" "$donef.log"
   done
