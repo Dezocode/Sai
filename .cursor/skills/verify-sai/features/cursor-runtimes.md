@@ -24,3 +24,4 @@ PR agent monitor: global nav tab **PR sessions** on the Pages feature maps, or d
 - **Monitor.** ::contains scripts/render-sai-feature-maps api.github.com
 ## Gotchas
 - Do not vendor pstack skills into `.cursor/skills/` (duplicate `/` names). `verify-sai` is a project verification skill, not a pstack clone. User-scoped `/add-plugin` does not reach Cloud Agent VMs. Slack bots are not registered agents unless in `registry.json`.
+- `sai-harness-canonical` — `prototypes/plugins/sai-harness/` (identity, state, runtime, channels, gateway, tui, tests, handoffs): canonical persistent Sai Harness prototype converged from #141/#146 experiments per #148. Claims: `prototypes/plugins/sai-harness/*`, `docs/hook-vocabulary.md`, `docs/plan-schema-draft.md`, `docs/PROVENANCE.md`.
