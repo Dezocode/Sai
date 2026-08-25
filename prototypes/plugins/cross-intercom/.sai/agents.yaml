@@ -30,6 +30,8 @@ agents:
     pr_assignment: 141
     side: local
     monitors: [crosscom]
+    tmux:
+      session: her   # her plane's own atomic computer — owner-attachable via sai.her
   - id: sai-grunt
     name: sai-grunt
     title: Support grunt (onboarding)
