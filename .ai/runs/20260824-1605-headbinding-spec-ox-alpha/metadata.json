@@ -1,0 +1,1 @@
+{"task_id":"20260824-1605-headbinding-spec-ox-alpha","agent":"ox-alpha","repository":"Dezocode/Sai","pr":141,"branch":"specs/agent-runtime-registry","status":"complete","objective":"Extend the runtime-registry spec with exact-head attribution + 100% head-match dispatch contract, infra-enforced via assert_head_binding (zero manual review pushes)"}
