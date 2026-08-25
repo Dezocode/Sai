@@ -130,3 +130,59 @@ deliver_to_channel() {  # paste as ONE turn into the repl window. Caller handled
   sai_tmux send-keys -t "$t" Enter
   sai_tmux delete-buffer -b sai-inbox 2>/dev/null || true
 }
+
+channel_report() {  # machine-readable liveness for ALL registered channels (API monitoring surface).
+  # Emits one JSON doc; written to state/channels.json each wake so the sessions-API
+  # fleet probe / owner dashboards can watch every bot's atomic computer live.
+  python3 - "$SAI_AGENTS_YAML" <<'PYEOF'
+import json, subprocess, sys, yaml, datetime, os
+yaml_path = sys.argv[1]
+doc = yaml.safe_load(open(yaml_path)) or {}
+
+def tmux(*args):
+    return subprocess.run(["tmux", *args], capture_output=True, text=True)
+
+channels = []
+for a in doc.get("agents", []):
+    aid = a.get("id", "")
+    if not aid:
+        continue
+    sess = (a.get("tmux") or {}).get("session") or aid
+    handles = [aid] + [h for h in (a.get("handles") or []) if isinstance(h, str)]
+    entry = {"bot": aid, "handles": handles, "session": sess,
+             "pr_assignment": str(a.get("pr_assignment", "")),
+             "alive": False, "repl_pane_dead": None, "activity_at": None}
+    r = tmux("has-session", "-t", sess)
+    if r.returncode == 0:
+        w = tmux("list-windows", "-t", sess, "-F", "#{window_name}\t#{window_active} #{window_index}")
+        repl_idx = next((line.split("\t")[1].split()[1] for line in w.stdout.splitlines()
+                         if line.startswith("repl")), None)
+        entry["alive"] = True
+        entry["windows"] = [l.split("\t")[0] for l in w.stdout.splitlines()]
+        if repl_idx:
+            p = tmux("display-message", "-p", "-t", f"{sess}:{repl_idx}",
+                     "#{pane_dead} #{pane_current_command}")
+            dead, cmd = (p.stdout.split() + ["?", "?"])[:2]
+            entry["repl_pane_dead"] = dead == "1"
+            entry["repl_process"] = cmd
+            act = tmux("display-message", "-p", "-t", f"{sess}:{repl_idx}", "#{session_activity}")
+            try:
+                ts = int(act.stdout.strip())
+                entry["activity_at"] = datetime.datetime.fromtimestamp(
+                    ts, datetime.UTC).isoformat().replace("+00:00", "Z")
+            except Exception:
+                pass
+    channels.append(entry)
+
+out = {"schema": "sai-channels-v1",
+       "generated_at": datetime.datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z"),
+       "host": os.uname().nodename, "channels": channels}
+print(json.dumps(out, indent=1))
+PYEOF
+}
+
+write_channel_state() {  # called by cmd_tick: gated externally as decision `channel-probe`
+  mkdir -p "$STATE_DIR"
+  channel_report > "$STATE_DIR/channels.json.tmp" && mv "$STATE_DIR/channels.json.tmp" "$STATE_DIR/channels.json"
+  printf '[sai] channel-probe wrote %s\n' "$STATE_DIR/channels.json"
+}
