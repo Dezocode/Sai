@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+# sai-harness — the Sai layer landing page (spec specs/2026-08-25-sai-cli-layer-over-atomic.md §0.5).
+# Tmux-native, near/cloud-executable. One scrollable list, two live sources:
+#   LOCAL  .sai/state/channels.json  (gated channel-probe, refreshed every wake)
+#   REMOTE $SESSIONS_API_URL /sessions+/prs  (the PR-sessions GitHub-page data)
+# Pick a row to MONITOR (attach its tmux session) or INJECT a prompt/steer into its live repl.
+# Honest failures: API unreachable -> LOCAL rows only + a notice; never invented data.
+import curses, json, os, subprocess, sys, urllib.request, datetime
+
+CHECKOUT = os.environ.get("SAI_PLUGIN_CHECKOUT", "/root/pr141-grunt/cross-intercom")
+CHANNELS_JSON = os.environ.get("SAI_CHANNELS_JSON", f"{CHECKOUT}/.sai/state/channels.json")
+AGENTS_YAML = os.environ.get("SAI_AGENTS_YAML", f"{CHECKOUT}/.sai/agents.yaml")
+API = os.environ.get("SESSIONS_API_URL", "")
+if not API:  # owner-provisioned credentials file is the single source of truth
+    try:
+        for line in open("/root/.sai-fleet/tokens.env"):
+            line = line.strip()
+            if line.startswith("SESSIONS_API_URL="):
+                API = line.split("=", 1)[1].strip().strip('"').strip("'")
+                break
+    except Exception:
+        pass
+GATEWAY = f"{CHECKOUT}/.sai/hooks/audit-gateway.sh"
+CHANNEL_LIB = f"{CHECKOUT}/.sai/hooks/sai-channel.sh"
+
+def load_channels():
+    try:
+        return json.load(open(CHANNELS_JSON)).get("channels", [])
+    except Exception:
+        return []
+
+def load_api():
+    """Live sessions-API planes; returns (rows, error). Fail-open with named error."""
+    rows, err = [], None
+    if not API:
+        return rows, "SESSIONS_API_URL unset"
+    for plane in ("sessions", "prs"):
+        try:
+            with urllib.request.urlopen(f"{API}/{plane}", timeout=4) as r:
+                d = json.load(r)
+            items = d.get("sessions") or d.get("prs") or []
+            if isinstance(items, dict):
+                items = list(items.values())
+            for it in items[:50]:
+                if isinstance(it, dict):
+                    rows.append({"src": "api", "bot": str(it.get("agent") or it.get("id") or "?"),
+                                 "pr": str(it.get("pr") or it.get("pr_number") or "-"),
+                                 "status": str(it.get("status") or "?"),
+                                 "activity": str(it.get("heartbeat_at") or it.get("updated_at") or "-"),
+                                 "session": None})
+        except Exception as e:
+            err = f"{plane}: {type(e).__name__}"
+    return rows, err
+
+def session_for(bot):
+    """Resolve a bot/handle to its registered tmux session name (mirrors sai-channel.sh)."""
+    try:
+        import yaml
+        doc = yaml.safe_load(open(AGENTS_YAML)) or {}
+    except Exception:
+        return bot
+    for a in doc.get("agents", []):
+        if a.get("id") == bot or bot in (a.get("handles") or []):
+            return ((a.get("tmux") or {}).get("session")) or a.get("id") or bot
+    return bot
+
+def tmux_alive(sess):
+    return sess and subprocess.run(["tmux", "has-session", "-t", sess],
+                                   capture_output=True).returncode == 0
+
+def merged():
+    rows = []
+    for c in load_channels():
+        rows.append({"src": "local", "bot": c["bot"], "session": c.get("session"),
+                     "pr": c.get("pr_assignment") or "-", "status":
+                     "live" if c.get("alive") else "dead",
+                     "windows": ",".join(c.get("windows") or []),
+                     "activity": c.get("activity_at") or "-", "handles": c.get("handles") or []})
+    api_rows, api_err = load_api()
+    seen = {(r["bot"], r["pr"]) for r in rows}
+    for a in api_rows:
+        if (a["bot"], a["pr"]) not in seen:
+            rows.append(a)
+    return rows, api_err
+
+def inject(bot, text):
+    """Owner steer/prompt through the audited gateway into the bot's live repl."""
+    cmd = ["bash", "-c",
+           f'. "{CHANNEL_LIB}" && deliver_to_channel "{bot}" "$1"', "_", text]
+    r = subprocess.run([GATEWAY, "owner-steer"] + cmd, capture_output=True, text=True)
+    return r.returncode == 0, (r.stderr or "").strip()
+
+def main(stdscr):
+    sel, note = 0, ""
+    while True:
+        rows, api_err = merged()
+        stdscr.erase()
+        h, w = stdscr.getmaxyx()
+        stdscr.attron(curses.A_REVERSE)
+        stdscr.addnstr(0, 0, " SAI HARNESS — tmux suite of agents ".ljust(w - 1), w - 1)
+        stdscr.attroff(curses.A_REVERSE)
+        stdscr.addnstr(1, 0, f"{datetime.datetime.now(datetime.UTC):%H:%M:%SZ} "
+                             f"agents={len(rows)}  ↑↓ move · ENTER/a attach · i inject · s steer · r refresh · q quit".ljust(w - 1), w - 1)
+        if api_err:
+            stdscr.addnstr(2, 0, f"api: unreachable ({api_err}) — showing LOCAL channels only", w - 1, curses.color_pair(1) if curses.has_colors() else curses.A_DIM)
+        line = 3
+        for i, r in enumerate(rows):
+            marker = ">" if i == sel else " "
+            attachable = tmux_alive(r.get("session"))
+            tag = "attachable" if attachable else ("api-only" if r["src"] == "api" else "no-session")
+            txt = f"{marker} {r['bot']:<18} pr#{r.get('pr','-'):<5} {r.get('status','-'):<10} {tag:<12} {r.get('activity','-')}"
+            attr = curses.A_REVERSE if i == sel else curses.A_NORMAL
+            stdscr.addnstr(line, 0, txt.ljust(w), w - 1, attr)
+            line += 1
+            if line >= h - 2:
+                break
+        stdscr.addnstr(h - 2, 0, note.ljust(w - 1), w - 1, curses.A_DIM)
+        stdscr.addnstr(h - 1, 0, " sai> ".ljust(w - 1), w - 1)
+        stdscr.refresh()
+        k = stdscr.getch()
+        note = ""
+        if k in (curses.KEY_UP, ord("k")):
+            sel = max(0, sel - 1)
+        elif k in (curses.KEY_DOWN, ord("j")):
+            sel = min(len(rows) - 1, sel + 1)
+        elif k in (ord("q"), 27):
+            return
+        elif k == ord("r"):
+            continue
+        elif k in (curses.KEY_ENTER, 10, 13, ord("a")):
+            if not rows:
+                note = "nothing to attach"; continue
+            r = rows[min(sel, len(rows) - 1)]
+            sess = r.get("session")
+            if not tmux_alive(sess):
+                note = f"refuse: {r['bot']} has no live tmux session on this host"; continue
+            curses.endwin()
+            os.execvp("tmux", ["tmux", "attach-session", "-t", sess])
+        elif k in (ord("i"), ord("s")):
+            if not rows:
+                note = "nothing to inject into"; continue
+            r = rows[min(sel, len(rows) - 1)]
+            kind = "prompt" if k == ord("i") else "steer"
+            stdscr.addnstr(h - 1, 0, f" {kind} → {r['bot']}: ".ljust(w - 1), w - 1)
+            curses.echo()
+            box = stdscr.subwin(1, w - len(f" {kind} → {r['bot']}: "), h - 1, len(f" {kind} → {r['bot']}: "))
+            text = box.getstr().decode(errors="replace").strip()
+            curses.noecho()
+            if text:
+                ok, err = inject(r["bot"], f"[owner-{kind}] {text}")
+                note = f"{kind} delivered to {r['bot']} repl" if ok else f"refused: {err or 'gateway'}"
+            else:
+                note = "empty input — nothing sent"
+
+if __name__ == "__main__":
+    os.environ.setdefault("TERM", "xterm-256color")
+    print(subprocess.run(["bash", "-n", CHANNEL_LIB], capture_output=True).returncode and
+          f"refuse: channel library broken at {CHANNEL_LIB}", file=sys.stderr)
+    curses.wrapper(main)
