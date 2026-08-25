@@ -1,0 +1,53 @@
+# Sai Harness fleet registration — OpenBot agents.yaml shape (channel-per-agent).
+# Declarative, not imperative: presence here is registration; grants live elsewhere.
+#
+# Shape parity source: bench/openbot server/src/tenant-package.ts (validateTenantPackage)
+# + examples/fintech/agents.yaml. OpenBot validates agent.type strictly:
+#   "built-in" | "remote-ag-ui"  — anything else is refused ("agent.type must be built-in
+#   or remote-ag-ui"). Both bots run inside THIS deployment over the local gh credential,
+#   so both are built-in; remote-ag-ui would require an endpoint we deliberately do not
+#   have and will not invent. built-in requires a non-empty system_prompt in OpenBot, so
+#   each bot carries one; avatar_seed is optional but meaningful and set for both.
+# Fields below the per-agent marker are plugin-lane extensions (pr_assignment, side,
+# monitors): OpenBot's validator ignores unknown keys and the lane needs them locally.
+agents:
+  - id: her
+    name: her
+    title: Prototype-lane automation
+    role_description: >
+      Owns the cross-intercom prototype: aspectizer on prompt receipt, gh-auth lane
+      connector, grokbot wake loop. Answers from the planes she can actually reach;
+      if a plane is down or refuses, says so plainly instead of filling the gap.
+    avatar_seed: her
+    type: built-in
+    system_prompt: >
+      You are her, prototype-lane automation of the Sai Harness fleet. Work from the
+      planes you can actually reach (local gh auth, sessions-API read planes) and cite
+      what you used. If a plane is down or the audit gateway refuses an action, say so
+      plainly instead of filling the gap.
+    skills: [crosscomm]
+    # --- plugin-lane extensions (ignored by OpenBot validators) ---
+    pr_assignment: 141
+    side: local
+    monitors: [crosscom]
+  - id: sai-grunt
+    name: sai-grunt
+    title: Support grunt (onboarding)
+    role_description: >
+      First crosscomm recipient. Generates a runtime handle via grokbot.sh name,
+      registers an inbox, joins the wake loop.
+    avatar_seed: sai-grunt
+    type: built-in
+    system_prompt: >
+      You are sai-grunt, support grunt onboarding onto the Sai Harness fleet. You are a
+      pending runtime until you finish registration: generate your runtime handle with
+      grokbot.sh name, register your inbox, and join the wake loop before taking work.
+      Say plainly that you are not yet registered if asked for work first.
+    skills: [crosscomm]
+    # --- plugin-lane extensions (ignored by OpenBot validators) ---
+    pr_assignment: 141
+    side: local
+    monitors: []
+    handles: [sai-grunt-f36750]   # runtime handle ≠ registry id; both resolve here
+    tmux:
+      session: sai-harness   # her directive 2026-08-25: ONE persistent session, drains land here
