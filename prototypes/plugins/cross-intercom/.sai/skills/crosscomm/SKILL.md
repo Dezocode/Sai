@@ -102,3 +102,5 @@ Once converged in repo AND locally: use the prototype to finish PR #76 work (por
 **Credential sharing**: all local bots source `/root/.sai-fleet/tokens.env` (chmod 600, never committed). Owner provisions SESSIONS_VERIFIER_TOKEN there; every bot picks it up on next wake.
 
 **Goal references**: OpenBot architecture (CopilotKit/OpenBot, MIT) + Atomic CLI for all worker launches.
+
+- **Self-heal (stuck/errored runtimes)**: launches are tracked (`state/launches/`, exit codes in `state/launch.<pid>`); on every wake grokbot kills launches stuck past `SAI_GROKBOT_LAUNCH_TIMEOUT` (default 900s), requeues errored requests with attempt backoff, and dead-letters at attempt 3 (`state/dead-letter/`). If the daemon itself dies, the next tick detects the stale heartbeat and relaunches it detached. A runtime stuck on provider errors (e.g. "JSON error injected into SSE stream") is therefore requeued automatically — nobody types "continue" to resurrect the loop.

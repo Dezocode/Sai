@@ -84,8 +84,41 @@ cmd_inbox() {  # OpenBot composer semantics: parked messages drain as ONE follow
   # ate messages while claiming they "stay parked".
   command -v atomic >/dev/null 2>&1 || { printf 'atomic CLI missing; %d request(s) stay parked\n' "$n" >&2; return 1; }
   for m in "$STATE"/inbox/*.md; do mv "$m" "$m.sent" 2>/dev/null || rm -f "$m"; done
-  (cd "$PLUGIN_DIR/../../.." && nohup atomic "$combined" >/tmp/grokbot-launch.$$.log 2>&1 &)
-  printf '[grokbot] drained %d parked mention(s) as one follow-up turn\n' "$n"
+  local donef="$STATE/launch.$$"
+  ( cd "$PLUGIN_DIR/../../.." && atomic "$combined" >"$donef.log" 2>&1; printf '%s' $? > "$donef" ) &
+  printf '%s' $! > "$STATE/launches/$$"   # record: file=launcher pid, content=worker pid
+  printf '[grokbot] drained %d parked mention(s) as one tracked follow-up turn (pid %s)\n' "$n" "$!"
+}
+
+LAUNCH_TIMEOUT="${SAI_GROKBOT_LAUNCH_TIMEOUT:-900}"
+self_heal() {  # stuck/errored atomic runtimes: kill stale, requeue with backoff, dead-letter at 3.
+  local lf pid donef rc age sent att
+  shopt -s nullglob
+  for lf in "$STATE"/launches/*; do
+    pid=$(cat "$lf"); donef="$STATE/launch.${lf##*/}"   # done file is keyed by the LAUNCHER pid
+    sent=$(ls -t "$STATE"/inbox/*.sent 2>/dev/null | head -1)
+    if kill -0 "$pid" 2>/dev/null; then
+      age=$(( $(date +%s) - $(stat -c %Y "$lf" 2>/dev/null || echo $(date +%s)) ))
+      if [ "$age" -gt "$LAUNCH_TIMEOUT" ]; then
+        kill -9 "$pid" 2>/dev/null; printf 'self-heal: launch %s stuck %ss — killed, requeued\n' "$pid" "$age" >&2
+        [ -n "$sent" ] && mv "$sent" "${sent%.sent}" 2>/dev/null
+        rm -f "$lf"
+      fi
+      continue
+    fi
+    rc=$(cat "$donef" 2>/dev/null || printf '1')
+    mkdir -p "$STATE/att"; attf="$STATE/att/${sent##*/}"; att=$(( $(cat "$attf" 2>/dev/null || echo 0) + 1 )); printf '%s' "$att" > "$attf"
+    if [ "$rc" = "0" ]; then
+      printf 'self-heal: launch %s completed ok\n' "$pid" >&2; rm -f "$attf"
+    elif [ "$att" -ge 3 ]; then
+      mkdir -p "$STATE/dead-letter"; [ -n "$sent" ] && mv "$sent" "$STATE/dead-letter/${sent##*/}"
+      printf 'self-heal: launch %s failed rc=%s attempt=%s — DEAD-LETTERED\n' "$pid" "$rc" "$att" >&2
+    else
+      [ -n "$sent" ] && mv "$sent" "${sent%.sent}" 2>/dev/null
+      printf 'self-heal: launch %s failed rc=%s attempt=%s — requeued with backoff\n' "$pid" "$rc" "$att" >&2
+    fi
+    rm -f "$lf" "$donef" "$donef.log"
+  done
 }
 
 cmd_tick() {
@@ -93,12 +126,21 @@ cmd_tick() {
   # counter read-modify-write and keeps two wakes from double-posting wake-proof.
   if command -v flock >/dev/null 2>&1; then exec 9>"$STATE/ticks.lock"; flock 9; fi
   n=$(cat "$STATE/ticks" 2>/dev/null || echo 0); n=$((n+1)); printf '%s' "$n" > "$STATE/ticks"
+  date +%s > "$STATE/daemon.heartbeat"
+  self_heal
   cmd_name >/dev/null; cmd_inbox; cmd_flightboard >/dev/null
   wake_proof "$n"
   printf '[grokbot] wake %s @ %s — continuation skill: %s\n' "$n" "$(date -u +%H:%M:%SZ)" "$(continuation_prompt)"
   if command -v flock >/dev/null 2>&1; then flock -u 9; exec 9>&-; fi
   # Explicit success: a bare `[ -f STOP ] && exit 0` would leave exit status 1 on an
   # ordinary wake (no stop file), which hook runners read as a failed hook.
+  if [ ! -f "$STATE/GROKBOT_STOP" ] && ! pgrep -f "grokbot.sh daemon" >/dev/null 2>&1; then
+    hb=$(cat "$STATE/daemon.heartbeat" 2>/dev/null || echo 0)
+    if [ $(( $(date +%s) - hb )) -gt $(( INTERVAL * 2 )) ]; then
+      printf '[grokbot] SELF-HEAL: daemon dead + stale heartbeat — relaunching detached\n' >&2
+      ( set -m; nohup bash "$0" daemon >> "$STATE/daemon.log" 2>&1 & )
+    fi
+  fi
   [ ! -f "$STATE/GROKBOT_STOP" ] || printf '[grokbot] stop-file seen; waking no more\n'
   exit 0
 }
