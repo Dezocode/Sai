@@ -1,0 +1,1 @@
+{"task_id":"20260825-0020-h8-namefix-her","agent":"her","repository":"Dezocode/Sai","pr":146,"branch":"prototype/cross-intercom-lane","status":"complete","objective":"fix(proto): H8 — env alias wins on charset-valid names; gh login never consulted for identity"}

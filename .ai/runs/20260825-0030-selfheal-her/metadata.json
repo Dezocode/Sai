@@ -1,0 +1,1 @@
+{"task_id":"20260825-0030-selfheal-her","agent":"her","repository":"Dezocode/Sai","pr":146,"branch":"prototype/cross-intercom-lane","status":"complete","objective":"feat(proto): self-heal — stuck/errored atomic runtimes recover automatically"}

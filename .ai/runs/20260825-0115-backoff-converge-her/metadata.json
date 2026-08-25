@@ -1,0 +1,1 @@
+{"task_id":"20260825-0115-backoff-converge-her","agent":"her","repository":"Dezocode/Sai","pr":146,"branch":"prototype/cross-intercom-lane","status":"complete","objective":"fix(proto): adopt grunt's exponential backoff — self-heal requeue 2^(n-1)s capped 300s"}
