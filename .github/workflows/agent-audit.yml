@@ -8,6 +8,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency: # event-type prefix: push vs pull_request audit different ranges; a per-SHA-only key lets a push run cancel the full base..head PR audit. Guarded below (Saul P1 97326706935).
+  group: icm-${{ github.event_name }}-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -23,6 +27,13 @@ jobs:
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.22"
+
+      - name: Verify audit concurrency scopes by event type (Saul P1 97326706935)
+        run: |
+          set -e; python3 -c "import yaml; yaml.safe_load(open('.github/workflows/agent-audit.yml')); print('OK YAML parses')"
+          gl="$(grep -E '^[[:space:]]*group:.*icm-' .github/workflows/agent-audit.yml | head -1)"; echo "${gl}"
+          case "${gl}" in *"github.event_name"*) : ;; *) echo "FAIL: per-SHA-only key lets push runs cancel the pull_request base..head audit"; exit 1 ;; esac
+          grep -q "cancel-in-progress: true" .github/workflows/agent-audit.yml
 
       - name: Determine commit range
         id: range

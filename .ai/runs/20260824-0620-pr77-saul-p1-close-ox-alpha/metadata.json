@@ -1,0 +1,1 @@
+{"task_id":"20260824-0620-pr77-saul-p1-close-ox-alpha","agent":"hermes-sai-agent","repository":"Dezocode/Sai","pr":77,"branch":"hermes/pr-sessions-dashboard","status":"complete","objective":"Close Saul 97338826287 P1s: checks backoff uses own retry window (cprobe); invalid group flightboard never publishes via valid sibling"}
