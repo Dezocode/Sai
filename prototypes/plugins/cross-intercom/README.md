@@ -23,6 +23,7 @@ Sai Harness's hook model derives from **Atomic CLI** ([bastani-inc/atomic](https
 .sai/hooks.json                 Sai Harness manifest (provenance, MIT, hook wiring)
 .sai/hooks/aspectizer.sh        aspect decomposition hook (implementation lives HERE)
 .sai/hooks/lane-connector.sh    gh-auth bridge to sessions API (implementation lives HERE)
+.sai/hooks/telegram-bridge.sh  live Telegram inbox/outbox (aspectize -> queue -> atomic; steering verbs)
 .cursor/hooks.json              Cursor-plane wiring delegating to .sai/hooks/*
 docs/GOALS.md                   /goals for this PR
 ```
