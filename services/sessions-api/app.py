@@ -91,13 +91,11 @@ def _refresh_windows(store: dict) -> None:
     _PROVISIONAL_RUNTIMES = {rt: True for rt, e in reg.items()
                              if isinstance(e, dict) and e.get("status") == "provisional"}
 
-_HEAD40_RE = re.compile(r"^[0-9a-f]{40}$")
-
 class _Head40(str):
     """Exactly 40 lowercase hex chars. Unrepresentable otherwise."""
     def __new__(cls, v):
         s = str(v).strip().lower()
-        if not _HEAD40_RE.match(s):
+        if not _SHA40_RE.match(s):
             raise ValueError("ShortSha")
         return super().__new__(cls, s)
 
@@ -172,24 +170,16 @@ REQUIRED_SESSION_FIELDS = (
 
 
 def load() -> dict:
-    if not DATA.exists():
-        d = {"sessions": {}, "updated_at": None, "schema": "sai-sessions-v2"}
-        rr_ensure(d)
-        _refresh_windows(d)
-        return d
     try:
-        d = json.loads(DATA.read_text())
-        d.setdefault("sessions", {})
-        d.setdefault("schema", "sai-sessions-v2")
-        rr_ensure(d)
-        _refresh_windows(d)
-        return d
+        d = json.loads(DATA.read_text()) if DATA.exists() else {}
     except Exception:
-        d = {"sessions": {}, "updated_at": None, "schema": "sai-sessions-v2"}
-        rr_ensure(d)
-        _refresh_windows(d)
-        return d
-
+        d = {}  # corrupt store -> fresh snapshot, never crash readers
+    d.setdefault("sessions", {})
+    d.setdefault("updated_at", None)
+    d.setdefault("schema", "sai-sessions-v2")
+    rr_ensure(d)
+    _refresh_windows(d)
+    return d
 
 def save(store: dict) -> None:
     DATA.parent.mkdir(parents=True, exist_ok=True)
@@ -792,6 +782,16 @@ def attach_ci_blocks(cards: list) -> None:
         except Exception:
             continue
 
+def decorate_cards(cards: list, store: dict) -> list:
+    """Shared card enrichment: verifier flightboard telemetry + head-binding assertion."""
+    for c in cards:
+        c["flightboard"] = flightboard_for_pr(c["pr"], store)
+        gh_tip = fetch_pr_head("Dezocode/Sai", c["pr"])
+        card_head = c.get("latest_head_full") or (c.get("heads") or [""])[0]
+        c["head_binding"] = assert_head_binding(gh_tip or "", card_head or "", None)
+    return cards
+
+
 def idem_key_of(headers_get, body: dict) -> str:
     """M17 durable idempotency: Idempotency-Key header wins, body request_id/idempotency_key fallback."""
     k = (headers_get("Idempotency-Key") or "").strip()
@@ -910,11 +910,7 @@ class Handler(BaseHTTPRequestHandler):
                 attach_ci_blocks(cards)
             except Exception:
                 pass  # CI enrichment must never 500 /prs
-            for c in cards:
-                c["flightboard"] = flightboard_for_pr(c["pr"], store)
-                gh_tip = fetch_pr_head("Dezocode/Sai", c["pr"])
-                card_head = c.get("latest_head_full") or (c.get("heads") or [""])[0]
-                c["head_binding"] = assert_head_binding(gh_tip or "", card_head or "", None)
+            decorate_cards(cards, store)
             return self._json(200, {"prs": cards, "count": len(cards), "updated_at": store.get("updated_at"), "schema": "sai-sessions-v2"})
         if path in ("/sessions", "/api/hermes-sessions", "/api/hermes-sessions/sessions"):
             status = (qs.get("status") or [None])[0]
@@ -941,11 +937,7 @@ class Handler(BaseHTTPRequestHandler):
             if group:
                 out = [with_heartbeat_age(s) for s in out]
                 cards = group_by_pr(out)
-                for c in cards:
-                    c["flightboard"] = flightboard_for_pr(c["pr"], store)
-                    gh_tip = fetch_pr_head("Dezocode/Sai", c["pr"])
-                    card_head = c.get("latest_head_full") or (c.get("heads") or [""])[0]
-                    c["head_binding"] = assert_head_binding(gh_tip or "", card_head or "", None)
+                decorate_cards(cards, store)
                 return self._json(200, {"prs": cards, "updated_at": store.get("updated_at"), "schema": "sai-sessions-v2"})
             def _pr_num(v):
                 try:

@@ -230,28 +230,12 @@ def test_by_pr_non_int_pr_is_400_bad_pr():
 # Runtime Registry & Hardening — RFC 2026-08-24 RGR slices §8
 # ==============================================================================
 
-import time as _time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 HEAD40 = "a" * 40
 HEAD40_B = "b" * 40
 
 
-def _mk_finding(sev="P1", title="t", summary="s", detail="d", path=None, start_line=3,
-                expected="e", actual="a", evidence_refs=None, source="codex",
-                pr=1, head_sha="h", base_sha="b", runid=7, status="OPEN", reproduced_by=[]):
-    return {"id": "F-" + title[:10], "severity": sev, "category": "code-review", "title": title,
-            "summary": summary, "detail": detail, "source": source, "command": None, "test_name": None,
-            "package": None, "path": path or "x.go", "start_line": start_line, "end_line": start_line or 3,
-            "expected": expected, "actual": actual, "stdout_excerpt": "", "stderr_excerpt": "",
-            "evidence_refs": evidence_refs or ["fixture://r"], "head_sha": head_sha, "base_sha": base_sha,
-            "repository": "Dezocode/Sai", "pr_number": pr, "review_run_id": runid, "status": status,
-            "reproduced_by": list(reproduced_by), "blocking": sev in ("P0", "P1"),
-            "schema_version": "saul-finding-v1"}
-
-
 # --- Slice 1: unregistered runtime refusal + register then success ------------
-
 def test_slice1_unregistered_runtime_refused_then_registered_succeeds():
     seed({"sessions": {}})
     # POST a session with unregistered runtime -> should be auto-provisioned (fallback ON)
@@ -266,6 +250,7 @@ def test_slice1_unregistered_runtime_refused_then_registered_succeeds():
     assert "brand-new-runtime" in store.get("runtimes", {}), "runtime should be provisionally registered"
     entry = store["runtimes"]["brand-new-runtime"]
     assert entry.get("status") == "provisional"
+
     # Now a second session with same runtime succeeds normally
     code2, _ = req("POST", "/sessions", {
         "id": "test-unreg-2", "pr": 99, "agent": "another",
@@ -445,8 +430,6 @@ class TestVerdictCaps(unittest.TestCase):
         fb = {"head_sha": HEAD40, "requirements": {"r1": "met", "r2": "met"}, "ci": {"required": 5, "green": 5},
               "preservation": {"required": 2, "green": 2}, "hygiene": True,
               "saul": {"genuine_exact_head": True, "p0": 0, "p1": 0, "p2": 0}}
-        result = app.flightboard_for_pr(77, {"flightboard": {"77": fb}})
-        # flightboard_for_pr is in saul_cto not saul_deep_review; call it directly
         r = app.flightboard_for_pr(77, {"flightboard": {"77": fb}})
         assert r["merge_readiness_pct"] is not None
         assert r["source"] == "verifier"
