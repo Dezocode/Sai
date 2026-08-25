@@ -1,0 +1,1 @@
+{"task_id":"20260825-0800-runtime-core-consolidation-grunt","agent":"grunt","repository":"Dezocode/Sai","pr":148,"branch":"prototype/sai-harness-canonical-runtime","status":"complete","objective":"Runtime core consolidation into canonical layout + ci-probe exact-head CI rollup"}
