@@ -20,7 +20,8 @@ This RFC adds the **Sai layer over Atomic** as a PR #141 goal: a thin, honest la
 1. **Delivery mechanics:** paste-into-REPL — combined mentions become ONE submitted turn in window 0; `.sent` markers follow the paste.
 2. **Channel birth:** auto-create on drain — a wake that finds mentions and no live channel runs `launch_agent`, then delivers. Mentions never wait for a human.
 3. **Scope:** BOTH registered bots (`sai-grunt` AND `her`) get channels + aliases in this round.
-4. **Compatibility:** BREAKING OK (prototype tier) — headless-first inbox consumption is retired; `spawn_tracked` survives only as the named CI-debugger fallback.
+4. **Compatibility:** BREAKING OK (prototype tier)
+5. **Monitoring surface (owner, 2026-08-25):** every agent's atomic computer is its own root-level tmux session; `sai.<botname>` attaches for live observation; a gated `channel-probe` writes `state/channels.json` every wake so the sessions-API fleet probe can watch all channels directly. — headless-first inbox consumption is retired; `spawn_tracked` survives only as the named CI-debugger fallback.
 
 ### Backwards Compatibility
 
