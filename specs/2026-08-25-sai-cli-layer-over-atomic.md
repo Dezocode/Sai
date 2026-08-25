@@ -21,6 +21,7 @@ This RFC adds the **Sai layer over Atomic** as a PR #141 goal: a thin, honest la
 2. **Channel birth:** auto-create on drain — a wake that finds mentions and no live channel runs `launch_agent`, then delivers. Mentions never wait for a human.
 3. **Scope:** BOTH registered bots (`sai-grunt` AND `her`) get channels + aliases in this round.
 4. **Compatibility:** BREAKING OK (prototype tier)
+6. **Landing page (owner, 2026-08-25):** bare `sai` opens the Sai harness landing page — one scrollable list merging LOCAL channels.json with LIVE sessions-API planes (the PR-sessions GitHub-page data); ENTER/a attaches for monitoring, i/s inject audited prompts/steers (`owner-steer` gateway decision) into the selected bot's live repl. OpenBot remains each computer's agent orchestrator; tmux is the near/cloud execution harness.
 5. **Monitoring surface (owner, 2026-08-25):** every agent's atomic computer is its own root-level tmux session; `sai.<botname>` attaches for live observation; a gated `channel-probe` writes `state/channels.json` every wake so the sessions-API fleet probe can watch all channels directly. — headless-first inbox consumption is retired; `spawn_tracked` survives only as the named CI-debugger fallback.
 
 ### Backwards Compatibility
