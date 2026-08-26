@@ -30,7 +30,7 @@ class AdapterTest(unittest.TestCase):
         status, headers, _ = adapter.complete({"request_id": "req-12345678", "messages": []})
         self.assertEqual(status, 200); self.assertEqual(captured["url"], "http://gateway/v1/chat/completions")
         self.assertEqual(captured["body"]["model"], "qwen3.8-ridge-gguf"); self.assertEqual(captured["headers"]["X-pisai-task"], "coding")
-        self.assertEqual(captured["headers"]["X-pisai-request-id"], "req-12345678"); self.assertEqual(headers["x-request-id"], "upstream")
+        self.assertEqual(captured["headers"]["X-pisai-request-id"], "req-12345678"); self.assertEqual(captured["headers"]["X-pisai-route-id"], "coding:req-12345678"); self.assertEqual(headers["x-request-id"], "upstream")
 
     def test_status_is_read_only_runtime_proof(self):
         adapter = GatewayAdapter("http://gateway", lambda request, timeout=10: Response({"activeModel": "ridge", "context": {"window": 32768}}))

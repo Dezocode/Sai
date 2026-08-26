@@ -38,7 +38,7 @@ class GatewayAdapter:
 
     def complete(self, body: dict[str, Any], hook_task: str | None = None, session_id: str | None = None) -> tuple[int, dict[str, str], bytes]:
         request_id = str(body.get("request_id") or uuid.uuid4()); role = self.role(body, hook_task); outgoing = dict(body); outgoing["model"] = self.models[role]
-        headers = {"Content-Type": "application/json", "x-pisai-task": role, "x-pisai-request-id": request_id, "x-pisai-telemetry-id": request_id, "x-pisai-selected-model": outgoing["model"], "x-ollama-hook-contract": "ollama-pisai-hooks.v1", "x-pi-noos-schema": "noos-compatible.v1"}
+        headers = {"Content-Type": "application/json", "x-pisai-task": role, "x-pisai-route-id": f"{role}:{request_id}", "x-pisai-request-id": request_id, "x-pisai-telemetry-id": request_id, "x-pisai-selected-model": outgoing["model"], "x-ollama-hook-contract": "ollama-pisai-hooks.v1", "x-pi-noos-schema": "noos-compatible.v1"}
         try:
             with self.opener(Request(self.base_url + "/v1/chat/completions", data=json.dumps(outgoing).encode(), headers=headers, method="POST"), timeout=600) as response:
                 return response.status, dict(response.headers), response.read()

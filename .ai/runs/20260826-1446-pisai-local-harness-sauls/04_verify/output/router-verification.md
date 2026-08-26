@@ -6,3 +6,4 @@
 - No model weights, secrets, Hostinger inference service, or Sai production dependency are included.
 - Real Mac gateway proof remains a deployment-time acceptance test because this validation intentionally did not start services or change model residency; the adapter does not own lifecycle or bind a port.
 - Live read-only probes: canonical `127.0.0.1:11437` `/proxy/health`, `/proxy/runtime`, and `/v1/models` returned successfully. The registry reports Ridge as installed, Ornith and Qwen3.5 compactor as not-installed, and an empty `routes` table; no route-switch request was issued under swap pressure.
+- Reproducible probe: `python3 prototypes/plugins/pisai-local/tests/live_readonly_probe.py` performs only GET requests and requires 200 responses plus a 32,768-token active context. `--require-routes` intentionally remains failing until the shared registry publishes all three verified roles.
