@@ -29,6 +29,12 @@ class ContractTest(unittest.TestCase):
         self.assertIn("no Mac inference duplicate", doc)
         self.assertIn("POST /v1/chat/completions", doc)
 
+    def test_architecture_requires_full_request_residency_gate(self):
+        doc = (ROOT / "docs/ARCHITECTURE.md").read_text()
+        self.assertIn("FIFO async gate", doc)
+        self.assertIn("single_resident_queue_acquired", doc)
+        self.assertIn("does not start a backend", doc)
+
 
 if __name__ == "__main__":
     unittest.main()

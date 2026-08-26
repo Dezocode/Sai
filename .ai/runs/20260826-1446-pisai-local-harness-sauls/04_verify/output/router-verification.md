@@ -10,3 +10,4 @@
 - Adapter catalog preflight rejects `not-installed`, `planned`, `disabled`, and other unavailable role records before forwarding; the test confirms an unavailable vision request produces no gateway completion call.
 - Pi memory proof covers bounded chunking, 3K active-spec rejection, compactor delegation through the gateway, structured ledger writes, and absence of raw-history persistence.
 - Live registry route precedence is tested: when the Mac publishes a role route, it overrides the environment fallback alias; unavailability is still rejected before forwarding.
+- Live Mac proxy proof after restart: process list showed Ollama plus the proxy with no model backend; proxy telemetry contained queue enter/acquire/release events, and `/proxy/runtime` reported `activeModel: null` with empty loaded-model lists.

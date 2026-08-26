@@ -43,6 +43,17 @@ flowchart LR
 Hostinger may consume health/status or a separately authenticated control API;
 it must not become a second Mac model-serving endpoint.
 
+## Single-resident requirement
+
+The existing Mac proxy is the lifecycle owner. Its request handler must hold a
+FIFO async gate from route inspection through unload/warm/forward/stream
+finalization. A lock released immediately after warm-up is insufficient: the
+next request could unload the model while the previous response is streaming.
+The proxy records `single_resident_queue_enter`,
+`single_resident_queue_acquired`, and `single_resident_queue_released` events
+in the same telemetry stream. The Pi adapter does not start a backend or bind a
+second port.
+
 ## Acceptance evidence
 
 - route decision and hook name share `request_id`;
