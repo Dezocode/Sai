@@ -35,10 +35,10 @@ flowchart LR
 | Endpoint | Owner | Purpose |
 |---|---|---|
 | `POST /v1/chat/completions` | Mac gateway | Route and forward Pi inference |
-| `GET /healthz`, `/readyz` | Mac gateway | Liveness/readiness |
-| `GET /v1/pisai/status` | Mac gateway | Resident model/context/resource proof |
-| `POST /v1/pisai/compact` | Mac gateway + Pi memory | Bounded hierarchical compaction |
-| `GET/POST /v1/pisai/memory/*` | Pi memory boundary | Structured todos/issues/hooks/decisions/evidence |
+| `GET /proxy/health` | Mac gateway | Liveness |
+| `GET /proxy/runtime` | Mac gateway | Resident model/context/resource proof |
+| `POST /v1/chat/completions` with `x-pisai-task=compact` | Mac gateway + Pi memory | Bounded hierarchical compaction |
+| Pi-local `PiMemory` ledgers | Pi memory boundary | Structured todos/issues/hooks/decisions/evidence |
 
 Hostinger may consume health/status or a separately authenticated control API;
 it must not become a second Mac model-serving endpoint.

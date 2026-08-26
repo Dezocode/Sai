@@ -18,11 +18,22 @@ class MemoryTest(unittest.TestCase):
     def test_oversized_spec_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError, "3000"): PiMemory(directory).write_spec({"objective": "x" * 13000})
+
+    def test_malformed_compactor_output_does_not_replace_spec(self):
+        def opener(request, timeout=600):
+            if request.full_url.endswith("/model-registry"):
+                return Response({"routes": {"compact": "qwen3.5-2b-4bit-mlx-compactor"}, "models": [{"key": "qwen3.5-2b-4bit-mlx-compactor", "availability": "installed"}]})
+            return Response({"choices": [{"message": {"content": '{"objective":"incomplete"}'}}]})
+        with tempfile.TemporaryDirectory() as directory:
+            memory = PiMemory(directory); memory.write_spec({"objective": "keep"})
+            with self.assertRaisesRegex(ValueError, "schema"):
+                Compactor(GatewayAdapter("http://gateway", opener), memory).compact("history")
+            self.assertIn('"objective": "keep"', (Path(directory) / "active-spec.md").read_text())
     def test_compactor_writes_structured_ledgers_only(self):
         calls = []
         def opener(request, timeout=600):
             if request.full_url.endswith("/model-registry"):
-                return Response({"models": [{"key": "qwen3.5-2b-4bit-mlx-compactor", "id": "mlx/qwen35", "aliases": ["qwen3.5-2b-4bit-mlx-compactor"], "availability": "installed"}]})
+                return Response({"routes": {"compact": "qwen3.5-2b-4bit-mlx-compactor"}, "models": [{"key": "qwen3.5-2b-4bit-mlx-compactor", "id": "mlx/qwen35", "aliases": ["qwen3.5-2b-4bit-mlx-compactor"], "availability": "installed"}]})
             calls.append(json.loads(request.data)); return Response({"choices": [{"message": {"content": json.dumps({"facts": [], "decisions": ["bounded"], "todos": ["verify"], "issues": [], "evidence": [], "objective": "ship", "current_state": "test", "next_action": "run"})}}]})
         with tempfile.TemporaryDirectory() as directory:
             result = Compactor(GatewayAdapter("http://gateway", opener), PiMemory(directory)).compact("history")

@@ -21,6 +21,9 @@ class ContractTest(unittest.TestCase):
         env = (ROOT / "config/pisai-router.env.example").read_text()
         self.assertIn("PISAI_CONTEXT_TOKENS=32768", env)
         self.assertIn("PISAI_ACTIVE_SPEC_MAX_TOKENS=3000", env)
+        self.assertIn("PISAI_GATEWAY_HEALTH_PATH=/proxy/health", env)
+        self.assertIn("PISAI_GATEWAY_STATUS_PATH=/proxy/runtime", env)
+        self.assertIn("PISAI_CODING_MODEL=qwen3.8-ridge-gguf", env)
         self.assertNotRegex(env, r"(?i)(token|secret|password|api[_-]?key)\s*=")
 
     def test_architecture_keeps_hostinger_out_of_inference(self):

@@ -40,9 +40,13 @@ class GatewayAdapter:
         """Read the existing proxy's public runtime proof; no mutation."""
         return self.get_json("/proxy/runtime")
 
-    def model_for(self, role: str) -> tuple[str, dict[str, Any]]:
+    def model_for(self, role: str) -> tuple[str | None, dict[str, Any] | None]:
         registry = self.get_json("/model-registry")
         configured = registry.get("routes", {}).get(role)
+        if not configured:
+            if role != "coding":
+                raise RuntimeError(f"role {role} is not published by the Mac router")
+            return None, None
         if isinstance(configured, dict): configured = configured.get("model") or configured.get("modelId") or configured.get("key") or configured.get("id")
         wanted = str(configured or self.models[role])
         profiles = registry.get("models", [])
@@ -55,8 +59,15 @@ class GatewayAdapter:
         return wanted, profile
 
     def complete(self, body: dict[str, Any], hook_task: str | None = None, session_id: str | None = None) -> tuple[int, dict[str, str], bytes]:
-        request_id = str(body.get("request_id") or uuid.uuid4()); role = self.role(body, hook_task); selected_model, profile = self.model_for(role); outgoing = dict(body); outgoing["model"] = selected_model
-        headers = {"Content-Type": "application/json", "x-pisai-task": role, "x-pisai-route-id": f"{role}:{request_id}", "x-pisai-request-id": request_id, "x-pisai-telemetry-id": request_id, "x-pisai-selected-model": outgoing["model"], "x-ollama-hook-contract": "ollama-pisai-hooks.v1", "x-pi-noos-schema": "noos-compatible.v1"}
+        request_id = str(body.get("request_id") or uuid.uuid4()); role = self.role(body, hook_task); selected_model, profile = self.model_for(role); outgoing = dict(body)
+        if selected_model:
+            outgoing["model"] = selected_model
+        else:
+            outgoing.pop("model", None)
+        session_id = session_id or str(body.get("telemetry", {}).get("session_id") or request_id)
+        outgoing["source"] = body.get("source", "pi-api")
+        outgoing["telemetry"] = {"schema": "ollama-pisai-hooks.v1", "hook": body.get("telemetry", {}).get("hook", "pisai-gateway-adapter"), "session_id": session_id, "noos_schema": "noos-compatible.v1", "noos_revision": 2}
+        headers = {"Content-Type": "application/json", "x-pisai-task": role, "x-pisai-route-id": f"{role}:{request_id}", "x-pisai-request-id": request_id, "x-pisai-telemetry-id": request_id, "x-pisai-selected-model": outgoing.get("model", "gateway-default"), "x-ollama-hook-contract": "ollama-pisai-hooks.v1", "x-pi-noos-schema": "noos-compatible.v1"}
         if session_id:
             headers["x-pisai-session-id"] = session_id
         try:

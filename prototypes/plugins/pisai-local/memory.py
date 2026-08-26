@@ -1,7 +1,7 @@
 """Bounded Pi memory and gateway-mediated compaction for the prototype."""
 from __future__ import annotations
 
-import json, time, uuid
+import json, os, tempfile, threading, time, uuid
 from pathlib import Path
 from typing import Any
 from gateway_adapter import GatewayAdapter
@@ -22,6 +22,7 @@ def chunks(history: str, size: int = CHUNK_CHARS) -> list[str]:
 
 
 def normalize_spec(value: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(value, dict): raise ValueError("compactor output must be an object")
     fields = ("objective", "current_state", "decisions", "todos", "issues", "evidence", "next_action")
     spec = {field: value.get(field, [] if field in {"decisions", "todos", "issues", "evidence"} else "") for field in fields}
     for field in ("decisions", "todos", "issues", "evidence"):
@@ -30,26 +31,37 @@ def normalize_spec(value: dict[str, Any]) -> dict[str, Any]:
 
 
 class PiMemory:
-    def __init__(self, root: str | Path): self.root = Path(root).expanduser()
+    def __init__(self, root: str | Path): self.root = Path(root).expanduser(); self._lock = threading.RLock()
     def append(self, ledger: str, item: Any, request_id: str | None = None) -> None:
-        self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
-        path = self.root / f"{ledger}.jsonl"
-        with path.open("a", encoding="utf-8") as handle: handle.write(json.dumps({"ts": time.time(), "request_id": request_id, "item": item}, ensure_ascii=False) + "\n")
-        path.chmod(0o600)
+        with self._lock:
+            self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
+            path = self.root / f"{ledger}.jsonl"
+            with path.open("a", encoding="utf-8") as handle: handle.write(json.dumps({"ts": time.time(), "request_id": request_id, "item": item}, ensure_ascii=False) + "\n")
+            path.chmod(0o600)
     def write_spec(self, spec: dict[str, Any]) -> None:
-        spec = normalize_spec(spec)
-        rendered = json.dumps(spec, ensure_ascii=False)
-        if estimate_tokens(rendered) > MAX_SPEC_TOKENS: raise ValueError("active spec exceeds 3000 estimated tokens")
-        self.root.mkdir(parents=True, exist_ok=True, mode=0o700); temporary = self.root / "active-spec.md.tmp"; target = self.root / "active-spec.md"
-        temporary.write_text("# PiS AI Active Spec\n\n" + rendered + "\n", encoding="utf-8"); temporary.chmod(0o600); temporary.replace(target)
+        with self._lock:
+            spec = normalize_spec(spec)
+            rendered = json.dumps(spec, ensure_ascii=False)
+            if estimate_tokens(rendered) > MAX_SPEC_TOKENS: raise ValueError("active spec exceeds 3000 estimated tokens")
+            self.root.mkdir(parents=True, exist_ok=True, mode=0o700); target = self.root / "active-spec.md"
+            fd, temp_name = tempfile.mkstemp(prefix="active-spec.", suffix=".tmp", dir=self.root)
+            temporary = Path(temp_name)
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as handle: handle.write("# PiS AI Active Spec\n\n" + rendered + "\n")
+                temporary.chmod(0o600); temporary.replace(target)
+            finally:
+                temporary.unlink(missing_ok=True)
 
 
-def response_json(data: bytes) -> dict[str, Any]:
+def response_json(data: bytes, required: set[str] | None = None) -> dict[str, Any]:
     payload = json.loads(data); content = payload["choices"][0]["message"]["content"]
     if isinstance(content, list): content = "".join(str(item.get("text", item)) for item in content if isinstance(item, dict))
     start, end = str(content).find("{"), str(content).rfind("}")
     if start < 0 or end <= start: raise ValueError("compactor response was not JSON")
-    return json.loads(str(content)[start:end + 1])
+    value = json.loads(str(content)[start:end + 1])
+    if not isinstance(value, dict) or (required and not required.issubset(value)):
+        raise ValueError("compactor response schema is incomplete")
+    return value
 
 
 class Compactor:
@@ -59,10 +71,14 @@ class Compactor:
         for chunk in chunks(history):
             status, _, data = self.adapter.complete({"task": "compact", "request_id": request_id, "messages": [{"role": "user", "content": "Return JSON only with keys facts, decisions, todos, issues, evidence. Do not invent facts.\n" + chunk}]})
             if status >= 300: raise RuntimeError(f"compactor gateway returned {status}")
-            summaries.append(response_json(data))
+            summaries.append(response_json(data, {"facts", "decisions", "todos", "issues", "evidence"}))
         status, _, data = self.adapter.complete({"task": "compact", "request_id": request_id, "messages": [{"role": "user", "content": "Return JSON only with keys objective, current_state, decisions, todos, issues, evidence, next_action. Keep the active spec under 3000 estimated tokens.\n" + json.dumps({"current_spec": current_spec or {}, "summaries": summaries})}]})
         if status >= 300: raise RuntimeError(f"compactor gateway returned {status}")
-        spec = normalize_spec(response_json(data)); self.memory.write_spec(spec)
+        spec = normalize_spec(response_json(data, {"objective", "current_state", "decisions", "todos", "issues", "evidence", "next_action"}))
+        if current_spec:
+            spec["todos"] = list(dict.fromkeys(current_spec.get("todos", []) + spec["todos"]))
+            spec["issues"] = list(dict.fromkeys(current_spec.get("issues", []) + spec["issues"]))
+        self.memory.write_spec(spec)
         for ledger in ("decisions", "todos", "issues", "evidence"):
             for item in spec[ledger]: self.memory.append(ledger, item, request_id)
         self.memory.append("compaction-events", {"chunks": len(summaries), "estimated_tokens": estimate_tokens(spec)}, request_id)
