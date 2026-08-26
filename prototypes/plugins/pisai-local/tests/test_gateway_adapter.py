@@ -53,5 +53,15 @@ class AdapterTest(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "unavailable"): adapter.complete({"messages": []}, "vision")
         self.assertEqual(calls, [])
 
+    def test_live_registry_route_overrides_environment_alias(self):
+        captured = {}
+        def opener(request, timeout=600):
+            if request.full_url.endswith("/model-registry"):
+                registry = self.registry(); registry["routes"] = {"coding": "qwen3.8-ridge-gguf"}; return Response(registry)
+            captured["body"] = json.loads(request.data); return Response({"choices": []})
+        adapter = GatewayAdapter("http://gateway", opener)
+        adapter.complete({"messages": []})
+        self.assertEqual(captured["body"]["model"], "qwen3.8-ridge-gguf")
+
 
 if __name__ == "__main__": unittest.main()

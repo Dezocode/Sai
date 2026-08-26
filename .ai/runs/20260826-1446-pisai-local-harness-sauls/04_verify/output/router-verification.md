@@ -9,3 +9,4 @@
 - Reproducible probe: `python3 prototypes/plugins/pisai-local/tests/live_readonly_probe.py` performs only GET requests and requires 200 responses plus a 32,768-token active context. `--require-routes` intentionally remains failing until the shared registry publishes all three verified roles.
 - Adapter catalog preflight rejects `not-installed`, `planned`, `disabled`, and other unavailable role records before forwarding; the test confirms an unavailable vision request produces no gateway completion call.
 - Pi memory proof covers bounded chunking, 3K active-spec rejection, compactor delegation through the gateway, structured ledger writes, and absence of raw-history persistence.
+- Live registry route precedence is tested: when the Mac publishes a role route, it overrides the environment fallback alias; unavailability is still rejected before forwarding.

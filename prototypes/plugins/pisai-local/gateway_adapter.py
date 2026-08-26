@@ -38,7 +38,9 @@ class GatewayAdapter:
 
     def model_for(self, role: str) -> tuple[str, dict[str, Any]]:
         registry = self.get_json("/model-registry")
-        wanted = self.models[role]
+        configured = registry.get("routes", {}).get(role)
+        if isinstance(configured, dict): configured = configured.get("model") or configured.get("modelId") or configured.get("key") or configured.get("id")
+        wanted = str(configured or self.models[role])
         profiles = registry.get("models", [])
         profile = next((item for item in profiles if item.get("key") == wanted or item.get("id") == wanted or wanted in item.get("aliases", [])), None)
         if profile is None:
