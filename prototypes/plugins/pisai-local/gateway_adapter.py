@@ -13,7 +13,7 @@ class GatewayAdapter:
 
     def __init__(self, base_url: str | None = None, opener=urlopen):
         self.base_url = (base_url or os.environ.get("PISAI_GATEWAY_BASE_URL", "http://127.0.0.1:11437")).rstrip("/")
-        self.models = {"coding": os.environ.get("PISAI_CODING_MODEL", "qwen3.8-ridge-gguf"), "vision": os.environ.get("PISAI_VISION_MODEL", "ornith-1.5-9b-ad-q4-k-iq4-xs-vision"), "compact": os.environ.get("PISAI_COMPACTOR_MODEL", "qwen3.5-2b-4bit-mlx-compactor")}
+        self.models = {"coding": os.environ.get("PISAI_CODING_MODEL", "qwen3.8-ridge-gguf"), "vision": os.environ.get("PISAI_VISION_MODEL", "ornith-1.5-9b-vision"), "compact": os.environ.get("PISAI_COMPACTOR_MODEL", "qwen3.5-2b-4bit-mlx-compactor")}
         self.opener = opener
 
     @staticmethod
