@@ -1,7 +1,8 @@
 # Router verification
 
-- Contract and adapter suites: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v prototypes/plugins/pisai-local/tests/test_contract.py prototypes/plugins/pisai-local/tests/test_gateway_adapter.py` — 6 tests passed.
+- Contract and adapter suites: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v prototypes/plugins/pisai-local/tests/test_contract.py prototypes/plugins/pisai-local/tests/test_gateway_adapter.py` — 7 tests passed.
 - `git diff --check` — passed.
 - Mocked proof covers Pi hook role selection, image-to-vision selection, delegation to the existing Mac gateway, correlated request headers, read-only runtime proof, and structured gateway boundaries.
 - No model weights, secrets, Hostinger inference service, or Sai production dependency are included.
 - Real Mac gateway proof remains a deployment-time acceptance test because this validation intentionally did not start services or change model residency; the adapter does not own lifecycle or bind a port.
+- Live read-only probes: canonical `127.0.0.1:11437` `/proxy/health`, `/proxy/runtime`, and `/v1/models` returned successfully. The registry reports Ridge as installed, Ornith and Qwen3.5 compactor as not-installed, and an empty `routes` table; no route-switch request was issued under swap pressure.
