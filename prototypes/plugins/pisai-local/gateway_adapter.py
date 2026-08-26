@@ -36,8 +36,20 @@ class GatewayAdapter:
         """Read the existing proxy's public runtime proof; no mutation."""
         return self.get_json("/proxy/runtime")
 
+    def model_for(self, role: str) -> tuple[str, dict[str, Any]]:
+        registry = self.get_json("/model-registry")
+        wanted = self.models[role]
+        profiles = registry.get("models", [])
+        profile = next((item for item in profiles if item.get("key") == wanted or item.get("id") == wanted or wanted in item.get("aliases", [])), None)
+        if profile is None:
+            raise RuntimeError(f"role {role} is not registered in the Mac catalog")
+        availability = str(profile.get("availability", "configured")).lower()
+        if availability in {"not-installed", "planned", "unavailable", "disabled", "missing"}:
+            raise RuntimeError(f"role {role} is unavailable: {availability}")
+        return wanted, profile
+
     def complete(self, body: dict[str, Any], hook_task: str | None = None, session_id: str | None = None) -> tuple[int, dict[str, str], bytes]:
-        request_id = str(body.get("request_id") or uuid.uuid4()); role = self.role(body, hook_task); outgoing = dict(body); outgoing["model"] = self.models[role]
+        request_id = str(body.get("request_id") or uuid.uuid4()); role = self.role(body, hook_task); selected_model, profile = self.model_for(role); outgoing = dict(body); outgoing["model"] = selected_model
         headers = {"Content-Type": "application/json", "x-pisai-task": role, "x-pisai-route-id": f"{role}:{request_id}", "x-pisai-request-id": request_id, "x-pisai-telemetry-id": request_id, "x-pisai-selected-model": outgoing["model"], "x-ollama-hook-contract": "ollama-pisai-hooks.v1", "x-pi-noos-schema": "noos-compatible.v1"}
         try:
             with self.opener(Request(self.base_url + "/v1/chat/completions", data=json.dumps(outgoing).encode(), headers=headers, method="POST"), timeout=600) as response:

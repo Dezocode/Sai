@@ -15,6 +15,13 @@ class Response:
 
 
 class AdapterTest(unittest.TestCase):
+    def registry(self):
+        return {"models": [
+            {"key": "qwen3.8-27b-ridge-installed", "id": "hf.co/ridge", "aliases": ["qwen3.8-ridge-gguf"], "availability": "installed", "roles": ["coding"]},
+            {"key": "ornith-1.5-9b-ad-q4-k-iq4-xs-vision", "id": "hf.co/ornith", "aliases": ["ornith-1.5-9b-vision"], "availability": "not-installed", "roles": ["vision"]},
+            {"key": "qwen3.5-2b-4bit-mlx-compactor", "id": "mlx/qwen35", "aliases": ["qwen3.5-2b-4bit-mlx-compactor"], "availability": "not-installed", "roles": ["compact"]},
+        ]}
+
     def test_hook_and_image_selection(self):
         adapter = GatewayAdapter("http://gateway", lambda request, timeout=10: Response({}))
         self.assertEqual(adapter.role({"messages": []}, "compact"), "compact")
@@ -24,6 +31,7 @@ class AdapterTest(unittest.TestCase):
     def test_complete_delegates_to_existing_gateway_with_correlation(self):
         captured = {}
         def opener(request, timeout=600):
+            if request.full_url.endswith("/model-registry"): return Response(self.registry())
             captured.update({"url": request.full_url, "headers": dict(request.header_items()), "body": json.loads(request.data)})
             return Response({"choices": []}, headers={"x-request-id": "upstream"})
         adapter = GatewayAdapter("http://gateway", opener)
@@ -35,6 +43,15 @@ class AdapterTest(unittest.TestCase):
     def test_status_is_read_only_runtime_proof(self):
         adapter = GatewayAdapter("http://gateway", lambda request, timeout=10: Response({"activeModel": "ridge", "context": {"window": 32768}}))
         self.assertEqual(adapter.status()["context"]["window"], 32768)
+
+    def test_unavailable_role_fails_before_forwarding(self):
+        calls = []
+        def opener(request, timeout=600):
+            if request.full_url.endswith("/model-registry"): return Response(self.registry())
+            calls.append(request.full_url); return Response({})
+        adapter = GatewayAdapter("http://gateway", opener)
+        with self.assertRaisesRegex(RuntimeError, "unavailable"): adapter.complete({"messages": []}, "vision")
+        self.assertEqual(calls, [])
 
 
 if __name__ == "__main__": unittest.main()
