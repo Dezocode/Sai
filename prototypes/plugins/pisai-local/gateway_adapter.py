@@ -23,6 +23,10 @@ class GatewayAdapter:
 
     def role(self, body: dict[str, Any], hook_task: str | None = None) -> str:
         task = (hook_task or body.get("task") or "").lower()
+        if hook_task and task not in self.models:
+            raise RuntimeError(f"unknown PiS AI task: {hook_task}")
+        if body.get("task") and task not in self.models:
+            raise RuntimeError(f"unknown PiS AI task: {body['task']}")
         if task in self.models: return task
         return "vision" if self.has_image(body.get("messages", [])) else "coding"
 
@@ -53,6 +57,8 @@ class GatewayAdapter:
     def complete(self, body: dict[str, Any], hook_task: str | None = None, session_id: str | None = None) -> tuple[int, dict[str, str], bytes]:
         request_id = str(body.get("request_id") or uuid.uuid4()); role = self.role(body, hook_task); selected_model, profile = self.model_for(role); outgoing = dict(body); outgoing["model"] = selected_model
         headers = {"Content-Type": "application/json", "x-pisai-task": role, "x-pisai-route-id": f"{role}:{request_id}", "x-pisai-request-id": request_id, "x-pisai-telemetry-id": request_id, "x-pisai-selected-model": outgoing["model"], "x-ollama-hook-contract": "ollama-pisai-hooks.v1", "x-pi-noos-schema": "noos-compatible.v1"}
+        if session_id:
+            headers["x-pisai-session-id"] = session_id
         try:
             with self.opener(Request(self.base_url + "/v1/chat/completions", data=json.dumps(outgoing).encode(), headers=headers, method="POST"), timeout=600) as response:
                 return response.status, dict(response.headers), response.read()

@@ -28,6 +28,11 @@ class AdapterTest(unittest.TestCase):
         self.assertEqual(adapter.role({"messages": [{"content": [{"type": "image_url"}]}]}), "vision")
         self.assertEqual(adapter.role({"messages": []}), "coding")
 
+    def test_unknown_task_fails_closed(self):
+        adapter = GatewayAdapter("http://gateway", lambda request, timeout=10: Response({}))
+        with self.assertRaisesRegex(RuntimeError, "unknown PiS AI task"):
+            adapter.role({"task": "summarize", "messages": []})
+
     def test_complete_delegates_to_existing_gateway_with_correlation(self):
         captured = {}
         def opener(request, timeout=600):
@@ -35,10 +40,11 @@ class AdapterTest(unittest.TestCase):
             captured.update({"url": request.full_url, "headers": dict(request.header_items()), "body": json.loads(request.data)})
             return Response({"choices": []}, headers={"x-request-id": "upstream"})
         adapter = GatewayAdapter("http://gateway", opener)
-        status, headers, _ = adapter.complete({"request_id": "req-12345678", "messages": []})
+        status, headers, _ = adapter.complete({"request_id": "req-12345678", "messages": []}, session_id="session-12345678")
         self.assertEqual(status, 200); self.assertEqual(captured["url"], "http://gateway/v1/chat/completions")
         self.assertEqual(captured["body"]["model"], "qwen3.8-ridge-gguf"); self.assertEqual(captured["headers"]["X-pisai-task"], "coding")
         self.assertEqual(captured["headers"]["X-pisai-request-id"], "req-12345678"); self.assertEqual(captured["headers"]["X-pisai-route-id"], "coding:req-12345678"); self.assertEqual(headers["x-request-id"], "upstream")
+        self.assertEqual(captured["headers"]["X-pisai-session-id"], "session-12345678")
 
     def test_status_is_read_only_runtime_proof(self):
         adapter = GatewayAdapter("http://gateway", lambda request, timeout=10: Response({"activeModel": "ridge", "context": {"window": 32768}}))
