@@ -12,6 +12,11 @@ class ContractTest(unittest.TestCase):
         self.assertTrue(schema["additionalProperties"] is False)
         self.assertEqual(schema["properties"]["task"]["enum"], ["coding", "vision", "compact"])
 
+    def test_route_overlay_uses_exact_catalog_keys(self):
+        routes = json.loads((ROOT / "config/model-registry.routes.example.json").read_text())
+        self.assertEqual(set(routes["routes"]), {"coding", "vision", "compact"})
+        self.assertFalse(routes["routePolicy"]["silentFallback"])
+
     def test_environment_is_secret_free_and_32k_bounded(self):
         env = (ROOT / "config/pisai-router.env.example").read_text()
         self.assertIn("PISAI_CONTEXT_TOKENS=32768", env)
