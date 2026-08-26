@@ -1,0 +1,10 @@
+{
+  "task_id": "20260826-1446-pisai-local-harness-sauls",
+  "agent": "dezo-sec-codex1",
+  "repository": "Dezocode/Sai",
+  "branch": "dezo/pisai-local-harness-contract",
+  "base_sha": "3159b58753a140ef052bb41dc987c8a5cd6fad81",
+  "status": "verify",
+  "claimed_files": ["prototypes/plugins/pisai-local/**", ".ai/runs/20260826-1446-pisai-local-harness-sauls/**"],
+  "scope": "Prototype-only Mac/Pi routing contract; no production or Hostinger inference dependency."
+}

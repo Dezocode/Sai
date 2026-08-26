@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pisai-model-routing.v1",
+  "title": "PiS AI model-selectable hook request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["task", "request_id", "source", "telemetry"],
+  "properties": {
+    "task": {"enum": ["coding", "vision", "compact"]},
+    "request_id": {"type": "string", "minLength": 8, "maxLength": 128},
+    "source": {"enum": ["pi-hook", "pi-api", "compactor"]},
+    "model_hint": {"type": "string", "maxLength": 256},
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "hook", "session_id"],
+      "properties": {
+        "schema": {"const": "ollama-pisai-hooks.v1"},
+        "hook": {"type": "string", "minLength": 1, "maxLength": 128},
+        "session_id": {"type": "string", "minLength": 8, "maxLength": 128},
+        "noos_schema": {"const": "noos-compatible.v1"},
+        "noos_revision": {"const": 2}
+      }
+    }
+  }
+}
