@@ -1,6 +1,6 @@
 # Router verification
 
-- Contract and router suites: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v prototypes/plugins/pisai-local/tests/test_contract.py prototypes/plugins/pisai-local/tests/test_router.py` — 7 tests passed.
+- Contract and adapter suites: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v prototypes/plugins/pisai-local/tests/test_contract.py prototypes/plugins/pisai-local/tests/test_gateway_adapter.py` — 6 tests passed.
 - `git diff --check` — passed.
 - Mocked proof covers Pi hook role selection, image-to-vision selection, delegation to the existing Mac gateway, correlated request headers, read-only runtime proof, and structured gateway boundaries.
 - No model weights, secrets, Hostinger inference service, or Sai production dependency are included.
