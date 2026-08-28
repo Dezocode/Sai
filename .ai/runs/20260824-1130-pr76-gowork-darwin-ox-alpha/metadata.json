@@ -1,0 +1,1 @@
+{"task_id":"20260824-1130-pr76-gowork-darwin-ox-alpha","agent":"ox-alpha","repository":"Dezocode/Sai","branch":"prototype/lane-enforcement","base_sha":"6db4761437b9","purpose":"Fix macOS-only go.work gate miss: judge symlink-resolved candidate vs resolved root by prefix (nearest-existing-ancestor canonicalization) instead of filepath.Rel over mixed prefixes.","status":"complete"}

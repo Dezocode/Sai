@@ -1,0 +1,1 @@
+{"task_id":"20260828-1625-drive-idempotency-cursor-cloud","agent":"cursor-cloud","repository":"Dezocode/Sai","branch":"prototype/lane-enforcement","purpose":"Isolate TestFuturePRAndHooks dishonest-proof subtest from gitdir sai-verify-evidence.json so sai-verify drive is idempotent after first PASS.","status":"complete"}

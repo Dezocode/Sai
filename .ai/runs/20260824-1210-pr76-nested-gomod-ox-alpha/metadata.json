@@ -1,0 +1,1 @@
+{"task_id":"20260824-1210-pr76-nested-gomod-ox-alpha","agent":"ox-alpha","repository":"Dezocode/Sai","branch":"prototype/lane-enforcement","base_sha":"81d85ad2a4a9cf312d672ed275a08d9f4345c6de","purpose":"Nested production go.mod replace directives are now lane-checked (manifest-dir resolution basis), closing the go.work+nested-replace transitive bypass.","status":"complete"}

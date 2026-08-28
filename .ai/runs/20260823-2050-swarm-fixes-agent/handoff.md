@@ -1,0 +1,1 @@
+# Handoff task 20260823-2050-swarm-fixes-agent: superseded-by-followup; absolute-manifest-path P1 fix + race diagnosis shipped here, budget restoration + macOS ancestor-canonicalization completed by follow-up under 20260822-2200-lane-enforcement-impl-hermes.

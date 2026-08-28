@@ -1,0 +1,1 @@
+# Handoff 20260824-1130-pr76-gowork-darwin-ox-alpha: checkGoWorkFiles canonicalizes candidates via nearest-existing-ancestor and prefix-judges against the resolved root, fixing the macOS /var-symlink gate miss; vectors unchanged.
