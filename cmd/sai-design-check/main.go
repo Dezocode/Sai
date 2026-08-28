@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	designAuth  = "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage"
-	featureRoot = "apps/apple/Packages/SaiKit/Sources/SaiFeatures"
+	designAuth    = "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage"
+	featureRoot   = "apps/apple/Packages/SaiKit/Sources/SaiFeatures"
+	prototypeLane = "prototypes/plugins"
 )
 
 type contract struct {
@@ -48,6 +49,14 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println("Sai Design Language: PASS")
+}
+
+func isPrototypeLane(rel string) bool {
+	rest := strings.TrimPrefix(rel, prototypeLane)
+	if rest == rel {
+		return false
+	}
+	return rest == "" || strings.HasPrefix(rest, "/")
 }
 
 func nest(v interface{}, keys ...string) interface{} {
@@ -171,6 +180,9 @@ func check(root string) error {
 			if rule.re.MatchString(text) {
 				return fmt.Errorf("%s: %s outside SaiDesignLanguage", rel, rule.name)
 			}
+		}
+		if isPrototypeLane(rel) {
+			return nil
 		}
 		if !c.FeatureUIAllowed && (rel == "apps/apple/SaiMac/SaiMacApp.swift" || rel == "apps/apple/SaiIOS/SaiIOSApp.swift") && (strings.Count(text, "SaiCanvas") != 1 || strings.Count(text, "SaiText") != 1 || !shellBody.MatchString(text) || shellUI.MatchString(text)) {
 			return fmt.Errorf("%s: shell composition", rel)
