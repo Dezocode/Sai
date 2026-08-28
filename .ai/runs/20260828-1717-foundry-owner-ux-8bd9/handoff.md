@@ -4,6 +4,8 @@
 
 Slice 82 Foundry owner UX: verify-sai feature map, roadmap PR contract, prototype package under `prototypes/plugins/foundry/owner-ux/` with dry-run-first owner model/view, `FoundryPlanTemplate` for engine-compatible plan JSON, and `FoundryEngineBridge` consuming #164 graduation engine CLI (stub fallback). Verifier adds `prototypes` pathRe and `inFoundryOwnerUXScope` lane exemption.
 
+**Draft PR:** https://github.com/Dezocode/Sai/pull/169 (`foundry/owner-ux` → `main`)
+
 ## Files
 
 - `.cursor/skills/verify-sai/features/foundry-owner-ux.md`

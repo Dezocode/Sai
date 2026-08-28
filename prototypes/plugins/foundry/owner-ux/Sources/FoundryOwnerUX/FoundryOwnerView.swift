@@ -11,7 +11,10 @@ public struct FoundryOwnerView: View {
     public var body: some View {
         SaiCanvas {
             SaiText("Foundry Owner UX")
-            SaiText("HEAD: dry-run first; production promotion requires an independent PR and cannot push to main.")
+            SaiText("Dry-run first. Production promotion requires an independent PR and cannot push to main.")
+            SaiText("Source HEAD: \(model.prototypeHead)")
+            SaiText("Graph hash: \(model.graphHash)")
+            SaiText("Harness telemetry: unavailable (display-only; not policy authority)")
             if model.manifestIntegrate {
                 SaiText("Integrate into Sai").onTapGesture { model.requestPlan(.integrate) }
             }
@@ -21,11 +24,15 @@ public struct FoundryOwnerView: View {
             if model.manifestArchive {
                 SaiText("Delete / Archive").onTapGesture { model.requestPlan(.archive) }
             }
+            if let errorMessage = model.errorMessage {
+                SaiText("Blocked: \(errorMessage)")
+            }
             switch model.state {
             case .idle:
                 SaiText("Select an action to preview the graduation plan.")
             case .planReady(let plan):
-                SaiText("Plan preview for \(plan.action.rawValue) at \(plan.head)")
+                SaiText("Plan preview for \(plan.action.rawValue)")
+                SaiText("Plan hash: \(plan.planHash)")
                 ForEach(plan.steps.indices, id: \.self) { index in
                     let step = plan.steps[index]
                     SaiText("\(step.label): \(step.disposition.rawValue) — \(step.detail)")
