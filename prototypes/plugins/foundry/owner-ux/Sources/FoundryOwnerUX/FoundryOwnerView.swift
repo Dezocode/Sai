@@ -1,51 +1,83 @@
-import SaiDesignLanguage
-import SwiftUI
+import Foundation
 
-public struct FoundryOwnerView: View {
-    @ObservedObject private var model: FoundryOwnerModel
+public struct FoundryOwnerView {
+    public enum LineKind: Equatable, Sendable {
+        case heading
+        case body
+        case action(FoundryOwnerAction)
+        case confirm
+        case cancel
+        case error
+        case planStep
+    }
+
+    public struct Line: Equatable, Sendable {
+        public let kind: LineKind
+        public let text: String
+
+        public init(kind: LineKind, text: String) {
+            self.kind = kind
+            self.text = text
+        }
+    }
+
+    private let model: FoundryOwnerModel
 
     public init(model: FoundryOwnerModel) {
         self.model = model
     }
 
-    public var body: some View {
-        SaiCanvas {
-            SaiText("Foundry Owner UX")
-            SaiText("Dry-run first. Production promotion requires an independent PR and cannot push to main.")
-            SaiText("Prototype: \(model.prototypeID) at \(model.prototypePath)")
-            SaiText("Source HEAD: \(model.prototypeHead)")
-            SaiText("Graph hash: \(model.graphHash)")
-            SaiText("Schema version: \(FoundryPlanTemplate.schemaVersion)")
-            SaiText("Harness telemetry: unavailable (display-only; not policy authority)")
-            if model.manifestIntegrate {
-                SaiText("Integrate into Sai").onTapGesture { model.requestPlan(.integrate) }
+    public var lines: [Line] {
+        var result: [Line] = [
+            .init(kind: .heading, text: "Foundry Owner UX"),
+            .init(kind: .body, text: "Dry-run first. Production promotion requires an independent PR and cannot push to main."),
+            .init(kind: .body, text: "Prototype: \(model.prototypeID) at \(model.prototypePath)"),
+            .init(kind: .body, text: "Source HEAD: \(model.prototypeHead)"),
+            .init(kind: .body, text: "Graph hash: \(model.graphHash)"),
+            .init(kind: .body, text: "Schema version: \(FoundryPlanTemplate.schemaVersion)"),
+            .init(kind: .body, text: "Harness telemetry: unavailable (display-only; not policy authority)"),
+        ]
+        if model.manifestIntegrate {
+            result.append(.init(kind: .action(.integrate), text: "Integrate into Sai"))
+        }
+        if model.manifestSpinOff {
+            result.append(.init(kind: .action(.spinOff), text: "Spin Off as App"))
+        }
+        if model.manifestArchive {
+            result.append(.init(kind: .action(.archive), text: "Delete / Archive"))
+        }
+        if let errorMessage = model.errorMessage {
+            result.append(.init(kind: .error, text: "Blocked: \(errorMessage)"))
+        }
+        switch model.state {
+        case .idle:
+            result.append(.init(kind: .body, text: "Select an action to preview the graduation plan."))
+        case .planReady(let plan):
+            result.append(.init(kind: .body, text: "Plan preview for \(plan.action.rawValue)"))
+            result.append(.init(kind: .body, text: "Plan hash: \(plan.planHash)"))
+            for step in plan.steps {
+                result.append(.init(kind: .planStep, text: "\(step.label): \(step.disposition.rawValue) — \(step.detail)"))
             }
-            if model.manifestSpinOff {
-                SaiText("Spin Off as App").onTapGesture { model.requestPlan(.spinOff) }
-            }
-            if model.manifestArchive {
-                SaiText("Delete / Archive").onTapGesture { model.requestPlan(.archive) }
-            }
-            if let errorMessage = model.errorMessage {
-                SaiText("Blocked: \(errorMessage)")
-            }
-            switch model.state {
-            case .idle:
-                SaiText("Select an action to preview the graduation plan.")
-            case .planReady(let plan):
-                SaiText("Plan preview for \(plan.action.rawValue)")
-                SaiText("Plan hash: \(plan.planHash)")
-                ForEach(plan.steps.indices, id: \.self) { index in
-                    let step = plan.steps[index]
-                    SaiText("\(step.label): \(step.disposition.rawValue) — \(step.detail)")
-                }
-                SaiText("Confirm execution").onTapGesture { model.confirmExecution() }
-                SaiText("Cancel").onTapGesture { model.cancel() }
-            case .completed(let execution):
-                SaiText("Completed: \(execution.message)")
-            case .cancelled:
-                SaiText("Cancelled. No effectful graduation was performed.")
-            }
+            result.append(.init(kind: .confirm, text: "Confirm execution"))
+            result.append(.init(kind: .cancel, text: "Cancel"))
+        case .completed(let execution):
+            result.append(.init(kind: .body, text: "Completed: \(execution.message)"))
+        case .cancelled:
+            result.append(.init(kind: .body, text: "Cancelled. No effectful graduation was performed."))
+        }
+        return result
+    }
+
+    public func perform(_ kind: LineKind) {
+        switch kind {
+        case .action(let action):
+            model.requestPlan(action)
+        case .confirm:
+            model.confirmExecution()
+        case .cancel:
+            model.cancel()
+        default:
+            break
         }
     }
 }

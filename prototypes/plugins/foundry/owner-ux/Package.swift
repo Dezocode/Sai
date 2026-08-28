@@ -10,15 +10,9 @@ let package = Package(
     products: [
         .library(name: "FoundryOwnerUX", targets: ["FoundryOwnerUX"]),
     ],
-    dependencies: [
-        .package(path: "../../../../../apps/apple/Packages/SaiKit"),
-    ],
     targets: [
         .target(
-            name: "FoundryOwnerUX",
-            dependencies: [
-                .product(name: "SaiDesignLanguage", package: "SaiKit"),
-            ]
+            name: "FoundryOwnerUX"
         ),
         .testTarget(
             name: "FoundryOwnerUXTests",

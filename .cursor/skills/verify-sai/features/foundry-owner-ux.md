@@ -1,7 +1,7 @@
 # Foundry owner UX
 Human owner workflow for prototype graduation: Integrate into Sai, Spin Off as App, and Delete / Archive — dry-run first, explicit confirmation, no UI policy authority.
 ## Sub-features
-- `foundry-owner-shell` `prototypes/plugins/foundry/owner-ux/*` SwiftUI owner surface composing SaiDesignLanguage primitives only.
+- `foundry-owner-shell` `prototypes/plugins/foundry/owner-ux/*` foundation-draft screen descriptor; SwiftUI/SaiCanvas lands with slice 76 prototype lane.
 - `foundry-dry-run-first` dry-run plan before any effectful Integrate / Spin Off / Archive execution.
 - `foundry-engine-stub` `FoundryGraduationEngine` protocol + `FoundryGraduationEngineStub` for tests only.
 - `foundry-engine-bridge` `FoundryEngineBridge` invokes `go run ./prototypes/plugins/foundry/graduation-engine/cmd/graduate` from #164; falls back to stub when engine absent.
@@ -17,7 +17,7 @@ Human owner workflow for prototype graduation: Integrate into Sai, Spin Off as A
 - **Roadmap contract.** ::exists docs/roadmap/foundry/10-owner-ux-v1.md
 - **Prototype manifest.** ::exists prototypes/plugins/foundry/owner-ux/prototype.manifest.json prototypes/plugins/foundry/owner-ux/Package.swift
 ## Gotchas
-- Production `featureUIAllowed=false` remains global. Owner UX lives under `prototypes/plugins/`; slice 76 owns verifier lane enforcement separately (#136). Owner UI uses `SaiCanvas`/`SaiText` only; no raw visual literals in `Sources/`.
+- Production `featureUIAllowed=false` remains global. Owner UX ships a Foundation-only screen descriptor until slice 76 (#136) lands the prototype SwiftUI lane.
 - Graduation engine (#164) is CLI-only; owner UX consumes it via `FoundryEngineBridge`, never reimplements the engine.
 - UNKNOWN disposition strings fail closed in `FoundryPlanTemplate.uiPlan`.
 - Graduation to production requires a normal PR; the owner UI cannot direct-push `main`, auto-merge, or self-approve. Telemetry from Harness/#141 is display-only, not policy authority.
