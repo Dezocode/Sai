@@ -8,8 +8,6 @@ Human owner workflow for prototype graduation: Integrate into Sai, Spin Off as A
 - `foundry-plan-template` `FoundryPlanTemplate` builds engine-compatible plan JSON mapped to UI `FoundryPlan` for any `prototypes/plugins/*` path.
 - `foundry-manifest-loader` `FoundryPrototypeManifest` reads `prototype.manifest.json` graduation flags per plugin.
 - `foundry-harness-fixture` `FoundryHarnessFixture` wires owner model/view for harness dry-run + confirm paths.
-- `foundry-lane-contract` `docs/architecture/SAI-PROTOTYPE-PLUGIN-LANE.md` enables canonical `prototypes/plugins/` lane without widening production lock.
-- `foundry-lane-exemption` `cmd/sai-design-check/*` verifier-owned canonical prototype lane; SwiftUI permitted under `prototypes/plugins/*` without widening production lock.
 - `foundry-roadmap` `docs/roadmap/foundry/*` PR contracts and acceptance checklists for owner UX slices.
 ## How to get to it (user POV)
 - Read `docs/roadmap/foundry/10-owner-ux-v1.md` and open `prototypes/plugins/foundry/owner-ux/` for the owner shell.
@@ -19,7 +17,7 @@ Human owner workflow for prototype graduation: Integrate into Sai, Spin Off as A
 - **Roadmap contract.** ::exists docs/roadmap/foundry/10-owner-ux-v1.md
 - **Prototype manifest.** ::exists prototypes/plugins/foundry/owner-ux/prototype.manifest.json prototypes/plugins/foundry/owner-ux/Package.swift
 ## Gotchas
-- Production `featureUIAllowed=false` remains global; prototype lane exemption is verifier-owned and fail-closed — candidate JSON cannot widen it. Owner UI uses `SaiCanvas`/`SaiText` only; no raw visual literals in `Sources/`.
+- Production `featureUIAllowed=false` remains global; prototype lane exemption is verifier-owned (see `prototype-plugins` feature map) and fail-closed. Owner UI uses `SaiCanvas`/`SaiText` only; no raw visual literals in `Sources/`.
 - Graduation engine (#164) is CLI-only; owner UX consumes it via `FoundryEngineBridge`, never reimplements the engine.
 - UNKNOWN disposition strings fail closed in `FoundryPlanTemplate.uiPlan`.
 - Graduation to production requires a normal PR; the owner UI cannot direct-push `main`, auto-merge, or self-approve. Telemetry from Harness/#141 is display-only, not policy authority.
