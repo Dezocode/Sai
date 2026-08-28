@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# commit-msg — reject agent commits whose Task-ID trailer violates
+# YYYYMMDD-HHMM-<purpose>-<agent-id> BEFORE they land in history.
+# Saul's regression guard (scripts/verify-agent-audit) blocks PR landing on
+# this same pattern; failing here turns a landing-blocker into a typo fix.
+#
+# Install once per clone:  git config core.hooksPath .githooks
+msg="$1"
+# Skip merge commits and non-agent commits (no SAI trailers at all)
+if grep -q '^Merge:' "$msg" 2>/dev/null; then exit 0; fi
+grep -qE '^(Task-ID|Agent):' "$msg" || exit 0
+
+fail() { echo "commit-msg: $*" >&2; echo "  expected: Task-ID: YYYYMMDD-HHMM-<purpose>-<agent-id>  e.g. 20260824-0915-swarm-pr76-fixes-ox-alpha" >&2; exit 1; }
+
+task=$(sed -n 's/^Task-ID:[[:space:]]*//p' "$msg" | head -n1)
+[ -n "$task" ] || fail "agent commit missing Task-ID trailer"
+grep -q '^Agent:' "$msg" || fail "agent commit missing Agent trailer"
+printf '%s' "$task" | grep -Eq '^[0-9]{8}-[0-9]{4}-[a-z0-9][a-z0-9-]*$' \
+  || fail "invalid Task-ID '$task'"
+exit 0
