@@ -41,6 +41,27 @@ public final class FoundryOwnerModel: ObservableObject {
     }
 
     public convenience init(
+        head: String,
+        prototypePath: String = FoundryHarnessFixture.defaultOwnerUXPath,
+        prototypeID: String = "foundry-owner-ux",
+        manifestIntegrate: Bool = true,
+        manifestSpinOff: Bool = true,
+        manifestArchive: Bool = true,
+        engine: FoundryGraduationEngine? = nil
+    ) {
+        let resolvedEngine = engine ?? FoundryGraduationEngineStub(prototypePath: prototypePath)
+        self.init(
+            prototypePath: prototypePath,
+            prototypeID: prototypeID,
+            head: head,
+            manifestIntegrate: manifestIntegrate,
+            manifestSpinOff: manifestSpinOff,
+            manifestArchive: manifestArchive,
+            engine: resolvedEngine
+        )
+    }
+
+    public convenience init(
         prototypePath: String,
         head: String,
         repoRoot: String? = nil,
