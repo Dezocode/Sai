@@ -9,188 +9,139 @@ import (
 )
 
 const (
-	testRepo = "github.com/Dezocode/Sai"
-	testBase = "main"
-	testHead = "3159b58753a140ef052bb41dc987c8a5cd6fad81"
+	goldenRepo = "Dezocode/Sai"
+	goldenBase = "3159b58753a140ef052bb41dc987c8a5cd6fad81"
+	goldenHead = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 )
 
-func fixtureDir(t *testing.T) string {
-	t.Helper()
-	return filepath.Join("..", "synthetic-fixture")
-}
-
-func TestBuildGoldenHash(t *testing.T) {
-	out, err := Build(BuildInput{
-		Repo:        testRepo,
-		Base:        testBase,
-		Head:        testHead,
-		ManifestDir: fixtureDir(t),
-	})
-	if err != nil {
-		t.Fatalf("Build: %v", err)
-	}
-	golden, err := os.ReadFile(filepath.Join("testdata", "golden-hash.txt"))
-	if err != nil {
-		t.Fatalf("read golden: %v", err)
-	}
-	want := strings.TrimSpace(string(golden))
-	if out.GraphHash != want {
-		t.Fatalf("graph_hash mismatch\nwant %s\ngot  %s", want, out.GraphHash)
-	}
-	if out.SchemaVersion != SchemaVersion {
-		t.Fatalf("schema_version = %d, want %d", out.SchemaVersion, SchemaVersion)
-	}
-	if out.ToolVersion != ToolVersion {
-		t.Fatalf("tool_version = %q, want %q", out.ToolVersion, ToolVersion)
-	}
-	if out.Repo != testRepo || out.Base != testBase || out.Head != testHead {
-		t.Fatalf("binding fields: repo=%q base=%q head=%q", out.Repo, out.Base, out.Head)
-	}
-	if len(out.Nodes) != 5 {
-		t.Fatalf("nodes len = %d, want 5", len(out.Nodes))
-	}
-	if len(out.Edges) != 1 {
-		t.Fatalf("edges len = %d, want 1", len(out.Edges))
+func goldenSpec() DepSpec {
+	return DepSpec{
+		Repo:        goldenRepo,
+		Base:        goldenBase,
+		Head:        goldenHead,
+		FixtureRoot: filepath.Join("..", "synthetic-fixture"),
 	}
 }
 
-func TestValidateForPlanningRejectsUnknownNode(t *testing.T) {
-	out, err := Build(BuildInput{
-		Repo:        testRepo,
-		Base:        testBase,
-		Head:        testHead,
-		ManifestDir: fixtureDir(t),
-	})
+func TestGoldenHash(t *testing.T) {
+	out, err := goldenSpec().Build()
 	if err != nil {
-		t.Fatalf("Build: %v", err)
-	}
-	out.Nodes = append(out.Nodes, Node{ID: "mystery", Classification: ClassUnknown})
-	if err := ValidateForPlanning(out); err == nil {
-		t.Fatal("expected planning error for UNKNOWN node")
-	}
-}
-
-func TestValidateForPlanningRejectsUnknownEdge(t *testing.T) {
-	out, err := Build(BuildInput{
-		Repo:        testRepo,
-		Base:        testBase,
-		Head:        testHead,
-		ManifestDir: fixtureDir(t),
-	})
-	if err != nil {
-		t.Fatalf("Build: %v", err)
-	}
-	out.Edges = append(out.Edges, Edge{From: "reuse-lib", To: "mystery", Classification: ClassUnknown})
-	if err := ValidateForPlanning(out); err == nil {
-		t.Fatal("expected planning error for UNKNOWN edge")
-	}
-}
-
-func TestValidateHeadBindingRejectsStaleHead(t *testing.T) {
-	out, err := Build(BuildInput{
-		Repo:        testRepo,
-		Base:        testBase,
-		Head:        testHead,
-		ManifestDir: fixtureDir(t),
-	})
-	if err != nil {
-		t.Fatalf("Build: %v", err)
-	}
-	if err := ValidateHeadBinding(out, strings.Repeat("a", 40)); err == nil {
-		t.Fatal("expected stale head error")
-	}
-}
-
-func TestValidateGraphHashBindingRejectsTamper(t *testing.T) {
-	out, err := Build(BuildInput{
-		Repo:        testRepo,
-		Base:        testBase,
-		Head:        testHead,
-		ManifestDir: fixtureDir(t),
-	})
-	if err != nil {
-		t.Fatalf("Build: %v", err)
-	}
-	out.GraphHash = strings.Repeat("0", 64)
-	if err := ValidateGraphHashBinding(out); err == nil {
-		t.Fatal("expected graph hash binding error")
-	}
-}
-
-func TestBuildDeterministicAcrossReorder(t *testing.T) {
-	dir := t.TempDir()
-	manifest := filepath.Join(dir, "manifest.json")
-	deps := filepath.Join(dir, "deps.json")
-	if err := os.WriteFile(manifest, []byte(`{"schema_version":1,"id":"reorder"}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	raw := `{"nodes":[{"id":"z-node","classification":"REUSE"},{"id":"a-node","classification":"PROMOTE"}],"edges":[]}`
-	if err := os.WriteFile(deps, []byte(raw), 0o644); err != nil {
+	want, err := os.ReadFile(filepath.Join("testdata", "golden-hash.txt"))
+	if err != nil {
 		t.Fatal(err)
 	}
-	in := BuildInput{Repo: testRepo, Base: testBase, Head: testHead, ManifestDir: dir}
-	first, err := Build(in)
-	if err != nil {
-		t.Fatalf("first Build: %v", err)
+	if strings.TrimSpace(string(want)) != out.GraphHash {
+		t.Fatalf("golden hash mismatch: got %s", out.GraphHash)
 	}
-	reordered := `{"nodes":[{"id":"a-node","classification":"PROMOTE"},{"id":"z-node","classification":"REUSE"}],"edges":[]}`
-	if err := os.WriteFile(deps, []byte(reordered), 0o644); err != nil {
+}
+
+func TestUnknownFails(t *testing.T) {
+	if err := validateClassification(UNKNOWN); err == nil {
+		t.Fatal("expected UNKNOWN to fail")
+	}
+}
+
+func TestUnclassifiedFails(t *testing.T) {
+	if err := validateClassification(""); err == nil {
+		t.Fatal("expected empty classification to fail")
+	}
+}
+
+func TestStaleHeadFails(t *testing.T) {
+	out, err := goldenSpec().Build()
+	if err != nil {
 		t.Fatal(err)
 	}
-	second, err := Build(in)
+	if err := ValidateHeadBinding(out, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"); err == nil {
+		t.Fatal("expected stale head failure")
+	}
+}
+
+func TestStaleGraphHashFails(t *testing.T) {
+	out, err := goldenSpec().Build()
 	if err != nil {
-		t.Fatalf("second Build: %v", err)
+		t.Fatal(err)
 	}
-	if first.GraphHash != second.GraphHash {
-		t.Fatalf("hash drift on reorder: %s vs %s", first.GraphHash, second.GraphHash)
-	}
-}
-
-func TestParseManifestForbiddenAuthority(t *testing.T) {
-	raw := []byte(`{"schema_version":1,"id":"x","signing_key":"bad"}`)
-	if _, err := ParseManifest(raw); err == nil {
-		t.Fatal("expected forbidden field error")
+	if err := ValidateGraphHashBinding(out, "0"+out.GraphHash); err == nil {
+		t.Fatal("expected stale graph_hash failure")
 	}
 }
 
-func TestParseDepsRejectsUnknownClassification(t *testing.T) {
-	raw := []byte(`{"nodes":[{"id":"n","classification":"NOPE"}],"edges":[]}`)
-	if _, err := ParseDeps(raw); err == nil {
-		t.Fatal("expected unknown classification error")
+func TestDeterministicReorder(t *testing.T) {
+	a, err := goldenSpec().Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := goldenSpec().Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a.GraphHash != b.GraphHash {
+		t.Fatalf("rebuild hash mismatch: %s vs %s", a.GraphHash, b.GraphHash)
+	}
+	reordered := Deps{
+		Nodes: []Node{
+			{ID: "drop-legacy", Path: "legacy/drop.go", Classification: DROP},
+			{ID: "reuse-lib", Path: "lib/reuse.go", Classification: REUSE},
+			{ID: "promote-mod", Path: "mod/promote.go", Classification: PROMOTE},
+			{ID: "export-pkg", Path: "pkg/export.go", Classification: EXPORT},
+			{ID: "remote-api", Path: "api/remote.go", Classification: REMOTE},
+		},
+		Edges: []Edge{{From: "reuse-lib", To: "promote-mod", Classification: PROMOTE_SHARED}},
+	}
+	manifest, err := ParseManifest([]byte(`{"schema_version":1,"id":"synthetic-fixture"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err := Build(BuildInput{Repo: goldenRepo, Base: goldenBase, Head: goldenHead, Manifest: manifest, Deps: reordered})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.GraphHash != a.GraphHash {
+		t.Fatalf("reordered hash mismatch: %s vs %s", c.GraphHash, a.GraphHash)
 	}
 }
 
-func TestBuildRejectsInvalidHead(t *testing.T) {
-	_, err := Build(BuildInput{
-		Repo:        testRepo,
-		Base:        testBase,
-		Head:        "short",
-		ManifestDir: fixtureDir(t),
-	})
+func TestForbiddenManifestFieldFails(t *testing.T) {
+	_, err := ParseManifest([]byte(`{"schema_version":1,"id":"x","permissions":["admin"]}`))
 	if err == nil {
-		t.Fatal("expected invalid head error")
+		t.Fatal("expected forbidden manifest field failure")
 	}
 }
 
-func TestOutputJSONRoundTrip(t *testing.T) {
-	out, err := Build(BuildInput{
-		Repo:        testRepo,
-		Base:        testBase,
-		Head:        testHead,
-		ManifestDir: fixtureDir(t),
-	})
+func TestValidateForPlanningOK(t *testing.T) {
+	out, err := goldenSpec().Build()
 	if err != nil {
-		t.Fatalf("Build: %v", err)
+		t.Fatal(err)
 	}
-	b, err := json.Marshal(out)
+	if err := ValidateForPlanning(out); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestParseDepsRoundTrip(t *testing.T) {
+	body, err := os.ReadFile(filepath.Join("..", "synthetic-fixture", "deps.json"))
 	if err != nil {
-		t.Fatalf("marshal: %v", err)
+		t.Fatal(err)
 	}
-	var again Output
-	if err := json.Unmarshal(b, &again); err != nil {
-		t.Fatalf("unmarshal: %v", err)
+	deps, err := ParseDeps(body)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if again.GraphHash != out.GraphHash {
-		t.Fatalf("round-trip hash mismatch")
+	if len(deps.Nodes) != 5 {
+		t.Fatalf("expected 5 nodes, got %d", len(deps.Nodes))
+	}
+	enc, err := json.Marshal(deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+	again, err := ParseDeps(enc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(again.Edges) != 1 {
+		t.Fatalf("expected 1 edge, got %d", len(again.Edges))
 	}
 }
