@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -12,6 +13,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[5]
 PLUGINS = REPO_ROOT / "prototypes" / "plugins"
 SPINOFF_ROOT = PLUGINS / "foundry" / "spinoff-planner-exporter"
+CLI = SPINOFF_ROOT / "bin" / "foundry-spinoff"
 for entry in (str(SPINOFF_ROOT),):
     if entry not in sys.path:
         sys.path.insert(0, entry)
@@ -104,6 +106,77 @@ class SpinoffTests(unittest.TestCase):
                 materialize_candidate(plan, self.repo_root, tempfile.mkdtemp())
         finally:
             Path(graph_path).unlink(missing_ok=True)
+
+    def test_promote_blocks(self) -> None:
+        blocked_graph = {
+            "schema_version": 1,
+            "plugin_id": "blocked",
+            "prototype_root": "prototypes/plugins/demo-widget",
+            "entry_nodes": ["widget-py"],
+            "nodes": [
+                {
+                    "id": "widget-py",
+                    "kind": "file",
+                    "classification": "PROMOTE",
+                    "path": "src/widget.py",
+                }
+            ],
+        }
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            json.dump(blocked_graph, fh)
+            graph_path = fh.name
+        try:
+            plan = build_plan_from_path(graph_path, self.repo_root)
+            self.assertFalse(plan.exportable)
+            self.assertTrue(any("PROMOTE" in blocker for blocker in plan.blockers))
+            with self.assertRaises(ValueError):
+                materialize_candidate(plan, self.repo_root, tempfile.mkdtemp())
+        finally:
+            Path(graph_path).unlink(missing_ok=True)
+
+    def test_cli_plan_and_materialize(self) -> None:
+        plan_proc = subprocess.run(
+            [str(CLI), "plan", str(DEMO_GRAPH), "--repo-root", self.repo_root],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(0, plan_proc.returncode, plan_proc.stderr)
+        payload = json.loads(plan_proc.stdout)
+        self.assertTrue(payload["exportable"])
+        self.assertIn("widget-py", payload["closure"])
+
+        with tempfile.TemporaryDirectory() as tmp:
+            mat_proc = subprocess.run(
+                [
+                    str(CLI),
+                    "materialize",
+                    str(DEMO_GRAPH),
+                    tmp,
+                    "--repo-root",
+                    self.repo_root,
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, mat_proc.returncode, mat_proc.stderr)
+            self.assertTrue((Path(tmp) / "src" / "widget.py").is_file())
+            self.assertEqual([], scan_forbidden_refs(tmp))
+
+    def test_provenance_records_frozen_head(self) -> None:
+        plan = build_plan_from_path(str(DEMO_GRAPH), self.repo_root)
+        with tempfile.TemporaryDirectory() as tmp:
+            materialize_candidate(plan, self.repo_root, tmp)
+            provenance = json.loads((Path(tmp) / "PROVENANCE.json").read_text(encoding="utf-8"))
+            self.assertEqual(plan.plan_hash, provenance["plan_hash"])
+            self.assertEqual(plan.graph_hash, provenance["graph_hash"])
+            self.assertTrue(provenance["frozen"]["head_sha"])
+            self.assertTrue(provenance["frozen"]["prototype_head_sha"])
+            self.assertEqual(
+                "prototypes/plugins/demo-widget",
+                provenance["frozen"]["prototype_root"],
+            )
 
     def test_idempotent_materialization(self) -> None:
         plan = build_plan_from_path(str(DEMO_GRAPH), self.repo_root)
