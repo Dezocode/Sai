@@ -1,0 +1,1 @@
+{"stage":"03_implement","files":["prototypes/plugins/pisai-local/README.md","prototypes/plugins/pisai-local/config/pisai-router.env.example","prototypes/plugins/pisai-local/config/model-routing.schema.json","prototypes/plugins/pisai-local/docs/ARCHITECTURE.md","prototypes/plugins/pisai-local/tests/test_contract.py"],"weights_uploaded":false,"production_dependencies":false}

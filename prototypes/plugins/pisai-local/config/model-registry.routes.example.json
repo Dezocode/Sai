@@ -1,0 +1,15 @@
+{
+  "schema": "ollama-pisai-model-registry.v1",
+  "revision": 2,
+  "routes": {
+    "coding": "qwen3.8-27b-ridge-installed",
+    "vision": "ornith-1.5-9b-ad-q4-k-iq4-xs-vision",
+    "compact": "qwen3.5-2b-4bit-mlx-compactor"
+  },
+  "routePolicy": {
+    "unknownTask": "reject",
+    "unavailableModel": "reject",
+    "silentFallback": false
+  },
+  "note": "Merge these route keys into the Mac registry only after each model's availability, artifact, projector, backend, and context are verified. This example contains no credentials and does not download models."
+}
