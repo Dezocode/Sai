@@ -11,7 +11,7 @@ Verifier-owned non-shipping prototype-plugin lane and Foundry prototype tooling 
 
 ## How to get to it (user POV)
 
-- Read `docs/architecture/SAI-PROTOTYPE-PLUGIN-LANE.md`; place prototype code under `prototypes/plugins/<name>/`.
+- Read `docs/architecture/SAI-PROTOTYPE-PLUGIN-LANE.md`; place prototype code under `prototypes/plugins/<plugin>/`.
 
 ## Driving it with verify-sai
 
