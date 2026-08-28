@@ -1,0 +1,10 @@
+{
+  "task_id": "20260828-1717-graduation-engine-cursor-301e",
+  "agent": "cursor-cloud",
+  "repository": "Dezocode/Sai",
+  "status": "awaiting-review",
+  "branch": "foundry/graduation-engine",
+  "issue": 160,
+  "pr": 164,
+  "final_head": "10407fefa9d861e1be40e973ecf6460835a8a018"
+}
