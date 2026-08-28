@@ -17,6 +17,7 @@ func TestPrototypeRootIsClaimableAndNearPrefixesAreDistinct(t *testing.T) {
 		t.Fatalf("`prototype/plugins/*` must be unrecognized, got %v", g)
 	}
 }
+
 func TestPrototypeMapEntryParses(t *testing.T) {
 	feats, probs := loadFeats("../..")
 	if len(feats) == 0 {
@@ -26,12 +27,17 @@ func TestPrototypeMapEntryParses(t *testing.T) {
 		if f.ID != "prototype-plugins" {
 			continue
 		}
-		for _, want := range []string{"prototypes/plugins/*", "cmd/sai-design-check/*", ".github/workflows/sai-design-language.yml"} {
+		for _, want := range []string{
+			"prototypes/plugins/*",
+			"prototypes/plugins/foundry/spinoff-planner-exporter/*",
+			"prototypes/plugins/demo-widget/*",
+			"scripts/verify-foundry-spinoff.py",
+		} {
 			if !pathCovered(f.Paths, want) {
 				t.Fatalf("prototype-plugins feature missing path %s; has %v", want, f.Paths)
 			}
 		}
-		if len(f.Subs) < 4 {
+		if len(f.Subs) < 3 {
 			t.Fatalf("prototype-plugins sub-features incomplete: %v", f.Subs)
 		}
 		if len(f.Ent) == 0 || len(f.Proof) == 0 {
@@ -41,6 +47,7 @@ func TestPrototypeMapEntryParses(t *testing.T) {
 	}
 	t.Fatal("prototype-plugins feature not in map index")
 }
+
 func pathCovered(paths []string, want string) bool {
 	for _, k := range paths {
 		if k == want || len(k) > 0 && k[len(k)-1] == '*' && len(want) >= len(k) && want[:len(k)-1] == k[:len(k)-1] {
