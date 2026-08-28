@@ -1,0 +1,14 @@
+{
+  "task_id": "20260828-1810-integrate-planner-cursor-cloud-6f0d",
+  "agent": "cursor-cloud-6f0d",
+  "repository": "Dezocode/Sai",
+  "branch": "foundry/integrate-planner",
+  "purpose": "Map integrate-planner in verify-sai; fix sai-verify CI unmapped prototypes",
+  "status": "verify",
+  "claimed_paths": [
+    "cmd/sai-verify/",
+    ".cursor/skills/verify-sai/features/",
+    "docs/roadmap/foundry/07-integrate-planner-v1.md",
+    ".ai/runs/20260828-1810-integrate-planner-cursor-cloud-6f0d/"
+  ]
+}
