@@ -23,6 +23,8 @@ Read-only production promotion planner for the SAI Prototype Foundry.
 
 Folder-move graduation (`prototypes/plugins/<id>` root) is never recommended.
 
+Cross-lane `prototypes/plugins/<other>` dependencies via `REUSE` or `PROMOTE` edges are forbidden.
+
 ## CLI
 
 ```bash
@@ -39,7 +41,7 @@ Optional `--out plan.json` writes the plan for test harnesses.
 go test ./prototypes/plugins/foundry/integrate-planner/...
 ```
 
-Golden fixtures cover Sai Harness and Sai Author; negative fixtures cover `UNKNOWN`, stale HEAD, and production path conflicts.
+Golden fixtures cover Sai Harness and Sai Author. Negative fixtures cover `UNKNOWN`, stale HEAD, production path conflicts, forbidden prototype dependencies, unresolved design authority, and folder-move graduation.
 
 ## Roadmap
 

@@ -107,6 +107,39 @@ func TestNegativePathConflictNotReady(t *testing.T) {
 	}
 }
 
+func TestNegativeForbiddenPrototypeDepNotReady(t *testing.T) {
+	g := loadNegativeGraph("negative_forbidden_proto_dep.graph.json")
+	plan, err := Plan(g, g.SourceHeadSHA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plan.Ready {
+		t.Fatal("forbidden prototype dependency must not be ready")
+	}
+}
+
+func TestNegativeDesignAuthorityNotReady(t *testing.T) {
+	g := loadNegativeGraph("negative_design_authority.graph.json")
+	plan, err := Plan(g, g.SourceHeadSHA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plan.Ready {
+		t.Fatal("unresolved design authority must not be ready")
+	}
+}
+
+func TestNegativeFolderMoveNotReady(t *testing.T) {
+	g := loadNegativeGraph("negative_folder_move.graph.json")
+	plan, err := Plan(g, g.SourceHeadSHA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plan.Ready {
+		t.Fatal("folder-move graduation must not be ready")
+	}
+}
+
 func loadNegativeGraph(name string) DependencyGraph {
 	path := filepath.Join("fixtures", name)
 	data, err := os.ReadFile(path)
