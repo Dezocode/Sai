@@ -12,7 +12,7 @@ from spinoff.graph_input import (
     DependencyGraph,
     canonical_graph_hash,
     load_graph,
-    parse_nodes,
+    parse_graph,
     transitive_closure,
     validate_node,
 )
@@ -62,7 +62,12 @@ def build_plan(
     raw_graph: Optional[dict] = None,
 ) -> SpinoffPlan:
     frozen = freeze_source(repo_root, graph)
-    graph_hash = canonical_graph_hash(raw_graph) if raw_graph else ""
+    if graph.graph_hash:
+        graph_hash = graph.graph_hash
+    elif raw_graph:
+        graph_hash = canonical_graph_hash(raw_graph)
+    else:
+        graph_hash = ""
     blockers: List[str] = []
     planned: Dict[str, PlannedNode] = {}
 
@@ -102,5 +107,5 @@ def build_plan(
 
 def build_plan_from_path(graph_path: str, repo_root: str) -> SpinoffPlan:
     raw = load_graph(graph_path)
-    graph = parse_nodes(raw)
+    graph = parse_graph(raw)
     return build_plan(graph, repo_root, raw_graph=raw)

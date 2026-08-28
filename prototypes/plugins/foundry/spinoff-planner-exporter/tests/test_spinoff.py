@@ -21,6 +21,7 @@ from spinoff.materializer import materialize_candidate
 from spinoff.planner import build_plan_from_path
 
 DEMO_GRAPH = PLUGINS / "demo-widget" / "foundry.graph.json"
+DEMO_OUTPUT = PLUGINS / "demo-widget" / "foundry.graph.output.json"
 
 
 def _tree_digest(root: Path) -> str:
@@ -46,6 +47,17 @@ class SpinoffTests(unittest.TestCase):
         self.assertEqual("REMOTE", plan.nodes["remote-api"].strategy)
         self.assertTrue(plan.plan_hash)
         self.assertTrue(plan.graph_hash)
+
+    def test_plan_from_slice78_output_fixture(self) -> None:
+        plan = build_plan_from_path(str(DEMO_OUTPUT), self.repo_root)
+        self.assertTrue(plan.exportable)
+        self.assertEqual([], plan.blockers)
+        self.assertIn("widget-py", plan.closure)
+        self.assertIn("remote-api", plan.closure)
+        self.assertEqual("EXPORT_COPY", plan.nodes["widget-py"].strategy)
+        self.assertEqual("REMOTE", plan.nodes["remote-api"].strategy)
+        self.assertEqual("pinned-demo-fixture-hash", plan.graph_hash)
+        self.assertTrue(plan.plan_hash)
 
     def test_materialize(self) -> None:
         plan = build_plan_from_path(str(DEMO_GRAPH), self.repo_root)

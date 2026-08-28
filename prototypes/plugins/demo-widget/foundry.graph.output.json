@@ -1,0 +1,19 @@
+{
+  "provenance": {
+    "repo": "Dezocode/Sai",
+    "base": "3159b58753a140ef052bb41dc987c8a5cd6fad81",
+    "head": "0000000000000000000000000000000000000000",
+    "schema_version": 1,
+    "tool_version": "foundry-lifecycle-graph/1"
+  },
+  "manifest_id": "demo-widget",
+  "nodes": [
+    {"id": "widget-py", "path": "src/widget.py", "classification": "EXPORT"},
+    {"id": "remote-api", "path": "api/remote.go", "classification": "REMOTE"},
+    {"id": "legacy-helper", "path": "src/legacy.py", "classification": "DROP"}
+  ],
+  "edges": [
+    {"from": "widget-py", "to": "remote-api", "classification": "REMOTE"}
+  ],
+  "graph_hash": "pinned-demo-fixture-hash"
+}
