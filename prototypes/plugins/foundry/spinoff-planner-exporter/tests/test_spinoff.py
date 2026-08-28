@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -13,7 +14,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[5]
 PLUGINS = REPO_ROOT / "prototypes" / "plugins"
 SPINOFF_ROOT = PLUGINS / "foundry" / "spinoff-planner-exporter"
-CLI = SPINOFF_ROOT / "bin" / "foundry-spinoff"
 for entry in (str(SPINOFF_ROOT),):
     if entry not in sys.path:
         sys.path.insert(0, entry)
@@ -34,6 +34,10 @@ def _tree_digest(root: Path) -> str:
             digest = hashlib.sha256(path.read_bytes()).hexdigest()
             entries.append(f"{rel}:{digest}")
     return hashlib.sha256("\n".join(entries).encode("utf-8")).hexdigest()
+
+
+def _cli_env() -> dict:
+    return {**os.environ, "PYTHONPATH": str(SPINOFF_ROOT)}
 
 
 class SpinoffTests(unittest.TestCase):
@@ -135,11 +139,21 @@ class SpinoffTests(unittest.TestCase):
             Path(graph_path).unlink(missing_ok=True)
 
     def test_cli_plan_and_materialize(self) -> None:
+        env = _cli_env()
         plan_proc = subprocess.run(
-            [str(CLI), "plan", str(DEMO_GRAPH), "--repo-root", self.repo_root],
+            [
+                sys.executable,
+                "-m",
+                "spinoff",
+                "plan",
+                str(DEMO_GRAPH),
+                "--repo-root",
+                self.repo_root,
+            ],
             capture_output=True,
             text=True,
             check=False,
+            env=env,
         )
         self.assertEqual(0, plan_proc.returncode, plan_proc.stderr)
         payload = json.loads(plan_proc.stdout)
@@ -149,7 +163,9 @@ class SpinoffTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             mat_proc = subprocess.run(
                 [
-                    str(CLI),
+                    sys.executable,
+                    "-m",
+                    "spinoff",
                     "materialize",
                     str(DEMO_GRAPH),
                     tmp,
@@ -159,6 +175,7 @@ class SpinoffTests(unittest.TestCase):
                 capture_output=True,
                 text=True,
                 check=False,
+                env=env,
             )
             self.assertEqual(0, mat_proc.returncode, mat_proc.stderr)
             self.assertTrue((Path(tmp) / "src" / "widget.py").is_file())
