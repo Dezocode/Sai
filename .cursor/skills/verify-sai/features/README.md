@@ -12,5 +12,6 @@ Maintained source for every supported/observable Sai capability proved by this r
 - [Cursor and runtimes](./cursor-runtimes.md) — plugins, pstack, rules, runtime entry routers.
 - [OpenClaw surfaces](./openclaw-surfaces.md) — dashboard tabs, settings, apps, design.
 - [OpenClaw operations](./openclaw-ops.md) — gateway, fleet, secrets, services, smoke.
+- [Foundry lifecycle graph](./foundry-lifecycle-graph.md) — prototype manifest + dependency graph (slice 78).
 - [Verify Sai kernel](./verify-sai.md) — native map, Go API, hooks, preservation, proof.
 - [Sai application foundation](./sai-app-foundation.md) — native Apple app, Go core, API, deployment, and CI-enforced design language.
