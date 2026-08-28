@@ -17,7 +17,7 @@ import (
 )
 const mapDir = ".cursor/skills/verify-sai/features"
 var (
-	linkRe  = regexp.MustCompile(`\]\((?:\./)?([^)]+\.md)\)`)
+	linkRe  = regexp.MustCompile(`\]\((?:\.\/)?([^)]+\.md)\)`)
 	idRe    = regexp.MustCompile("`([a-z][a-z0-9-]*)`")
-	pathRe  = regexp.MustCompile(`(?:\./)?(?:\.ai|\.cursor|\.github|\.githooks|scripts|openclaw-dashboard|cmd|apps|api|design|docs|internal|deploy|migrations|prototypes)(/[A-Za-z0-9_.*{},-]+)+|\.gitignore|(?:AGENTS|CLAUDE|CODEX|OPENCLAW|README|Team)\.md|go\.mod`)
-	PLACEHOLDER_TAIL
+	pathRe  = regexp.MustCompile(`(?:\.\/)?(?:\.ai|\.cursor|\.github|\.githooks|scripts|openclaw-dashboard|cmd|apps|api|design|docs|internal|deploy|migrations|prototypes)(/[A-Za-z0-9_.*{},-]+)+|\.gitignore|(?:AGENTS|CLAUDE|CODEX|OPENCLAW|README|Team)\.md|go\.mod`)
+	PLACEHOLDER_FOR_REST
