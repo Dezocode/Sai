@@ -13,14 +13,17 @@ Slice 82 Foundry owner UX on `foundry/owner-ux`: dry-run-first Integrate / Spin 
 - `FoundryPlanTemplate` parameterized per prototype path; UNKNOWN disposition fails closed
 - `FoundryEngineBridge` invokes #164 `graduate` CLI (`owner_confirmed=false` on dry-run)
 - `FoundryHarnessFixture` entry point for harness wiring
-- Verifier lane: `prototypes` pathRe + `inFoundryOwnerUXScope` + CI `prototypes/**` trigger
-- verify-sai feature map + roadmap at `docs/roadmap/foundry/10-owner-ux-v1.md`
+- verify-sai feature map (`foundry-owner-ux`) + roadmap at `docs/roadmap/foundry/10-owner-ux-v1.md`
+
+## Scope boundary
+
+- Production verifier files (`cmd/sai-design-check`, `cmd/sai-verify`, `.github/workflows/sai-design-language.yml`) restored to byte-identical `origin/main`. Slice 76 (#136) owns lane enforcement.
+- Removed slice-76 drift (`prototype_lane_test.go`, `prototype-plugins.md` map entry).
 
 ## Verification
 
-- `go test ./cmd/sai-design-check/...`
-- `go test ./cmd/sai-verify/...`
 - Swift tests in `prototypes/plugins/foundry/owner-ux/Tests/`
+- PR CI: `icm-enforcement`, anti-regression, line budget
 
 ## Next
 
