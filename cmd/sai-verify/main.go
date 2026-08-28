@@ -20,4 +20,9 @@ var (
 	linkRe  = regexp.MustCompile(`\]\((?:\.\/)?([^)]+\.md)\)`)
 	idRe    = regexp.MustCompile("`([a-z][a-z0-9-]*)`")
 	pathRe  = regexp.MustCompile(`(?:\.\/)?(?:\.ai|\.cursor|\.github|\.githooks|scripts|openclaw-dashboard|cmd|apps|api|design|docs|internal|deploy|migrations|prototypes)(/[A-Za-z0-9_.*{},-]+)+|\.gitignore|(?:AGENTS|CLAUDE|CODEX|OPENCLAW|README|Team)\.md|go\.mod`)
-	PLACEHOLDER_FOR_REST
+	rmRe    = regexp.MustCompile(`(?i)^Removal-authorized:\s*(.+)$`)
+	h2Re    = regexp.MustCompile(`^## `)
+	allEv   = []string{"sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "workspaceOpen"}
+	matchEv = map[string]bool{"preToolUse": true, "postToolUse": true, "postToolUseFailure": true, "beforeShellExecution": true, "afterShellExecution": true, "beforeReadFile": true, "afterFileEdit": true, "subagentStart": true, "subagentStop": true}
+)
+PLACEHOLDER_REST_OF_FILE
