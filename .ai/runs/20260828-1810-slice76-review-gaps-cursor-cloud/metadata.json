@@ -3,5 +3,7 @@
   "agent": "cursor-cloud",
   "purpose": "slice76-review-gaps",
   "branch": "prototype/lane-enforcement",
-  "pr": 136
+  "pr": 136,
+  "repository": "Dezocode/Sai",
+  "status": "in_progress"
 }
