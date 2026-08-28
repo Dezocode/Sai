@@ -73,4 +73,5 @@ type BindState struct {
 	WorkDir        string
 	JournalPath    string
 	CandidatesRoot string
+	Production     []string
 }
