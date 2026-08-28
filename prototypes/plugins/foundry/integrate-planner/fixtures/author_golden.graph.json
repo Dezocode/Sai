@@ -1,0 +1,54 @@
+{
+  "schema": "foundry.graph.v1",
+  "prototype_id": "sai-author",
+  "source_head_sha": "2222222222222222222222222222222222222222",
+  "graph_hash": "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
+  "nodes": [
+    {
+      "id": "author-kit",
+      "path": "prototypes/plugins/sai-author/Packages/AuthorKit",
+      "classification": "PROMOTE",
+      "proposed_production_path": "apps/SaiFeatures/AuthorKit",
+      "design_authority": "resolved",
+      "module_visibility": "public"
+    },
+    {
+      "id": "design-language",
+      "path": "prototypes/plugins/sai-author/design/language.json",
+      "classification": "PROMOTE",
+      "proposed_production_path": "design/sai-author/language.json",
+      "design_authority": "production",
+      "module_visibility": "public"
+    },
+    {
+      "id": "openapi-contract",
+      "path": "prototypes/plugins/sai-author/api/openapi.yaml",
+      "classification": "PROMOTE",
+      "proposed_production_path": "api/sai-author/openapi.yaml",
+      "design_authority": "resolved",
+      "module_visibility": "internal"
+    },
+    {
+      "id": "saikit-reuse",
+      "path": "apps/apple/Packages/SaiKit",
+      "classification": "REUSE"
+    },
+    {
+      "id": "scratch-notes",
+      "path": "prototypes/plugins/sai-author/scratch",
+      "classification": "DROP"
+    }
+  ],
+  "edges": [
+    {
+      "from": "author-kit",
+      "to": "saikit-reuse",
+      "classification": "REUSE"
+    },
+    {
+      "from": "openapi-contract",
+      "to": "design-language",
+      "classification": "REUSE"
+    }
+  ]
+}
