@@ -1,0 +1,12 @@
+{
+  "task_id": "20260828-1849-maintain-verify-sai-cursor-cloud",
+  "agent": "cursor-cloud",
+  "repository": "Dezocode/Sai",
+  "branch": "prototype/lane-enforcement",
+  "head_sha": "7abf440e9f48732089aab0507f90aab316f9eb88",
+  "status": "in_progress",
+  "purpose": "Run /maintain-verification-skill on verify-sai and doctor at exact HEAD",
+  "scope": [
+    ".cursor/skills/verify-sai/features/prototype-plugins.md"
+  ]
+}
