@@ -234,3 +234,47 @@ func fixture(t *testing.T, designAuthority bool, source string) string {
 	}
 	return root
 }
+
+func TestCanonicalPrototypeRoot(t *testing.T) {
+	ok := []string{
+		"prototypes/plugins/foundry/owner-ux/Sources/FoundryOwnerUX/View.swift",
+		"prototypes/plugins/author/PrototypeDesign/Colors.swift",
+	}
+	for _, rel := range ok {
+		if !inCanonicalPrototype(rel) {
+			t.Fatalf("expected canonical: %s", rel)
+		}
+	}
+	bad := []string{
+		"prototypes/plugins",
+		"prototypes/plugins/",
+		"prototypes/plugins-evil/x/a.swift",
+		"prototypes/plugin/x/a.swift",
+		"../prototypes/plugins/x/a.swift",
+	}
+	for _, rel := range bad {
+		if inCanonicalPrototype(rel) {
+			t.Fatalf("expected reject: %s", rel)
+		}
+	}
+}
+
+func TestFoundryOwnerUXScope(t *testing.T) {
+	in := []string{
+		"prototypes/plugins/foundry/owner-ux/Sources/FoundryOwnerUX/FoundryOwnerView.swift",
+	}
+	for _, rel := range in {
+		if !inFoundryOwnerUXScope(rel) {
+			t.Fatalf("expected owner-ux scope: %s", rel)
+		}
+	}
+	out := []string{
+		"prototypes/plugins/foundry/owner-ux/Tests/FoundryOwnerUXTests/FoundryOwnerUXTests.swift",
+		"prototypes/plugins/foundry/owner-ux/Package.swift",
+	}
+	for _, rel := range out {
+		if inFoundryOwnerUXScope(rel) {
+			t.Fatalf("expected outside owner-ux Sources scope: %s", rel)
+		}
+	}
+}
