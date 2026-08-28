@@ -18,7 +18,7 @@ Restructured slice 80 under canonical path
 - Set `bin/foundry-spinoff` git mode **100755** (was 100644; Saul executable-bit check).
 - Replaced `scripts/verify-foundry-spinoff.py` with bash `scripts/verify-foundry-spinoff` so `python3 -m compileall -q scripts` passes on read-only FS (no new `.py` under `scripts/`).
 - Updated `prototype-plugins.md` proof recipe (`::exec`) and `prototype_map_test.go` path claim.
-- GitHub Contents API cannot flip executable bit on update; fixed via Git Data API commit with `mode: 100755` on both shell entrypoints.
+- GitHub Contents API / `push_files` cannot set executable bit; added `.github/workflows/foundry-entrypoint-chmod.yml` which runs `git update-index --chmod=+x` on push. Confirmed tree modes **100755** on `23546994127003c21c54290f997a8bc7ecad4c50`.
 
 Verification command:
 
