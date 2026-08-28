@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # verify-foundry-spinoff — drive slice 80 spin-off planner unit tests for sai-verify proof.
+# git mode 100755 (bash driver; no scripts/*.py compileall surface).
 set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"

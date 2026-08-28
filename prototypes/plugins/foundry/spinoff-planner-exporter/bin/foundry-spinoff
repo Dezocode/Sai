@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# foundry-spinoff — slice 80 spin-off planner CLI (git mode 100755).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export PYTHONPATH="${ROOT}:${PYTHONPATH:-}"

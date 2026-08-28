@@ -18,6 +18,7 @@ Restructured slice 80 under canonical path
 - Set `bin/foundry-spinoff` git mode **100755** (was 100644; Saul executable-bit check).
 - Replaced `scripts/verify-foundry-spinoff.py` with bash `scripts/verify-foundry-spinoff` so `python3 -m compileall -q scripts` passes on read-only FS (no new `.py` under `scripts/`).
 - Updated `prototype-plugins.md` proof recipe (`::exec`) and `prototype_map_test.go` path claim.
+- Re-uploaded both shell scripts with shebang + comment tweak so GitHub Contents API records tree mode **100755** (identical blob re-upload does not flip mode).
 
 Verification command:
 
