@@ -14,3 +14,4 @@ Maintained source for every supported/observable Sai capability proved by this r
 - [OpenClaw operations](./openclaw-ops.md) — gateway, fleet, secrets, services, smoke.
 - [Verify Sai kernel](./verify-sai.md) — native map, Go API, hooks, preservation, proof.
 - [Sai application foundation](./sai-app-foundation.md) — native Apple app, Go core, API, deployment, and CI-enforced design language.
+- [Foundry graduation engine](./foundry-graduation.md) — plan-bound prototype graduation (integrate, spinoff, delete-archive).
