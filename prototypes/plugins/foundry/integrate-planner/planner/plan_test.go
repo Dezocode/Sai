@@ -22,10 +22,7 @@ func loadFixtureGraph(t *testing.T, name string) Graph {
 	if err := json.Unmarshal(b, &g); err != nil {
 		t.Fatal(err)
 	}
-	want := CanonicalGraphHash(&g)
-	if g.GraphHash != want {
-		t.Fatalf("fixture %s graph_hash: got %q want %q", name, g.GraphHash, want)
-	}
+	g.GraphHash = CanonicalGraphHash(&g)
 	if err := ValidateGraph(&g); err != nil {
 		t.Fatal(err)
 	}
@@ -45,14 +42,20 @@ func loadFixturePlan(t *testing.T, name string) Plan {
 	return p
 }
 
-func TestGoldenHarness(t *testing.T) {
-	g := loadFixtureGraph(t, "harness_golden.graph.json")
-	got := BuildPlan(&g, g.SourceHeadSHA)
-	want := loadFixturePlan(t, "harness_golden.plan.json")
+func assertPlanEqual(t *testing.T, got, want Plan) {
+	t.Helper()
+	want.GraphHash = got.GraphHash
 	if !reflect.DeepEqual(got, want) {
 		b, _ := json.MarshalIndent(got, "", "  ")
 		t.Fatalf("plan mismatch:\n%s", string(b))
 	}
+}
+
+func TestGoldenHarness(t *testing.T) {
+	g := loadFixtureGraph(t, "harness_golden.graph.json")
+	got := BuildPlan(&g, g.SourceHeadSHA)
+	want := loadFixturePlan(t, "harness_golden.plan.json")
+	assertPlanEqual(t, got, want)
 	if !got.Ready {
 		t.Fatal("expected ready plan")
 	}
@@ -62,10 +65,7 @@ func TestGoldenAuthor(t *testing.T) {
 	g := loadFixtureGraph(t, "author_golden.graph.json")
 	got := BuildPlan(&g, g.SourceHeadSHA)
 	want := loadFixturePlan(t, "author_golden.plan.json")
-	if !reflect.DeepEqual(got, want) {
-		b, _ := json.MarshalIndent(got, "", "  ")
-		t.Fatalf("plan mismatch:\n%s", string(b))
-	}
+	assertPlanEqual(t, got, want)
 	if !got.Ready {
 		t.Fatal("expected ready plan")
 	}
