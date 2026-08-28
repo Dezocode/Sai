@@ -55,11 +55,28 @@ func VerifyBindings(state BindState, plan Plan) error {
 	if state.PrototypeHead != "" && state.PrototypeHead != plan.PrototypeHead {
 		return fmt.Errorf("bind state prototype_head mismatch")
 	}
-	if state.GraphHash != "" && state.GraphHash != plan.GraphHash {
-		return fmt.Errorf("graph_hash mismatch: plan %s current %s", plan.GraphHash, state.GraphHash)
-	}
 	if state.Base != "" && state.Base != plan.Base {
 		return fmt.Errorf("stale base: plan %s current %s", plan.Base, state.Base)
+	}
+	protoPath := PrimaryPrototypePath(plan)
+	if err := ValidateCanonicalPrototypePath(protoPath); err != nil {
+		return err
+	}
+	if err := ValidatePrototypePolicy(state.RepoRoot, protoPath); err != nil {
+		return err
+	}
+	currentGraph, err := ComputeGraphHash(state.RepoRoot, protoPath)
+	if err != nil {
+		return fmt.Errorf("compute graph_hash: %w", err)
+	}
+	if plan.GraphHash == "" {
+		return fmt.Errorf("graph_hash required")
+	}
+	if currentGraph != plan.GraphHash {
+		return fmt.Errorf("stale graph_hash: plan %s current %s", plan.GraphHash, currentGraph)
+	}
+	if err := AssertProductionNeverImportsPrototypes(state.RepoRoot, state.Production); err != nil {
+		return err
 	}
 	return nil
 }
