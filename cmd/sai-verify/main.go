@@ -1,1 +1,1 @@
-FETCH_AND_PATCH_FROM_84563a7
+https://raw.githubusercontent.com/Dezocode/Sai/2d4e50c90dc9897931a78948e999cd43cfb37717/cmd/sai-verify/main.go
