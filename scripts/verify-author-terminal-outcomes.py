@@ -14,6 +14,7 @@ from pathlib import Path
 
 ALLOWED_SWIFT_IMPORTS = {"SaiDesignLanguage", "SwiftUI", "Foundation", "SaiAuthor"}
 FORBIDDEN_IMPORTS = {"SaiMac", "SaiIOS", "SaiFeatures", "SaiKit"}
+SPM_MANIFEST_IMPORTS = {"PackageDescription"}
 SPINOFF_FORBIDDEN = (
     "../../Sai",
     "Dezocode/Sai",
@@ -60,7 +61,7 @@ def check_integrate(author: Path) -> None:
         raise SystemExit("FAIL integrate: Package.swift must not reference prototype lane paths")
 
     for swift in author.rglob("*.swift"):
-        if "tests" in swift.parts:
+        if swift.name == "Package.swift" or "tests" in swift.parts:
             continue
         rel = swift.relative_to(author)
         text = swift.read_text()
