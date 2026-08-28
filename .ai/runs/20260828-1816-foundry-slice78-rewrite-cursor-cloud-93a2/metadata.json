@@ -1,0 +1,8 @@
+{
+  "task_id": "20260828-1816-foundry-slice78-rewrite-cursor-cloud-93a2",
+  "agent": "cursor-cloud-93a2",
+  "repository": "Dezocode/Sai",
+  "branch": "foundry/lifecycle-dependency-graph",
+  "status": "verify",
+  "claimed_files": ["prototypes/plugins/foundry/lifecycle-dependency-graph/**"]
+}
