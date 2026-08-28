@@ -127,7 +127,7 @@ func TestFuturePRAndHooks(t *testing.T) {
 	run([]string{"hook"}, strings.NewReader("x"), &out, bytes.NewBuffer(nil))
 	if !strings.Contains(out.String(), "deny") { t.Fatal(out.String()) }
 	proof := bytes.Buffer{}
-	run([]string{"proof", "--root", r}, bytes.NewReader(nil), &proof, bytes.NewBuffer(nil))
+	run([]string{"proof", "--root", r, "--evidence", filepath.Join(t.TempDir(), "no-evidence.json")}, bytes.NewReader(nil), &proof, bytes.NewBuffer(nil))
 	ps := proof.String()
 	if !strings.Contains(ps, "HEAD ") || strings.Contains(ps, "PASS evidence-bound") || !strings.Contains(ps, "REQUIRED evidence-bound") || !strings.Contains(ps, "UNEVALUATED go-test") || !strings.Contains(ps, "completeness-derived") || !strings.Contains(ps, "PASS hash-derived") || !strings.Contains(ps, "map_files ") { t.Fatal("dishonest proof", ps) }
 	pj := filepath.Join(t.TempDir(), "e.json"); run([]string{"proof", "--root", r, "--evidence", pj}, bytes.NewReader(nil), bytes.NewBuffer(nil), bytes.NewBuffer(nil)); if jb, err := os.ReadFile(filepath.Join(filepath.Dir(pj), "sai-verify-proof.json")); err != nil || !bytes.Contains(jb, []byte(`"completeness_derived"`)) || !bytes.Contains(jb, []byte(`"hash_derived"`)) || !bytes.Contains(jb, []byte(`"map_files"`)) || !bytes.Contains(jb, []byte(`"proof_artifacts"`)) { t.Fatal("proof json", err, string(jb)) }
