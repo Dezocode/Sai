@@ -61,7 +61,7 @@ type snap struct {
 	Weakened []string `json:"weakened,omitempty"`
 	Relevant []hit `json:"features"`
 	HooksOK bool `json:"hooks_ok"`
-	HookPre bool `json:"hook_pre"`
+	HookPre bool `json:"hook_post"`
 	HookPost bool `json:"hook_post"`
 	HookStop bool `json:"hook_stop"`
 	HookMatcher string `json:"hook_matcher"`
@@ -82,4 +82,39 @@ type snap struct {
 	Unmapped []string `json:"unmapped,omitempty"`
 }
 func main() { os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr)) }
-___M2___
+func run(args []string, in io.Reader, out, errw io.Writer) int {
+	cmd, root, baseDir, headDir, path, tool, wantHead, evPath, baseRef := "snapshot", ".", "", "", "", "", "", "", ""
+	evSet := false
+	set := map[string]*string{"--root": &root, "--base": &baseDir, "--head": &headDir, "--path": &path, "--tool": &tool, "--claimed-head": &wantHead, "--expect-head": &wantHead, "--evidence": &evPath, "--base-ref": &baseRef}
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		if p, ok := set[a]; ok {
+			if i+1 >= len(args) || strings.HasPrefix(args[i+1], "-") { fmt.Fprintf(errw, "missing value %s\n", a); return 2 }
+			i++; *p = args[i]; evSet = evSet || a == "--evidence"; continue
+		}
+		if strings.HasPrefix(a, "-") {
+			fmt.Fprintf(errw, "unknown flag %s\n", a)
+			return 2
+		}
+		cmd = a
+	}
+	if headDir == "" { headDir = root }
+	if cmd == "hook" { return hook(in, out, root, evPath, baseDir, baseRef) }
+	if cmd == "maps" {
+		if err := mapsCmd(headDir, out); err != nil { fmt.Fprintln(errw, err); return 1 }
+		return 0
+	}
+	s, ferr := build(root, baseDir, headDir, path, tool, wantHead, evPath, baseRef)
+	if ferr != nil && s.Err == "" { s.Err, s.OK = ferr.Error(), false }
+	if cmd == "drive" { return driveCmd(s, headDir, evPath, out) }
+	switch cmd {
+	case "proof": writeProof(out, s, evPath, headDir)
+	case "relevant": _ = json.NewEncoder(out).Encode(map[string]interface{}{"repo": s.Repo, "base": s.Base, "head": s.Head, "tool": s.Tool, "path": s.Path, "features": s.Relevant, "verification": map[string]interface{}{"map_valid": s.MapValid, "preserve_ok": s.PreserveOK, "maintenance_status": s.MaintStatus, "maintenance_head": s.MaintHead, "maintenance_map_hash": s.MaintMapHash, "whole_repo_completeness": s.Completeness, "obligations": s.Obligations}})
+	case "preserve":
+		if s.PreserveOK { fmt.Fprintln(out, "preserve_ok") }
+	default: _ = json.NewEncoder(out).Encode(s)
+	}
+	if cmd == "preserve" && !s.PreserveOK || cmd == "doctor" && (!s.MapValid || !s.HooksOK || s.Err != "" || evSet && s.Completeness != "proven") || cmd != "doctor" && cmd != "preserve" && cmd != "relevant" && !s.OK { return 1 }
+	return 0
+}
+___M3___
