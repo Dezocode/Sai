@@ -1,6 +1,9 @@
 package integrateplanner
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestComputeGraphHashMatchesFixture(t *testing.T) {
 	g := loadGraphFixture("harness_golden.graph.json")
@@ -44,22 +47,13 @@ func TestValidateGraphRejectsDanglingEdge(t *testing.T) {
 }
 
 func TestRenderHumanSummaryListsBlockers(t *testing.T) {
-	plan := IntegratePlan{PrototypeID: "sai-harness", SourceHeadSHA: "1111111111111111111111111111111111111111", Blockers: []string{"stale head", "UNKNOWN node"}}
+	plan := IntegratePlan{
+		PrototypeID:   "sai-harness",
+		SourceHeadSHA: "1111111111111111111111111111111111111111",
+		Blockers:      []string{"stale head", "UNKNOWN node"},
+	}
 	summary := RenderHumanSummary(plan)
-	if !stringsContains(summary, "BLOCKED") || !stringsContains(summary, "stale head") {
+	if !strings.Contains(summary, "BLOCKED") || !strings.Contains(summary, "stale head") {
 		t.Fatalf("summary missing blockers: %s", summary)
 	}
-}
-
-func stringsContains(s, sub string) bool {
-	return len(s) >= len(sub) && (s == sub || len(sub) == 0 || indexOf(s, sub) >= 0)
-}
-
-func indexOf(s, sub string) int {
-	for i := 0; i+len(sub) <= len(s); i++ {
-		if s[i:i+len(sub)] == sub {
-			return i
-		}
-	}
-	return -1
 }
