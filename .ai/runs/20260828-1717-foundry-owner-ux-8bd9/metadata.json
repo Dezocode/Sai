@@ -11,12 +11,8 @@
     ".cursor/skills/verify-sai/features/README.md",
     "docs/roadmap/foundry/10-owner-ux-v1.md",
     "prototypes/plugins/foundry/owner-ux/",
-    "cmd/sai-verify/main.go",
-    "cmd/sai-design-check/main.go",
-    "cmd/sai-design-check/main_test.go",
-    ".github/workflows/sai-design-language.yml",
     ".ai/runs/20260828-1717-foundry-owner-ux-8bd9/"
   ],
   "trigger": "foundry owner UX slice 82 implementation",
-  "notes": "Consumes #164 graduation engine via FoundryEngineBridge; does not reimplement engine."
+  "notes": "Consumes #164 graduation engine via FoundryEngineBridge. Production verifier files restored to origin/main; slice 76 owns cmd/sai-* lane work."
 }
