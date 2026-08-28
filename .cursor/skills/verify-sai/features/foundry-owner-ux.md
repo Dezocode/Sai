@@ -17,7 +17,7 @@ Human owner workflow for prototype graduation: Integrate into Sai, Spin Off as A
 - **Roadmap contract.** ::exists docs/roadmap/foundry/10-owner-ux-v1.md
 - **Prototype manifest.** ::exists prototypes/plugins/foundry/owner-ux/prototype.manifest.json prototypes/plugins/foundry/owner-ux/Package.swift
 ## Gotchas
-- Production `featureUIAllowed=false` remains global; prototype lane exemption is verifier-owned (see `prototype-plugins` feature map) and fail-closed. Owner UI uses `SaiCanvas`/`SaiText` only; no raw visual literals in `Sources/`.
+- Production `featureUIAllowed=false` remains global. Owner UX lives under `prototypes/plugins/`; slice 76 owns verifier lane enforcement separately (#136). Owner UI uses `SaiCanvas`/`SaiText` only; no raw visual literals in `Sources/`.
 - Graduation engine (#164) is CLI-only; owner UX consumes it via `FoundryEngineBridge`, never reimplements the engine.
 - UNKNOWN disposition strings fail closed in `FoundryPlanTemplate.uiPlan`.
 - Graduation to production requires a normal PR; the owner UI cannot direct-push `main`, auto-merge, or self-approve. Telemetry from Harness/#141 is display-only, not policy authority.
