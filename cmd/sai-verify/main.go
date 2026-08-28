@@ -1,1 +1,1 @@
-file:///workspace/cmd/sai-verify/main.go
+https://raw.githubusercontent.com/Dezocode/Sai/953c497b33708263624fa77faeba236a50b1e603/cmd/sai-verify/main.go
