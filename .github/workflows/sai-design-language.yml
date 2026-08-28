@@ -7,6 +7,7 @@ on:
       - "apps/apple/**"
       - "design/**"
       - "cmd/sai-design-check/**"
+      - "prototypes/**"
       - ".github/workflows/sai-design-language.yml"
   push:
     branches: [main]
@@ -14,6 +15,7 @@ on:
       - "apps/apple/**"
       - "design/**"
       - "cmd/sai-design-check/**"
+      - "prototypes/**"
       - ".github/workflows/sai-design-language.yml"
 
 permissions:
