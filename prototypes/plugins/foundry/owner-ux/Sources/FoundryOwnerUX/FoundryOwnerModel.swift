@@ -13,6 +13,8 @@ public final class FoundryOwnerModel: ObservableObject {
     @Published public private(set) var lastExecution: FoundryExecution?
     @Published public private(set) var errorMessage: String?
 
+    public let prototypePath: String
+    public let prototypeID: String
     public let manifestIntegrate: Bool
     public let manifestSpinOff: Bool
     public let manifestArchive: Bool
@@ -21,17 +23,41 @@ public final class FoundryOwnerModel: ObservableObject {
     private let engine: FoundryGraduationEngine
 
     public init(
+        prototypePath: String,
+        prototypeID: String,
         head: String,
-        manifestIntegrate: Bool = true,
-        manifestSpinOff: Bool = true,
-        manifestArchive: Bool = true,
-        engine: FoundryGraduationEngine = FoundryEngineBridge()
+        manifestIntegrate: Bool,
+        manifestSpinOff: Bool,
+        manifestArchive: Bool,
+        engine: FoundryGraduationEngine
     ) {
+        self.prototypePath = prototypePath
+        self.prototypeID = prototypeID
         self.prototypeHead = head
         self.manifestIntegrate = manifestIntegrate
         self.manifestSpinOff = manifestSpinOff
         self.manifestArchive = manifestArchive
         self.engine = engine
+    }
+
+    public convenience init(
+        prototypePath: String,
+        head: String,
+        repoRoot: String? = nil,
+        engine: FoundryGraduationEngine? = nil
+    ) throws {
+        let root = repoRoot ?? FoundryEngineBridge.discoverRepoRoot()
+        let manifest = try FoundryPrototypeManifest.load(prototypePath: prototypePath, repoRoot: root)
+        let resolvedEngine = engine ?? FoundryEngineBridge(repoRoot: root, prototypePath: prototypePath)
+        self.init(
+            prototypePath: prototypePath,
+            prototypeID: manifest.id,
+            head: head,
+            manifestIntegrate: manifest.graduation.integrate,
+            manifestSpinOff: manifest.graduation.spinOff,
+            manifestArchive: manifest.graduation.archive,
+            engine: resolvedEngine
+        )
     }
 
     public var graphHash: String {
@@ -61,6 +87,11 @@ public final class FoundryOwnerModel: ObservableObject {
 
     public func confirmExecution() {
         guard case .planReady(let plan) = state else { return }
+        guard plan.head == prototypeHead else {
+            errorMessage = FoundryPlanError.staleHead(expected: plan.head, actual: prototypeHead).localizedDescription
+            state = .idle
+            return
+        }
         errorMessage = nil
         do {
             let execution = try execute(plan)
