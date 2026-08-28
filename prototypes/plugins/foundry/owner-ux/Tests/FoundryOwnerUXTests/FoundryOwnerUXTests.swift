@@ -94,6 +94,23 @@ final class FoundryOwnerUXTests: XCTestCase {
         )
         XCTAssertTrue(plan.steps.contains { $0.label == "Production authority" })
     }
+
+    func testHarnessFixtureLoadsManifestFromRepo() throws {
+        let root = FoundryEngineBridge.discoverRepoRoot()
+        let goMod = (root as NSString).appendingPathComponent("go.mod")
+        guard FileManager.default.fileExists(atPath: goMod) else {
+            throw XCTSkip("repo root not available in package-only test context")
+        }
+        let model = try FoundryHarnessFixture.makeOwnerModel(
+            prototypePath: path,
+            head: head,
+            repoRoot: root
+        )
+        XCTAssertEqual(model.prototypeID, "foundry-owner-ux")
+        XCTAssertTrue(model.manifestIntegrate)
+        XCTAssertTrue(model.manifestSpinOff)
+        XCTAssertTrue(model.manifestArchive)
+    }
 }
 
 private struct StalePlanEngine: FoundryGraduationEngine {
