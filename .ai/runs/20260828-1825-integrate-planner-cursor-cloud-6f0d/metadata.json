@@ -1,0 +1,8 @@
+{
+  "task_id": "20260828-1825-integrate-planner-cursor-cloud-6f0d",
+  "agent": "cursor-cloud-6f0d",
+  "repository": "Dezocode/Sai",
+  "branch": "foundry/integrate-planner",
+  "purpose": "restore sai-verify main.go",
+  "status": "complete"
+}
