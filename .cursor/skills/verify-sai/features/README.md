@@ -1,8 +1,13 @@
 # Sai verification map
+
 Maintained source for every supported/observable Sai capability proved by this repository. Grouping is for reader clarity; sub-feature IDs and entry points are the contract.
+
 ## Baseline
+
 - Git root of `Dezocode/Sai` or `monaecode/Sai`. `python3`, `bash`, `git`, `go` (≥1.16); rclone/Slack/Drive optional. Drive `::` recipes then `go run ./cmd/sai-verify doctor --evidence <receipt>`. Bind receipts to repo + BASE + exact HEAD + map/kernel/hook digest. Stub `expect=2` is stub-exit-2, not success.
+
 ## Features
+
 - [ICM workspace](./icm-workspace.md) — layers, stages, runs, memory, schemas, policy, references.
 - [Agent lifecycle](./agent-lifecycle.md) — initialize, onboard, registry, named agents, scaffolds, caps, automation.
 - [Coordination reporting](./coordination-reporting.md) — agent-report, git hooks, Drive sync, merge Slack.
@@ -14,3 +19,4 @@ Maintained source for every supported/observable Sai capability proved by this r
 - [OpenClaw operations](./openclaw-ops.md) — gateway, fleet, secrets, services, smoke.
 - [Verify Sai kernel](./verify-sai.md) — native map, Go API, hooks, preservation, proof.
 - [Sai application foundation](./sai-app-foundation.md) — native Apple app, Go core, API, deployment, and CI-enforced design language.
+- [Prototype plugin lane](./prototype-plugins.md) — Foundry graph, spin-off planner, demo-widget harness.
