@@ -2,29 +2,27 @@
 
 ## Summary
 
-Slice 82 Foundry owner UX: verify-sai feature map, roadmap PR contract, prototype package under `prototypes/plugins/foundry/owner-ux/` with dry-run-first owner model/view, `FoundryPlanTemplate` for engine-compatible plan JSON, and `FoundryEngineBridge` consuming #164 graduation engine CLI (stub fallback). Verifier adds `prototypes` pathRe and `inFoundryOwnerUXScope` lane exemption.
+Slice 82 Foundry owner UX on `foundry/owner-ux`: dry-run-first Integrate / Spin Off / Delete controls via SaiDesignLanguage, manifest-driven flags for any `prototypes/plugins/<plugin>/` path, and thin CLI bridge to #164 graduation engine.
 
 **Draft PR:** https://github.com/Dezocode/Sai/pull/169 (`foundry/owner-ux` → `main`)
 
-## Files
+## Delivered
 
-- `.cursor/skills/verify-sai/features/foundry-owner-ux.md`
-- `.cursor/skills/verify-sai/features/README.md`
-- `docs/roadmap/foundry/10-owner-ux-v1.md`
-- `prototypes/plugins/foundry/owner-ux/prototype.manifest.json`
-- `prototypes/plugins/foundry/owner-ux/Package.swift`
-- `prototypes/plugins/foundry/owner-ux/Sources/FoundryOwnerUX/*.swift`
-- `prototypes/plugins/foundry/owner-ux/Tests/FoundryOwnerUXTests/FoundryOwnerUXTests.swift`
-- `cmd/sai-verify/main.go` (prototypes pathRe)
-- `cmd/sai-design-check/main.go` + `main_test.go` (owner-ux scope)
-- `.github/workflows/sai-design-language.yml` (prototypes/** triggers)
+- `FoundryOwnerView` + `FoundryOwnerModel` (dry-run → preview → confirm → execute)
+- `FoundryPrototypeManifest` reads `prototype.manifest.json` graduation flags
+- `FoundryPlanTemplate` parameterized per prototype path; UNKNOWN disposition fails closed
+- `FoundryEngineBridge` invokes #164 `graduate` CLI (`owner_confirmed=false` on dry-run)
+- `FoundryHarnessFixture` entry point for harness wiring
+- Verifier lane: `prototypes` pathRe + `inFoundryOwnerUXScope` + CI `prototypes/**` trigger
+- verify-sai feature map + roadmap at `docs/roadmap/foundry/10-owner-ux-v1.md`
 
 ## Verification
 
 - `go test ./cmd/sai-design-check/...`
 - `go test ./cmd/sai-verify/...`
+- Swift tests in `prototypes/plugins/foundry/owner-ux/Tests/`
 
 ## Next
 
-- Wire owner shell into Foundry harness fixture.
-- Owner-ready requires exact-head CI, preservation, and independent review per roadmap contract.
+- End-to-end harness fixture with Sai Author through dry-run + confirm paths
+- Owner-ready requires exact-head CI, preservation, and independent review
