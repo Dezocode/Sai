@@ -43,7 +43,7 @@ Optional `--out plan.json` writes the plan for test harnesses. Exit code 3 when 
 go test ./prototypes/plugins/foundry/integrate-planner/...
 ```
 
-Golden fixtures cover Sai Harness and Sai Author. Negative fixtures cover `UNKNOWN`, stale HEAD, production path conflicts, forbidden prototype dependencies, unresolved design authority, folder-move graduation, and unsupported module visibility.
+Golden fixtures cover Sai Harness and Sai Author. Negative fixtures cover `UNKNOWN`, stale HEAD, production path conflicts, forbidden prototype dependencies, unresolved design authority, folder-move graduation, unsupported module visibility, `EXPORT`, `PROMOTE_SHARED`, and cross-lane `REUSE` paths.
 
 ## Roadmap
 

@@ -3,7 +3,9 @@ package integrateplanner
 import (
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -41,6 +43,7 @@ func TestGoldenHarnessPlan(t *testing.T) {
 	}
 	want := loadPlanFixture("harness_golden.plan.json")
 	want.GraphHash = g.GraphHash
+	want.HumanSummary = RenderHumanSummary(want)
 	if !planEqual(plan, want) {
 		t.Fatalf("plan mismatch: got %s want %s", mustJSON(plan), mustJSON(want))
 	}
@@ -54,6 +57,7 @@ func TestGoldenAuthorPlan(t *testing.T) {
 	}
 	want := loadPlanFixture("author_golden.plan.json")
 	want.GraphHash = g.GraphHash
+	want.HumanSummary = RenderHumanSummary(want)
 	if !planEqual(plan, want) {
 		t.Fatalf("plan mismatch: got %s want %s", mustJSON(plan), mustJSON(want))
 	}
@@ -151,6 +155,47 @@ func TestNegativeModuleVisibilityNotReady(t *testing.T) {
 	}
 }
 
+func TestNegativeExportNotReady(t *testing.T) {
+	g := loadNegativeGraph("negative_export.graph.json")
+	plan, err := Plan(g, g.SourceHeadSHA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plan.Ready {
+		t.Fatal("EXPORT classification must not be ready")
+	}
+}
+
+func TestNegativePromoteSharedNotReady(t *testing.T) {
+	g := loadNegativeGraph("negative_promote_shared.graph.json")
+	plan, err := Plan(g, g.SourceHeadSHA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plan.Ready {
+		t.Fatal("PROMOTE_SHARED classification must not be ready")
+	}
+}
+
+func TestNegativeReuseProtoPathNotReady(t *testing.T) {
+	g := loadNegativeGraph("negative_reuse_proto_path.graph.json")
+	plan, err := Plan(g, g.SourceHeadSHA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plan.Ready {
+		t.Fatal("REUSE referencing other prototype path must not be ready")
+	}
+}
+
+func TestPlanRejectsInvalidHeadLength(t *testing.T) {
+	g := loadGraphFixture("harness_golden.graph.json")
+	_, err := Plan(g, "short")
+	if err == nil {
+		t.Fatal("expected invalid head length error")
+	}
+}
+
 func TestPlanDoesNotMutateGraph(t *testing.T) {
 	g := loadGraphFixture("harness_golden.graph.json")
 	before := mustJSON(g)
@@ -160,6 +205,25 @@ func TestPlanDoesNotMutateGraph(t *testing.T) {
 	}
 	if mustJSON(g) != before {
 		t.Fatal("Plan mutated input graph")
+	}
+}
+
+func TestCLIHarnessGoldenReady(t *testing.T) {
+	repoRoot := filepath.Join("..", "..", "..", "..", "..")
+	graphPath := "prototypes/plugins/foundry/integrate-planner/fixtures/harness_golden.graph.json"
+	cmd := exec.Command(
+		"go", "run",
+		"./prototypes/plugins/foundry/integrate-planner/cmd/foundry-integrate-plan",
+		"--graph", graphPath,
+		"--head", "1111111111111111111111111111111111111111",
+	)
+	cmd.Dir = repoRoot
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("CLI failed: %v\n%s", err, out)
+	}
+	if !strings.Contains(string(out), `"ready":true`) {
+		t.Fatalf("expected ready plan, got %s", out)
 	}
 }
 

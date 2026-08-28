@@ -1,0 +1,14 @@
+{
+  "schema": "foundry.graph.v1",
+  "prototype_id": "sai-harness",
+  "source_head_sha": "8888888888888888888888888888888888888888",
+  "graph_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "nodes": [
+    {
+      "id": "export-artifact",
+      "path": "prototypes/plugins/sai-harness/export",
+      "classification": "EXPORT"
+    }
+  ],
+  "edges": []
+}
