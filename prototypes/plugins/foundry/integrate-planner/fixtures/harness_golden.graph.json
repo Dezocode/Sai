@@ -1,0 +1,56 @@
+{
+  "schema": "foundry.graph.v1",
+  "prototype_id": "sai-harness",
+  "source_head_sha": "1111111111111111111111111111111111111111",
+  "graph_hash": "1ed48aa36781d983104313063a682c688802d3ce62997721aa422c87d6da5352",
+  "nodes": [
+    {
+      "id": "design-tokens",
+      "path": "prototypes/plugins/sai-harness/design/tokens.json",
+      "classification": "PROMOTE",
+      "proposed_production_path": "design/sai-harness/tokens.json",
+      "design_authority": "resolved",
+      "module_visibility": "public"
+    },
+    {
+      "id": "grokbot-config",
+      "path": "prototypes/plugins/sai-harness/grokbot/config.yaml",
+      "classification": "PROMOTE",
+      "proposed_production_path": "apps/SaiFeatures/Grokbot/Config.yaml",
+      "design_authority": "resolved",
+      "module_visibility": "internal"
+    },
+    {
+      "id": "harness-core",
+      "path": "prototypes/plugins/sai-harness/core",
+      "classification": "REUSE"
+    },
+    {
+      "id": "sessions-api",
+      "path": "external/sessions-api",
+      "classification": "REMOTE"
+    },
+    {
+      "id": "tmux-runtime",
+      "path": "prototypes/plugins/sai-harness/runtime/tmux",
+      "classification": "REMOTE"
+    },
+    {
+      "id": "verify-hooks",
+      "path": "scripts/verify-agent-audit",
+      "classification": "REUSE"
+    }
+  ],
+  "edges": [
+    {
+      "from": "harness-core",
+      "to": "sessions-api",
+      "classification": "REMOTE"
+    },
+    {
+      "from": "harness-core",
+      "to": "verify-hooks",
+      "classification": "REUSE"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "foundry.graph.v1",
+  "prototype_id": "sai-harness",
+  "source_head_sha": "4444444444444444444444444444444444444444",
+  "graph_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "nodes": [
+    {
+      "id": "harness-core",
+      "path": "prototypes/plugins/sai-harness/core",
+      "classification": "PROMOTE",
+      "proposed_production_path": "internal/sai-harness/core",
+      "design_authority": "resolved",
+      "module_visibility": "internal"
+    },
+    {
+      "id": "author-dep",
+      "path": "prototypes/plugins/sai-author/Packages/AuthorKit",
+      "classification": "REUSE"
+    }
+  ],
+  "edges": [
+    {
+      "from": "harness-core",
+      "to": "author-dep",
+      "classification": "REUSE"
+    }
+  ]
+}

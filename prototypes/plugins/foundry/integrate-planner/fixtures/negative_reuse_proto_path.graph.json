@@ -1,0 +1,14 @@
+{
+  "schema": "foundry.graph.v1",
+  "prototype_id": "sai-harness",
+  "source_head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "graph_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "nodes": [
+    {
+      "id": "bad-reuse",
+      "path": "prototypes/plugins/sai-author/foo",
+      "classification": "REUSE"
+    }
+  ],
+  "edges": []
+}

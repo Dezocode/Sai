@@ -1,0 +1,63 @@
+{
+  "schema": "foundry.integrate.plan.v1",
+  "source_head_sha": "1111111111111111111111111111111111111111",
+  "graph_hash": "1ed48aa36781d983104313063a682c688802d3ce62997721aa422c87d6da5352",
+  "prototype_id": "sai-harness",
+  "ready": true,
+  "entries": [
+    {
+      "node_id": "design-tokens",
+      "path": "prototypes/plugins/sai-harness/design/tokens.json",
+      "classification": "PROMOTE",
+      "action": "promote_to_production",
+      "proposed_production_path": "design/sai-harness/tokens.json"
+    },
+    {
+      "node_id": "grokbot-config",
+      "path": "prototypes/plugins/sai-harness/grokbot/config.yaml",
+      "classification": "PROMOTE",
+      "action": "promote_to_production",
+      "proposed_production_path": "apps/SaiFeatures/Grokbot/Config.yaml"
+    },
+    {
+      "node_id": "harness-core",
+      "path": "prototypes/plugins/sai-harness/core",
+      "classification": "REUSE",
+      "action": "reference_production"
+    },
+    {
+      "node_id": "sessions-api",
+      "path": "external/sessions-api",
+      "classification": "REMOTE",
+      "action": "document_remote_boundary"
+    },
+    {
+      "node_id": "tmux-runtime",
+      "path": "prototypes/plugins/sai-harness/runtime/tmux",
+      "classification": "REMOTE",
+      "action": "document_remote_boundary"
+    },
+    {
+      "node_id": "verify-hooks",
+      "path": "scripts/verify-agent-audit",
+      "classification": "REUSE",
+      "action": "reference_production"
+    }
+  ],
+  "proposed_paths": [
+    "apps/SaiFeatures/Grokbot/Config.yaml",
+    "design/sai-harness/tokens.json"
+  ],
+  "dependency_classifications": {
+    "harness-core->sessions-api": "REMOTE",
+    "harness-core->verify-hooks": "REUSE"
+  },
+  "checks": [
+    {"id": "head_binding", "status": "pass", "message": "graph bound to source_head_sha"},
+    {"id": "graph_hash", "status": "pass", "message": "graph_hash matches canonical digest"},
+    {"id": "folder_move", "status": "pass", "message": "no folder-move graduation proposed"},
+    {"id": "blockers", "status": "pass", "message": "no blockers"}
+  ],
+  "blockers": [],
+  "human_summary": "Integrate plan for sai-harness is READY with 6 entries and 2 proposed production path(s)."
+}

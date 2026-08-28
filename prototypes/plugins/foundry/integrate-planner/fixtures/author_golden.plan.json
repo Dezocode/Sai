@@ -1,0 +1,59 @@
+{
+  "schema": "foundry.integrate.plan.v1",
+  "source_head_sha": "2222222222222222222222222222222222222222",
+  "graph_hash": "202510db98067d1781345a72127b107e8890984fdfe42e642f7ec4b786646860",
+  "prototype_id": "sai-author",
+  "ready": true,
+  "entries": [
+    {
+      "node_id": "author-kit",
+      "path": "prototypes/plugins/sai-author/Packages/AuthorKit",
+      "classification": "PROMOTE",
+      "action": "promote_to_production",
+      "proposed_production_path": "apps/SaiFeatures/AuthorKit"
+    },
+    {
+      "node_id": "design-language",
+      "path": "prototypes/plugins/sai-author/design/language.json",
+      "classification": "PROMOTE",
+      "action": "promote_to_production",
+      "proposed_production_path": "design/sai-author/language.json"
+    },
+    {
+      "node_id": "openapi-contract",
+      "path": "prototypes/plugins/sai-author/api/openapi.yaml",
+      "classification": "PROMOTE",
+      "action": "promote_to_production",
+      "proposed_production_path": "api/sai-author/openapi.yaml"
+    },
+    {
+      "node_id": "saikit-reuse",
+      "path": "apps/apple/Packages/SaiKit",
+      "classification": "REUSE",
+      "action": "reference_production"
+    },
+    {
+      "node_id": "scratch-notes",
+      "path": "prototypes/plugins/sai-author/scratch",
+      "classification": "DROP",
+      "action": "no_integration"
+    }
+  ],
+  "proposed_paths": [
+    "apps/SaiFeatures/AuthorKit",
+    "api/sai-author/openapi.yaml",
+    "design/sai-author/language.json"
+  ],
+  "dependency_classifications": {
+    "author-kit->saikit-reuse": "REUSE",
+    "openapi-contract->design-language": "REUSE"
+  },
+  "checks": [
+    {"id": "head_binding", "status": "pass", "message": "graph bound to source_head_sha"},
+    {"id": "graph_hash", "status": "pass", "message": "graph_hash matches canonical digest"},
+    {"id": "folder_move", "status": "pass", "message": "no folder-move graduation proposed"},
+    {"id": "blockers", "status": "pass", "message": "no blockers"}
+  ],
+  "blockers": [],
+  "human_summary": "Integrate plan for sai-author is READY with 5 entries and 3 proposed production path(s)."
+}

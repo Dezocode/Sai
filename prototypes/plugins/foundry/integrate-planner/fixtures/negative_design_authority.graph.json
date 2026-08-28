@@ -1,0 +1,17 @@
+{
+  "schema": "foundry.graph.v1",
+  "prototype_id": "sai-harness",
+  "source_head_sha": "5555555555555555555555555555555555555555",
+  "graph_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "nodes": [
+    {
+      "id": "widget",
+      "path": "prototypes/plugins/sai-harness/widget.swift",
+      "classification": "PROMOTE",
+      "proposed_production_path": "apps/SaiFeatures/Harness/Widget.swift",
+      "design_authority": "unresolved",
+      "module_visibility": "public"
+    }
+  ],
+  "edges": []
+}

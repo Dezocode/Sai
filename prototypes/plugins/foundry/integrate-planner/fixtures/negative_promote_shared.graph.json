@@ -1,0 +1,14 @@
+{
+  "schema": "foundry.graph.v1",
+  "prototype_id": "sai-harness",
+  "source_head_sha": "9999999999999999999999999999999999999999",
+  "graph_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "nodes": [
+    {
+      "id": "shared-cap",
+      "path": "prototypes/plugins/sai-harness/shared",
+      "classification": "PROMOTE_SHARED"
+    }
+  ],
+  "edges": []
+}

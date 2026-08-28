@@ -1,0 +1,25 @@
+{
+  "schema": "foundry.graph.v1",
+  "prototype_id": "sai-harness",
+  "source_head_sha": "5555555555555555555555555555555555555555",
+  "graph_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "nodes": [
+    {
+      "id": "promote-a",
+      "path": "prototypes/plugins/sai-harness/a",
+      "classification": "PROMOTE",
+      "proposed_production_path": "apps/SaiFeatures/Conflict/Target.swift",
+      "design_authority": "resolved",
+      "module_visibility": "public"
+    },
+    {
+      "id": "promote-b",
+      "path": "prototypes/plugins/sai-harness/b",
+      "classification": "PROMOTE",
+      "proposed_production_path": "apps/SaiFeatures/Conflict/Target.swift",
+      "design_authority": "resolved",
+      "module_visibility": "public"
+    }
+  ],
+  "edges": []
+}
