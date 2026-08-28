@@ -182,6 +182,72 @@ func TestEnforcementClosed(t *testing.T) {
 	}
 }
 
+func lockedRoot(t *testing.T) string {
+	t.Helper()
+	root := fixture(t, true, "")
+	cpath := filepath.Join(root, "design/sai-design-language.json")
+	b, err := os.ReadFile(cpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var m map[string]interface{}
+	if err := json.Unmarshal(b, &m); err != nil {
+		t.Fatal(err)
+	}
+	m["featureUIAllowed"] = false
+	m["status"] = "foundation-draft"
+	out, err := json.Marshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cpath, out, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, designAuth, "SaiDesignLanguage.swift"), []byte(authoritySwift(false)), 0644); err != nil {
+		t.Fatal(err)
+	}
+	for _, rel := range []string{"apps/apple/SaiMac/SaiMacApp.swift", "apps/apple/SaiIOS/SaiIOSApp.swift"} {
+		if err := os.MkdirAll(filepath.Join(root, filepath.Dir(rel)), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, rel), []byte("@main struct Shell: App { var body: some Scene { WindowGroup { SaiCanvas { SaiText(\"Sai\") } } } }\n"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return root
+}
+
+func TestPrototypeLaneAllowsSwiftUI(t *testing.T) {
+	root := lockedRoot(t)
+	rel := "prototypes/plugins/author/AuthorRootView.swift"
+	p := filepath.Join(root, rel)
+	if err := os.MkdirAll(filepath.Dir(p), 0755); err != nil {
+		t.Fatal(err)
+	}
+	src := "import SwiftUI\nimport SaiDesignLanguage\npublic struct AuthorRootView: View { public var body: some View { TabView { Text(\"x\") } } }\n"
+	if err := os.WriteFile(p, []byte(src), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := check(root); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestNearPrefixCannotBecomePrototypeLane(t *testing.T) {
+	root := lockedRoot(t)
+	rel := "prototypes/plugins-evil/Sneak.swift"
+	p := filepath.Join(root, rel)
+	if err := os.MkdirAll(filepath.Dir(p), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(p, []byte("import SwiftUI\nstruct Sneak: View { var body: some View { Text(\"no\") } }\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := check(root); err == nil {
+		t.Fatal("near-prefix must not bypass production SwiftUI lock")
+	}
+}
+
 func authoritySwift(allowed bool) string {
 	v := "false"
 	if allowed {
