@@ -4,8 +4,10 @@ PR #164 `icm-enforcement` failed because `cmd/sai-verify/main.go` on the branch 
 
 Restored the full kernel from `main` with one map change. Added `prototypes` to `pathRe` so prototype lane files pass sai-verify completeness sweep for slice 81.
 
-Intermediate restore commits (`9129ad7` through `e930443a`) are superseded by later `20260828-1717-graduation-engine-cursor-301e` commits. Tip `62795b97` holds the kernel that turned build and Anti-regression green.
+Handoff directory added at `10407fef`. Exact-HEAD CI is green including `verify-merge-handoff`.
+
+Intermediate restore commits (`9129ad7` through `e930443a`) are superseded by later `20260828-1717-graduation-engine-cursor-301e` commits.
 
 Draft PR #164, branch `foundry/graduation-engine`, slice 81 of program #160. Does not close #160.
 
-Next safe action. Land this handoff, confirm exact-HEAD `icm-enforcement` green, then owner review when program slices converge.
+FINAL_HEAD for this remediation: `10407fefa9d861e1be40e973ecf6460835a8a018`.
