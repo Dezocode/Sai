@@ -48,7 +48,7 @@ public struct FoundryEngineBridge: FoundryGraduationEngine {
         let planData = try FoundryPlanTemplate.enginePlanJSON(action: action, head: head, ownerConfirmed: true)
         let planFile = try writeTempPlan(planData)
         defer { try? FileManager.default.removeItem(at: planFile) }
-        let args = ["run", Self.graduatePkg, "--plan", planFile.path, "--repo", repoRoot]
+        var args = ["run", Self.graduatePkg, "--plan", planFile.path, "--repo", repoRoot]
         if dryRun { args.append("--dry-run") }
         let output = try launchGo(args: args)
         let planID = parseDryRunPlanID(output) ?? FoundryPlanTemplate.stubPlanID(head: head, action: action)
