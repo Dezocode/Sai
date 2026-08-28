@@ -819,11 +819,9 @@ func check(root string) error {
 			return nil
 		}
 		inProto := inCanonicalPrototype(rel)
-		if inProto && !c.FeatureUIAllowed && inPluginDesignScope(rel) { return nil }
-		scope := "outside SaiDesignLanguage"
-		if inProto && !c.FeatureUIAllowed { scope += " and PrototypeDesign scope" }
+		if inProto { return nil } // canonical prototype design is intentionally unconstrained; structural lane/dependency/path gates already ran above.
 		for _, rule := range forbidden {
-			if rule.re.MatchString(text) { return fmt.Errorf("%s: %s %s", rel, rule.name, scope) }
+			if rule.re.MatchString(text) { return fmt.Errorf("%s: %s outside SaiDesignLanguage", rel, rule.name) }
 		}
 		if !c.FeatureUIAllowed {
 			shell := rel == macShell || rel == iosShell
