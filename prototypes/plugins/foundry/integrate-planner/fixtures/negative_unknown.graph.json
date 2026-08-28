@@ -1,0 +1,14 @@
+{
+  "schema": "foundry.graph.v1",
+  "prototype_id": "sai-harness",
+  "source_head_sha": "3333333333333333333333333333333333333333",
+  "graph_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "nodes": [
+    {
+      "id": "unclassified-artifact",
+      "path": "prototypes/plugins/sai-harness/unknown/widget.swift",
+      "classification": "UNKNOWN"
+    }
+  ],
+  "edges": []
+}
