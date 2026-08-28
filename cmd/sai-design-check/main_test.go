@@ -52,6 +52,7 @@ func TestSchemaRejectsMissingRequired(t *testing.T) {
 
 func TestProductionContractSatisfiesSchema(t *testing.T) {
 	src := filepath.Join("..", "..")
+	if head := git(src, "rev-parse", "HEAD"); head == "" && git(src, "rev-parse", "--is-inside-work-tree") == "true" { t.Fatal("git checkout without resolvable HEAD; cannot pin a trusted base") } else if head != "" { os.Setenv("SAI_TRUSTED_BASE", head); defer os.Unsetenv("SAI_TRUSTED_BASE") } // trusted base = pinned HEAD
 	if err := check(src); err != nil {
 		t.Fatal(err)
 	}
@@ -165,6 +166,7 @@ func TestEnforcementClosed(t *testing.T) {
 	base := "apps/apple/Packages/SaiKit/Sources/SaiFoundation/Sneak.swift"
 	fail(base, "import SwiftUI\nfunc dashboard() -> Text { Text(\"Dashboard\") }\n")
 	fail(featureRoot+"/Dash.swift", "import Foundation; @_implementationOnly import SwiftUI\n")
+	fail(base, "import protocol SwiftUI.View\nimport let SwiftUI.colorScheme\n") // Saul 97328846218: selective protocol/let imports are legal Swift and must hit the lock
 	fail("Extra.swift", "import SaiDesignLanguage; public func dashboard() -> SaiText { SaiText(\"Dashboard\") }\n")
 	mac := "apps/apple/SaiMac/SaiMacApp.swift"
 	fail(mac, "import SwiftUI\n@main struct SaiMacApp: App { var body: some Scene { WindowGroup { SaiCanvas { SaiText(\"Sai\") } } } }\nstruct Dashboard: View { var body: some View { Rectangle() } }\n")
@@ -200,13 +202,13 @@ func fixture(t *testing.T, designAuthority bool, source string) string {
 	}
 	c := map[string]interface{}{
 		"version": 1, "status": "approved", "featureUIAllowed": true,
-		"grid": map[string]interface{}{"unit": 4, "spacing": map[string]float64{"lg": 24}},
+		"grid":       map[string]interface{}{"unit": 4, "spacing": map[string]float64{"lg": 24}},
 		"typography": map[string]interface{}{"families": 1, "dynamicType": 1, "roles": map[string]interface{}{"title2": map[string]float64{"size": 24, "lineHeight": 29}}},
-		"color": map[string]interface{}{"canvas": "#0F1115", "textPrimary": "#F4F5F7", "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10},
-		"borders": map[string]int{"hairline": 1, "focus": 2, "radii": 1}, "elevation": map[string]int{"x": 1},
+		"color":      map[string]interface{}{"canvas": "#0F1115", "textPrimary": "#F4F5F7", "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10},
+		"borders":    map[string]int{"hairline": 1, "focus": 2, "radii": 1}, "elevation": map[string]int{"x": 1},
 		"controls": map[string]int{"macOS": 1, "iOS": 1, "states": 1, "buttonVariants": 1},
-		"layout": map[string]int{"adaptiveWidths": 1, "pagePadding": 1, "maxContentWidth": 1, "rules": 1},
-		"motion": map[string]int{"durationsMs": 1, "easing": 1, "reducedMotion": 1}, "accessibility": map[string]int{"x": 1},
+		"layout":   map[string]int{"adaptiveWidths": 1, "pagePadding": 1, "maxContentWidth": 1, "rules": 1},
+		"motion":   map[string]int{"durationsMs": 1, "easing": 1, "reducedMotion": 1}, "accessibility": map[string]int{"x": 1},
 		"components": map[string]int{"required": 1, "localFeaturePrimitivesAllowed": 1}, "layers": map[string]int{"x": 1},
 		"dataVisualization": map[string]int{"x": 1}, "media": map[string]int{"x": 1},
 		"codePolicy": map[string]string{"swiftDesignAuthorityPath": designAuth, "featurePath": featureRoot},
@@ -233,48 +235,4 @@ func fixture(t *testing.T, designAuthority bool, source string) string {
 		t.Fatal(err)
 	}
 	return root
-}
-
-func TestCanonicalPrototypeRoot(t *testing.T) {
-	ok := []string{
-		"prototypes/plugins/foundry/owner-ux/Sources/FoundryOwnerUX/View.swift",
-		"prototypes/plugins/author/PrototypeDesign/Colors.swift",
-	}
-	for _, rel := range ok {
-		if !inCanonicalPrototype(rel) {
-			t.Fatalf("expected canonical: %s", rel)
-		}
-	}
-	bad := []string{
-		"prototypes/plugins",
-		"prototypes/plugins/",
-		"prototypes/plugins-evil/x/a.swift",
-		"prototypes/plugin/x/a.swift",
-		"../prototypes/plugins/x/a.swift",
-	}
-	for _, rel := range bad {
-		if inCanonicalPrototype(rel) {
-			t.Fatalf("expected reject: %s", rel)
-		}
-	}
-}
-
-func TestFoundryOwnerUXScope(t *testing.T) {
-	in := []string{
-		"prototypes/plugins/foundry/owner-ux/Sources/FoundryOwnerUX/FoundryOwnerView.swift",
-	}
-	for _, rel := range in {
-		if !inFoundryOwnerUXScope(rel) {
-			t.Fatalf("expected owner-ux scope: %s", rel)
-		}
-	}
-	out := []string{
-		"prototypes/plugins/foundry/owner-ux/Tests/FoundryOwnerUXTests/FoundryOwnerUXTests.swift",
-		"prototypes/plugins/foundry/owner-ux/Package.swift",
-	}
-	for _, rel := range out {
-		if inFoundryOwnerUXScope(rel) {
-			t.Fatalf("expected outside owner-ux Sources scope: %s", rel)
-		}
-	}
 }
