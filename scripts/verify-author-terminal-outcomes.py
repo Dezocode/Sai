@@ -7,20 +7,13 @@ Spin-off: Author tree is self-contained; no checkout-root or ../../Sai refs.
 """
 from __future__ import annotations
 
-import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
-ALLOWED_SWIFT_IMPORTS = {"SaiDesignLanguage", "SwiftUI", "Foundation"}
-FORBIDDEN_IMPORTS = {
-    "SaiMac",
-    "SaiIOS",
-    "SaiFeatures",
-    "SaiKit",
-    "SaiAuthor",
-}
+ALLOWED_SWIFT_IMPORTS = {"SaiDesignLanguage", "SwiftUI", "Foundation", "SaiAuthor"}
+FORBIDDEN_IMPORTS = {"SaiMac", "SaiIOS", "SaiFeatures", "SaiKit"}
 SPINOFF_FORBIDDEN = (
     "../../Sai",
     "Dezocode/Sai",
@@ -55,6 +48,7 @@ def check_integrate(author: Path) -> None:
     for swift in author.rglob("*.swift"):
         if "tests" in swift.parts:
             continue
+        rel = swift.relative_to(author)
         text = swift.read_text()
         for line in text.splitlines():
             m = re.match(r"^\s*import\s+(\w+)", line)
@@ -62,9 +56,11 @@ def check_integrate(author: Path) -> None:
                 continue
             name = m.group(1)
             if name in FORBIDDEN_IMPORTS:
-                raise SystemExit(f"FAIL integrate: forbidden import {name} in {swift.relative_to(author)}")
+                raise SystemExit(f"FAIL integrate: forbidden import {name} in {rel}")
+            if name == "SaiAuthor" and rel.parts[0] not in ("SaiAuthorMac", "SaiAuthorIOS"):
+                raise SystemExit(f"FAIL integrate: SaiAuthor import only allowed in platform apps, not {rel}")
             if name not in ALLOWED_SWIFT_IMPORTS:
-                raise SystemExit(f"FAIL integrate: unexpected import {name} in {swift.relative_to(author)}")
+                raise SystemExit(f"FAIL integrate: unexpected import {name} in {rel}")
 
     print("PASS integrate-readiness")
 
