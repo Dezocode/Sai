@@ -1,1 +1,1 @@
-PLACEHOLDER_TEST
+file:///workspace/cmd/sai-verify/main.go
