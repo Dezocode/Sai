@@ -111,9 +111,9 @@ func ComputeGraphHash(g DependencyGraph) (string, error) {
 
 func validateClassification(c Classification) error {
 	switch c {
-	case ClassReuse, ClassPromote, ClassExport, ClassRemote, ClassPromoteShared, ClassDrop:
+	case ClassReuse, ClassPromote, ClassExport, ClassRemote, ClassPromoteShared, ClassDrop, ClassUnknown:
 		return nil
-	case ClassUnknown, "":
+	case "":
 		return fmt.Errorf("classification unresolved: %q", c)
 	default:
 		return fmt.Errorf("unknown classification: %q", c)
