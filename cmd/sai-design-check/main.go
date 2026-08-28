@@ -11,12 +11,8 @@ import (
 )
 
 const (
-	designAuth     = "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage"
-	featureRoot    = "apps/apple/Packages/SaiKit/Sources/SaiFeatures"
-	protoRoot      = "prototypes/plugins"
-	protoDesignDir = "PrototypeDesign"
-	macShell       = "apps/apple/SaiMac/SaiMacApp.swift"
-	iosShell       = "apps/apple/SaiIOS/SaiIOSApp.swift"
+	designAuth  = "apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage"
+	featureRoot = "apps/apple/Packages/SaiKit/Sources/SaiFeatures"
 )
 
 type contract struct {
@@ -122,34 +118,6 @@ func matchSwift(root string, c contract, body []byte) error {
 	return nil
 }
 
-func inCanonicalPrototype(rel string) bool {
-	raw := filepath.ToSlash(rel)
-	if strings.Contains(raw, "..") || strings.HasPrefix(raw, "/") {
-		return false
-	}
-	p := filepath.ToSlash(filepath.Clean("/" + strings.TrimPrefix(raw, "/")))
-	if p == "/"+protoRoot || !strings.HasPrefix(p, "/"+protoRoot+"/") {
-		return false
-	}
-	return strings.IndexByte(strings.TrimPrefix(p, "/"+protoRoot+"/"), '/') > 0
-}
-
-func inPluginDesignScope(rel string) bool {
-	if !inCanonicalPrototype(rel) {
-		return false
-	}
-	p := strings.SplitN(filepath.ToSlash(rel), "/", 4)
-	return len(p) == 4 && strings.HasPrefix(p[3], protoDesignDir+"/")
-}
-
-func inFoundryOwnerUXScope(rel string) bool {
-	if !inCanonicalPrototype(rel) {
-		return false
-	}
-	prefix := protoRoot + "/foundry/owner-ux/Sources/"
-	return strings.HasPrefix(filepath.ToSlash(rel), prefix)
-}
-
 func check(root string) error {
 	body, err := os.ReadFile(filepath.Join(root, "design", "sai-design-language.json"))
 	if err != nil {
@@ -199,27 +167,16 @@ func check(root string) error {
 		if strings.HasPrefix(rel, designAuth+"/") {
 			return nil
 		}
-		inProto := inCanonicalPrototype(rel)
-		if inProto && !c.FeatureUIAllowed && (inPluginDesignScope(rel) || inFoundryOwnerUXScope(rel)) {
-			return nil
-		}
-		scope := "outside SaiDesignLanguage"
-		if inProto && !c.FeatureUIAllowed {
-			scope += " and PrototypeDesign scope"
-		}
 		for _, rule := range forbidden {
 			if rule.re.MatchString(text) {
-				return fmt.Errorf("%s: %s %s", rel, rule.name, scope)
+				return fmt.Errorf("%s: %s outside SaiDesignLanguage", rel, rule.name)
 			}
 		}
-		if !c.FeatureUIAllowed {
-			shell := rel == macShell || rel == iosShell
-			if !inProto && !shell && (swiftUIImport.MatchString(text) || strings.Contains(text, "SaiText") || strings.Contains(text, "SaiCanvas")) {
-				return fmt.Errorf("%s: import SwiftUI is locked while design status=%s", rel, c.Status)
-			}
-			if shell && (strings.Count(text, "SaiCanvas") != 1 || strings.Count(text, "SaiText") != 1 || !shellBody.MatchString(text) || shellUI.MatchString(text)) {
-				return fmt.Errorf("%s: shell composition", rel)
-			}
+		if !c.FeatureUIAllowed && (rel == "apps/apple/SaiMac/SaiMacApp.swift" || rel == "apps/apple/SaiIOS/SaiIOSApp.swift") && (strings.Count(text, "SaiCanvas") != 1 || strings.Count(text, "SaiText") != 1 || !shellBody.MatchString(text) || shellUI.MatchString(text)) {
+			return fmt.Errorf("%s: shell composition", rel)
+		}
+		if !c.FeatureUIAllowed && rel != "apps/apple/SaiMac/SaiMacApp.swift" && rel != "apps/apple/SaiIOS/SaiIOSApp.swift" && (swiftUIImport.MatchString(text) || strings.Contains(text, "SaiText") || strings.Contains(text, "SaiCanvas")) {
+			return fmt.Errorf("%s: import SwiftUI is locked while design status=%s", rel, c.Status)
 		}
 		return nil
 	})
