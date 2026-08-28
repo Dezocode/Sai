@@ -1,6 +1,7 @@
 package integrateplanner
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -208,32 +209,5 @@ func mapKeysSorted(m map[string]bool) []string {
 func CanonicalPlanJSON(plan IntegratePlan) ([]byte, error) {
 	clone := plan
 	clone.HumanSummary = RenderHumanSummary(plan)
-	return jsonMarshalPlan(clone)
-}
-
-func jsonMarshalPlan(plan IntegratePlan) ([]byte, error) {
-	import_json := struct {
-		SchemaVersion  string         `json:"schema_version"`
-		PrototypeID    string         `json:"prototype_id"`
-		SourceHeadSHA  string         `json:"source_head_sha"`
-		GraphHash      string         `json:"graph_hash"`
-		Ready          bool           `json:"ready"`
-		Status         PlanStatus     `json:"status"`
-		Artifacts      []ArtifactPlan `json:"artifacts"`
-		Blockers       []string       `json:"blockers"`
-		RequiredChecks []string       `json:"required_checks"`
-		HumanSummary   string         `json:"human_summary"`
-	}{
-		SchemaVersion:  plan.SchemaVersion,
-		PrototypeID:    plan.PrototypeID,
-		SourceHeadSHA:  plan.SourceHeadSHA,
-		GraphHash:      plan.GraphHash,
-		Ready:          plan.Ready,
-		Status:         plan.Status,
-		Artifacts:      plan.Artifacts,
-		Blockers:       plan.Blockers,
-		RequiredChecks: plan.RequiredChecks,
-		HumanSummary:   plan.HumanSummary,
-	}
-	return json.Marshal(import_json)
+	return json.Marshal(clone)
 }
