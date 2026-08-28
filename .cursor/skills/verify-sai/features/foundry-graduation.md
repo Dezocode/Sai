@@ -11,7 +11,7 @@ Plan-bound prototype graduation executor (integrate, spinoff, delete-archive) sc
 - Run `go run ./prototypes/plugins/foundry/graduation-engine/cmd/graduate --help` from repo root.
 - Tests: `go test ./prototypes/plugins/foundry/graduation-engine/...`.
 ## Driving it with verify-sai
-- **Engine tests.** ::gotest ./prototypes/plugins/foundry/graduation-engine/... timeout=120
+- **Full suite.** ::gotest ./... timeout=180
 - **Schema.** ::json .ai/shared/schemas/foundry-plan-v0.schema.json
 - **Fixture.** ::exists prototypes/plugins/foundry/test-widget/manifest.json prototypes/plugins/foundry/test-widget/widget.txt
 - **Roadmap.** ::exists docs/roadmap/foundry/09-graduation-engine-v1.md
