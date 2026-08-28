@@ -140,6 +140,29 @@ func TestNegativeFolderMoveNotReady(t *testing.T) {
 	}
 }
 
+func TestNegativeModuleVisibilityNotReady(t *testing.T) {
+	g := loadNegativeGraph("negative_module_visibility.graph.json")
+	plan, err := Plan(g, g.SourceHeadSHA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plan.Ready {
+		t.Fatal("prototype-only module visibility must not be ready")
+	}
+}
+
+func TestPlanDoesNotMutateGraph(t *testing.T) {
+	g := loadGraphFixture("harness_golden.graph.json")
+	before := mustJSON(g)
+	_, err := Plan(g, g.SourceHeadSHA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if mustJSON(g) != before {
+		t.Fatal("Plan mutated input graph")
+	}
+}
+
 func loadNegativeGraph(name string) DependencyGraph {
 	path := filepath.Join("fixtures", name)
 	data, err := os.ReadFile(path)

@@ -25,6 +25,8 @@ Folder-move graduation (`prototypes/plugins/<id>` root) is never recommended.
 
 Cross-lane `prototypes/plugins/<other>` dependencies via `REUSE` or `PROMOTE` edges are forbidden.
 
+`prototype-only` or `private` module visibility on `PROMOTE` nodes blocks integrate.
+
 ## CLI
 
 ```bash
@@ -33,7 +35,7 @@ go run ./prototypes/plugins/foundry/integrate-planner/cmd/foundry-integrate-plan
   --head 1111111111111111111111111111111111111111
 ```
 
-Optional `--out plan.json` writes the plan for test harnesses.
+Optional `--out plan.json` writes the plan for test harnesses. Exit code 3 when `ready=false`.
 
 ## Tests
 
@@ -41,7 +43,7 @@ Optional `--out plan.json` writes the plan for test harnesses.
 go test ./prototypes/plugins/foundry/integrate-planner/...
 ```
 
-Golden fixtures cover Sai Harness and Sai Author. Negative fixtures cover `UNKNOWN`, stale HEAD, production path conflicts, forbidden prototype dependencies, unresolved design authority, and folder-move graduation.
+Golden fixtures cover Sai Harness and Sai Author. Negative fixtures cover `UNKNOWN`, stale HEAD, production path conflicts, forbidden prototype dependencies, unresolved design authority, folder-move graduation, and unsupported module visibility.
 
 ## Roadmap
 

@@ -1,0 +1,12 @@
+{
+  "task_id": "20260828-1920-integrate-planner-cursor-cloud-6f0d",
+  "agent": "cursor-cloud-6f0d",
+  "repository": "Dezocode/Sai",
+  "branch": "foundry/integrate-planner",
+  "purpose": "Slice 79 integrate-planner graph tests, human summary, HANDOFF",
+  "status": "verify",
+  "claimed_paths": [
+    "prototypes/plugins/foundry/integrate-planner/",
+    ".ai/runs/20260828-1920-integrate-planner-cursor-cloud-6f0d/"
+  ]
+}
