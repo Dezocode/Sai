@@ -10,9 +10,8 @@ import (
 )
 
 type Engine struct {
-	State      BindState
-	Journal    *Journal
-	Production []string
+	State   BindState
+	Journal *Journal
 }
 
 func NewEngine(state BindState) (*Engine, error) {
@@ -22,14 +21,14 @@ func NewEngine(state BindState) (*Engine, error) {
 	if state.CandidatesRoot == "" {
 		state.CandidatesRoot = filepath.Join(state.WorkDir, ".foundry", "candidates")
 	}
+	if len(state.Production) == 0 {
+		state.Production = []string{"production"}
+	}
 	j, err := OpenJournal(state.JournalPath)
 	if err != nil {
 		return nil, err
 	}
-	if len(state.Production) == 0 {
-		state.Production = []string{"production"}
-	}
-	return &Engine{State: state, Journal: j, Production: state.Production}, nil
+	return &Engine{State: state, Journal: j}, nil
 }
 
 func (e *Engine) Execute(plan Plan) ([]ExecutionResult, error) {
@@ -89,14 +88,14 @@ func (e *Engine) execIntegrate(plan Plan, op Operation) (AuditRecord, error) {
 		return AuditRecord{}, err
 	}
 	prCandidate := map[string]interface{}{
-		"title":       "Foundry integrate candidate",
-		"head":        branch,
-		"base":        "main",
-		"draft":       true,
-		"ready":       false,
-		"plan_id":     plan.PlanID,
-		"source_sha":  plan.PrototypeHead,
-		"graph_hash":  plan.GraphHash,
+		"title":      "Foundry integrate candidate",
+		"head":       branch,
+		"base":       "main",
+		"draft":      true,
+		"ready":      false,
+		"plan_id":    plan.PlanID,
+		"source_sha": plan.PrototypeHead,
+		"graph_hash": plan.GraphHash,
 	}
 	prPath := filepath.Join(branchDir, "production-pr-candidate.json")
 	if err := writeJSON(prPath, prCandidate); err != nil {
@@ -118,9 +117,6 @@ func (e *Engine) execSpinoff(plan Plan, op Operation) (AuditRecord, error) {
 	if name == "" {
 		name = "foundry-spinoff-candidate"
 	}
-	if os.Getenv("GITHUB_TOKEN") == "" && os.Getenv("GH_TOKEN") == "" {
-		// Repository creation blocked without owner token.
-	}
 	proto := op.PrototypePath
 	if proto == "" {
 		proto = "prototypes/plugins/foundry/test-widget"
@@ -133,12 +129,12 @@ func (e *Engine) execSpinoff(plan Plan, op Operation) (AuditRecord, error) {
 		return AuditRecord{}, err
 	}
 	prov := map[string]interface{}{
-		"source_repo":    plan.Repo,
-		"source_sha":     plan.PrototypeHead,
-		"plan_id":        plan.PlanID,
-		"graph_hash":     plan.GraphHash,
-		"spinoff_name":   name,
-		"github_create":  "blocked-without-owner-token",
+		"source_repo":     plan.Repo,
+		"source_sha":      plan.PrototypeHead,
+		"plan_id":         plan.PlanID,
+		"graph_hash":      plan.GraphHash,
+		"spinoff_name":    name,
+		"github_create":   "blocked-without-owner-token",
 		"materialized_at": time.Now().UTC().Format(time.RFC3339),
 	}
 	provPath := filepath.Join(outDir, "PROVENANCE.json")
@@ -161,7 +157,7 @@ func (e *Engine) execDeleteArchive(plan Plan, op Operation) (AuditRecord, error)
 	if proto == "" {
 		proto = "prototypes/plugins/foundry/test-widget"
 	}
-	if err := AssertNoProductionDependency(e.State.RepoRoot, proto, e.Production); err != nil {
+	if err := AssertNoProductionDependency(e.State.RepoRoot, proto, e.State.Production); err != nil {
 		return AuditRecord{}, err
 	}
 	archiveRoot := filepath.Join(e.State.CandidatesRoot, "archive")
