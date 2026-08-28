@@ -8,9 +8,16 @@ import (
 	"strings"
 )
 
+var skipDirNames = map[string]bool{
+	".git":         true,
+	"node_modules": true,
+	"__pycache__":  true,
+}
+
 // ScanProductionDependencies walks productionRoots for textual references to prototypeRel.
 func ScanProductionDependencies(repoRoot, prototypeRel string, productionRoots []string) ([]string, error) {
 	needle := filepath.ToSlash(prototypeRel)
+	needleAlt := strings.TrimSuffix(needle, "/")
 	var hits []string
 	for _, root := range productionRoots {
 		abs := filepath.Join(repoRoot, root)
@@ -18,14 +25,18 @@ func ScanProductionDependencies(repoRoot, prototypeRel string, productionRoots [
 			continue
 		}
 		err := filepath.Walk(abs, func(path string, info os.FileInfo, err error) error {
-			if err != nil || info.IsDir() {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				if skipDirNames[info.Name()] {
+					return filepath.SkipDir
+				}
 				return nil
 			}
-			if strings.HasSuffix(path, ".go") || strings.HasSuffix(path, ".md") || strings.HasSuffix(path, ".yaml") {
-				if containsNeedle(path, needle) {
-					rel, _ := filepath.Rel(repoRoot, path)
-						 hits = append(hits, rel)
-				}
+			if containsNeedle(path, needle) || (needleAlt != needle && containsNeedle(path, needleAlt)) {
+				rel, _ := filepath.Rel(repoRoot, path)
+				hits = append(hits, rel)
 			}
 			return nil
 		})
@@ -58,6 +69,43 @@ func AssertNoProductionDependency(repoRoot, prototypeRel string, productionRoots
 	}
 	if len(hits) > 0 {
 		return fmt.Errorf("production depends on prototype via: %s", strings.Join(hits, ", "))
+	}
+	return nil
+}
+
+func AssertProductionNeverImportsPrototypes(repoRoot string, productionRoots []string) error {
+	for _, root := range productionRoots {
+		abs := filepath.Join(repoRoot, root)
+		if _, err := os.Stat(abs); os.IsNotExist(err) {
+			continue
+		}
+		err := filepath.Walk(abs, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				if skipDirNames[info.Name()] {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			if !strings.HasSuffix(path, ".go") {
+				return nil
+			}
+			b, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			s := string(b)
+			if strings.Contains(s, "prototypes/") || strings.Contains(s, "/prototypes") {
+				rel, _ := filepath.Rel(repoRoot, path)
+				return fmt.Errorf("production imports prototypes in %s", rel)
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
