@@ -1,0 +1,18 @@
+{
+  "task_id": "20260828-1717-foundry-owner-ux-8bd9",
+  "agent": "cursor-cloud",
+  "principal": "dezocode (U0BHYH0NMCY)",
+  "repository": "Dezocode/Sai",
+  "branch": "foundry/owner-ux",
+  "purpose": "Slice 82 — Foundry owner UX shell with engine bridge",
+  "status": "awaiting-review",
+  "claimed_files": [
+    ".cursor/skills/verify-sai/features/foundry-owner-ux.md",
+    ".cursor/skills/verify-sai/features/README.md",
+    "docs/roadmap/foundry/10-owner-ux-v1.md",
+    "prototypes/plugins/foundry/owner-ux/",
+    ".ai/runs/20260828-1717-foundry-owner-ux-8bd9/"
+  ],
+  "trigger": "foundry owner UX slice 82 implementation",
+  "notes": "Consumes #164 graduation engine via FoundryEngineBridge. Production verifier files restored to origin/main; slice 76 owns cmd/sai-* lane work."
+}

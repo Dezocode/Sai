@@ -1,0 +1,8 @@
+{
+  "id": "foundry-owner-ux",
+  "graduation": {
+    "integrate": true,
+    "spinOff": true,
+    "archive": true
+  }
+}
