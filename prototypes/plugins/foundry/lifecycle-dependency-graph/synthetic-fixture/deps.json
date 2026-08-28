@@ -1,0 +1,12 @@
+{
+  "nodes": [
+    {"id": "reuse-lib", "path": "lib/reuse.go", "classification": "REUSE"},
+    {"id": "promote-mod", "path": "mod/promote.go", "classification": "PROMOTE"},
+    {"id": "export-pkg", "path": "pkg/export.go", "classification": "EXPORT"},
+    {"id": "remote-api", "path": "api/remote.go", "classification": "REMOTE"},
+    {"id": "drop-legacy", "path": "legacy/drop.go", "classification": "DROP"}
+  ],
+  "edges": [
+    {"from": "reuse-lib", "to": "promote-mod", "classification": "PROMOTE_SHARED"}
+  ]
+}
