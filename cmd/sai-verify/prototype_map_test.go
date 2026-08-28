@@ -56,12 +56,14 @@ func TestSaiDesignLanguageWorkflowTriggersOnPrototypes(t *testing.T) {
 		if i < 0 {
 			t.Fatalf("missing %s trigger", block)
 		}
-		end := i + 300
+		end := i + 400
 		if end > len(body) {
 			end = len(body)
 		}
-		if !strings.Contains(body[i:end], `"prototypes/**"`) {
-			t.Fatalf("%s paths must include prototypes/**", block)
+		for _, want := range []string{`"prototypes/**"`, `"internal/**"`, `"cmd/sai/**"`, `"go.mod"`} {
+			if !strings.Contains(body[i:end], want) {
+				t.Fatalf("%s paths must include %s", block, want)
+			}
 		}
 	}
 }

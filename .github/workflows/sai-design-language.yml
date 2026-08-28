@@ -7,6 +7,9 @@ on:
       - "apps/apple/**"
       - "design/**"
       - "cmd/sai-design-check/**"
+      - "cmd/sai/**"
+      - "internal/**"
+      - "go.mod"
       - "prototypes/**"
       - ".github/workflows/sai-design-language.yml"
   push:
@@ -15,6 +18,9 @@ on:
       - "apps/apple/**"
       - "design/**"
       - "cmd/sai-design-check/**"
+      - "cmd/sai/**"
+      - "internal/**"
+      - "go.mod"
       - "prototypes/**"
       - ".github/workflows/sai-design-language.yml"
 

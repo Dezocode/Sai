@@ -1,0 +1,7 @@
+{
+  "task_id": "20260828-1810-slice76-review-gaps-cursor-cloud",
+  "agent": "cursor-cloud",
+  "purpose": "slice76-review-gaps",
+  "branch": "prototype/lane-enforcement",
+  "pr": 136
+}
