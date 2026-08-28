@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "plugin_id": "demo-widget",
+  "prototype_root": "prototypes/plugins/demo-widget",
+  "entry_nodes": ["widget-py"],
+  "nodes": [
+    {
+      "id": "widget-py",
+      "kind": "file",
+      "classification": "EXPORT",
+      "path": "src/widget.py",
+      "requires": ["remote-api"]
+    },
+    {
+      "id": "remote-api",
+      "kind": "service",
+      "classification": "REMOTE",
+      "name": "widget-api",
+      "contract": "openapi://demo-widget/v1"
+    },
+    {
+      "id": "legacy-helper",
+      "kind": "file",
+      "classification": "DROP",
+      "path": "src/legacy.py"
+    }
+  ]
+}

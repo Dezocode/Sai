@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Foundry lifecycle dependency graph output v1",
+  "description": "Slice 78 (#167) Output shape consumed by slice 80 spin-off planner.",
+  "type": "object",
+  "required": ["provenance", "manifest_id", "nodes", "edges", "graph_hash"],
+  "additionalProperties": true,
+  "properties": {
+    "provenance": {
+      "type": "object",
+      "required": ["repo", "base", "head", "schema_version", "tool_version"],
+      "additionalProperties": false,
+      "properties": {
+        "repo": { "type": "string", "minLength": 1 },
+        "base": { "type": "string", "minLength": 1 },
+        "head": { "type": "string", "minLength": 1 },
+        "schema_version": { "type": "integer", "const": 1 },
+        "tool_version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "manifest_id": { "type": "string", "minLength": 1 },
+    "prototype_root": { "type": "string", "pattern": "^prototypes/plugins/[^/]+$" },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "path", "classification"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "path": { "type": "string" },
+          "classification": {
+            "type": "string",
+            "enum": ["REUSE", "PROMOTE", "EXPORT", "REMOTE", "PROMOTE_SHARED", "DROP", "UNKNOWN"]
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "classification"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "type": "string", "minLength": 1 },
+          "to": { "type": "string", "minLength": 1 },
+          "classification": {
+            "type": "string",
+            "enum": ["REUSE", "PROMOTE", "EXPORT", "REMOTE", "PROMOTE_SHARED", "DROP", "UNKNOWN"]
+          }
+        }
+      }
+    },
+    "graph_hash": { "type": "string", "minLength": 1 }
+  }
+}
