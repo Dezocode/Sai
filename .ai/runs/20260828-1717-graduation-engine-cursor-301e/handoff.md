@@ -4,6 +4,8 @@ Implemented plan-bound graduation engine under `prototypes/plugins/foundry/gradu
 
 Added verify-sai feature map `foundry-graduation.md`, plan v0 schema, docs, test-widget fixture, and graduate CLI.
 
-Draft PR targets `main`; references issue #160. Branch: `foundry/graduation-engine`.
+Extended `cmd/sai-verify` `pathRe` to claim `prototypes/**` so sai-verify completeness sweep passes for prototype lane files.
 
-Next: owner review; Saul P0/P1 gate; merge lane-enforcement pathRe if prototype completeness sweep fails before merge.
+Draft PR #164 targets `main` (slice 81 of program #160; does not close #160). Branch: `foundry/graduation-engine`.
+
+Next: exact-HEAD CI green on tip; owner review when program slices converge.
