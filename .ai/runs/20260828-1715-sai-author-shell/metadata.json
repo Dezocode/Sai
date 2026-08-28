@@ -5,5 +5,6 @@
   "branch": "prototype/sai-author-shell",
   "issue": "https://github.com/Dezocode/Sai/issues/160",
   "repository": "Dezocode/Sai",
-  "status": "active"
+  "status": "complete",
+  "head_sha": "f3072453af86400f09bff67fae1fbe319d55f3fc"
 }
