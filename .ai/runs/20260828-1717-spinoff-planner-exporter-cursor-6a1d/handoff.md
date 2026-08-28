@@ -10,10 +10,10 @@ Restructured slice 80 under canonical path
 - Pinned schema fixtures at `fixtures/foundry-graph.v1.schema.json` and `fixtures/foundry-graph-output.v1.schema.json`
 - Pinned demo Output fixture at `prototypes/plugins/demo-widget/foundry.graph.output.json`
 - CLI: `prototypes/plugins/foundry/spinoff-planner-exporter/bin/foundry-spinoff`
+- Fixed icm-enforcement: aligned `prototype_map_test.go`, added `scripts/verify-foundry-spinoff.py`, fixed `test_spinoff.py` REPO_ROOT (`parents[5]`)
 
 Verification command:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v \
-  prototypes/plugins/foundry/spinoff-planner-exporter/tests/test_spinoff.py
+python3 scripts/verify-foundry-spinoff.py
 ```

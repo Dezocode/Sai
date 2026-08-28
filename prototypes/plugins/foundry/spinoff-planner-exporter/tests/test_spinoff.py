@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_ROOT = Path(__file__).resolve().parents[5]
 PLUGINS = REPO_ROOT / "prototypes" / "plugins"
 SPINOFF_ROOT = PLUGINS / "foundry" / "spinoff-planner-exporter"
 for entry in (str(SPINOFF_ROOT),):
