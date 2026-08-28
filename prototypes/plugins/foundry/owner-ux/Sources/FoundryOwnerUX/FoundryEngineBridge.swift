@@ -1,16 +1,20 @@
 import Foundation
 
-/// Invokes the #164 graduation-engine CLI when present; otherwise falls back to the test stub.
 public struct FoundryEngineBridge: FoundryGraduationEngine {
     private static let engineMain = "prototypes/plugins/foundry/graduation-engine/cmd/graduate/main.go"
     private static let graduatePkg = "./prototypes/plugins/foundry/graduation-engine/cmd/graduate"
 
+    public let prototypePath: String
     private let repoRoot: String
     private let fallback: FoundryGraduationEngineStub
 
-    public init(repoRoot: String? = nil) {
+    public init(
+        repoRoot: String? = nil,
+        prototypePath: String = FoundryHarnessFixture.defaultOwnerUXPath
+    ) {
         self.repoRoot = repoRoot ?? Self.discoverRepoRoot()
-        self.fallback = FoundryGraduationEngineStub()
+        self.prototypePath = prototypePath
+        self.fallback = FoundryGraduationEngineStub(prototypePath: prototypePath)
     }
 
     public func dryRunIntegrate(head: String) throws -> FoundryPlan {
@@ -45,21 +49,31 @@ public struct FoundryEngineBridge: FoundryGraduationEngine {
         guard enginePresent else {
             return try fallbackPlan(action: action, head: head)
         }
-        let planData = try FoundryPlanTemplate.enginePlanJSON(action: action, head: head, ownerConfirmed: true)
+        let planData = try FoundryPlanTemplate.enginePlanJSON(
+            action: action,
+            prototypePath: prototypePath,
+            head: head,
+            ownerConfirmed: false
+        )
         let planFile = try writeTempPlan(planData)
         defer { try? FileManager.default.removeItem(at: planFile) }
         var args = ["run", Self.graduatePkg, "--plan", planFile.path, "--repo", repoRoot]
         if dryRun { args.append("--dry-run") }
         let output = try launchGo(args: args)
         let planID = parseDryRunPlanID(output) ?? FoundryPlanTemplate.stubPlanID(head: head, action: action)
-        return FoundryPlanTemplate.uiPlan(action: action, head: head, planID: planID)
+        return try FoundryPlanTemplate.uiPlan(action: action, prototypePath: prototypePath, head: head, planID: planID)
     }
 
     private func execute(action: FoundryOwnerAction, head: String, planHash: String) throws -> FoundryExecution {
         guard enginePresent else {
             return try fallbackExecution(action: action, head: head, planHash: planHash)
         }
-        let planData = try FoundryPlanTemplate.enginePlanJSON(action: action, head: head, ownerConfirmed: true)
+        let planData = try FoundryPlanTemplate.enginePlanJSON(
+            action: action,
+            prototypePath: prototypePath,
+            head: head,
+            ownerConfirmed: true
+        )
         let planFile = try writeTempPlan(planData)
         defer { try? FileManager.default.removeItem(at: planFile) }
         let args = ["run", Self.graduatePkg, "--plan", planFile.path, "--repo", repoRoot]
@@ -129,7 +143,7 @@ public struct FoundryEngineBridge: FoundryGraduationEngine {
         return nil
     }
 
-    private static func discoverRepoRoot() -> String {
+    public static func discoverRepoRoot() -> String {
         let fm = FileManager.default
         var dir = fm.currentDirectoryPath
         while true {
