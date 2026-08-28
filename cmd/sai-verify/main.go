@@ -1,1 +1,1 @@
-/workspace/cmd/sai-verify/main.go
+file:///workspace/cmd/sai-verify/main.go
