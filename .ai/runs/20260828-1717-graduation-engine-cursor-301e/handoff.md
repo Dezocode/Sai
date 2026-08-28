@@ -8,6 +8,8 @@ Extended `cmd/sai-verify` `pathRe` to claim `prototypes/**` so sai-verify comple
 
 Restored truncated `cmd/sai-verify/main.go` kernel body on this commit (PR #164 CI fix).
 
+2026-08-28: Full `cmd/sai-verify/main.go` restore with prototypes pathRe pushed via GitHub API for PR #164 CI.
+
 Draft PR #164 targets `main` (slice 81 of program #160; does not close #160). Branch: `foundry/graduation-engine`.
 
 Next: exact-HEAD CI green on tip; owner review when program slices converge.
