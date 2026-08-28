@@ -12,8 +12,10 @@ public struct FoundryOwnerView: View {
         SaiCanvas {
             SaiText("Foundry Owner UX")
             SaiText("Dry-run first. Production promotion requires an independent PR and cannot push to main.")
+            SaiText("Prototype: \(model.prototypeID) at \(model.prototypePath)")
             SaiText("Source HEAD: \(model.prototypeHead)")
             SaiText("Graph hash: \(model.graphHash)")
+            SaiText("Schema version: \(FoundryPlanTemplate.schemaVersion)")
             SaiText("Harness telemetry: unavailable (display-only; not policy authority)")
             if model.manifestIntegrate {
                 SaiText("Integrate into Sai").onTapGesture { model.requestPlan(.integrate) }
