@@ -1,0 +1,7 @@
+{
+  "task_id": "20260828-1715-sai-author-shell",
+  "agent": "cursor-cloud-agent",
+  "purpose": "Slice 77 Sai Author reference shell under prototypes/plugins/author with sai-verify mapping and delete-isolation proof",
+  "branch": "prototype/sai-author-shell",
+  "issue": "https://github.com/Dezocode/Sai/issues/160"
+}
