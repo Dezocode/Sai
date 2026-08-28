@@ -14,7 +14,6 @@ from pathlib import Path
 
 ALLOWED_SWIFT_IMPORTS = {"SaiDesignLanguage", "SwiftUI", "Foundation", "SaiAuthor"}
 FORBIDDEN_IMPORTS = {"SaiMac", "SaiIOS", "SaiFeatures", "SaiKit"}
-SPM_MANIFEST_IMPORTS = {"PackageDescription"}
 SPINOFF_FORBIDDEN = (
     "../../Sai",
     "Dezocode/Sai",
