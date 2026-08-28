@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -17,22 +18,27 @@ func git(dir string, args ...string) (string, error) {
 
 func ComputeGraphHash(repoRoot, prototypePath string) (string, error) {
 	abs := filepath.Join(repoRoot, prototypePath)
-	manifest := filepath.Join(abs, "manifest.json")
-	widget := filepath.Join(abs, "widget.txt")
 	h := sha256.New()
-	for _, p := range []string{manifest, widget} {
-		b, err := readFile(p)
-		if err != nil {
-			return "", err
+	err := filepath.Walk(abs, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return nil
 		}
-		h.Write([]byte(p))
+		rel, err := filepath.Rel(abs, path)
+		if err != nil {
+			return err
+		}
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		h.Write([]byte(rel))
 		h.Write(b)
+		return nil
+	})
+	if err != nil {
+		return "", err
 	}
 	return hex.EncodeToString(h.Sum(nil)), nil
-}
-
-func readFile(path string) ([]byte, error) {
-	return exec.Command("cat", path).Output()
 }
 
 func VerifyBindings(state BindState, plan Plan) error {
@@ -54,13 +60,6 @@ func VerifyBindings(state BindState, plan Plan) error {
 	}
 	if state.Base != "" && state.Base != plan.Base {
 		return fmt.Errorf("stale base: plan %s current %s", plan.Base, state.Base)
-	}
-	gh, err := ComputeGraphHash(state.RepoRoot, "prototypes/plugins/foundry/test-widget")
-	if err == nil && gh != plan.GraphHash && state.GraphHash == "" {
-		// When graph is computed from fixture path, enforce exact match.
-		if plan.GraphHash != gh {
-			return fmt.Errorf("graph_hash mismatch: plan %s computed %s", plan.GraphHash, gh)
-		}
 	}
 	return nil
 }
