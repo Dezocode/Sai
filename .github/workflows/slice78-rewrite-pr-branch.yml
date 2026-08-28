@@ -1,6 +1,9 @@
 name: slice78-rewrite-pr-branch
 
 on:
+  push:
+    branches:
+      - foundry/lifecycle-dependency-graph-rewrite
   workflow_dispatch:
 
 permissions:
