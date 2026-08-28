@@ -73,6 +73,9 @@ func ValidatePlan(p *Plan) error {
 		if strings.EqualFold(string(nd.Disposition), "UNKNOWN") {
 			return fmt.Errorf("UNKNOWN disposition fails closed")
 		}
+		if err := ValidateCanonicalPrototypePath(nd.Path); err != nil {
+			return err
+		}
 	}
 	for _, op := range p.Operations {
 		if op.IdempotencyKey == "" {
@@ -80,6 +83,11 @@ func ValidatePlan(p *Plan) error {
 		}
 		if !op.OwnerConfirmed {
 			return fmt.Errorf("owner confirmation required for %s", op.Kind)
+		}
+		if op.PrototypePath != "" {
+			if err := ValidateCanonicalPrototypePath(op.PrototypePath); err != nil {
+				return err
+			}
 		}
 		switch op.Kind {
 		case OpIntegrate, OpSpinoff, OpDeleteArchive:
