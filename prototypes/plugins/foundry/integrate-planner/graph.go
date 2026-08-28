@@ -11,12 +11,11 @@ import (
 )
 
 type graphHashBody struct {
-	SchemaVersion    string      `json:"schema_version"`
-	PrototypeID      string      `json:"prototype_id"`
-	PrototypeRoot    string      `json:"prototype_root"`
-	PrototypeHeadSHA string      `json:"prototype_head_sha"`
-	Nodes            []GraphNode `json:"nodes"`
-	Edges            []GraphEdge `json:"edges"`
+	Schema         string      `json:"schema"`
+	PrototypeID    string      `json:"prototype_id"`
+	SourceHeadSHA  string      `json:"source_head_sha"`
+	Nodes          []GraphNode `json:"nodes"`
+	Edges          []GraphEdge `json:"edges"`
 }
 
 func ParseGraphJSON(data []byte) (DependencyGraph, error) {
@@ -31,17 +30,14 @@ func ParseGraphJSON(data []byte) (DependencyGraph, error) {
 }
 
 func ValidateGraph(g DependencyGraph) error {
-	if g.SchemaVersion != SchemaVersionGraph {
-		return fmt.Errorf("unsupported schema_version: %q", g.SchemaVersion)
+	if g.Schema != SchemaGraph {
+		return fmt.Errorf("unsupported schema: %q", g.Schema)
 	}
 	if g.PrototypeID == "" {
 		return fmt.Errorf("prototype_id required")
 	}
-	if g.PrototypeRoot == "" {
-		return fmt.Errorf("prototype_root required")
-	}
-	if len(g.PrototypeHeadSHA) != 40 {
-		return fmt.Errorf("prototype_head_sha must be 40 characters")
+	if len(g.SourceHeadSHA) != 40 {
+		return fmt.Errorf("source_head_sha must be 40 characters")
 	}
 	if g.GraphHash == "" {
 		return fmt.Errorf("graph_hash required")
@@ -65,9 +61,6 @@ func ValidateGraph(g DependencyGraph) error {
 		if err := validateClassification(n.Classification); err != nil {
 			return fmt.Errorf("node %s: %w", n.ID, err)
 		}
-		if err := validateKind(n.Kind); err != nil {
-			return fmt.Errorf("node %s: %w", n.ID, err)
-		}
 		if _, err := normalizePath(n.Path); err != nil {
 			return fmt.Errorf("node %s: %w", n.ID, err)
 		}
@@ -78,6 +71,9 @@ func ValidateGraph(g DependencyGraph) error {
 		}
 		if !seen[e.From] || !seen[e.To] {
 			return fmt.Errorf("edge references unknown node: %s -> %s", e.From, e.To)
+		}
+		if err := validateClassification(e.Classification); err != nil {
+			return fmt.Errorf("edge %s->%s: %w", e.From, e.To, err)
 		}
 	}
 	return nil
@@ -94,12 +90,11 @@ func ComputeGraphHash(g DependencyGraph) (string, error) {
 		return edges[i].To < edges[j].To
 	})
 	body := graphHashBody{
-		SchemaVersion:    g.SchemaVersion,
-		PrototypeID:      g.PrototypeID,
-		PrototypeRoot:    g.PrototypeRoot,
-		PrototypeHeadSHA: g.PrototypeHeadSHA,
-		Nodes:            nodes,
-		Edges:            edges,
+		Schema:        g.Schema,
+		PrototypeID:   g.PrototypeID,
+		SourceHeadSHA: g.SourceHeadSHA,
+		Nodes:         nodes,
+		Edges:         edges,
 	}
 	b, err := json.Marshal(body)
 	if err != nil {
@@ -109,23 +104,23 @@ func ComputeGraphHash(g DependencyGraph) (string, error) {
 	return hex.EncodeToString(sum[:]), nil
 }
 
+func BindGraphHash(g *DependencyGraph) error {
+	h, err := ComputeGraphHash(*g)
+	if err != nil {
+		return err
+	}
+	g.GraphHash = h
+	return nil
+}
+
 func validateClassification(c Classification) error {
 	switch c {
 	case ClassReuse, ClassPromote, ClassExport, ClassRemote, ClassPromoteShared, ClassDrop, ClassUnknown:
 		return nil
 	case "":
-		return fmt.Errorf("classification unresolved: %q", c)
+		return fmt.Errorf("classification unresolved")
 	default:
 		return fmt.Errorf("unknown classification: %q", c)
-	}
-}
-
-func validateKind(k NodeKind) error {
-	switch k {
-	case KindSwift, KindGo, KindOpenAPI, KindDesign, KindResource:
-		return nil
-	default:
-		return fmt.Errorf("unknown kind: %q", k)
 	}
 }
 
@@ -135,13 +130,4 @@ func normalizePath(p string) (string, error) {
 		return "", fmt.Errorf("invalid path: %s", p)
 	}
 	return p, nil
-}
-
-func BindGraphHash(g *DependencyGraph) error {
-	h, err := ComputeGraphHash(*g)
-	if err != nil {
-		return err
-	}
-	g.GraphHash = h
-	return nil
 }

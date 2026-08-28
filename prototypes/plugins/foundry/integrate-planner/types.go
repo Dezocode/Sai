@@ -1,8 +1,8 @@
 package integrateplanner
 
 const (
-	SchemaVersionGraph = "foundry.dependency-graph/v1"
-	SchemaVersionPlan  = "foundry.integrate-plan/v1"
+	SchemaGraph = "foundry.graph.v1"
+	SchemaPlan  = "foundry.integrate.plan.v1"
 )
 
 type Classification string
@@ -17,64 +17,54 @@ const (
 	ClassUnknown       Classification = "UNKNOWN"
 )
 
-type NodeKind string
-
-const (
-	KindSwift    NodeKind = "swift"
-	KindGo       NodeKind = "go"
-	KindOpenAPI  NodeKind = "openapi"
-	KindDesign   NodeKind = "design"
-	KindResource NodeKind = "resource"
-)
-
-type DependencyGraph struct {
-	SchemaVersion    string      `json:"schema_version"`
-	PrototypeID      string      `json:"prototype_id"`
-	PrototypeRoot    string      `json:"prototype_root"`
-	PrototypeHeadSHA string      `json:"prototype_head_sha"`
-	GraphHash        string      `json:"graph_hash"`
-	Nodes            []GraphNode `json:"nodes"`
-	Edges            []GraphEdge `json:"edges"`
-}
-
 type GraphNode struct {
-	ID             string         `json:"id"`
-	Path           string         `json:"path"`
-	Kind           NodeKind       `json:"kind"`
-	Classification Classification `json:"classification"`
+	ID                     string         `json:"id"`
+	Path                   string         `json:"path"`
+	Classification         Classification `json:"classification"`
+	ProposedProductionPath string         `json:"proposed_production_path,omitempty"`
+	DesignAuthority        string         `json:"design_authority,omitempty"`
+	ModuleVisibility       string         `json:"module_visibility,omitempty"`
 }
 
 type GraphEdge struct {
-	From string `json:"from"`
-	To   string `json:"to"`
+	From           string         `json:"from"`
+	To             string         `json:"to"`
+	Classification Classification `json:"classification"`
 }
 
-type PlanStatus string
+type DependencyGraph struct {
+	Schema         string      `json:"schema"`
+	PrototypeID    string      `json:"prototype_id"`
+	SourceHeadSHA  string      `json:"source_head_sha"`
+	GraphHash      string      `json:"graph_hash"`
+	Nodes          []GraphNode `json:"nodes"`
+	Edges          []GraphEdge `json:"edges"`
+}
 
-const (
-	StatusPlanned PlanStatus = "PLANNED"
-	StatusBlocked PlanStatus = "BLOCKED"
-)
-
-type ArtifactPlan struct {
+type PlanEntry struct {
 	NodeID                 string         `json:"node_id"`
-	SourcePath             string         `json:"source_path"`
+	Path                   string         `json:"path"`
 	Classification         Classification `json:"classification"`
 	Action                 string         `json:"action"`
 	ProposedProductionPath string         `json:"proposed_production_path,omitempty"`
-	Checks                 []string       `json:"checks"`
-	Blockers               []string       `json:"blockers"`
+}
+
+type PlanCheck struct {
+	ID      string `json:"id"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 type IntegratePlan struct {
-	SchemaVersion  string         `json:"schema_version"`
-	PrototypeID    string         `json:"prototype_id"`
-	SourceHeadSHA  string         `json:"source_head_sha"`
-	GraphHash      string         `json:"graph_hash"`
-	Ready          bool           `json:"ready"`
-	Status         PlanStatus     `json:"status"`
-	Artifacts      []ArtifactPlan `json:"artifacts"`
-	Blockers       []string       `json:"blockers"`
-	RequiredChecks []string       `json:"required_checks"`
-	HumanSummary   string         `json:"human_summary"`
+	Schema                    string            `json:"schema"`
+	SourceHeadSHA             string            `json:"source_head_sha"`
+	GraphHash                 string            `json:"graph_hash"`
+	PrototypeID               string            `json:"prototype_id"`
+	Ready                     bool              `json:"ready"`
+	Entries                   []PlanEntry       `json:"entries"`
+	ProposedPaths             []string          `json:"proposed_paths"`
+	DependencyClassifications map[string]string `json:"dependency_classifications"`
+	Checks                    []PlanCheck       `json:"checks"`
+	Blockers                  []string          `json:"blockers"`
+	HumanSummary              string            `json:"human_summary"`
 }
