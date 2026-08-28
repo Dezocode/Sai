@@ -83,8 +83,8 @@ def check_spinoff(author: Path) -> None:
     pkg = (author / "Package.swift").read_text()
     if not re.search(r'path:\s*"\.\./', pkg):
         raise SystemExit("FAIL spin-off: Package.swift must use relative SaiKit path")
-    if "/Sai" in pkg or "github.com" in pkg:
-        raise SystemExit("FAIL spin-off: Package.swift must not pin checkout or remote URLs")
+    if "github.com" in pkg:
+        raise SystemExit("FAIL spin-off: Package.swift must not pin remote URLs")
 
     for path in author.rglob("*"):
         if path.is_symlink():
