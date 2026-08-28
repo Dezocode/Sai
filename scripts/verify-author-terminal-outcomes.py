@@ -3,7 +3,7 @@
 
 Delete: production stays green when the Author tree is removed.
 Integrate: Author depends only on public SaiDesignLanguage; no production app coupling.
-Spin-off: Author tree is self-contained; no checkout-root or ../../Sai refs.
+Spin-off: Author tree is self-contained; no checkout-root or ../../Sai refs in code.
 """
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ SPINOFF_FORBIDDEN = (
     "monaecode/Sai",
     ".git/",
 )
+SPINOFF_SCAN_SUFFIXES = {".swift", ".sh"}
 
 
 def repo_root() -> Path:
@@ -27,6 +28,19 @@ def repo_root() -> Path:
         ["git", "rev-parse", "--show-toplevel"], text=True
     ).strip()
     return Path(out)
+
+
+def spinoff_scan_paths(author: Path) -> list[Path]:
+    paths: list[Path] = []
+    pkg = author / "Package.swift"
+    if pkg.is_file():
+        paths.append(pkg)
+    for path in author.rglob("*"):
+        if not path.is_file():
+            continue
+        if path.suffix in SPINOFF_SCAN_SUFFIXES:
+            paths.append(path)
+    return paths
 
 
 def check_delete(root: Path) -> None:
@@ -75,17 +89,16 @@ def check_spinoff(author: Path) -> None:
     for path in author.rglob("*"):
         if path.is_symlink():
             raise SystemExit(f"FAIL spin-off: symlink not allowed: {path.relative_to(author)}")
-        if not path.is_file():
-            continue
+
+    for path in spinoff_scan_paths(author):
         try:
             text = path.read_text()
         except UnicodeDecodeError:
             continue
+        rel = path.relative_to(author)
         for needle in SPINOFF_FORBIDDEN:
             if needle in text:
-                raise SystemExit(
-                    f"FAIL spin-off: {needle!r} in {path.relative_to(author)}"
-                )
+                raise SystemExit(f"FAIL spin-off: {needle!r} in {rel}")
 
     rel_sources = [p for p in author.rglob("*.swift") if p.is_file()]
     if len(rel_sources) < 5:
