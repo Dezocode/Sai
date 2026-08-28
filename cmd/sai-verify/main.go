@@ -25,5 +25,9 @@ var (
 	allEv   = []string{"sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure", "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution", "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit", "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought", "workspaceOpen"}
 	matchEv = map[string]bool{"preToolUse": true, "postToolUse": true, "postToolUseFailure": true, "beforeShellExecution": true, "afterShellExecution": true, "beforeReadFile": true, "afterFileEdit": true, "subagentStart": true, "subagentStop": true}
 )
-
-PLACEHOLDER_MAIN_REST
+type feat struct {
+	ID, Title, File, Desc string
+	Subs [][2]string
+	Ent, Proof, Paths, Rm, Unreach, Gotchas []string
+}
+func jq(s string) string       { b, _ := json.Marshal(s); return string(b) }
