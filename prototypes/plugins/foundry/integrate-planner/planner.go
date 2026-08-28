@@ -23,6 +23,11 @@ func Plan(g DependencyGraph, requestedHeadSHA string) (IntegratePlan, error) {
 	nodes := append([]GraphNode(nil), g.Nodes...)
 	sort.Slice(nodes, func(i, j int) bool { return nodes[i].ID < nodes[j].ID })
 
+	nodeByID := make(map[string]GraphNode, len(nodes))
+	for _, node := range nodes {
+		nodeByID[node.ID] = node
+	}
+
 	for _, node := range nodes {
 		entry, nodeBlockers := planEntry(node, g.PrototypeID)
 		if entry.ProposedProductionPath != "" {
@@ -41,6 +46,19 @@ func Plan(g DependencyGraph, requestedHeadSHA string) (IntegratePlan, error) {
 		depClass[key] = string(e.Classification)
 		if e.Classification == ClassUnknown {
 			blockers = append(blockers, fmt.Sprintf("edge %s has UNKNOWN classification", key))
+		}
+		to, ok := nodeByID[e.To]
+		if ok && isOtherPrototypePath(to.Path, g.PrototypeID) {
+			switch e.Classification {
+			case ClassReuse, ClassPromote:
+				blockers = append(blockers, fmt.Sprintf("edge %s: forbidden prototype dependency on %s", key, to.Path))
+			}
+		}
+	}
+
+	for _, node := range nodes {
+		if node.Classification == ClassReuse && isOtherPrototypePath(node.Path, g.PrototypeID) {
+			blockers = append(blockers, fmt.Sprintf("node %s: REUSE cannot reference prototype path %s", node.ID, node.Path))
 		}
 	}
 
@@ -97,8 +115,14 @@ func planEntry(node GraphNode, prototypeID string) (PlanEntry, []string) {
 		if entry.ProposedProductionPath == "" {
 			blockers = append(blockers, fmt.Sprintf("node %s: PROMOTE requires proposed_production_path", node.ID))
 		}
+		if strings.HasPrefix(entry.ProposedProductionPath, "prototypes/") {
+			blockers = append(blockers, fmt.Sprintf("node %s: proposed production path remains in prototype tree", node.ID))
+		}
 		if node.DesignAuthority == "" || node.DesignAuthority == "unresolved" {
 			blockers = append(blockers, fmt.Sprintf("node %s: unresolved design authority", node.ID))
+		}
+		if node.ModuleVisibility == "prototype-only" || node.ModuleVisibility == "private" {
+			blockers = append(blockers, fmt.Sprintf("node %s: unsupported module visibility %q", node.ID, node.ModuleVisibility))
 		}
 		if isFolderMovePath(node.Path, entry.ProposedProductionPath, prototypeID) {
 			blockers = append(blockers, fmt.Sprintf("node %s: folder-move graduation forbidden", node.ID))
@@ -118,6 +142,18 @@ func isFolderMovePath(sourcePath, proposedPath, prototypeID string) bool {
 		return true
 	}
 	return false
+}
+
+func isOtherPrototypePath(path, selfPrototypeID string) bool {
+	if !strings.HasPrefix(path, "prototypes/plugins/") {
+		return false
+	}
+	rest := strings.TrimPrefix(path, "prototypes/plugins/")
+	lane := rest
+	if i := strings.Index(rest, "/"); i >= 0 {
+		lane = rest[:i]
+	}
+	return lane != "" && lane != selfPrototypeID
 }
 
 func buildChecks(g DependencyGraph, requestedHeadSHA string, blockers []string) []PlanCheck {
