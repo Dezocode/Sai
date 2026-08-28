@@ -8,7 +8,7 @@ Non-shipping SwiftUI product prototypes under the canonical plugin lane. Product
 - Read `docs/architecture/SAI-PROTOTYPE-PLUGIN-LANE.md`. Build Author with `swift build --package-path prototypes/plugins/author`.
 ## Driving it with verify-sai
 - **Author tree.** ::exists prototypes/plugins/author/Package.swift prototypes/plugins/author/Sources/SaiAuthor/AuthorRootView.swift
-- **Isolation.** ::exec scripts/verify-author-delete-isolation
+- **Isolation.** ::py scripts/verify-author-delete-isolation.py
 - **Production lock.** ::contains apps/apple/Packages/SaiKit/Sources/SaiDesignLanguage/SaiDesignLanguage.swift featureUIAllowed = false
 ## Gotchas
 - Deleting `prototypes/plugins/author/` must not break production Sai. Production manifests must not reference prototype paths. `prototypes/*` is verifier-mapped; unmapped prototype files fail sai-verify completeness.
