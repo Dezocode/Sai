@@ -1,0 +1,23 @@
+name: slice78-rewrite-pr-branch
+
+on:
+  push:
+    branches:
+      - foundry/lifecycle-dependency-graph-rewrite
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  force-rewrite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Force-update PR branch to clean slice-78 commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TARGET_SHA="${{ github.sha }}"
+          git ls-remote origin "refs/heads/foundry/lifecycle-dependency-graph" || true
+          git push origin "${TARGET_SHA}:refs/heads/foundry/lifecycle-dependency-graph" --force-with-lease
