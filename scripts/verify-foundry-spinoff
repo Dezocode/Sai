@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Drive slice 80 spin-off planner unit tests for sai-verify proof.
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+export PYTHONDONTWRITEBYTECODE=1
+cd "$ROOT"
+exec python3 -m unittest -v \
+  prototypes/plugins/foundry/spinoff-planner-exporter/tests/test_spinoff.py

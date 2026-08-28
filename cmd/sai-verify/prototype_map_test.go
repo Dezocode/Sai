@@ -7,7 +7,6 @@ func TestPrototypeRootIsClaimableAndNearPrefixesAreDistinct(t *testing.T) {
 	if len(got) != 3 || got[0] != "prototypes/plugins/*" || got[1] != "prototypes/plugins/*/PrototypeDesign/*" || got[2] != "prototypes/plugins/author/Editor.swift" {
 		t.Fatalf("pathRe classified %v, want exactly [prototypes/plugins/* prototypes/plugins/*/PrototypeDesign/* prototypes/plugins/author/Editor.swift]", got)
 	}
-	// Near-prefix surfaces stay distinct claims: recognized verbatim or provably unrecognized, never absorbed by the root glob (no vacuous passes).
 	for _, near := range []string{"`prototypes/plugin/*`", "`prototypes/plugins-evil/*`"} {
 		if g := pathRe.FindAllString(near, -1); len(g) != 1 || g[0] != near[1:len(near)-1] {
 			t.Fatalf("near-prefix %s classified as %v, must stay distinct from the canonical root", near, g)
@@ -31,7 +30,7 @@ func TestPrototypeMapEntryParses(t *testing.T) {
 			"prototypes/plugins/*",
 			"prototypes/plugins/foundry/spinoff-planner-exporter/*",
 			"prototypes/plugins/demo-widget/*",
-			"scripts/verify-foundry-spinoff.py",
+			"scripts/verify-foundry-spinoff",
 		} {
 			if !pathCovered(f.Paths, want) {
 				t.Fatalf("prototype-plugins feature missing path %s; has %v", want, f.Paths)

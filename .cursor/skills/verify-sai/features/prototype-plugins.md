@@ -7,15 +7,15 @@ Verifier-owned non-shipping prototype-plugin lane and Foundry prototype tooling 
 - `proto-canonical-root` `prototypes/plugins/*` exact verifier-owned prototype root.
 - `proto-foundry-spinoff` `prototypes/plugins/foundry/spinoff-planner-exporter/*` slice 80 spin-off planner, materializer, and no-checkout tests.
 - `proto-demo-widget` `prototypes/plugins/demo-widget/*` harness fixture graph for spin-off proof.
-- `proto-spinoff-verify` `scripts/verify-foundry-spinoff.py` sai-verify proof driver for slice 80 unit tests.
+- `proto-spinoff-verify` `scripts/verify-foundry-spinoff` sai-verify proof driver for slice 80 unit tests.
 
 ## How to get to it (user POV)
 
-- Read `docs/architecture/SAI-PROTOTYPE-PLUGIN-LANE.md`; place prototype code under `prototypes/plugins/<plugin>/`.
+- Read `docs/architecture/SAI-PROTOTYPE-PLUGIN-LANE.md`; place prototype code under `prototypes/plugins/<name>/`.
 
 ## Driving it with verify-sai
 
-- **Spinoff tests.** ::py scripts/verify-foundry-spinoff.py
+- **Spinoff tests.** ::exec scripts/verify-foundry-spinoff
 - **Design contract.** ::exec scripts/verify-semantic-hierarchy
 
 ## Gotchas

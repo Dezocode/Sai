@@ -9,12 +9,12 @@ Restructured slice 80 under canonical path
 - Added slice 78 Output consumer (`provenance`/`manifest_id`/`nodes`/`edges`/`graph_hash`) alongside legacy fixture shape
 - Pinned schema fixtures at `fixtures/foundry-graph.v1.schema.json` and `fixtures/foundry-graph-output.v1.schema.json`
 - Pinned demo Output fixture at `prototypes/plugins/demo-widget/foundry.graph.output.json`
-- CLI: `prototypes/plugins/foundry/spinoff-planner-exporter/bin/foundry-spinoff`
-- Fixed icm-enforcement: aligned `prototype_map_test.go`, added `scripts/verify-foundry-spinoff.py`, fixed `test_spinoff.py` REPO_ROOT (`parents[5]`)
-- Acceptance hardening: CLI (`python -m spinoff`), PROMOTE blocker, PROVENANCE frozen-head tests; README acceptance table
+- CLI: `prototypes/plugins/foundry/spinoff-planner-exporter/bin/foundry-spinoff` (mode 100755)
+- Fixed icm-enforcement: aligned `prototype_map_test.go`, added `scripts/verify-foundry-spinoff`, fixed `test_spinoff.py` REPO_ROOT (`parents[5]`)
+- Saul fix: bash verify driver (no new `.py` under `scripts/` for compileall); CLI executable bit
 
 Verification command:
 
 ```bash
-python3 scripts/verify-foundry-spinoff.py
+scripts/verify-foundry-spinoff
 ```

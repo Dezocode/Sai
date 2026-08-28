@@ -17,6 +17,5 @@ prototypes/plugins/foundry/spinoff-planner-exporter/bin/foundry-spinoff material
 ## Tests
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v \
-  prototypes/plugins/foundry/spinoff-planner-exporter/tests/test_spinoff.py
+scripts/verify-foundry-spinoff
 ```
