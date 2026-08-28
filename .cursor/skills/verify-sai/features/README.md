@@ -15,4 +15,3 @@ Maintained source for every supported/observable Sai capability proved by this r
 - [Verify Sai kernel](./verify-sai.md) — native map, Go API, hooks, preservation, proof.
 - [Foundry owner UX](./foundry-owner-ux.md) — dry-run-first owner graduation workflow for Foundry prototypes.
 - [Sai application foundation](./sai-app-foundation.md) — native Apple app, Go core, API, deployment, and CI-enforced design language.
-- [Prototype plugin lane enforcement](./prototype-plugins.md) — verifier-owned `prototypes/plugins/` root, SwiftUI exemption, design-experiment scope, one-way dependency isolation, CI trigger.
