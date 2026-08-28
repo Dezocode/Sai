@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"sort"
 	"strings"
 )
 
@@ -25,15 +24,7 @@ func ValidDisposition(d Disposition) bool {
 }
 
 func canonicalOperations(ops []Operation) ([]byte, error) {
-	cp := make([]Operation, len(ops))
-	copy(cp, ops)
-	sort.Slice(cp, func(i, j int) bool {
-		if cp[i].Kind != cp[j].Kind {
-			return cp[i].Kind < cp[j].Kind
-		}
-		return cp[i].IdempotencyKey < cp[j].IdempotencyKey
-	})
-	return json.Marshal(cp)
+	return json.Marshal(ops)
 }
 
 func ComputePlanID(p Plan) (string, error) {
