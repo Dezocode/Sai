@@ -1,0 +1,38 @@
+name: foundry-entrypoint-chmod
+
+on:
+  push:
+    branches:
+      - foundry/spinoff-planner-exporter
+    paths:
+      - prototypes/plugins/foundry/spinoff-planner-exporter/bin/foundry-spinoff
+      - scripts/verify-foundry-spinoff
+      - .github/workflows/foundry-entrypoint-chmod.yml
+
+permissions:
+  contents: write
+
+jobs:
+  chmod-entrypoints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Set git executable bits on shell entrypoints
+        run: |
+          set -euo pipefail
+          git update-index --chmod=+x scripts/verify-foundry-spinoff
+          git update-index --chmod=+x prototypes/plugins/foundry/spinoff-planner-exporter/bin/foundry-spinoff
+          if git diff --cached --quiet; then
+            echo "executable bits already correct"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix(foundry): set git mode 100755 on shell entrypoints
+
+          Task-ID: 20260828-1717-spinoff-planner-exporter-cursor-6a1d
+          Agent: cursor-6a1d"
+          git push origin HEAD:foundry/spinoff-planner-exporter
