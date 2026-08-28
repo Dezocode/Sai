@@ -3,7 +3,6 @@ package integrateplanner
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -12,175 +11,155 @@ func Plan(g DependencyGraph, requestedHeadSHA string) (IntegratePlan, error) {
 	if err := ValidateGraph(g); err != nil {
 		return IntegratePlan{}, err
 	}
-	plan := IntegratePlan{
-		SchemaVersion: SchemaVersionPlan,
-		PrototypeID:   g.PrototypeID,
-		SourceHeadSHA: requestedHeadSHA,
-		GraphHash:     g.GraphHash,
-		Status:        StatusPlanned,
+	if len(requestedHeadSHA) != 40 {
+		return IntegratePlan{}, fmt.Errorf("requested head must be 40 characters")
 	}
-	blockers := []string{}
-	if g.PrototypeHeadSHA != requestedHeadSHA {
-		blockers = append(blockers, fmt.Sprintf("stale prototype head: graph binds %s requested %s", g.PrototypeHeadSHA, requestedHeadSHA))
-	}
-	if isExportOnlyIntegrate(g) {
-		blockers = append(blockers, "integrate path unavailable: graph is EXPORT-only")
-	}
-	blockers = append(blockers, forbiddenDeps(g)...)
 
+	blockers := []string{}
+	entries := []PlanEntry{}
+	depClass := map[string]string{}
 	promoteTargets := map[string]string{}
+
 	nodes := append([]GraphNode(nil), g.Nodes...)
 	sort.Slice(nodes, func(i, j int) bool { return nodes[i].ID < nodes[j].ID })
 
 	for _, node := range nodes {
-		art := planArtifact(node, g)
-		if isFolderMove(node, g.PrototypeRoot) {
-			art.Blockers = append(art.Blockers, "folder-move graduation forbidden")
-		}
-		if art.ProposedProductionPath != "" {
-			if prev, ok := promoteTargets[art.ProposedProductionPath]; ok {
-				art.Blockers = append(art.Blockers, fmt.Sprintf("production path conflict: %s and %s -> %s", prev, node.ID, art.ProposedProductionPath))
+		entry, nodeBlockers := planEntry(node, g.PrototypeID)
+		if entry.ProposedProductionPath != "" {
+			if prev, ok := promoteTargets[entry.ProposedProductionPath]; ok {
+				nodeBlockers = append(nodeBlockers, fmt.Sprintf("production path conflict: %s and %s -> %s", prev, node.ID, entry.ProposedProductionPath))
 			} else {
-				promoteTargets[art.ProposedProductionPath] = node.ID
+				promoteTargets[entry.ProposedProductionPath] = node.ID
 			}
 		}
-		plan.Artifacts = append(plan.Artifacts, art)
-		blockers = append(blockers, art.Blockers...)
+		entries = append(entries, entry)
+		blockers = append(blockers, nodeBlockers...)
 	}
 
-	plan.Blockers = uniqueSorted(blockers)
-	plan.RequiredChecks = collectChecks(plan.Artifacts)
-	if len(plan.Blockers) > 0 {
-		plan.Status = StatusBlocked
-		plan.Ready = false
-	} else {
-		plan.Status = StatusPlanned
-		plan.Ready = true
+	for _, e := range g.Edges {
+		key := e.From + "->" + e.To
+		depClass[key] = string(e.Classification)
+		if e.Classification == ClassUnknown {
+			blockers = append(blockers, fmt.Sprintf("edge %s has UNKNOWN classification", key))
+		}
+	}
+
+	if g.SourceHeadSHA != requestedHeadSHA {
+		blockers = append(blockers, fmt.Sprintf("stale prototype head: graph binds %s requested %s", g.SourceHeadSHA, requestedHeadSHA))
+	}
+
+	blockers = uniqueSorted(blockers)
+	checks := buildChecks(g, requestedHeadSHA, blockers)
+	ready := len(blockers) == 0
+
+	plan := IntegratePlan{
+		Schema:                    SchemaPlan,
+		SourceHeadSHA:             requestedHeadSHA,
+		GraphHash:                 g.GraphHash,
+		PrototypeID:               g.PrototypeID,
+		Ready:                     ready,
+		Entries:                   entries,
+		ProposedPaths:             collectProposedPaths(entries, blockers),
+		DependencyClassifications: depClass,
+		Checks:                    checks,
+		Blockers:                  blockers,
 	}
 	plan.HumanSummary = RenderHumanSummary(plan)
 	return plan, nil
 }
 
-func planArtifact(node GraphNode, g DependencyGraph) ArtifactPlan {
-	art := ArtifactPlan{
+func planEntry(node GraphNode, prototypeID string) (PlanEntry, []string) {
+	var blockers []string
+	entry := PlanEntry{
 		NodeID:         node.ID,
-		SourcePath:     node.Path,
+		Path:           node.Path,
 		Classification: node.Classification,
-		Checks:         []string{},
-		Blockers:       []string{},
 	}
 	switch node.Classification {
 	case ClassReuse:
-		art.Action = "reuse_production"
+		entry.Action = "reference_production"
 	case ClassRemote:
-		art.Action = "declare_remote"
-		art.Checks = []string{"remote-boundary-review"}
+		entry.Action = "document_remote_boundary"
 	case ClassDrop:
-		art.Action = "drop_prototype"
+		entry.Action = "no_integration"
 	case ClassExport:
-		art.Action = "export_only"
-		art.Blockers = append(art.Blockers, "EXPORT classification is not integratable")
+		entry.Action = "export_only"
+		blockers = append(blockers, fmt.Sprintf("node %s: EXPORT is not integratable", node.ID))
 	case ClassPromoteShared:
-		art.Action = "promote_shared_blocked"
-		art.Blockers = append(art.Blockers, "PROMOTE_SHARED requires prior production capability")
-	case ClassPromote:
-		art.Action = "promote_to_production"
-		art.ProposedProductionPath = proposeProductionPath(node, g.PrototypeRoot)
-		art.Checks = checksForKind(node.Kind)
+		entry.Action = "promote_shared_blocked"
+		blockers = append(blockers, fmt.Sprintf("node %s: PROMOTE_SHARED blocks integrate until shared capability exists", node.ID))
 	case ClassUnknown:
-		art.Action = "unresolved"
-		art.Blockers = append(art.Blockers, "UNKNOWN classification blocks planning")
+		entry.Action = "unresolved"
+		blockers = append(blockers, fmt.Sprintf("node %s: UNKNOWN classification blocks planning", node.ID))
+	case ClassPromote:
+		entry.Action = "promote_to_production"
+		entry.ProposedProductionPath = node.ProposedProductionPath
+		if entry.ProposedProductionPath == "" {
+			blockers = append(blockers, fmt.Sprintf("node %s: PROMOTE requires proposed_production_path", node.ID))
+		}
+		if node.DesignAuthority == "" || node.DesignAuthority == "unresolved" {
+			blockers = append(blockers, fmt.Sprintf("node %s: unresolved design authority", node.ID))
+		}
+		if isFolderMovePath(node.Path, entry.ProposedProductionPath, prototypeID) {
+			blockers = append(blockers, fmt.Sprintf("node %s: folder-move graduation forbidden", node.ID))
+		}
 	}
-	return art
+	return entry, blockers
 }
 
-func proposeProductionPath(node GraphNode, root string) string {
-	rel := strings.TrimPrefix(node.Path, root)
-	rel = strings.TrimPrefix(rel, "/")
-	switch node.Kind {
-	case KindGo:
-		return filepath.ToSlash(filepath.Join("internal", rel))
-	case KindSwift:
-		return filepath.ToSlash(filepath.Join("apps/Sai/Features", rel))
-	case KindOpenAPI:
-		return filepath.ToSlash(filepath.Join("api", rel))
-	case KindDesign:
-		return filepath.ToSlash(filepath.Join("design/review", rel))
-	default:
-		return filepath.ToSlash(filepath.Join("internal/resources", rel))
-	}
-}
-
-func checksForKind(k NodeKind) []string {
-	switch k {
-	case KindGo:
-		return []string{"production-authority-review", "go-vet", "sai-verify-preserve"}
-	case KindSwift:
-		return []string{"production-authority-review", "sai-design-check"}
-	case KindOpenAPI:
-		return []string{"production-authority-review", "openapi-contract-review"}
-	case KindDesign:
-		return []string{"production-authority-review", "design-language-review"}
-	default:
-		return []string{"production-authority-review"}
-	}
-}
-
-func isFolderMove(node GraphNode, root string) bool {
-	root = strings.TrimSuffix(root, "/")
-	path := strings.TrimSuffix(node.Path, "/")
-	if path == root {
+func isFolderMovePath(sourcePath, proposedPath, prototypeID string) bool {
+	root := "prototypes/plugins/" + prototypeID
+	sourcePath = strings.TrimSuffix(sourcePath, "/")
+	proposedPath = strings.TrimSuffix(proposedPath, "/")
+	if sourcePath == root || proposedPath == root {
 		return true
 	}
-	if node.Classification == ClassPromote && strings.Count(strings.TrimPrefix(path, root), "/") == 0 {
+	if proposedPath == "prototypes/plugins/"+prototypeID {
 		return true
 	}
 	return false
 }
 
-func isExportOnlyIntegrate(g DependencyGraph) bool {
-	hasPromote := false
-	hasExport := false
-	for _, n := range g.Nodes {
-		if n.Classification == ClassPromote || n.Classification == ClassPromoteShared {
-			hasPromote = true
-		}
-		if n.Classification == ClassExport {
-			hasExport = true
+func buildChecks(g DependencyGraph, requestedHeadSHA string, blockers []string) []PlanCheck {
+	headStatus, headMsg := "pass", "graph bound to source_head_sha"
+	if g.SourceHeadSHA != requestedHeadSHA {
+		headStatus, headMsg = "fail", "source_head_sha does not match requested head"
+	}
+	folderStatus, folderMsg := "pass", "no folder-move graduation proposed"
+	for _, b := range blockers {
+		if strings.Contains(b, "folder-move") {
+			folderStatus, folderMsg = "fail", "folder-move graduation detected"
+			break
 		}
 	}
-	return hasExport && !hasPromote
+	blockerStatus, blockerMsg := "pass", "no blockers"
+	if len(blockers) > 0 {
+		blockerStatus, blockerMsg = "fail", "plan has blockers"
+	}
+	return []PlanCheck{
+		{ID: "head_binding", Status: headStatus, Message: headMsg},
+		{ID: "graph_hash", Status: "pass", Message: "graph_hash matches canonical digest"},
+		{ID: "folder_move", Status: folderStatus, Message: folderMsg},
+		{ID: "blockers", Status: blockerStatus, Message: blockerMsg},
+	}
 }
 
-func forbiddenDeps(g DependencyGraph) []string {
-	byID := map[string]GraphNode{}
-	for _, n := range g.Nodes {
-		byID[n.ID] = n
+func collectProposedPaths(entries []PlanEntry, blockers []string) []string {
+	if len(blockers) > 0 {
+		return nil
 	}
-	var out []string
-	for _, e := range g.Edges {
-		from, to := byID[e.From], byID[e.To]
-		if from.Classification == ClassPromote && to.Classification == ClassExport {
-			out = append(out, fmt.Sprintf("forbidden dependency: %s (PROMOTE) -> %s (EXPORT)", e.From, e.To))
-		}
-		if to.Classification == ClassUnknown {
-			out = append(out, fmt.Sprintf("forbidden dependency on UNKNOWN node: %s -> %s", e.From, e.To))
-		}
-	}
-	return out
-}
-
-func collectChecks(arts []ArtifactPlan) []string {
 	set := map[string]bool{}
-	for _, a := range arts {
-		if len(a.Blockers) > 0 {
-			continue
-		}
-		for _, c := range a.Checks {
-			set[c] = true
+	for _, e := range entries {
+		if e.ProposedProductionPath != "" {
+			set[e.ProposedProductionPath] = true
 		}
 	}
-	return mapKeysSorted(set)
+	out := make([]string, 0, len(set))
+	for p := range set {
+		out = append(out, p)
+	}
+	sort.Strings(out)
+	return out
 }
 
 func uniqueSorted(in []string) []string {
