@@ -14,6 +14,8 @@ type Engine struct {
 	Journal *Journal
 }
 
+var defaultProductionRoots = []string{"production", "cmd", "internal", "apps", "api", "design"}
+
 func NewEngine(state BindState) (*Engine, error) {
 	if state.JournalPath == "" {
 		state.JournalPath = filepath.Join(state.WorkDir, ".foundry", "journal.json")
@@ -22,7 +24,7 @@ func NewEngine(state BindState) (*Engine, error) {
 		state.CandidatesRoot = filepath.Join(state.WorkDir, ".foundry", "candidates")
 	}
 	if len(state.Production) == 0 {
-		state.Production = []string{"production"}
+		state.Production = defaultProductionRoots
 	}
 	j, err := OpenJournal(state.JournalPath)
 	if err != nil {
@@ -56,23 +58,29 @@ func (e *Engine) Execute(plan Plan) ([]ExecutionResult, error) {
 }
 
 func (e *Engine) runOperation(plan Plan, op Operation) (AuditRecord, error) {
+	proto := ResolvePrototypePath(plan, op)
+	if err := ValidateCanonicalPrototypePath(proto); err != nil {
+		return AuditRecord{}, err
+	}
+	if err := ValidatePrototypePolicy(e.State.RepoRoot, proto); err != nil {
+		return AuditRecord{}, err
+	}
+	if err := EnforceDisposition(plan, op); err != nil {
+		return AuditRecord{}, err
+	}
 	switch op.Kind {
 	case OpIntegrate:
-		return e.execIntegrate(plan, op)
+		return e.execIntegrate(plan, op, proto)
 	case OpSpinoff:
-		return e.execSpinoff(plan, op)
+		return e.execSpinoff(plan, op, proto)
 	case OpDeleteArchive:
-		return e.execDeleteArchive(plan, op)
+		return e.execDeleteArchive(plan, op, proto)
 	default:
 		return AuditRecord{}, fmt.Errorf("unsupported operation %s", op.Kind)
 	}
 }
 
-func (e *Engine) execIntegrate(plan Plan, op Operation) (AuditRecord, error) {
-	proto := op.PrototypePath
-	if proto == "" {
-		proto = "prototypes/plugins/foundry/test-widget"
-	}
+func (e *Engine) execIntegrate(plan Plan, op Operation, proto string) (AuditRecord, error) {
 	branch := op.TargetBranch
 	if branch == "" {
 		branch = "foundry/integrate-candidate"
@@ -112,14 +120,10 @@ func (e *Engine) execIntegrate(plan Plan, op Operation) (AuditRecord, error) {
 	}, nil
 }
 
-func (e *Engine) execSpinoff(plan Plan, op Operation) (AuditRecord, error) {
+func (e *Engine) execSpinoff(plan Plan, op Operation, proto string) (AuditRecord, error) {
 	name := op.SpinoffName
 	if name == "" {
 		name = "foundry-spinoff-candidate"
-	}
-	proto := op.PrototypePath
-	if proto == "" {
-		proto = "prototypes/plugins/foundry/test-widget"
 	}
 	outDir := filepath.Join(e.State.CandidatesRoot, "spinoff", name)
 	if err := os.MkdirAll(outDir, 0755); err != nil {
@@ -152,11 +156,7 @@ func (e *Engine) execSpinoff(plan Plan, op Operation) (AuditRecord, error) {
 	}, nil
 }
 
-func (e *Engine) execDeleteArchive(plan Plan, op Operation) (AuditRecord, error) {
-	proto := op.PrototypePath
-	if proto == "" {
-		proto = "prototypes/plugins/foundry/test-widget"
-	}
+func (e *Engine) execDeleteArchive(plan Plan, op Operation, proto string) (AuditRecord, error) {
 	if err := AssertNoProductionDependency(e.State.RepoRoot, proto, e.State.Production); err != nil {
 		return AuditRecord{}, err
 	}
