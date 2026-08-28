@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+const protoPath = "prototypes/plugins/foundry/test-widget"
+
 func runGit(t *testing.T, dir string, args ...string) string {
 	t.Helper()
 	cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
@@ -26,13 +28,13 @@ func setupRepo(t *testing.T) (root, head, graph string) {
 	runGit(t, root, "config", "user.email", "t@test")
 	runGit(t, root, "config", "user.name", "test")
 	mustWrite(t, filepath.Join(root, "production", "app.go"), "package production\n// clean production tree\n")
-	proto := filepath.Join(root, "prototypes", "plugins", "foundry", "test-widget")
-	mustWrite(t, filepath.Join(proto, "manifest.json"), "{\"name\":\"test-widget\"}\n")
+	proto := filepath.Join(root, protoPath)
+	mustWrite(t, filepath.Join(proto, "manifest.json"), "{\"name\":\"test-widget\",\"featureUIAllowed\":false,\"sai_design_language\":\"default\"}\n")
 	mustWrite(t, filepath.Join(proto, "widget.txt"), "hello\n")
 	runGit(t, root, "add", ".")
 	runGit(t, root, "commit", "-m", "seed")
 	head = runGit(t, root, "rev-parse", "HEAD")
-	graph, err := ComputeGraphHash(root, "prototypes/plugins/foundry/test-widget")
+	graph, err := ComputeGraphHash(root, protoPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +51,7 @@ func mustWrite(t *testing.T, path, body string) {
 	}
 }
 
-func basePlan(head, graph string, ops []Operation) Plan {
+func basePlan(head, graph string, disp Disposition, ops []Operation) Plan {
 	p := Plan{
 		SchemaVersion: SchemaVersion,
 		Repo:          "https://github.com/Dezocode/Sai",
@@ -57,7 +59,7 @@ func basePlan(head, graph string, ops []Operation) Plan {
 		PrototypeHead: head,
 		GraphHash:     graph,
 		Dispositions: []NodeDisposition{{
-			Path: "prototypes/plugins/foundry/test-widget", Disposition: DispositionDrop,
+			Path: protoPath, Disposition: disp,
 		}},
 		Operations: ops,
 	}
@@ -74,9 +76,9 @@ func TestIntegrateCreatesDraftPRCandidate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan := basePlan(head, graph, []Operation{{
+	plan := basePlan(head, graph, DispositionPromote, []Operation{{
 		Kind: OpIntegrate, IdempotencyKey: "int-1", OwnerConfirmed: true,
-		PrototypePath: "prototypes/plugins/foundry/test-widget", TargetBranch: "foundry/candidate",
+		PrototypePath: protoPath, TargetBranch: "foundry/candidate",
 	}})
 	res, err := eng.Execute(plan)
 	if err != nil {
@@ -102,9 +104,9 @@ func TestSpinoffMaterializesProvenance(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan := basePlan(head, graph, []Operation{{
+	plan := basePlan(head, graph, DispositionExport, []Operation{{
 		Kind: OpSpinoff, IdempotencyKey: "spin-1", OwnerConfirmed: true,
-		PrototypePath: "prototypes/plugins/foundry/test-widget", SpinoffName: "widget-app",
+		PrototypePath: protoPath, SpinoffName: "widget-app",
 	}})
 	res, err := eng.Execute(plan)
 	if err != nil {
@@ -123,14 +125,14 @@ func TestDeleteArchiveRemovesPrototype(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan := basePlan(head, graph, []Operation{{
+	plan := basePlan(head, graph, DispositionDrop, []Operation{{
 		Kind: OpDeleteArchive, IdempotencyKey: "del-1", OwnerConfirmed: true,
-		PrototypePath: "prototypes/plugins/foundry/test-widget",
+		PrototypePath: protoPath,
 	}})
 	if _, err := eng.Execute(plan); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(filepath.Join(root, "prototypes/plugins/foundry/test-widget")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(root, protoPath)); !os.IsNotExist(err) {
 		t.Fatalf("prototype should be removed, err=%v", err)
 	}
 }
@@ -144,11 +146,28 @@ func TestStalePlanFailsClosed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan := basePlan(head, graph, []Operation{{
+	plan := basePlan(head, graph, DispositionPromote, []Operation{{
 		Kind: OpIntegrate, IdempotencyKey: "stale", OwnerConfirmed: true,
+		PrototypePath: protoPath,
 	}})
 	if _, err := eng.Execute(plan); err == nil || !strings.Contains(err.Error(), "stale prototype_head") {
 		t.Fatalf("expected stale failure, got %v", err)
+	}
+}
+
+func TestStaleGraphHashFailsClosed(t *testing.T) {
+	root, head, graph := setupRepo(t)
+	mustWrite(t, filepath.Join(root, protoPath, "widget.txt"), "mutated\n")
+	eng, err := NewEngine(BindState{RepoRoot: root, WorkDir: t.TempDir(), Production: []string{"production"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan := basePlan(head, graph, DispositionPromote, []Operation{{
+		Kind: OpIntegrate, IdempotencyKey: "stale-graph", OwnerConfirmed: true,
+		PrototypePath: protoPath,
+	}})
+	if _, err := eng.Execute(plan); err == nil || !strings.Contains(err.Error(), "stale graph_hash") {
+		t.Fatalf("expected stale graph_hash failure, got %v", err)
 	}
 }
 
@@ -159,8 +178,9 @@ func TestIdempotentReExecution(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan := basePlan(head, graph, []Operation{{
+	plan := basePlan(head, graph, DispositionExport, []Operation{{
 		Kind: OpSpinoff, IdempotencyKey: "idem-1", OwnerConfirmed: true,
+		PrototypePath: protoPath,
 	}})
 	first, err := eng.Execute(plan)
 	if err != nil {
@@ -175,31 +195,120 @@ func TestIdempotentReExecution(t *testing.T) {
 	}
 }
 
+func TestWrongDispositionBlocksIntegrateAtExecution(t *testing.T) {
+	root, head, graph := setupRepo(t)
+	eng, err := NewEngine(BindState{RepoRoot: root, WorkDir: t.TempDir(), Production: []string{"production"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan := basePlan(head, graph, DispositionExport, []Operation{{
+		Kind: OpIntegrate, IdempotencyKey: "wrong-disp", OwnerConfirmed: true,
+		PrototypePath: protoPath, TargetBranch: "foundry/candidate",
+	}})
+	if _, err := eng.Execute(plan); err == nil || !strings.Contains(err.Error(), "disposition EXPORT not allowed for operation integrate") {
+		t.Fatalf("expected disposition block, got %v", err)
+	}
+}
+
 func TestProductionDependencyBlocksDelete(t *testing.T) {
 	root, head, graph := setupRepo(t)
 	mustWrite(t, filepath.Join(root, "production", "ref.go"), "// imports prototypes/plugins/foundry/test-widget\n")
 	runGit(t, root, "add", ".")
 	runGit(t, root, "commit", "-m", "bad dep")
 	head = runGit(t, root, "rev-parse", "HEAD")
+	graph, err := ComputeGraphHash(root, protoPath)
+	if err != nil {
+		t.Fatal(err)
+	}
 	eng, err := NewEngine(BindState{RepoRoot: root, WorkDir: t.TempDir(), Production: []string{"production"}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan := basePlan(head, graph, []Operation{{
+	plan := basePlan(head, graph, DispositionDrop, []Operation{{
 		Kind: OpDeleteArchive, IdempotencyKey: "del-block", OwnerConfirmed: true,
+		PrototypePath: protoPath,
 	}})
 	if _, err := eng.Execute(plan); err == nil || !strings.Contains(err.Error(), "production depends") {
 		t.Fatalf("expected dependency block, got %v", err)
 	}
 }
 
+func TestProductionDependencyInTxtBlocksDelete(t *testing.T) {
+	root, head, graph := setupRepo(t)
+	mustWrite(t, filepath.Join(root, "production", "ref.txt"), "uses prototypes/plugins/foundry/test-widget\n")
+	runGit(t, root, "add", ".")
+	runGit(t, root, "commit", "-m", "txt dep")
+	head = runGit(t, root, "rev-parse", "HEAD")
+	graph, err := ComputeGraphHash(root, protoPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	eng, err := NewEngine(BindState{RepoRoot: root, WorkDir: t.TempDir(), Production: []string{"production"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan := basePlan(head, graph, DispositionDrop, []Operation{{
+		Kind: OpDeleteArchive, IdempotencyKey: "del-txt-block", OwnerConfirmed: true,
+		PrototypePath: protoPath,
+	}})
+	if _, err := eng.Execute(plan); err == nil || !strings.Contains(err.Error(), "production depends") {
+		t.Fatalf("expected txt dependency block, got %v", err)
+	}
+}
+
+func TestOffRootPrototypePathFailsPlanValidation(t *testing.T) {
+	p := Plan{
+		SchemaVersion: SchemaVersion,
+		Repo:          "https://github.com/Dezocode/Sai",
+		Base:          strings.Repeat("a", 40),
+		PrototypeHead: strings.Repeat("b", 40),
+		GraphHash:     strings.Repeat("c", 64),
+		Dispositions: []NodeDisposition{{
+			Path: "internal/evil", Disposition: DispositionDrop,
+		}},
+		Operations: []Operation{{
+			Kind: OpDeleteArchive, IdempotencyKey: "off-root", OwnerConfirmed: true,
+			PrototypePath: "internal/evil",
+		}},
+	}
+	if err := ValidatePlan(&p); err == nil || !strings.Contains(err.Error(), "prototype path outside canonical root") {
+		t.Fatalf("expected off-root validation failure, got %v", err)
+	}
+}
+
+func TestFeatureUIAllowedTrueFailsClosed(t *testing.T) {
+	root, head, graph := setupRepo(t)
+	mustWrite(t, filepath.Join(root, protoPath, "manifest.json"), "{\"name\":\"test-widget\",\"featureUIAllowed\":true,\"sai_design_language\":\"default\"}\n")
+	runGit(t, root, "add", ".")
+	runGit(t, root, "commit", "-m", "bad manifest")
+	head = runGit(t, root, "rev-parse", "HEAD")
+	var err error
+	graph, err = ComputeGraphHash(root, protoPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	eng, err := NewEngine(BindState{RepoRoot: root, WorkDir: t.TempDir(), Production: []string{"production"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan := basePlan(head, graph, DispositionDrop, []Operation{{
+		Kind: OpDeleteArchive, IdempotencyKey: "feature-ui", OwnerConfirmed: true,
+		PrototypePath: protoPath,
+	}})
+	if _, err := eng.Execute(plan); err == nil || !strings.Contains(err.Error(), "featureUIAllowed must be false") {
+		t.Fatalf("expected featureUIAllowed block, got %v", err)
+	}
+}
+
 func TestUnknownDispositionFailsPlanValidation(t *testing.T) {
 	p := Plan{
 		SchemaVersion: SchemaVersion,
-		Repo: "x", Base: strings.Repeat("a", 40), PrototypeHead: strings.Repeat("b", 40),
-		GraphHash: strings.Repeat("c", 64),
-		Operations: []Operation{{Kind: OpIntegrate, IdempotencyKey: "k", OwnerConfirmed: true}},
-		Dispositions: []NodeDisposition{{Path: "p", Disposition: Disposition("UNKNOWN")}},
+		Repo:          "x",
+		Base:          strings.Repeat("a", 40),
+		PrototypeHead: strings.Repeat("b", 40),
+		GraphHash:     strings.Repeat("c", 64),
+		Operations:    []Operation{{Kind: OpIntegrate, IdempotencyKey: "k", OwnerConfirmed: true}},
+		Dispositions:  []NodeDisposition{{Path: "p", Disposition: Disposition("UNKNOWN")}},
 	}
 	if err := ValidatePlan(&p); err == nil {
 		t.Fatal("expected UNKNOWN disposition failure")
