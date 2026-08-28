@@ -1,18 +1,17 @@
 # Handoff: Sai Author reference shell (slice 77)
 
 Task-ID: 20260828-1715-sai-author-shell
-HEAD: `f3072453af86400f09bff67fae1fbe319d55f3fc` (code); evidence mint commit follows.
+Agent: cursor-cloud-agent
 
 ## Done
 
-- Added `prototypes/plugins/author/` macOS + iOS placeholder package using SaiDesignLanguage.
-- Mapped `prototypes/*` in sai-verify feature map and path parser.
-- Added delete-isolation proof (`scripts/verify-author-delete-isolation.py` + in-tree `tests/delete-isolation.sh`).
-- Restored full `cmd/sai-verify/main.go`; reverted forbidden `allowBin` widening.
-- Fixed ICM `metadata.json` required fields (`repository`, `status`).
-- Added verifier-owned `prototypes/plugins/` exemption in `cmd/sai-design-check`.
+- `prototypes/plugins/author/` macOS + iOS placeholder package using SaiDesignLanguage only.
+- Delete-isolation proof (`scripts/verify-author-delete-isolation.py` + `tests/delete-isolation.sh`).
+- Terminal-outcomes proof (`scripts/verify-author-terminal-outcomes.py` + `tests/terminal-outcomes.sh`) for delete + integrate-readiness + spin-off-readiness per #160.
+- sai-verify `prototype-plugins.md` maps Author surface and proof recipes.
+- Author README documents Foundry terminal outcomes with mechanical proof commands.
 
-## `/goal` evidence (Author shell under `prototypes/plugins/author/` only)
+## `/goal` evidence @ HEAD (update each push)
 
 ### Author tree
 
@@ -24,40 +23,30 @@ HEAD: `f3072453af86400f09bff67fae1fbe319d55f3fc` (code); evidence mint commit fo
 | `Sources/SaiAuthor/SettingsPlaceholder.swift` | `SaiCanvas` + `SaiText` |
 | `SaiAuthorMac/SaiAuthorMacApp.swift` | macOS `@main` |
 | `SaiAuthorIOS/SaiAuthorIOSApp.swift` | iOS `@main` |
-| `tests/delete-isolation.sh` | In-tree adversarial delete proof |
+| `tests/delete-isolation.sh` | In-tree delete proof |
+| `tests/terminal-outcomes.sh` | In-tree terminal-outcomes proof |
 
-Depends on `SaiDesignLanguage` via relative SaiKit path only. Production manifests do not reference this package.
+### Terminal outcomes (#160)
 
-### Delete-isolation proof
+1. **Delete:** `scripts/verify-author-delete-isolation.py` — production grep clean; design-check + sai-verify pass with Author removed.
+2. **Integrate-readiness:** `verify-author-terminal-outcomes.py` — Swift imports limited to `SaiDesignLanguage`/`SwiftUI`; no production app product deps in `Package.swift`.
+3. **Spin-off-readiness:** same script — no `../../Sai` refs, no symlinks, relative SaiKit path, sources self-contained.
 
-1. `grep -R prototypes/plugins` over `apps/apple`, `cmd/sai`, `internal` must be empty.
-2. Move `prototypes/plugins/author/` aside; run `go run ./cmd/sai-design-check` and `go test ./cmd/sai-verify/...`; both PASS.
-3. Restore author tree.
+### Exact-HEAD CI
 
-Runners: `scripts/verify-author-delete-isolation.py` (`::py` in `prototype-plugins.md`); in-tree `tests/delete-isolation.sh`.
-
-Executed in icm-enforcement step 16 @ `f3072453`.
-
-### Verifier mapping (verify-only production Go)
-
-- `cmd/sai-verify/main.go` `pathRe` includes `prototypes`.
-- `prototype-plugins.md` feature map with `::exists`, `::py`, `::contains featureUIAllowed = false`.
-- `cmd/sai-design-check` `isPrototypeLane()` for `prototypes/plugins/` only.
-- Tests: `TestPrototypeLaneAllowsSwiftUI`, `TestNearPrefixCannotBecomePrototypeLane`.
-
-### Exact-HEAD CI @ `f3072453`
-
-- icm-enforcement: https://github.com/Dezocode/Sai/actions/runs/33197869944
-- Sai Design Language: https://github.com/Dezocode/Sai/actions/runs/33197869921
-- Anti-regression, PR line budget, Feature maps Pages: all SUCCESS (11/11 checks).
+Re-bind after each push. Prior green @ `eed4dbf`:
+- icm-enforcement: https://github.com/Dezocode/Sai/actions/runs/33199748465
+- Sai Design Language: https://github.com/Dezocode/Sai/actions/runs/33199748544
+- Anti-regression: https://github.com/Dezocode/Sai/actions/runs/33199748022
 
 ## Verify
 
+- `python3 scripts/verify-author-terminal-outcomes.py`
 - `scripts/verify-author-delete-isolation.py`
-- `swift build --package-path prototypes/plugins/author` (macOS CI)
-- `go test ./cmd/sai-design-check/... -run PrototypeLane`
+- `swift build --package-path prototypes/plugins/author`
 
 ## Next
 
-- Saul Product Quality on HEAD (Origin runs in parallel).
+- Await exact-HEAD CI on new push.
+- Saul Product Quality (Origin/Hostinger; not agent-owned).
 - Stay draft until owner merge approval.

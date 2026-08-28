@@ -12,13 +12,21 @@ SaiKit via a relative path and is not referenced from production manifests.
 
 Every prototype under `prototypes/plugins/` must support delete, integrate, or
 spin-off without architectural surgery. Author is a reference shell that proves
-the lane pattern:
+the lane pattern mechanically:
 
-| Outcome | How (this slice) |
-|---------|------------------|
-| **Delete/archive** | Remove this directory. Run `scripts/verify-author-delete-isolation.py` or `tests/delete-isolation.sh`. Production design-check and sai-verify must stay green. |
-| **Integrate** | Not executed here. Slice 79 provides a read-only integrate planner; graduation never recommends a folder move. |
-| **Spin-off** | Not executed here. Slice 80 exports an independent tree with no `../../Sai` checkout refs. |
+| Outcome | Mechanical proof (this slice) |
+|---------|-------------------------------|
+| **Delete/archive** | `scripts/verify-author-delete-isolation.py` or `tests/delete-isolation.sh`. Production design-check and sai-verify stay green after Author removal. |
+| **Integrate** | `scripts/verify-author-terminal-outcomes.py` proves Author imports only `SaiDesignLanguage` + SwiftUI and `Package.swift` lists no production app products. Graduation is plan-first (slice 79), never a folder move. |
+| **Spin-off** | Same script proves no `../../Sai` checkout refs, no symlinks, relative SaiKit path only, all sources self-contained under this tree. Full export is slice 80. |
+
+Run the combined proof:
+
+```bash
+python3 scripts/verify-author-terminal-outcomes.py
+# or in-tree:
+./prototypes/plugins/author/tests/terminal-outcomes.sh
+```
 
 ## Build
 
@@ -35,3 +43,4 @@ swift build --package-path prototypes/plugins/author
 | `Sources/SaiAuthor/` | Shared `AuthorRootView` + Editor/Settings placeholders (`SaiCanvas`, `SaiText`) |
 | `SaiAuthorMac/`, `SaiAuthorIOS/` | Platform `@main` entry points |
 | `tests/delete-isolation.sh` | In-tree adversarial delete proof |
+| `tests/terminal-outcomes.sh` | In-tree delete + integrate + spin-off readiness proof |
