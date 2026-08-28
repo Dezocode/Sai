@@ -1,1 +1,1 @@
-https://raw.githubusercontent.com/Dezocode/Sai/3159b58753a140ef052bb41dc987c8a5cd6fad81/cmd/sai-verify/main.go
+git:3159b58753a140ef052bb41dc987c8a5cd6fad81:cmd/sai-verify/main.go
