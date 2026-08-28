@@ -31,3 +31,13 @@ decision records once they exist.
 - Reporting to Slack #agentupdates via `scripts/agent-report`, wired through
   `.githooks/` (installed with `scripts/install-agent-hooks`).
 - Google Drive is a replicated recovery layer per `.ai/_config/sync-policy.md`.
+
+## Prototype plugin lane (verified 2026-08-28, PR #136 on `main`)
+
+A verifier-owned non-shipping prototype lane exists at `prototypes/plugins/`.
+Production design authority (`featureUIAllowed=false`, `SaiDesignLanguage`) is
+unchanged. Lane contracts are in
+`docs/architecture/SAI-PROTOTYPE-PLUGIN-LANE.md` and
+`docs/architecture/SAI-PROTOTYPE-LANE-ENFORCEMENT.md`; mechanical enforcement
+is owned by `cmd/sai-verify` and `cmd/sai-design-check` (see
+`.cursor/skills/verify-sai/features/prototype-plugins.md`).
