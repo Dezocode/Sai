@@ -213,3 +213,25 @@ func TestNestedGoModReplaceIntoLaneFails(t *testing.T) {
 	writeRel(t, root, "tools/vendored/go.mod", "module vend\n\nreplace e.com/x => ./vendor/x v1.0.0\n"); writeRel(t, root, "third_party/prototypes/keep/go.mod", "module keep\n")
 	if err := checkPrototypeLaneDiff(root); err == nil { t.Fatal("unreadable nested manifest path handling diverged") }
 }
+func TestGoImportUnicodeEscapeFails(t *testing.T) {
+	src := "package app\nimport _ \"\\u0070rototypes/plugins/author\"\n"
+	if !goImportsPrototype(src) { t.Fatal("unicode-escaped prefix must decode to lane import") }
+	mustFail(t, "internal/app/esc.go", src)
+}
+func TestVersionedPackageManifestLaneFails(t *testing.T) {
+	root := lockedFixture(t)
+	writeRel(t, root, "apps/apple/Package@swift-6.0.swift", ".target(name: \"x\", path: \"../../prototypes/plugins/author\")\n")
+	if err := check(root); err == nil { t.Fatal("versioned Package manifest referencing lane must fail") }
+}
+func TestGoWorkUseWithoutSpaceIntoLaneFails(t *testing.T) {
+	root := lockedFixture(t)
+	writeRel(t, root, "go.work", "go 1.22\n\nuse(\n\t./prototypes/plugins/author\n)\n")
+	if err := checkGoWorkFiles(root); err == nil { t.Fatal("use( block into lane must fail") }
+	writeRel(t, root, "go.work", "go 1.22\n\nreplace(\n\texample.com/x => ../prototypes/plugins/author\n)\n")
+	if err := checkGoWorkFiles(root); err == nil { t.Fatal("replace( block into lane must fail") }
+}
+func TestResolvesIntoRelativePrototypesTree(t *testing.T) {
+	root := lockedFixture(t)
+	if !resolvesInto(root, "apps/apple/Package.swift", "../../prototypes/other") { t.Fatal("relative prototypes/ tree must resolve into lane") }
+	if resolvesInto(root, "apps/apple/Package.swift", "../../vendor/safe") { t.Fatal("non-lane relative path must not hit") }
+}
