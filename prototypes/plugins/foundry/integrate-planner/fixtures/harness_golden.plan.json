@@ -1,7 +1,7 @@
 {
   "schema": "foundry.integrate.plan.v1",
   "source_head_sha": "1111111111111111111111111111111111111111",
-  "graph_hash": "",
+  "graph_hash": "1ed48aa36781d983104313063a682c688802d3ce62997721aa422c87d6da5352",
   "prototype_id": "sai-harness",
   "ready": true,
   "entries": [

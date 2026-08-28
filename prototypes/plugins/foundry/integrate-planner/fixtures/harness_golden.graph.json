@@ -2,7 +2,7 @@
   "schema": "foundry.graph.v1",
   "prototype_id": "sai-harness",
   "source_head_sha": "1111111111111111111111111111111111111111",
-  "graph_hash": "8f3c2b1a9e7d6c5b4a3928170695847362514039281706059483726150394857261",
+  "graph_hash": "1ed48aa36781d983104313063a682c688802d3ce62997721aa422c87d6da5352",
   "nodes": [
     {
       "id": "design-tokens",
