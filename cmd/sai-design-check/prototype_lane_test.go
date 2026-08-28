@@ -40,7 +40,7 @@ func mustPass(t *testing.T, files map[string]string) {
 }
 func TestPrototypeSwiftUIBoundariesFail(t *testing.T) {
 	for _, tc := range []struct{ rel, src string }{
-		{featureRoot + "/Dash.swift", "import SwiftUI\nstruct Dash: View { var body: some View { Text(\"d\") } }\n"}, {featureRoot + "/Dash.swift", "import /* sneaky */ SwiftUI\nstruct Dash: View { var body: some View { Text(\"d\") } }\n"}, {featureRoot + "/Dash.swift", "import/**/SwiftUI\nstruct Dash: View { var body: some View { Text(\"d\") } }\n"}, {"prototypes/plugins-evil/Evil.swift", protoView}, {"prototypes/plugin/NotEvil.swift", protoView}, {"prototype/plugins/AlsoWrong.swift", protoView}, {"prototypes/plugins/author/Editor.swift", protoView + ".padding(17)\n"}, {"prototypes/plugins/Evil.swift", protoView}, {"prototypes/plugins-evil/PrototypeDesign/Tokens.swift", expTokens}, {"prototype/plugins/x/PrototypeDesign/Tokens.swift", expTokens}, {"prototypes/plugins/author/views/PrototypeDesign/Tokens.swift", expTokens},
+		{featureRoot + "/Dash.swift", "import SwiftUI\nstruct Dash: View { var body: some View { Text(\"d\") } }\n"}, {featureRoot + "/Dash.swift", "import /* sneaky */ SwiftUI\nstruct Dash: View { var body: some View { Text(\"d\") } }\n"}, {featureRoot + "/Dash.swift", "import/**/SwiftUI\nstruct Dash: View { var body: some View { Text(\"d\") } }\n"}, {"prototypes/plugins-evil/Evil.swift", protoView}, {"prototypes/plugin/NotEvil.swift", protoView}, {"prototype/plugins/AlsoWrong.swift", protoView}, {"prototypes/plugins/Evil.swift", protoView}, {"prototypes/plugins-evil/PrototypeDesign/Tokens.swift", expTokens}, {"prototype/plugins/x/PrototypeDesign/Tokens.swift", expTokens},
 	} { mustFail(t, tc.rel, tc.src) }
 	for _, mod := range []string{"open", "public", "package", "internal", "fileprivate", "private"} { mustFail(t, featureRoot+"/Dash.swift", mod+" import SwiftUI\nstruct Dash: View { var body: some View { Text(\"d\") } }\n") }
 	mustFail(t, featureRoot+"/Dash.swift", "@available(macOS 13, *)\nfileprivate import SwiftUI\n")
@@ -50,6 +50,12 @@ func TestPrototypeExemptionsPass(t *testing.T) {
 	mustPass(t, map[string]string{
 		"prototypes/plugins/author/Editor.swift": protoView, "prototypes/plugins/author/PrototypeDesign/Tokens.swift": expTokens, "prototypes/plugins/author/PrototypeDesign/nested/deep/Tokens.swift": expTokens, "prototypes/plugins/author/bridge.go": "package author\nimport _ \"github.com/Dezocode/Sai/internal/app\"\nvar _ = 1\n", "prototypes/plugins/author/fs.go": "package author\nimport \"os\"\nvar _ = os.Open\n", "prototypes/plugins/author/init.go": "package author\nfunc init() {}\n",
 		featureRoot + "/Dash.swift": "public import Foundation\nlet dash = 1\n",
+	})
+}
+func TestPrototypeDesignFreedomPasses(t *testing.T) {
+	mustPass(t, map[string]string{
+		"prototypes/plugins/author/Editor.swift": "import SwiftUI\nstruct AuthorEditor: View { var body: some View { Text(\"Experiment\").padding(17).font(.system(size: 31)).cornerRadius(13).shadow(radius: 9).zIndex(2) } }\n",
+		"prototypes/plugins/author/views/PrototypeDesign/Tokens.swift": "import SwiftUI\nlet experimentalColor = Color.red\n",
 	})
 }
 func TestProductionTestGoCannotImportLane(t *testing.T) {
