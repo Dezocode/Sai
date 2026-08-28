@@ -2,16 +2,17 @@
 
 Task-ID: 20260828-1715-sai-author-shell
 Agent: cursor-cloud-agent
+HEAD: `5d4052a9fa92b1c9a6200bb1ce3cb49d666ae9d1`
 
 ## Done
 
 - `prototypes/plugins/author/` macOS + iOS placeholder package using SaiDesignLanguage only.
 - Delete-isolation proof (`scripts/verify-author-delete-isolation.py` + `tests/delete-isolation.sh`).
 - Terminal-outcomes proof (`scripts/verify-author-terminal-outcomes.py` + `tests/terminal-outcomes.sh`) for delete + integrate-readiness + spin-off-readiness per #160.
-- sai-verify `prototype-plugins.md` maps Author surface and proof recipes.
+- sai-verify `prototype-plugins.md` maps Author surface and proof recipes (`::py` delete + terminal).
 - Author README documents Foundry terminal outcomes with mechanical proof commands.
 
-## `/goal` evidence @ HEAD (update each push)
+## `/goal` evidence @ `5d4052a`
 
 ### Author tree
 
@@ -29,15 +30,17 @@ Agent: cursor-cloud-agent
 ### Terminal outcomes (#160)
 
 1. **Delete:** `scripts/verify-author-delete-isolation.py` — production grep clean; design-check + sai-verify pass with Author removed.
-2. **Integrate-readiness:** `verify-author-terminal-outcomes.py` — Swift imports limited to `SaiDesignLanguage`/`SwiftUI`; no production app product deps in `Package.swift`.
-3. **Spin-off-readiness:** same script — no `../../Sai` refs, no symlinks, relative SaiKit path, sources self-contained.
+2. **Integrate-readiness:** `verify-author-terminal-outcomes.py` — Swift imports limited to `SaiDesignLanguage`/`SwiftUI`/`SaiAuthor` (platform apps only); `Package.swift` product deps checked separately (skips SPM `PackageDescription` import scan).
+3. **Spin-off-readiness:** same script — no `../../Sai` refs in code, no symlinks, relative SaiKit path, sources self-contained.
 
-### Exact-HEAD CI
+### Exact-HEAD CI @ `5d4052a` (11/11 SUCCESS)
 
-Re-bind after each push. Prior green @ `eed4dbf`:
-- icm-enforcement: https://github.com/Dezocode/Sai/actions/runs/33199748465
-- Sai Design Language: https://github.com/Dezocode/Sai/actions/runs/33199748544
-- Anti-regression: https://github.com/Dezocode/Sai/actions/runs/33199748022
+- icm-enforcement (drive/doctor/preserve/proof step 16): https://github.com/Dezocode/Sai/actions/runs/33204530875
+- Sai Design Language: https://github.com/Dezocode/Sai/actions/runs/33204530924
+- Anti-regression: https://github.com/Dezocode/Sai/actions/runs/33204529656
+- PR line budget: https://github.com/Dezocode/Sai/actions/runs/33204529595
+- Feature maps Pages: https://github.com/Dezocode/Sai/actions/runs/33204530908
+- sai-verify proof artifact: `sai-verify-proof-5d4052a9fa92b1c9a6200bb1ce3cb49d666ae9d1`
 
 ## Verify
 
@@ -47,6 +50,5 @@ Re-bind after each push. Prior green @ `eed4dbf`:
 
 ## Next
 
-- Await exact-HEAD CI on new push.
 - Saul Product Quality (Origin/Hostinger; not agent-owned).
 - Stay draft until owner merge approval.
