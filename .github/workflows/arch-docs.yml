@@ -1,0 +1,66 @@
+# Architecture docs data-baseline.
+#
+# INFORMATIONAL ONLY — nothing in this workflow may block a merge or turn a
+# PR red. Both jobs run with continue-on-error: true; the PR staleness check
+# emits a ::warning:: annotation instead of failing.
+name: arch-docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    # Non-blocking data baseline: never fail the build.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate architecture docs
+        run: bash scripts/generate-arch-docs.sh
+
+      - name: Check docs are up to date (PR, informational)
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: |
+          if ! git diff --exit-code --quiet -- docs/architecture/; then
+            echo "::warning::docs/architecture/ is stale — run 'bash scripts/generate-arch-docs.sh' and commit the result (informational; does not block merge)"
+            git diff --stat -- docs/architecture/
+          fi
+
+      - name: Auto-commit regenerated docs (push to main)
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/architecture
+          if ! git diff --cached --exit-code --quiet; then
+            # [skip ci] avoids re-triggering this workflow in a loop.
+            git commit -m "docs: regenerate architecture docs [skip ci]"
+            git push
+          else
+            echo "architecture docs already up to date"
+          fi
+
+  gitnexus-index:
+    runs-on: ubuntu-latest
+    # Informational only; the FTS extension may need network access.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install GitNexus
+        run: npm i -g gitnexus@1.6.11
+
+      - name: Analyze repository
+        continue-on-error: true
+        run: gitnexus analyze
