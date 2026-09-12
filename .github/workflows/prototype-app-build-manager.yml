@@ -1,0 +1,72 @@
+name: Prototype — App Build Manager
+
+# Proposed main-branch CI for the App Build Manager prototype lane entry.
+# Static checks only (the live VPS deployment is tailnet-only and cannot be
+# reached from GitHub runners; live verification stays a manual gate).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "prototypes/plugins/app-build-manager/**"
+      - ".github/workflows/prototype-app-build-manager.yml"
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "prototypes/plugins/app-build-manager/**"
+      - ".github/workflows/prototype-app-build-manager.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  prototype-abm:
+    name: Prototype ABM lane checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted base
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Validate PROTOTYPE.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'EOF'
+          import json
+          m = json.load(open('prototypes/plugins/app-build-manager/PROTOTYPE.json'))
+          for k in ('name', 'status', 'lane', 'branch', 'agent_skills', 'does_not_claim'):
+              assert k in m, f'missing key: {k}'
+          assert m['status'] == 'prototype', 'status must stay "prototype"'
+          assert m['lane'] == 'prototypes/plugins/', 'lane must stay canonical'
+          assert 'Sai task-sheet completion' in ' '.join(m['does_not_claim']) or any(
+              'task-sheet' in c for c in m['does_not_claim']), 'must disclaim task-sheet completion'
+          print('PROTOTYPE.json valid:', m['name'], '-', m['status'])
+          EOF
+
+      - name: Enforce one-way lane isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Production Sai must never import prototype code.
+          hits=$(grep -rn "prototypes/plugins/app-build-manager" \
+            apps internal api cmd design docs 2>/dev/null | grep -v '^Binary' || true)
+          if [ -n "$hits" ]; then
+            echo "::error title=Lane isolation violated::production paths reference the prototype:"
+            echo "$hits"
+            exit 1
+          fi
+          echo "Lane isolation intact: no production references to the prototype."
+
+      - name: Require agent skills in README
+        shell: bash
+        run: |
+          set -euo pipefail
+          for s in "Skill 1" "Skill 2" "Skill 3" "Asset management" "Version control" "Validating work"; do
+            grep -q "$s" prototypes/plugins/app-build-manager/README.md || {
+              echo "::error title=Missing agent skill::README lacks section: $s"; exit 1; }
+          done
+          echo "Agent skills present: assets, version control, validation."
