@@ -5,11 +5,8 @@ implementation lives in its own repository and deployment, which keeps the
 prototype lane's one-way isolation mechanically clean.
 
 - **Source repo:** `dezocode-ui-collections`
-  (local: `~/workspace/dezocode-ui-collections`)
-- **VPS deploy:** `/srv/dezocode-ui-collections` on the Hostinger VPS
-  (`100.71.214.43`, Tailscale)
-- **Container:** `dezocode-ui-collections-ui-collections-1` (port 4848)
-- **Live:** `http://100.71.214.43:4848` (join the tailnet from the iPhone)
+- **Deploy, container, local paths, live URL:** private runbook only — never
+  committed to this public repository.
 
 Key paths inside the implementation:
 

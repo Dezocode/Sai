@@ -1,8 +1,21 @@
 name: Prototype — App Build Manager
 
 # Proposed main-branch CI for the App Build Manager prototype lane entry.
-# Static checks only (the live VPS deployment is tailnet-only and cannot be
+# Static checks only (the live deployment is tailnet-only and cannot be
 # reached from GitHub runners; live verification stays a manual gate).
+#
+# Pre-merge validation note: a workflow file introduced by a PR cannot execute
+# from that PR before merge, because pull_request_target runs the workflow
+# from the BASE tree. Until the first post-merge exact-head run on main
+# succeeds, this workflow's three steps are run verbatim against the exact PR
+# head (proof recorded in the goal's overnight check-in log); the post-merge
+# main run is the standing authority thereafter.
+#
+# pull_request_target checks out the PR HEAD (not the base): the isolation and
+# manifest checks must inspect the proposed revision, otherwise a PR could
+# remove required keys while the job stays green. Checking out the untrusted
+# head is safe here because no checked-out code is ever executed — the
+# steps only parse JSON and grep static text.
 
 on:
   push:
@@ -10,11 +23,23 @@ on:
     paths:
       - "prototypes/plugins/app-build-manager/**"
       - ".github/workflows/prototype-app-build-manager.yml"
+      - "apps/**"
+      - "internal/**"
+      - "api/**"
+      - "cmd/**"
+      - "design/**"
+      - "docs/**"
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "prototypes/plugins/app-build-manager/**"
       - ".github/workflows/prototype-app-build-manager.yml"
+      - "apps/**"
+      - "internal/**"
+      - "api/**"
+      - "cmd/**"
+      - "design/**"
+      - "docs/**"
 
 permissions:
   contents: read
@@ -25,10 +50,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Checkout trusted base
+      - name: Checkout PR head (content inspected, never executed)
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Validate PROTOTYPE.json
@@ -51,15 +76,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Production Sai must never import prototype code.
-          hits=$(grep -rn "prototypes/plugins/app-build-manager" \
-            apps internal api cmd design docs 2>/dev/null | grep -v '^Binary' || true)
+          # Production Sai must never import prototype code. Scan the ENTIRE
+          # tracked tree (not a hard-coded root list) so new top-level
+          # directories are covered automatically; fail loudly when git is
+          # unavailable instead of masking the error.
+          git rev-parse --is-inside-work-tree >/dev/null
+          hits=$(git grep -l -- 'prototypes/plugins/app-build-manager' -- \
+            ':!prototypes/plugins/app-build-manager' \
+            ':!.github/workflows/prototype-app-build-manager.yml' || true)
           if [ -n "$hits" ]; then
-            echo "::error title=Lane isolation violated::production paths reference the prototype:"
+            echo "::error title=Lane isolation violated::tracked files reference the prototype:"
             echo "$hits"
             exit 1
           fi
-          echo "Lane isolation intact: no production references to the prototype."
+          echo "Lane isolation intact: no tracked references to the prototype."
 
       - name: Require agent skills in README
         shell: bash

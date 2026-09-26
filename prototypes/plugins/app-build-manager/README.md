@@ -10,10 +10,10 @@ a living 3D canon town (Three.js) behind every screen, with the seven Sai person
 as procedural 3D creatures that behave like tamagotchis (mood driven by real
 interaction time + the parent's daily schedule, never random).
 
-- **Live prototype:** `http://100.71.214.43:4848` (Tailscale; iPhone must join the tailnet)
-- **Implementation source:** `dezocode-ui-collections` repo, deployed at
-  `/srv/dezocode-ui-collections` on the Hostinger VPS
-  (container `dezocode-ui-collections-ui-collections-1`)
+- **Live prototype:** Tailscale-only deployment — access details live in the
+  private runbook, not in this public repository.
+- **Implementation source:** the `dezocode-ui-collections` repo (deploy paths,
+  container, and local paths live in the private runbook).
 - **Lane:** `prototypes/plugins/` — one-way isolation: production Sai must never
   import prototype code. Terminal outcomes for this prototype: archive it,
   integrate it into production Sai via an explicit production PR, or keep it as
