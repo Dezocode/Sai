@@ -14,8 +14,10 @@ name: Prototype — App Build Manager
 # pull_request_target checks out the PR HEAD (not the base): the isolation and
 # manifest checks must inspect the proposed revision, otherwise a PR could
 # remove required keys while the job stays green. Checking out the untrusted
-# head is safe here because no checked-out code is ever executed — the
-# steps only parse JSON and grep static text.
+# head stays safe because checked-out code is never executed: manifest
+# validation runs under `python3 -I` (isolated mode -- the repo dir is not on
+# sys.path, so a fork-added json.py cannot shadow the stdlib), and the
+# remaining steps are git grep / grep only.
 
 # No `paths:` filters anywhere in this workflow -- deliberately. The isolation
 # guard must be unskippable, and no path enumeration can ever be complete: any
@@ -47,7 +49,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'EOF'
+          # -I = isolated mode: cwd is not prepended to sys.path, so repo
+          # files from the checked-out PR head cannot shadow stdlib modules.
+          python3 -I - <<'EOF'
           import json
           m = json.load(open('prototypes/plugins/app-build-manager/PROTOTYPE.json'))
           for k in ('name', 'status', 'lane', 'branch', 'agent_skills', 'does_not_claim'):
