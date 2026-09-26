@@ -17,29 +17,16 @@ name: Prototype — App Build Manager
 # head is safe here because no checked-out code is ever executed — the
 # steps only parse JSON and grep static text.
 
+# No `paths:` filters anywhere in this workflow -- deliberately. The isolation
+# guard must be unskippable, and no path enumeration can ever be complete: any
+# new top-level root (or an uncovered one like scripts/, deploy/,
+# migrations/, go.mod) would otherwise bypass the lane check. The scan is a
+# seconds-long git grep + JSON parse, so it runs on every event by design.
 on:
   push:
     branches: [main]
-    paths:
-      - "prototypes/plugins/app-build-manager/**"
-      - ".github/workflows/prototype-app-build-manager.yml"
-      - "apps/**"
-      - "internal/**"
-      - "api/**"
-      - "cmd/**"
-      - "design/**"
-      - "docs/**"
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "prototypes/plugins/app-build-manager/**"
-      - ".github/workflows/prototype-app-build-manager.yml"
-      - "apps/**"
-      - "internal/**"
-      - "api/**"
-      - "cmd/**"
-      - "design/**"
-      - "docs/**"
 
 permissions:
   contents: read
